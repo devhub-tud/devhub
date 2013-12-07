@@ -4,4 +4,4 @@
 
 **/.classpath
 **/target/
-**/.db
+**/*.db

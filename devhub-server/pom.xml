@@ -114,7 +114,7 @@
 					<outputDirectory>${project.basedir}/src/main/resources/static/css</outputDirectory>
 					<compress>true</compress>
 					<includes>
-						<include>bootstrap.less</include>
+						<include>devhub.less</include>
 					</includes>
 				</configuration>
 				<executions>

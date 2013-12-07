@@ -1,0 +1,123 @@
+@font-face {
+	font-family: 'Signika Negative';
+	font-style: normal;
+	font-weight: 300;
+	src: local('Signika Negative Light'), local('SignikaNegative-Light'), url(http://themes.googleusercontent.com/static/fonts/signikanegative/v2/q5TOjIw4CenPw6C-TW06FrSCqyzKJANNqhjQyS0Fx0E.woff) format('woff');
+}
+@font-face {
+	font-family: 'Signika Negative';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Signika Negative'), local('SignikaNegative-Regular'), url(http://themes.googleusercontent.com/static/fonts/signikanegative/v2/Z-Q1hzbY8uAo3TpTyPFMXZDOGCuI1pQIwqDbhXqhZhw.woff) format('woff');
+}
+@font-face {
+	font-family: 'Signika Negative';
+	font-style: normal;
+	font-weight: 600;
+	src: local('Signika Negative Semibold'), local('SignikaNegative-Semibold'), url(http://themes.googleusercontent.com/static/fonts/signikanegative/v2/q5TOjIw4CenPw6C-TW06FgvNGj7b0r5EVBw0pndrkW8.woff) format('woff');
+}
+@font-face {
+	font-family: 'Signika Negative';
+	font-style: normal;
+	font-weight: 700;
+	src: local('Signika Negative Bold'), local('SignikaNegative-Bold'), url(http://themes.googleusercontent.com/static/fonts/signikanegative/v2/q5TOjIw4CenPw6C-TW06FvRHEDGP1JGo_0-JTT3olAw.woff) format('woff');
+}
+
+body, html {
+	margin: 0;
+	height: 100%;
+	background-color: #eeede9;
+	font-weight: 100;
+	font-family: 'Signika Negative';
+	min-height: 720px;
+}
+
+h2 {
+	margin: 0;
+	padding: 0;
+	line-height: 20px;
+	font-family: 'Signika Negative';
+}
+
+a {
+	text-decoration: none;
+	font-family: 'Signika Negative';
+}
+
+.header {
+	height: 48px;
+	background-color: #222;
+	border-bottom: 1px solid #111;
+}
+
+.main {
+	float: left;
+	height: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.menu {
+	background-color: #222;
+	color: white;
+	height: 100%;
+	margin-right: 22px;
+}
+
+.menu a {
+	color: #666;
+}
+
+.menu a:hover {
+	color: #f0f0f0;
+}
+
+.menu > ul {
+	list-style-type: none;
+	width: 48px;
+	margin: 0;
+	padding: 0;
+	transition: width 0.3s ease-in-out;
+	border-bottom: 1px solid #333;
+}
+
+.menu > ul:hover {
+	width: 200px;
+}
+
+.menu > ul > li {
+	height: 48px;
+	width: 100%;
+	border-bottom: 1px solid #111;
+	border-top: 1px solid #333;
+}
+
+.menu > ul > li > a {
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+}
+
+.menu > ul > li > a > img {
+	opacity: 0.6;
+	transition: opacity 0.2s ease-in;
+}
+
+.menu > ul > li:hover > a > img {
+	opacity: 1.0;
+}
+
+.menu > ul > li > a > span {
+	opacity: 0.00;
+	vertical-align: 18px;
+	transition: opacity 0.2s ease-in;
+}
+
+.menu > ul:hover > li > a > span {
+	opacity: 1.00;
+}
+
+.container {
+	padding: 22px;
+	min-width: 640px;
+}

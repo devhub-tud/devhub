@@ -1,6 +1,6 @@
 package nl.devhub.client.docker;
 
-public interface Log {
+public interface Logger {
 	void onNextLine(String line);
 	void onClose();
 }

@@ -3,70 +3,97 @@ package nl.devhub.client.docker;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 
+import lombok.extern.slf4j.Slf4j;
 import nl.devhub.client.docker.models.Container;
 import nl.devhub.client.docker.models.ContainerStart;
 import nl.devhub.client.docker.models.Identifiable;
 import nl.devhub.client.docker.models.LxcConf;
 import nl.devhub.client.docker.models.StatusCode;
-
-import lombok.extern.slf4j.Slf4j;
+import nl.devhub.client.docker.settings.Model.Listener;
+import nl.devhub.client.docker.settings.Settings;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 @Slf4j
+@Singleton
 public class DockerManager {
 
-	private static final String HOST = "http://192.168.178.36:4243";
-	
-	private static final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
+	private final ScheduledThreadPoolExecutor executor;
+	private final Settings settings;
 
-	public static void main(String[] args) throws IOException, InterruptedException {
-		new DockerManager().run();
-		executor.shutdown();
-	}
-	
-	public void run() throws InterruptedException {
-		Identifiable container = create();
-		start(container);
-		Future<?> future = fetchLog(container, new Log() {
+	@Inject
+	public DockerManager(Settings settings) {
+		int maxContainers = settings.getMaxConcurrentContainers().getValue();
+		
+		this.settings = settings;
+		this.executor = new ScheduledThreadPoolExecutor(maxContainers);
+		
+		// Add listener for resizing of docker pool.
+		settings.getMaxConcurrentContainers().notifyOnChange(new Listener<Integer>() {
 			@Override
-			public void onNextLine(String line) {
-				log.info(line);
-			}
-			@Override
-			public void onClose() {
-				log.info("TERMINATED");
+			public void onChange(Integer newValue) {
+				executor.setMaximumPoolSize(newValue);
+				log.info("Docker container pool size changed to: {}", newValue);
 			}
 		});
 		
-		awaitTermination(container);
-		future.cancel(true);
-		
-		stop(container);
-		delete(container);
+		// Add shutdown hook for terminating jobs.
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				executor.shutdown();
+			}
+		});
 	}
 	
-	public Identifiable create() {
+	public void run(Job job) throws InterruptedException {
+		String host = settings.getHost().getValue();
+		log.info("Starting new job: {} on host: {}", job, host);
+		
+		Identifiable container = create(host, job);
+		start(host, container, job);
+		Future<?> future = fetchLog(host, container, job.getLogger());
+		
+		awaitTermination(host, container);
+		future.cancel(true);
+		
+		stop(host, container);
+		delete(host, container);
+	}
+	
+	private Identifiable create(final String host, Job job) {
+		Map<String, Object> volumes = Maps.newHashMap();
+		for (String mount : job.getMounts().values()) {
+			volumes.put(mount, ImmutableMap.<String, Object>of());
+		}
+		
 		final Container container = new Container()
 			.setTty(true)
-			.setCmd(new String[] { "mvn", "clean", "package" })
-			.setWorkingDir("/workspace")
-			.setVolumes(ImmutableMap.<String, Object>of("/workspace", ImmutableMap.<String, Object>of()))
-			.setImage("devhub/builder:latest");
+			.setCmd(job.getCommand())
+			.setWorkingDir(job.getWorkingDir())
+			.setVolumes(volumes)
+			.setImage(job.getImage());
 		
 		return request(new Request<Identifiable>() {
 			@Override
 			public Identifiable request(Client client) {
 				log.debug("Creating container: {}", container);
-				return client.target(HOST + "/containers/create")
+				return client.target(host + "/containers/create")
 					.request(MediaType.APPLICATION_JSON)
 					.accept(MediaType.APPLICATION_JSON)
 					.post(Entity.json(container), Identifiable.class);
@@ -74,16 +101,21 @@ public class DockerManager {
 		});
 	}
 	
-	public void start(final Identifiable container) {
+	private void start(final String host, final Identifiable container, final Job job) {
 		perform(new Action() {
 			@Override
 			public void perform(Client client) {
+				List<String> mounts = Lists.newArrayList();
+				for (Entry<String, String> mount : job.getMounts().entrySet()) {
+					mounts.add(mount.getKey() + ":" + mount.getValue() + ":rw");
+				}
+				
 				ContainerStart start = new ContainerStart()
-					.setBinds(new String[] { "/workspace:/workspace:rw" })
-					.setLxcConf(new LxcConf[] { new LxcConf("lxc.utsname", "docker") });
+					.setBinds(mounts)
+					.setLxcConf(Lists.newArrayList(new LxcConf("lxc.utsname", "docker")));
 		
 				log.debug("Starting container: {}", container.getId());
-				client.target(HOST + "/containers/" + container.getId() + "/start")
+				client.target(host + "/containers/" + container.getId() + "/start")
 						.request(MediaType.APPLICATION_JSON)
 						.accept(MediaType.TEXT_PLAIN)
 						.post(Entity.json(start));
@@ -91,7 +123,7 @@ public class DockerManager {
 		});
 	}
 	
-	public Future<?> fetchLog(final Identifiable container, final Log collector) {
+	private Future<?> fetchLog(final String host, final Identifiable container, final Logger collector) {
 		return executor.submit(new Runnable() {
 			@Override
 			public void run() {
@@ -101,7 +133,7 @@ public class DockerManager {
 						log.debug("Streaming log from container: {}", container.getId());
 		
 						String url = "/containers/" + container.getId() + "/attach?logs=1&stream=1&stdout=1&stderr=1";
-						final Reader logs = client.target(HOST + url)
+						final Reader logs = client.target(host + url)
 							.request()
 							.accept(MediaType.APPLICATION_OCTET_STREAM_TYPE)
 							.post(null, Reader.class);
@@ -124,12 +156,12 @@ public class DockerManager {
 		});
 	}
 	
-	public StatusCode awaitTermination(final Identifiable container) {
+	private StatusCode awaitTermination(String host, Identifiable container) {
 		log.debug("Awaiting termination of container: {}", container.getId());
 		
 		StatusCode status;
 		while (true) {
-			status = getStatus(container);
+			status = getStatus(host, container);
 			Integer statusCode = status.getStatusCode();
 			if (statusCode != null && statusCode >= 0) {
 				break;
@@ -147,12 +179,12 @@ public class DockerManager {
 		return status;
 	}
 	
-	public StatusCode getStatus(final Identifiable container) {
+	private StatusCode getStatus(final String host, final Identifiable container) {
 		return request(new Request<StatusCode>() {
 			@Override
 			public StatusCode request(Client client) {
 				log.debug("Retrieving status of container: {}", container.getId());
-				return client.target(HOST + "/containers/" + container.getId() + "/wait")
+				return client.target(host + "/containers/" + container.getId() + "/wait")
 					.request()
 					.accept(MediaType.APPLICATION_JSON)
 					.post(null, StatusCode.class);
@@ -160,12 +192,12 @@ public class DockerManager {
 		});
 	}
 	
-	public void stop(final Identifiable container) {
+	private void stop(final String host, final Identifiable container) {
 		perform(new Action() {
 			@Override
 			public void perform(Client client) {
 				log.debug("Stopping container: {}", container.getId());
-				client.target(HOST + "/containers/" + container.getId() + "/stop?t=5")
+				client.target(host + "/containers/" + container.getId() + "/stop?t=5")
 					.request(MediaType.APPLICATION_JSON)
 					.accept(MediaType.TEXT_PLAIN)
 					.post(null);
@@ -173,12 +205,12 @@ public class DockerManager {
 		}); 
 	}
 	
-	public void delete(final Identifiable container) {
+	private void delete(final String host, final Identifiable container) {
 		perform(new Action() {
 			@Override
 			public void perform(Client client) {
 				log.debug("Removing container: {}", container.getId());
-				client.target(HOST + "/containers/" + container.getId() + "?v=1")
+				client.target(host + "/containers/" + container.getId() + "?v=1")
 					.request()
 					.delete();
 			}

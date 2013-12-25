@@ -1,5 +1,7 @@
 package nl.devhub.client.docker.models;
 
+import java.util.List;
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -24,7 +26,7 @@ public class Container {
 	private Boolean OpenStdin;
 	private Boolean StdinOnce;
 	private Object Env;
-	private String[] Cmd;
+	private List<String> Cmd;
 	private Object Dns;
 	private String Image;
 	private Object Volumes;

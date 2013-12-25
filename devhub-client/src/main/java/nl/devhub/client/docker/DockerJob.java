@@ -5,11 +5,11 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class Job {
+public class DockerJob {
 
 	private final String image;
 	private final String workingDir;
-	private final String[] command;
+	private final String command;
 	private final Map<String, String> mounts;
 	private final Logger logger;
 	

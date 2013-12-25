@@ -2,5 +2,5 @@ package nl.devhub.client.docker;
 
 public interface Logger {
 	void onNextLine(String line);
-	void onClose();
+	void onClose(int exitCode);
 }

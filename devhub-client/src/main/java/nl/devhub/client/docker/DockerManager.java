@@ -22,8 +22,8 @@ import nl.devhub.client.docker.models.ContainerStart;
 import nl.devhub.client.docker.models.Identifiable;
 import nl.devhub.client.docker.models.LxcConf;
 import nl.devhub.client.docker.models.StatusCode;
-import nl.devhub.client.docker.settings.Model.Listener;
-import nl.devhub.client.docker.settings.Settings;
+import nl.devhub.client.settings.Model.Listener;
+import nl.devhub.client.settings.Settings;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -61,22 +61,34 @@ public class DockerManager {
 		});
 	}
 	
-	public void run(Job job) throws InterruptedException {
-		String host = settings.getHost().getValue();
+	public Future<?> run(final DockerJob job) throws InterruptedException {
+		final String host = settings.getHost().getValue();
 		log.info("Starting new job: {} on host: {}", job, host);
 		
-		Identifiable container = create(host, job);
+		final Identifiable container = create(host, job);
 		start(host, container, job);
-		Future<?> future = fetchLog(host, container, job.getLogger());
-		
-		awaitTermination(host, container);
-		future.cancel(true);
-		
-		stop(host, container);
-		delete(host, container);
+		return fetchLog(host, container, new Logger() {
+			@Override
+			public void onNextLine(String line) {
+				job.getLogger().onNextLine(line);
+			}
+
+			@Override
+			public void onClose(int exitCode) {
+				try {
+					stop(host, container);
+					delete(host, container);
+				}
+				catch (Throwable e) {
+					log.error(e.getMessage(), e);
+				}
+				
+				job.getLogger().onClose(exitCode);
+			}
+		});
 	}
 	
-	private Identifiable create(final String host, Job job) {
+	private Identifiable create(final String host, DockerJob job) {
 		Map<String, Object> volumes = Maps.newHashMap();
 		for (String mount : job.getMounts().values()) {
 			volumes.put(mount, ImmutableMap.<String, Object>of());
@@ -84,7 +96,7 @@ public class DockerManager {
 		
 		final Container container = new Container()
 			.setTty(true)
-			.setCmd(job.getCommand())
+			.setCmd(CommandParser.parse(job.getCommand()))
 			.setWorkingDir(job.getWorkingDir())
 			.setVolumes(volumes)
 			.setImage(job.getImage());
@@ -101,7 +113,7 @@ public class DockerManager {
 		});
 	}
 	
-	private void start(final String host, final Identifiable container, final Job job) {
+	private void start(final String host, final Identifiable container, final DockerJob job) {
 		perform(new Action() {
 			@Override
 			public void perform(Client client) {
@@ -148,7 +160,8 @@ public class DockerManager {
 							log.error(e.getMessage(), e);
 						}
 						finally {
-							collector.onClose();
+							StatusCode code = awaitTermination(host, container);
+							collector.onClose(code.getStatusCode());
 						}
 					}
 				});

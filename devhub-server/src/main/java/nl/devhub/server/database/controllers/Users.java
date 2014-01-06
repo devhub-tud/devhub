@@ -3,7 +3,7 @@ package nl.devhub.server.database.controllers;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-import nl.devhub.database.entities.QUser;
+import nl.devhub.server.database.entities.QUser;
 import nl.devhub.server.database.entities.User;
 
 public class Users extends Controller<User> {

@@ -18,7 +18,7 @@ public class RootResource {
 
 	@GET
 	public Response redirect() throws URISyntaxException {
-		return Response.seeOther(new URI("/projects/TI2210/group/12")).build();
+		return Response.seeOther(new URI("/projects")).build();
 	}
 	
 }

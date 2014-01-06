@@ -5,9 +5,9 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-import nl.devhub.database.entities.QGroup;
 import nl.devhub.server.database.entities.Group;
 import nl.devhub.server.database.entities.Project;
+import nl.devhub.server.database.entities.QGroup;
 
 public class Groups extends Controller<Group> {
 
@@ -22,11 +22,11 @@ public class Groups extends Controller<Group> {
 				.list(QGroup.group);
 	}
 	
-	public Group find(Project project, long groupId) {
+	public Group find(Project project, long groupNumber) {
 		return query().from(QGroup.group)
 				.where(QGroup.group.project.id.eq(project.getId()))
-				.where(QGroup.group.groupId.eq(groupId))
+				.where(QGroup.group.groupNumber.eq(groupNumber))
 				.singleResult(QGroup.group);
 	}
-	
+
 }

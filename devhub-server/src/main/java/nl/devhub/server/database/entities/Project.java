@@ -1,15 +1,14 @@
 package nl.devhub.server.database.entities;
 
-import java.util.List;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 
@@ -29,8 +28,15 @@ public class Project {
 	@Column(name = "name")
 	private String name;
 	
-	@OneToMany(mappedBy = "project_id")
-	@OrderBy("groupId")
-	private List<Group> groups;
-
+	@NotEmpty
+	@Column(name = "code")
+	private String code;
+	
+	@NotNull
+	@Column(name = "start")
+	private Date start;
+	
+	@Column(name = "end")
+	private Date end;
+	
 }

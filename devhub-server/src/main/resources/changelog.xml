@@ -21,19 +21,29 @@
 			<column name="id" type="bigint" autoIncrement="true">
 				<constraints primaryKey="true" nullable="false" />
 			</column>
-			<column name="name" type="varchar(16)">
-				<constraints nullable="false" unique="true" />
+			<column name="code" type="varchar(12)">
+				<constraints nullable="false" />
 			</column>
+			<column name="name" type="varchar(64)">
+				<constraints nullable="false" />
+			</column>
+			<column name="start" type="datetime">
+				<constraints nullable="false" />
+			</column>
+			<column name="end" type="datetime" />
 		</createTable>
 	</changeSet>
 
 	<changeSet id="create_groups_table" author="Michael de Jong">
 		<createTable tableName="groups">
-			<column name="project_id" type="bigint">
+			<column name="id" type="bigint" autoIncrement="true">
 				<constraints primaryKey="true" nullable="false" />
 			</column>
-			<column name="group_id" type="bigint">
-				<constraints primaryKey="true" nullable="false" />
+			<column name="project_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="group_number" type="bigint">
+				<constraints nullable="false" />
 			</column>
 		</createTable>
 		<addForeignKeyConstraint constraintName="project_ref_in_groups"
@@ -43,9 +53,6 @@
 
 	<changeSet id="create_groupmemberships_table" author="Michael de Jong">
 		<createTable tableName="group_memberships">
-			<column name="project_id" type="bigint">
-				<constraints primaryKey="true" nullable="false" />
-			</column>
 			<column name="group_id" type="bigint">
 				<constraints primaryKey="true" nullable="false" />
 			</column>
@@ -53,12 +60,58 @@
 				<constraints primaryKey="true" nullable="false" />
 			</column>
 		</createTable>
-		<addForeignKeyConstraint constraintName="project_and_group_ref_in_groupmemberships"
-			baseTableName="group_memberships" baseColumnNames="project_id,group_id"
-			referencedTableName="groups" referencedColumnNames="project_id,group_id" />
+		<addForeignKeyConstraint constraintName="group_ref_in_groupmemberships"
+			baseTableName="group_memberships" baseColumnNames="group_id"
+			referencedTableName="groups" referencedColumnNames="id" />
 		<addForeignKeyConstraint constraintName="user_ref_in_groupmemberships"
 			baseTableName="group_memberships" baseColumnNames="user_id"
 			referencedTableName="users" referencedColumnNames="id" />
+	</changeSet>
+	
+	<changeSet id="insert-dummy-data" author="Michael de Jong">
+		<insert tableName="users">
+			<column name="student_number">1314793</column>
+		</insert>
+		<insert tableName="projects">
+			<column name="code">TI2210</column>
+			<column name="name">Software Quality and Testing</column>
+			<column name="start">2013-02-01 00:00:00</column>
+			<column name="end">2013-05-01 00:00:00</column>
+		</insert>
+		<insert tableName="projects">
+			<column name="code">TI2210</column>
+			<column name="name">Software Quality and Testing</column>
+			<column name="start">2014-01-01 00:00:00</column>
+		</insert>
+		<insert tableName="projects">
+			<column name="code">IN4303</column>
+			<column name="name">Compiler Construction</column>
+			<column name="start">2014-01-01 00:00:00</column>
+		</insert>
+		<insert tableName="groups">
+			<column name="project_id">1</column>
+			<column name="group_number">1</column>
+		</insert>
+		<insert tableName="groups">
+			<column name="project_id">2</column>
+			<column name="group_number">1</column>
+		</insert>
+		<insert tableName="groups">
+			<column name="project_id">3</column>
+			<column name="group_number">1</column>
+		</insert>
+		<insert tableName="group_memberships">
+			<column name="group_id">1</column>
+			<column name="user_id">1</column>
+		</insert>
+		<insert tableName="group_memberships">
+			<column name="group_id">2</column>
+			<column name="user_id">1</column>
+		</insert>
+		<insert tableName="group_memberships">
+			<column name="group_id">3</column>
+			<column name="user_id">1</column>
+		</insert>
 	</changeSet>
 	
 </databaseChangeLog>

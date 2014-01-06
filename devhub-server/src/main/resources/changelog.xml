@@ -10,7 +10,7 @@
 			<column name="id" type="bigint" autoIncrement="true">
 				<constraints primaryKey="true" nullable="false" />
 			</column>
-			<column name="student_number" type="varchar(16)">
+			<column name="student_number" type="bigint">
 				<constraints nullable="true" unique="true" />
 			</column>
 		</createTable>

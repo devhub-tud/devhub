@@ -7,15 +7,15 @@
 					<a href="/projects"><i class="glyphicon glyphicon-home"></i></a>
 				</li>
 				<li>
-					<a href="/projects/${group.project.code}/groups/${group.groupNumber}">${group.project.code} - ${group.project.name} (Group #${group.groupNumber})</a>
+					<a href="/projects/${group.project.code}/groups/${group.groupNumber?c}">${group.project.code} - ${group.project.name} (Group #${group.groupNumber})</a>
 				</li>
 [#if section?has_content]
 				<li>
-					<a href="/projects/${group.project.code}/groups/${group.groupNumber}/${section}">${section?cap_first}</a>
+					<a href="/projects/${group.project.code}/groups/${group.groupNumber?c}/${section}">${section?cap_first}</a>
 				</li>
 	[#if subsection?has_content]
 				<li>
-					<a href="/projects/${group.project.code}/groups/${group.groupNumber}/${section}/${subsection}">${subsection}</a>
+					<a href="/projects/${group.project.code}/groups/${group.groupNumber?c}/${section}/${subsection}">${subsection}</a>
 				</li>
 	[/#if]
 [/#if]

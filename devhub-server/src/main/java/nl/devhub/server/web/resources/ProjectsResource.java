@@ -56,7 +56,7 @@ public class ProjectsResource {
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", users.find(USER_ID));
 		parameters.put("groups", groupMemberships.listParticipating(USER_ID));
-
+		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("projects.ftl", locales, parameters);
 	}
@@ -83,6 +83,7 @@ public class ProjectsResource {
 		parameters.put("group", group);
 		parameters.put("section", "dashboard");
 		parameters.put("pageHeader", "Dashboard");
+		parameters.put("displayMenu", "project");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("project.ftl", locales, parameters);
@@ -101,6 +102,7 @@ public class ProjectsResource {
 		parameters.put("group", group);
 		parameters.put("section", "issues");
 		parameters.put("pageHeader", "Issues");
+		parameters.put("displayMenu", "project");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("project.ftl", locales, parameters);
@@ -121,6 +123,7 @@ public class ProjectsResource {
 		parameters.put("section", "issues");
 		parameters.put("subsection", issueNumber);
 		parameters.put("pageHeader", "Issue #" + issueNumber);
+		parameters.put("displayMenu", "project");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("project.ftl", locales, parameters);
@@ -139,6 +142,7 @@ public class ProjectsResource {
 		parameters.put("group", group);
 		parameters.put("section", "pull-requests");
 		parameters.put("pageHeader", "Pull-requests");
+		parameters.put("displayMenu", "project");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("project.ftl", locales, parameters);
@@ -159,6 +163,7 @@ public class ProjectsResource {
 		parameters.put("section", "pull-requests");
 		parameters.put("subsection", pullRequestNumber);
 		parameters.put("pageHeader", "Pull-request #" + pullRequestNumber);
+		parameters.put("displayMenu", "project");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("project.ftl", locales, parameters);
@@ -177,6 +182,7 @@ public class ProjectsResource {
 		parameters.put("group", group);
 		parameters.put("section", "deliverables");
 		parameters.put("pageHeader", "Deliverables");
+		parameters.put("displayMenu", "project");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("project.ftl", locales, parameters);

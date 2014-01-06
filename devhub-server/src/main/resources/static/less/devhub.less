@@ -50,6 +50,7 @@ h1, h2, h3, h4, h5, h6 {
 	margin: 0;
 	padding: 3px 0px;
 	line-height: 100%;
+	margin-bottom: 32px;
 }
 
 .panel {
@@ -82,22 +83,34 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 div.menu {
+	position: fixed;
+	top: 0px;
+	
 	width: 54px;
-	float: left;
 	height: 100%;
 	
 	color: #bbb;
-	background-color: #222;
-	box-shadow: 0 5px 0 0 rgba(0,0,0,0.05), 4px 4px -3px 0 rgba(0,0,0,0.1);
-	-webkit-box-shadow: 0 5px 0 0 rgba(0,0,0,0.05), 4px 4px -3px 0 rgba(0,0,0,0.1);
+	//color: #808080;
+				
+	background-color: #282828;
+	//background-color: #d6d6d6;
+	
+	-webkit-box-shadow: 1px 0px 15px 0px rgba(50, 50, 50, 0.35);
+	-moz-box-shadow:    1px 0px 15px 0px rgba(50, 50, 50, 0.35);
+	box-shadow:         1px 0px 15px 0px rgba(50, 50, 50, 0.35);
 	
 	ul.menu-list {
-		margin: 0px;
 		padding: 0px;
+		margin: 0px 0px 54px 0px;				
+		background-color: #222;
+		//background-color: #d0d0d0;
 		border-top: 1px solid #191919;
+		//border-top: 1px solid #cacaca;
 		border-bottom: 1px solid #333;
+		//border-bottom: 1px solid #e8e8e8;
 	
 		&.bottom {
+			margin: 0px;
 			width: 54px;
 			position: absolute;
 			bottom: 0px;
@@ -106,7 +119,9 @@ div.menu {
 		li.menu-item {
 			list-style-type: none;
 			border-bottom: 1px solid #191919;
+			//border-bottom: 1px solid #cacaca;
 			border-top: 1px solid #333;
+			//border-top: 1px solid #e8e8e8;
 			
 			&:hover {
 				a {
@@ -114,10 +129,12 @@ div.menu {
 				}
 				
 				background-color: #333;
+				//background-color: #e8e8e8;
 			}
 			
 			a {
 				color: #bbb;
+				//color: #808080;
 				height: 54px;
 				max-width: 54px;
 				text-align: center;
@@ -132,12 +149,16 @@ div.menu {
 .tooltip {
 	.tooltip-inner {
 		padding: 12px 20px;
+		white-space: nowrap;
 	}
 }
 
 .content {
-	float: left;
-	padding: 0px 25px;
+	padding: 0px 32px 0px 86px;
+}
+
+.glyphicon {
+	position: static;	// Otherwise it's displayed above tooltips.
 }
 
 .breadcrumb {
@@ -165,3 +186,12 @@ div.menu {
 	margin: 0;
 }
 
+td.minimal-width, th.minimal-width {
+	width: 1px;
+	text-align: center;
+}
+
+td.no-data {
+	color: #aaa;
+	font-style: italic;
+}

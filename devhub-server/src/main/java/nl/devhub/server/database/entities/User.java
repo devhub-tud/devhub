@@ -20,6 +20,6 @@ public class User {
 	private long id;
 
 	@Column(name = "student_number")
-	private String studentNumber;
+	private long studentNumber;
 	
 }

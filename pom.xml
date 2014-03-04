@@ -3,10 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>nl.devhub</groupId>
-	<artifactId>devhub-parent</artifactId>
+	<artifactId>devhub</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<name>devhub-parent</name>
-	<packaging>pom</packaging>
+	<name>devhub</name>
+	<packaging>jar</packaging>
 
 	<properties>
 		<maven.compiler.source>1.7</maven.compiler.source>
@@ -67,6 +67,89 @@
 			<artifactId>jetty-webapp</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+			<version>2.3.20</version>
+		</dependency>
+
+		<!-- Persistence -->
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-persist</artifactId>
+			<version>${guice.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-servlet</artifactId>
+			<version>${guice.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>${hibernate.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>4.2.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>${hibernate.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-c3p0</artifactId>
+			<version>${hibernate.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.2-1003-jdbc4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.3.173</version>
+		</dependency>
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+			<version>3.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom</artifactId>
+			<version>2.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mattbertolini</groupId>
+			<artifactId>liquibase-slf4j</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-jpamodelgen</artifactId>
+			<version>1.2.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mysema.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mysema.querydsl</groupId>
+			<artifactId>querydsl-apt</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>1.1.0.Final</version>
+		</dependency>
+
 
 		<!-- Dependency Injection -->
 		<dependency>
@@ -135,9 +218,64 @@
 		</dependency>
 	</dependencies>
 
-	<modules>
-		<module>devhub-server</module>
-		<module>devhub-client</module>
-	</modules>
+	<build>
+		<finalName>server</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>target/metamodel</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.lesscss</groupId>
+				<artifactId>lesscss-maven-plugin</artifactId>
+				<version>1.3.3</version>
+				<configuration>
+					<sourceDirectory>${project.basedir}/src/main/resources/static/less</sourceDirectory>
+					<outputDirectory>${project.basedir}/src/main/resources/static/css</outputDirectory>
+					<compress>true</compress>
+					<includes>
+						<include>devhub.less</include>
+					</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<annotationProcessors>
+						<annotationProcessor>lombok.core.AnnotationProcessor</annotationProcessor>
+					</annotationProcessors>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mysema.maven</groupId>
+				<artifactId>maven-apt-plugin</artifactId>
+				<version>1.0.4</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/metamodel</outputDirectory>
+							<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

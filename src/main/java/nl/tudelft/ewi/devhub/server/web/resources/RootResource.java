@@ -1,4 +1,4 @@
-package nl.devhub.server.web.resources;
+package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.net.URI;
 import java.net.URISyntaxException;

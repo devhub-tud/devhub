@@ -1,25 +1,32 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader "Projects" /]
-[@macros.renderProjectMenu user "" /]
-		<div class="content">
-			<div class="panel panel-default notification">
-				<div class="panel-heading">
-					<h3 class="panel-title">Your current projects</h3>
-				</div>
-				<div class="panel-body">
+[@macros.renderMenu /]
+		<div class="container">
+			<h4>
+				${i18n.translate("block.current-projects.title")}
+				<a href="/projects/setup" class="btn btn-success btn-sm pull-right">
+					<i class="glyphicon glyphicon-plus-sign"></i> ${i18n.translate("block.current-projects.buttons.setup-new-project.caption")}
+				</a>
+			</h4>
+			<table class="table table-bordered">
+				<tbody>
 [#if groups?? && groups?has_content]
-					<ul class="list-group no-margin">
 	[#list groups as group]
-						<li class="list-group-item">
-							<a href="/projects/${group.project.code}/groups/${group.groupNumber?c}">${group.project.code} - ${group.project.name} (Group #${group.groupNumber?c})</a>
-						</li>
+					<tr>
+						<td>
+							<a href="/projects/${group.course.code}/groups/${group.groupNumber?c}">${group.course.code} - ${group.course.name} (Group #${group.groupNumber?c})</a>
+						</td>
+					</tr>
 	[/#list]
-					</ul>
 [#else]
-					<div class="alert alert-info no-margin">You do not appear to be participating in any projects. Contact your teacher to resolve this.</div>
+					<tr>
+						<td class="muted">
+							${i18n.translate("block.current-projects.empty-list")}
+						</td>
+					</tr>
 [/#if]
-				</div>
-			</div>
+				</tbody>
+			</table>
 		</div>
 [@macros.renderScripts /]
 [@macros.renderFooter /]

@@ -1,4 +1,4 @@
-package nl.devhub.server;
+package nl.tudelft.ewi.devhub.server;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -7,8 +7,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
 
 import lombok.extern.slf4j.Slf4j;
-import nl.devhub.server.database.DbModule;
-import nl.devhub.server.web.templating.TranslatorFactory;
+import nl.tudelft.ewi.devhub.server.database.DbModule;
+import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
+import nl.tudelft.ewi.git.client.GitServerClient;
 
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.jboss.resteasy.plugins.guice.ext.RequestScopeModule;
@@ -22,8 +23,10 @@ import com.google.inject.name.Names;
 public class DevhubModule extends AbstractModule {
 	
 	private final File rootFolder;
+	private final Config config;
 
-	public DevhubModule(File rootFolder) {
+	public DevhubModule(Config config, File rootFolder) {
+		this.config = config;
 		this.rootFolder = rootFolder;
 	}
 
@@ -37,6 +40,9 @@ public class DevhubModule extends AbstractModule {
 		
 		bind(File.class).annotatedWith(Names.named("directory.templates")).toInstance(new File(rootFolder, "templates"));
 		bind(TranslatorFactory.class).toInstance(new TranslatorFactory("i18n.devhub"));
+		bind(Config.class).toInstance(config);
+		
+		bind(GitServerClient.class).toInstance(new GitServerClient(config.getGitServerHost()));
 		
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);

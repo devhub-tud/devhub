@@ -1,7 +1,8 @@
-package nl.devhub.server.web.templating;
+package nl.tudelft.ewi.devhub.server.web.templating;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Locale;
@@ -16,6 +17,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
+import freemarker.cache.FileTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
@@ -35,6 +37,11 @@ public class TemplateEngine {
 				setDefaultEncoding(Charsets.UTF_8.displayName());
 				setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 				setTagSyntax(Configuration.SQUARE_BRACKET_TAG_SYNTAX);
+				setTemplateLoader(new FileTemplateLoader(templatesDirectory) {
+					public Reader getReader(Object templateSource, String encoding) throws IOException {
+						return new WrappedReader(super.getReader(templateSource, encoding), "[#escape x as x?html]", "[/#escape]");
+					};
+				});
 			}
 		};
 	}

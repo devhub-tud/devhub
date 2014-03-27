@@ -1,4 +1,4 @@
-package nl.devhub.server.web;
+package nl.tudelft.ewi.devhub.server.web;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;

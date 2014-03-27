@@ -1,4 +1,4 @@
-package nl.devhub.server;
+package nl.tudelft.ewi.devhub.server;
 
 import java.io.File;
 import java.util.EnumSet;
@@ -33,20 +33,23 @@ public class DevhubServer {
 			return developmentFolder;
 		}
 		
-		return new File("");
+		return new File("config");
 	}
 	
 	public static void main(String[] args) throws Exception {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
 		SLF4JBridgeHandler.install();
-			
-		DevhubServer server = new DevhubServer(8080);
+		
+		DevhubServer server = new DevhubServer();
 		server.startServer();
 	}
 
 	private final Server server;
 
-	public DevhubServer(int port) {
+	public DevhubServer() {
+		Config config = new Config();
+		config.reload();
+		
 		File rootFolder = determineRootFolder();
 
 		ResourceHandler resources = new ResourceHandler();
@@ -54,13 +57,13 @@ public class DevhubServer {
 		resources.setDirectoriesListed(false);
 		resources.setCacheControl("max-age=3600");
 		
-		DevhubHandler devhub = new DevhubHandler(rootFolder);
+		DevhubHandler devhub = new DevhubHandler(config, rootFolder);
 		
 		ContextHandlerCollection handlers = new ContextHandlerCollection();
 		handlers.addContext("/static/", "/static").setHandler(resources);
 		handlers.addContext("/", "/").setHandler(devhub);
 		
-		server = new Server(port);
+		server = new Server(config.getHttpPort());
 		server.setHandler(handlers);
 	}
 	
@@ -88,11 +91,11 @@ public class DevhubServer {
 	
 	private static class DevhubHandler extends ServletContextHandler {
 		
-		public DevhubHandler(final File rootFolder) {
+		public DevhubHandler(final Config config, final File rootFolder) {
 			addEventListener(new GuiceResteasyBootstrapServletContextListener() {
 				@Override
 				protected List<Module> getModules(ServletContext context) {
-					return ImmutableList.<Module>of(new DevhubModule(rootFolder));
+					return ImmutableList.<Module>of(new DevhubModule(config, rootFolder));
 				}
 				
 				@Override

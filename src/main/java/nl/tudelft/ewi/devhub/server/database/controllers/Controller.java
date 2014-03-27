@@ -1,4 +1,4 @@
-package nl.devhub.server.database.controllers;
+package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -29,8 +29,7 @@ public class Controller<T> {
 		return entity;
 	}
 	
-	@Transactional
-	public JPAQuery query() {
+	JPAQuery query() {
 		return new JPAQuery(entityManager);
 	}
 

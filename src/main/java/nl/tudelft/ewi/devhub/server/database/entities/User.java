@@ -1,6 +1,4 @@
-package nl.devhub.server.database.entities;
-
-import java.util.Date;
+package nl.tudelft.ewi.devhub.server.database.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,31 +10,21 @@ import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 
-import org.hibernate.validator.constraints.NotEmpty;
-
 @Data
 @Entity
-@Table(name = "projects")
-public class Project {
-
+@Table(name = "users")
+public class User {
+	
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
-	
-	@NotEmpty
-	@Column(name = "name")
-	private String name;
-	
-	@NotEmpty
-	@Column(name = "code")
-	private String code;
-	
+
+	@Column(name = "student_number")
+	private long studentNumber;
+
 	@NotNull
-	@Column(name = "start")
-	private Date start;
-	
-	@Column(name = "end")
-	private Date end;
+	@Column(name = "net_id")
+	private String netId;
 	
 }

@@ -1,4 +1,4 @@
-package nl.devhub.server.database;
+package nl.tudelft.ewi.devhub.server.database;
 
 import lombok.SneakyThrows;
 

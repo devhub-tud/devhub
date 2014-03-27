@@ -1,4 +1,4 @@
-package nl.devhub.server.database.entities;
+package nl.tudelft.ewi.devhub.server.database.entities;
 
 import java.io.Serializable;
 

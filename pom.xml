@@ -151,6 +151,13 @@
 		</dependency>
 
 
+		<!-- Backend services -->
+		<dependency>
+			<groupId>nl.tudelft.ewi.git</groupId>
+			<artifactId>git-client</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 		<!-- Dependency Injection -->
 		<dependency>
 			<groupId>com.google.inject</groupId>
@@ -219,7 +226,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>server</finalName>
+		<finalName>devhub-server</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -274,6 +281,48 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<descriptors>
+						<descriptor>
+							src/main/assembly/jar-with-dependencies.xml
+						</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>zip-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>nl.tudelft.ewi.devhub.server.DevhubServer</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Class-Path>config/</Class-Path>
+						</manifestEntries>
+					</archive>
+					<excludes>
+						<exclude>logback.xml</exclude>
+						<exclude>persistence.properties</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

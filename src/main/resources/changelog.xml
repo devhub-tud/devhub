@@ -13,11 +13,14 @@
 			<column name="student_number" type="bigint">
 				<constraints nullable="true" unique="true" />
 			</column>
+			<column name="net_id" type="varchar(32)">
+				<constraints nullable="false" unique="true" />
+			</column>
 		</createTable>
 	</changeSet>
 
-	<changeSet id="create_projects_table" author="Michael de Jong">
-		<createTable tableName="projects">
+	<changeSet id="create_courses_table" author="Michael de Jong">
+		<createTable tableName="courses">
 			<column name="id" type="bigint" autoIncrement="true">
 				<constraints primaryKey="true" nullable="false" />
 			</column>
@@ -39,16 +42,16 @@
 			<column name="id" type="bigint" autoIncrement="true">
 				<constraints primaryKey="true" nullable="false" />
 			</column>
-			<column name="project_id" type="bigint">
+			<column name="course_id" type="bigint">
 				<constraints nullable="false" />
 			</column>
 			<column name="group_number" type="bigint">
 				<constraints nullable="false" />
 			</column>
 		</createTable>
-		<addForeignKeyConstraint constraintName="project_ref_in_groups"
-			baseTableName="groups" baseColumnNames="project_id"
-			referencedTableName="projects" referencedColumnNames="id" />
+		<addForeignKeyConstraint constraintName="course_ref_in_groups"
+			baseTableName="groups" baseColumnNames="course_id"
+			referencedTableName="courses" referencedColumnNames="id" />
 	</changeSet>
 
 	<changeSet id="create_groupmemberships_table" author="Michael de Jong">
@@ -71,33 +74,34 @@
 	<changeSet id="insert-dummy-data" author="Michael de Jong">
 		<insert tableName="users">
 			<column name="student_number">1314793</column>
+			<column name="net_id">mdejong2</column>
 		</insert>
-		<insert tableName="projects">
+		<insert tableName="courses">
 			<column name="code">TI2210</column>
 			<column name="name">Software Quality and Testing</column>
 			<column name="start">2013-02-01 00:00:00</column>
 			<column name="end">2013-05-01 00:00:00</column>
 		</insert>
-		<insert tableName="projects">
+		<insert tableName="courses">
 			<column name="code">TI2210</column>
 			<column name="name">Software Quality and Testing</column>
 			<column name="start">2014-01-01 00:00:00</column>
 		</insert>
-		<insert tableName="projects">
+		<insert tableName="courses">
 			<column name="code">IN4303</column>
 			<column name="name">Compiler Construction</column>
 			<column name="start">2014-01-01 00:00:00</column>
 		</insert>
-		<insert tableName="groups">
-			<column name="project_id">1</column>
+		<!-- <insert tableName="groups">
+			<column name="course_id">1</column>
 			<column name="group_number">1</column>
 		</insert>
 		<insert tableName="groups">
-			<column name="project_id">2</column>
+			<column name="course_id">2</column>
 			<column name="group_number">1</column>
 		</insert>
 		<insert tableName="groups">
-			<column name="project_id">3</column>
+			<column name="course_id">3</column>
 			<column name="group_number">1</column>
 		</insert>
 		<insert tableName="group_memberships">
@@ -111,7 +115,7 @@
 		<insert tableName="group_memberships">
 			<column name="group_id">3</column>
 			<column name="user_id">1</column>
-		</insert>
+		</insert> -->
 	</changeSet>
 	
 </databaseChangeLog>

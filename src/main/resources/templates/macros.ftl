@@ -16,8 +16,14 @@
 [#macro renderMenu]
 		<div class="menu">
 			<div class="container">
-				<a href="/" class="logo">DEVHUB</a>
-				<a href="/" class="btn btn-default pull-right">Sign in</a>
+				<a href="/" class="logo-text"><img class="logo-image" src="/static/img/logo.png"> DEVHUB</a>
+				<!-- <a href="/" class="btn btn-default pull-right">Sign in</a> -->
+				<div class="pull-right">
+					<a href="/projects">Projects</a>
+					<a href="/account">Account</a>
+					<a href="/support">Support</a>
+					<a href="/logout">Logout</a>
+				</div>
 			</div>
 		</div>	
 [/#macro]

@@ -29,9 +29,9 @@ public class ProjectsBackend {
 
 	private static final int USER_ID = 1;
 
-	private static final String ALREADY_REGISTERED_FOR_COURSE = "already-registered-for-course";
-	private static final String COULD_NOT_FIND_COURSE = "could-not-find-course";
-	private static final String COULD_NOT_CREATE_GROUP = "could-not-create-group";
+	private static final String ALREADY_REGISTERED_FOR_COURSE = "error.already-registered-for-course";
+	private static final String COULD_NOT_FIND_COURSE = "error.could-not-find-course";
+	private static final String COULD_NOT_CREATE_GROUP = "error.could-not-create-group";
 
 	private final GitServerClient client;
 	private final GroupMemberships groupMemberships;

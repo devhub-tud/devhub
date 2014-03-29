@@ -13,16 +13,16 @@
 	<body>
 [/#macro]
 
-[#macro renderMenu]
+[#macro renderMenu i18n]
 		<div class="menu">
 			<div class="container">
 				<a href="/" class="logo-text"><img class="logo-image" src="/static/img/logo.png"> DEVHUB</a>
 				<!-- <a href="/" class="btn btn-default pull-right">Sign in</a> -->
 				<div class="pull-right">
-					<a href="/projects">Projects</a>
-					<a href="/account">Account</a>
-					<a href="/support">Support</a>
-					<a href="/logout">Logout</a>
+					<a href="/projects">${i18n.translate("section.projects")}</a>
+					<a href="/account">${i18n.translate("section.account")}</a>
+					<a href="/support">${i18n.translate("section.support")}</a>
+					<a href="/logout">${i18n.translate("section.logout")}</a>
 				</div>
 			</div>
 		</div>	

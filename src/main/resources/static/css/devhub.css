@@ -895,3 +895,4 @@ td.no-data{color:#aaa;font-style:italic;}
 .table td{padding:12px !important;}
 .btn i.glyphicon{vertical-align:-1px;margin-right:3px;}
 .truncate{width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+code{color:#2493c7;font-weight:bold;background-color:#f2f7f9;}

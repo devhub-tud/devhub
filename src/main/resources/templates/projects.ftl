@@ -1,6 +1,6 @@
 [#import "macros.ftl" as macros]
-[@macros.renderHeader "Projects" /]
-[@macros.renderMenu /]
+[@macros.renderHeader i18n.translate("section.projects") /]
+[@macros.renderMenu i18n /]
 		<div class="container">
 			<h4>
 				${i18n.translate("block.current-projects.title")}

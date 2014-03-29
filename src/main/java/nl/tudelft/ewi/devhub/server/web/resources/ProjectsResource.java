@@ -119,17 +119,9 @@ public class ProjectsResource {
 	
 	@GET
 	@Path("{courseCode}/groups/{groupNumber}")
-	public Response redirectToProjectDashboard(@PathParam("courseCode") String courseCode, 
-			@PathParam("groupNumber") String groupNumber) throws URISyntaxException {
-		
-		return Response.seeOther(new URI("/projects/" + courseCode + "/groups/" + groupNumber + "/commits")).build();
-	}
-	
-	@GET
-	@Path("{courseCode}/groups/{groupNumber}/commits")
-	public Response serveProjectCommitsPage(@Context HttpServletRequest request, 
-			@PathParam("courseCode") String courseCode, @PathParam("groupNumber") String groupNumber) 
-			throws URISyntaxException, IOException {
+	public Response showProjectOverview(@Context HttpServletRequest request, 
+			@PathParam("courseCode") String courseCode, 
+			@PathParam("groupNumber") String groupNumber) throws URISyntaxException, IOException {
 		
 		User requester = users.find(USER_ID);
 		Course course = courses.find(courseCode);

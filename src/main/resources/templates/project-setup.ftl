@@ -1,8 +1,8 @@
 [#import "macros.ftl" as macros]
-[@macros.renderHeader "Project setup" /]
-[@macros.renderMenu /]
+[@macros.renderHeader i18n.translate("form.project-setup.title") /]
+[@macros.renderMenu i18n /]
 		<div class="container">
-			<h3>${i18n.translate("form.project-setup.title")}</h3>
+			<h4>${i18n.translate("form.project-setup.title")}</h4>
 [#if error?? && error?has_content]
 			<div class="alert alert-danger">
 				${i18n.translate(error)}

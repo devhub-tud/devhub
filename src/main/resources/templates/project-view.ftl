@@ -1,29 +1,11 @@
 [#import "macros.ftl" as macros]
-[@macros.renderHeader "Project commits" /]
-[@macros.renderMenu /]
+[@macros.renderHeader i18n.translate("section.projects") /]
+[@macros.renderMenu i18n /]
 		<div class="container">
 			<h4>Git clone URL</h4>
-			<div class="well well-sm"><code>git clone ${repository.getUrl()} ${group.getCourse().getCode()}</code></div>
-			<h4>Branches</h4>
-			<table class="table table-bordered">
-				<tbody>
-[#if repository?? && repository?has_content]
-	[#list repository.getBranches() as branch]
-					<tr>
-						<td>
-							${branch.getName()}
-						</td>
-					</tr>
-	[/#list]
-[#else]
-					<tr>
-						<td class="muted">
-							There are no branches in this repository yet!
-						</td>
-					</tr>
-[/#if]
-				</tbody>
-			</table>
+			<div class="well well-sm">
+				<code>git clone ${repository.getUrl()} ${group.getCourse().getCode()?lower_case}</code>
+			</div>
 			<h4>Recent commits</h4>
 			<table class="table table-bordered">
 				<tbody>

@@ -130,7 +130,7 @@ public class ProjectsResource {
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
 		parameters.put("group", group);
-		parameters.put("repository", client.repositories().retrieve(group.getRepoName()));
+		parameters.put("repository", client.repositories().retrieve(group.getRepositoryName()));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return Response.ok()

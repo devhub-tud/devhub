@@ -135,4 +135,35 @@
 		</createTable>
 	</changeSet>
 	
+	<changeSet id="add_build_results_table" author="Michael de Jong">
+		<createTable tableName="build_results">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="commit_id" type="char(40)">
+				<constraints nullable="false" />
+			</column>
+			<column name="success" type="boolean" />
+			<column name="log" type="text" />
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="repository_ref_in_build_results"
+			baseTableName="build_results" baseColumnNames="repository_id"
+			referencedTableName="groups" referencedColumnNames="id" />
+			
+		<addUniqueConstraint columnNames="repository_id,commit_id" tableName="build_results" />
+	</changeSet>
+	
+	<changeSet id="add_repo_name_to_groups_table" author="Michael de Jong">
+		<addColumn tableName="groups">
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+		<addUniqueConstraint columnNames="repository_name" tableName="groups" />
+	</changeSet>
+	
 </databaseChangeLog>

@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.ws.rs.NotFoundException;
+import javax.persistence.EntityNotFoundException;
 
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.database.entities.QBuildServer;
@@ -32,7 +32,7 @@ public class BuildServers extends Controller<BuildServer> {
 				.singleResult(QBuildServer.buildServer);
 		
 		if (buildServer == null) {
-			throw new NotFoundException();
+			throw new EntityNotFoundException();
 		}
 		return buildServer;
 	}
@@ -45,7 +45,7 @@ public class BuildServers extends Controller<BuildServer> {
 				.singleResult(QBuildServer.buildServer);
 		
 		if (buildServer == null) {
-			throw new NotFoundException();
+			throw new EntityNotFoundException();
 		}
 		return buildServer;
 	}

@@ -12,16 +12,24 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "build_servers")
+public class BuildServer {
 	
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
+	
+	@NotNull
+	@Column(name = "name")
+	private String name;
+	
+	@NotNull
+	@Column(name = "secret")
+	private String secret;
 
 	@NotNull
-	@Column(name = "net_id")
-	private String netId;
-	
+	@Column(name = "host")
+	private String host;
+
 }

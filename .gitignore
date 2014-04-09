@@ -2,6 +2,6 @@
 .project
 .settings
 
-**/.classpath
-**/target/
-**/*.db
+.classpath
+target/
+*.db

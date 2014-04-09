@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,6 +27,12 @@ import com.google.inject.persist.PersistFilter;
 
 @Slf4j
 public class DevhubServer {
+	
+	public static String getHostUrl(HttpServletRequest request) {
+		String fullUrl = request.getRequestURL().toString();
+		String pathUrl = request.getRequestURI();
+		return fullUrl.substring(0, fullUrl.indexOf(pathUrl)); 
+	}
 	
 	private static File determineRootFolder() {
 		File developmentFolder = new File("src/main/resources");

@@ -7,7 +7,7 @@
 		</encoder>
 	</appender>
 	
-	<logger name="nl.devhub" level="DEBUG"></logger>
+	<logger name="nl.tudelft.ewi" level="DEBUG"></logger>
 	<logger name="liquibase" level="INFO"></logger>
 
 	<root level="WARN">

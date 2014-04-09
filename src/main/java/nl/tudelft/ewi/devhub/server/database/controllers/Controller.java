@@ -25,7 +25,7 @@ public class Controller<T> {
 	@Transactional
 	public T delete(T entity) {
 		entityManager.remove(entity);
-		entityManager.detach(entity);
+		entityManager.flush();
 		return entity;
 	}
 	

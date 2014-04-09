@@ -118,4 +118,21 @@
 		</insert> -->
 	</changeSet>
 	
+	<changeSet id="add_build_servers_table" author="Michael de Jong">
+		<createTable tableName="build_servers">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="name" type="varchar(32)">
+				<constraints nullable="false" unique="true" />
+			</column>
+			<column name="secret" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			<column name="host" type="varchar(256)">
+				<constraints nullable="false" unique="true" />
+			</column>
+		</createTable>
+	</changeSet>
+	
 </databaseChangeLog>

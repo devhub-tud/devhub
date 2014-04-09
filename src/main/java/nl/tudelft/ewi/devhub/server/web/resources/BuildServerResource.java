@@ -20,8 +20,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import nl.tudelft.ewi.devhub.server.backend.SshKeyBackend;
+import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -30,39 +31,43 @@ import org.eclipse.jetty.util.UrlEncoded;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.google.inject.persist.Transactional;
 
-@Path("account")
+@Path("build-servers")
 @Produces(MediaType.TEXT_HTML)
-public class AccountResource {
+public class BuildServerResource {
 
-	private static final int USER_ID = 1;
-
+	private static final long USER_ID = 1;
+	
 	private final TemplateEngine templateEngine;
+	private final BuildsBackend backend;
 	private final Users users;
-	private final SshKeyBackend backend;
 
 	@Inject
-	AccountResource(TemplateEngine templateEngine, Users users, SshKeyBackend backend) {
+	BuildServerResource(TemplateEngine templateEngine, BuildsBackend backend, Users users) {
 		this.templateEngine = templateEngine;
-		this.users = users;
 		this.backend = backend;
+		this.users = users;
 	}
 
 	@GET
-	public String showUserPage(@Context HttpServletRequest request) throws IOException {
+	public String showUserPage(@Context HttpServletRequest request, @QueryParam("error") String error) throws IOException {
 		User requester = users.find(USER_ID);
 
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
-		parameters.put("keys", backend.listKeys(requester));
+		parameters.put("servers", backend.listActiveBuildServers());
+		if (!Strings.isNullOrEmpty(error)) {
+			parameters.put("error", error);
+		}
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return templateEngine.process("account.ftl", locales, parameters);
+		return templateEngine.process("build-servers.ftl", locales, parameters);
 	}
 	
 	@GET
 	@Path("setup")
-	public String showNewSshKeyPage(@Context HttpServletRequest request, @QueryParam("error") String error) 
+	public String showNewBuildServerSetupPage(@Context HttpServletRequest request, @QueryParam("error") String error) 
 			throws IOException {
 		
 		User requester = users.find(USER_ID);
@@ -74,37 +79,40 @@ public class AccountResource {
 			parameters.put("error", error);
 		}
 		
-		return templateEngine.process("account-setup.ftl", locales, parameters);
+		return templateEngine.process("build-server-setup.ftl", locales, parameters);
 	}
 	
 	@POST
 	@Path("setup")
-	public Response addNewKey(@FormParam("name") String name, @FormParam("contents") String contents) 
+	public Response addNewBuildServer(@FormParam("name") String name, @FormParam("secret") String secret, @FormParam("host") String host) 
 			throws URISyntaxException {
 		
-		User requester = users.find(USER_ID);
 		try {
-			backend.createNewSshKey(requester, name, contents);
-			return Response.seeOther(new URI("/account")).build();
+			BuildServer server = new BuildServer();
+			server.setHost(host);
+			server.setName(name);
+			server.setSecret(secret);
+			backend.addBuildServer(server);
+			
+			return Response.seeOther(new URI("/build-servers")).build();
 		}
 		catch (ApiError e) {
 			String error = UrlEncoded.encodeString(e.getResourceKey());
-			return Response.seeOther(new URI("/account/setup?error=" + error)).build();
+			return Response.seeOther(new URI("/build-servers/setup?error=" + error)).build();
 		}
 	}
 	
 	@POST
 	@Path("delete")
-	public Response deleteExistingKey(@FormParam("name") String name) throws URISyntaxException {
-	
-		User requester = users.find(USER_ID);
+	@Transactional
+	public Response deleteBuildServer(@FormParam("id") long id) throws URISyntaxException {
 		try {
-			backend.deleteSshKey(requester, name);
-			return Response.seeOther(new URI("/account")).build();
+			backend.deleteBuildServer(id);
+			return Response.seeOther(new URI("/build-servers")).build();
 		}
 		catch (ApiError e) {
 			String error = UrlEncoded.encodeString(e.getResourceKey());
-			return Response.seeOther(new URI("/account?error=" + error)).build();
+			return Response.seeOther(new URI("/build-servers?error=" + error)).build();
 		}
 	}
 	

@@ -223,6 +223,16 @@
 			<artifactId>guava</artifactId>
 			<version>15.0</version>
 		</dependency>
+		<dependency>
+			<groupId>nl.tudelft.ewi.build</groupId>
+			<artifactId>build-client</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.directory.api</groupId>
+			<artifactId>api-ldap-client-all</artifactId>
+			<version>1.0.0-M21</version>
+		</dependency>
 	</dependencies>
 
 	<build>

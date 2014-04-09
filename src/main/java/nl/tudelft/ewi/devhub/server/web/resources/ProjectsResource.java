@@ -54,7 +54,7 @@ public class ProjectsResource {
 	private final Users users;
 
 	@Inject
-	public ProjectsResource(TemplateEngine templateEngine, GroupMemberships groupMemberships, Groups groups, 
+	ProjectsResource(TemplateEngine templateEngine, GroupMemberships groupMemberships, Groups groups, 
 			ProjectsBackend projectsBackend, Courses projects, Users users, GitServerClient client) {
 
 		this.templateEngine = templateEngine;

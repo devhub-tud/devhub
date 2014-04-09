@@ -40,8 +40,8 @@ public class Group {
 	@OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
 	private Set<GroupMembership> memberships;
 
-	public String getRepoName() {
-		return "courses/" + getCourse().getCode().toLowerCase() + "/group-" + getGroupNumber();
-	}
-
+	@NotNull
+	@Column(name = "repository_name")
+	private String repositoryName;
+	
 }

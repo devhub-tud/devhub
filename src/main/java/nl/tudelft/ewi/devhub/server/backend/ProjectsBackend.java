@@ -101,7 +101,7 @@ public class ProjectsBackend {
 			client.users().ensureExists(userModel);
 
 			RepositoryModel repoModel = new RepositoryModel();
-			repoModel.setName(group.getRepoName());
+			repoModel.setName(group.getRepositoryName());
 			repoModel.setPermissions(ImmutableMap.<String, Level> builder()
 					.put(userModel.getName(), Level.READ_WRITE)
 					.build());

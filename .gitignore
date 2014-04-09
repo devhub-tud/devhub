@@ -2,6 +2,7 @@
 .project
 .settings
 
+bin/
 .classpath
 target/
 *.db

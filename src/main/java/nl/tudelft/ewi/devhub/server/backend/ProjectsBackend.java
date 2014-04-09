@@ -74,6 +74,7 @@ public class ProjectsBackend {
 			Group group = new Group();
 			group.setCourse(course);
 			group.setGroupNumber(newGroupNumber);
+			group.setRepositoryName("courses/" + course.getCode().toLowerCase() + "/group-" + group.getGroupNumber());
 
 			boolean worked = false;
 			for (int attempt = 1; attempt <= 3 && !worked; attempt++) {
@@ -84,6 +85,7 @@ public class ProjectsBackend {
 				catch (ConstraintViolationException e) {
 					log.warn("Could not persist group: {}", group);
 					group.setGroupNumber(group.getGroupNumber() + 1);
+					group.setRepositoryName("courses/" + course.getCode().toLowerCase() + "/group-" + group.getGroupNumber());
 				}
 			}
 

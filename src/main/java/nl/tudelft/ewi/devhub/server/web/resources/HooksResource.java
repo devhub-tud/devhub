@@ -56,7 +56,6 @@ public class HooksResource {
 
 	@POST
 	@Path("git-push")
-	@Transactional
 	public void onGitPush(@Context HttpServletRequest request, GitPush push) {
 		log.info("Received git-push event: {}", push);
 		

@@ -78,7 +78,7 @@
 		</insert>
 		<insert tableName="courses">
 			<column name="code">TI1705</column>
-			<column name="name">Softwarekwaliteit & Testen</column>
+			<column name="name">Softwarekwaliteit &amp; Testen</column>
 			<column name="template_repository_url">https://github.com/SERG-Delft/jpacman-template.git</column>
 			<column name="start">2014-01-01 00:00:00</column>
 		</insert>

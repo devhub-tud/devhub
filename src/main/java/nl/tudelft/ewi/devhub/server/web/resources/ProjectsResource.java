@@ -101,14 +101,11 @@ public class ProjectsResource {
 	
 	@POST
 	@Path("setup")
-	@Transactional
 	public Response processProjectSetup(@Context HttpServletRequest request, @FormParam("course-id") int courseId)
 			throws IOException, URISyntaxException {
 		
-		Course course = courses.find(courseId);
-		
 		try {
-			projectsBackend.processNewProjectSetup(course);
+			projectsBackend.processNewProjectSetup(courseId);
 			return Response.seeOther(new URI("/projects")).build();
 		}
 		catch (ApiError e) {

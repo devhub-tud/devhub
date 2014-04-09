@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -33,28 +34,29 @@ public class ProjectsBackend {
 	private static final String COULD_NOT_FIND_COURSE = "error.could-not-find-course";
 	private static final String COULD_NOT_CREATE_GROUP = "error.could-not-create-group";
 
-	private final GitServerClient client;
 	private final GroupMemberships groupMemberships;
 	private final Groups groups;
 	private final Users users;
+	private final Courses courses;
+	private final GitServerClient client;
 
 	private final Object groupNumberLock = new Object();
 
 	@Inject
-	ProjectsBackend(GroupMemberships groupMemberships, Groups groups, Users users, GitServerClient client) {
+	ProjectsBackend(GroupMemberships groupMemberships, Groups groups, Users users, Courses courses, 
+			GitServerClient client) {
+		
 		this.groupMemberships = groupMemberships;
 		this.groups = groups;
 		this.users = users;
+		this.courses = courses;
 		this.client = client;
 	}
 	
-	public void processNewProjectSetup(Course course) throws ApiError {
+	public void processNewProjectSetup(long courseId) throws ApiError {
 		User requester = users.find(USER_ID);
-		if (course == null) {
-			throw new ApiError(COULD_NOT_FIND_COURSE);
-		}
 		
-		Group group = persistRepository(course, requester);
+		Group group = persistRepository(courseId, requester);
 		
 		String repositoryName = group.getRepositoryName();
 		String templateRepositoryUrl = group.getCourse().getTemplateRepositoryUrl();
@@ -64,7 +66,12 @@ public class ProjectsBackend {
 	}
 
 	@Transactional
-	private Group persistRepository(Course course, User requester) throws ApiError {
+	Group persistRepository(long courseId, User requester) throws ApiError {
+		Course course = courses.find(courseId);
+		if (course == null) {
+			throw new ApiError(COULD_NOT_FIND_COURSE);
+		}
+		
 		synchronized (groupNumberLock) {
 			List<Group> courseGroups = groups.find(course);
 			Set<Long> groupNumbers = getGroupNumbers(courseGroups);

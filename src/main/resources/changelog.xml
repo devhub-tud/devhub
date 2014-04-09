@@ -30,6 +30,7 @@
 			<column name="name" type="varchar(64)">
 				<constraints nullable="false" />
 			</column>
+			<column name="template_repository_url" type="varchar(255)" />
 			<column name="start" type="datetime">
 				<constraints nullable="false" />
 			</column>
@@ -130,12 +131,6 @@
 			</column>
 		</addColumn>
 		<addUniqueConstraint columnNames="repository_name" tableName="groups" />
-	</changeSet>
-	
-	<changeSet id="add_template_repo_to_courses" author="Michael de Jong">
-		<addColumn tableName="courses">
-			<column name="template_repository_url" type="varchar(255)" />
-		</addColumn>
 	</changeSet>
 	
 </databaseChangeLog>

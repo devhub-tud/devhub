@@ -13,7 +13,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.models.RepositoryModel;
+import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 import nl.tudelft.ewi.git.models.UserModel;
 
@@ -102,8 +102,9 @@ public class ProjectsBackend {
 			userModel.setName(requester.getNetId());
 			client.users().ensureExists(userModel);
 
-			RepositoryModel repoModel = new RepositoryModel();
+			CreateRepositoryModel repoModel = new CreateRepositoryModel();
 			repoModel.setName(group.getRepositoryName());
+			repoModel.setTemplateRepository(course.getTemplateRepositoryUrl());
 			repoModel.setPermissions(ImmutableMap.<String, Level> builder()
 					.put(userModel.getName(), Level.READ_WRITE)
 					.build());

@@ -45,6 +45,9 @@ public class Course {
 	@Column(name = "end")
 	private Date end;
 	
+	@Column(name = "template_repository_url")
+	private String templateRepositoryUrl;
+	
 	@OrderBy("groupNumber ASC")
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
 	private List<Group> groups;

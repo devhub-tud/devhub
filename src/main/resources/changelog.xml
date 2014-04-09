@@ -77,45 +77,11 @@
 			<column name="net_id">mdejong2</column>
 		</insert>
 		<insert tableName="courses">
-			<column name="code">TI2210</column>
-			<column name="name">Software Quality and Testing</column>
-			<column name="start">2013-02-01 00:00:00</column>
-			<column name="end">2013-05-01 00:00:00</column>
-		</insert>
-		<insert tableName="courses">
-			<column name="code">TI2210</column>
-			<column name="name">Software Quality and Testing</column>
+			<column name="code">TI1705</column>
+			<column name="name">Softwarekwaliteit & Testen</column>
+			<column name="template_repository_url">https://github.com/SERG-Delft/jpacman-template.git</column>
 			<column name="start">2014-01-01 00:00:00</column>
 		</insert>
-		<insert tableName="courses">
-			<column name="code">IN4303</column>
-			<column name="name">Compiler Construction</column>
-			<column name="start">2014-01-01 00:00:00</column>
-		</insert>
-		<!-- <insert tableName="groups">
-			<column name="course_id">1</column>
-			<column name="group_number">1</column>
-		</insert>
-		<insert tableName="groups">
-			<column name="course_id">2</column>
-			<column name="group_number">1</column>
-		</insert>
-		<insert tableName="groups">
-			<column name="course_id">3</column>
-			<column name="group_number">1</column>
-		</insert>
-		<insert tableName="group_memberships">
-			<column name="group_id">1</column>
-			<column name="user_id">1</column>
-		</insert>
-		<insert tableName="group_memberships">
-			<column name="group_id">2</column>
-			<column name="user_id">1</column>
-		</insert>
-		<insert tableName="group_memberships">
-			<column name="group_id">3</column>
-			<column name="user_id">1</column>
-		</insert> -->
 	</changeSet>
 	
 	<changeSet id="add_build_servers_table" author="Michael de Jong">
@@ -164,6 +130,12 @@
 			</column>
 		</addColumn>
 		<addUniqueConstraint columnNames="repository_name" tableName="groups" />
+	</changeSet>
+	
+	<changeSet id="add_template_repo_to_courses" author="Michael de Jong">
+		<addColumn tableName="courses">
+			<column name="template_repository_url" type="varchar(255)" />
+		</addColumn>
 	</changeSet>
 	
 </databaseChangeLog>

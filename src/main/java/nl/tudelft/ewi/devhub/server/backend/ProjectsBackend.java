@@ -47,16 +47,25 @@ public class ProjectsBackend {
 		this.users = users;
 		this.client = client;
 	}
-
-	@Transactional
+	
 	public void processNewProjectSetup(Course course) throws ApiError {
 		User requester = users.find(USER_ID);
 		if (course == null) {
 			throw new ApiError(COULD_NOT_FIND_COURSE);
 		}
+		
+		Group group = persistRepository(course, requester);
+		
+		String repositoryName = group.getRepositoryName();
+		String templateRepositoryUrl = group.getCourse().getTemplateRepositoryUrl();
+		String netId = requester.getNetId();
+		
+		provisionRepository(repositoryName, templateRepositoryUrl, netId);
+	}
 
+	@Transactional
+	private Group persistRepository(Course course, User requester) throws ApiError {
 		synchronized (groupNumberLock) {
-
 			List<Group> courseGroups = groups.find(course);
 			Set<Long> groupNumbers = getGroupNumbers(courseGroups);
 
@@ -97,20 +106,24 @@ public class ProjectsBackend {
 			membership.setGroup(group);
 			membership.setUser(requester);
 			groupMemberships.persist(membership);
-
-			UserModel userModel = new UserModel();
-			userModel.setName(requester.getNetId());
-			client.users().ensureExists(userModel);
-
-			CreateRepositoryModel repoModel = new CreateRepositoryModel();
-			repoModel.setName(group.getRepositoryName());
-			repoModel.setTemplateRepository(course.getTemplateRepositoryUrl());
-			repoModel.setPermissions(ImmutableMap.<String, Level> builder()
-					.put(userModel.getName(), Level.READ_WRITE)
-					.build());
-
-			client.repositories().create(repoModel);
+			
+			return group;
 		}
+	}
+	
+	private void provisionRepository(String repoName, String templateUrl, String netId) {
+		UserModel userModel = new UserModel();
+		userModel.setName(netId);
+		client.users().ensureExists(userModel);
+
+		CreateRepositoryModel repoModel = new CreateRepositoryModel();
+		repoModel.setName(repoName);
+		repoModel.setTemplateRepository(templateUrl);
+		repoModel.setPermissions(ImmutableMap.<String, Level> builder()
+				.put(userModel.getName(), Level.READ_WRITE)
+				.build());
+
+		client.repositories().create(repoModel);
 	}
 
 	private boolean isAlreadyRegisteredForCourse(User requester, List<Group> courseGroups) {

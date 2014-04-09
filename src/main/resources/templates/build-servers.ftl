@@ -1,6 +1,6 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader i18n.translate("section.build-servers") /]
-[@macros.renderMenu i18n /]
+[@macros.renderMenu i18n user /]
 		<div class="container">
 [#if error?? && error?has_content]
 			<div class="alert alert-danger">

@@ -24,4 +24,7 @@ public class User {
 	@Column(name = "net_id")
 	private String netId;
 	
+	@Column(name = "admin")
+	private boolean admin;
+	
 }

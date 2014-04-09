@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.server.session.HashSessionIdManager;
+import org.eclipse.jetty.server.session.HashSessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.resource.Resource;
@@ -65,12 +68,14 @@ public class DevhubServer {
 		resources.setCacheControl("max-age=3600");
 		
 		DevhubHandler devhub = new DevhubHandler(config, rootFolder);
+		devhub.setHandler(new SessionHandler(new HashSessionManager()));
 		
 		ContextHandlerCollection handlers = new ContextHandlerCollection();
 		handlers.addContext("/static/", "/static").setHandler(resources);
 		handlers.addContext("/", "/").setHandler(devhub);
 		
 		server = new Server(config.getHttpPort());
+        server.setSessionIdManager(new HashSessionIdManager());
 		server.setHandler(handlers);
 	}
 	

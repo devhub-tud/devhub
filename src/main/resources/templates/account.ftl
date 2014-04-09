@@ -1,6 +1,6 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader i18n.translate("section.account") /]
-[@macros.renderMenu i18n /]
+[@macros.renderMenu i18n user /]
 		<div class="container">
 			<h4>
 				${i18n.translate("block.ssh-keys.title")}

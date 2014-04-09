@@ -13,13 +13,14 @@
 	<body>
 [/#macro]
 
-[#macro renderMenu i18n]
+[#macro renderMenu i18n user]
 		<div class="menu">
 			<div class="container">
 				<a href="/" class="logo-text"><img class="logo-image" src="/static/img/logo.png"> DEVHUB</a>
-				<!-- <a href="/" class="btn btn-default pull-right">Sign in</a> -->
 				<div class="pull-right">
+[#if user.isAdmin()]
 					<a href="/build-servers">${i18n.translate("section.build-servers")}</a>
+[/#if]
 					<a href="/projects">${i18n.translate("section.projects")}</a>
 					<a href="/account">${i18n.translate("section.account")}</a>
 					<a href="/support">${i18n.translate("section.support")}</a>

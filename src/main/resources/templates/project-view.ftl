@@ -1,6 +1,6 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader i18n.translate("section.projects") /]
-[@macros.renderMenu i18n /]
+[@macros.renderMenu i18n user /]
 		<div class="container">
 			<h4>Git clone URL</h4>
 			<div class="well well-sm">

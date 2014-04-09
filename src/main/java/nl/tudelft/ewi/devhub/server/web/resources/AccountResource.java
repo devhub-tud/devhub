@@ -21,37 +21,39 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import nl.tudelft.ewi.devhub.server.backend.SshKeyBackend;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
+import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
 import org.eclipse.jetty.util.UrlEncoded;
+import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
+@RequestScoped
 @Path("account")
 @Produces(MediaType.TEXT_HTML)
+@RequireAuthenticatedUser
 public class AccountResource {
 
-	private static final int USER_ID = 1;
-
 	private final TemplateEngine templateEngine;
-	private final Users users;
 	private final SshKeyBackend backend;
+	private final RequestScope scope;
 
 	@Inject
-	AccountResource(TemplateEngine templateEngine, Users users, SshKeyBackend backend) {
+	AccountResource(TemplateEngine templateEngine, SshKeyBackend backend, RequestScope scope) {
 		this.templateEngine = templateEngine;
-		this.users = users;
 		this.backend = backend;
+		this.scope = scope;
 	}
 
 	@GET
 	public String showUserPage(@Context HttpServletRequest request) throws IOException {
-		User requester = users.find(USER_ID);
-
+		User requester = scope.getUser();
+		
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
 		parameters.put("keys", backend.listKeys(requester));
@@ -65,11 +67,10 @@ public class AccountResource {
 	public String showNewSshKeyPage(@Context HttpServletRequest request, @QueryParam("error") String error) 
 			throws IOException {
 		
-		User requester = users.find(USER_ID);
 		List<Locale> locales = Collections.list(request.getLocales());
 		
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", requester);
+		parameters.put("user", scope.getUser());
 		if (!Strings.isNullOrEmpty(error)) {
 			parameters.put("error", error);
 		}
@@ -82,9 +83,8 @@ public class AccountResource {
 	public Response addNewKey(@FormParam("name") String name, @FormParam("contents") String contents) 
 			throws URISyntaxException {
 		
-		User requester = users.find(USER_ID);
 		try {
-			backend.createNewSshKey(requester, name, contents);
+			backend.createNewSshKey(scope.getUser(), name, contents);
 			return Response.seeOther(new URI("/account")).build();
 		}
 		catch (ApiError e) {
@@ -96,10 +96,8 @@ public class AccountResource {
 	@POST
 	@Path("delete")
 	public Response deleteExistingKey(@FormParam("name") String name) throws URISyntaxException {
-	
-		User requester = users.find(USER_ID);
 		try {
-			backend.deleteSshKey(requester, name);
+			backend.deleteSshKey(scope.getUser(), name);
 			return Response.seeOther(new URI("/account")).build();
 		}
 		catch (ApiError e) {

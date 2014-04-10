@@ -10,11 +10,11 @@
 			<column name="id" type="bigint" autoIncrement="true">
 				<constraints primaryKey="true" nullable="false" />
 			</column>
-			<column name="student_number" type="bigint">
-				<constraints nullable="true" unique="true" />
-			</column>
 			<column name="net_id" type="varchar(32)">
 				<constraints nullable="false" unique="true" />
+			</column>
+			<column name="admin" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
 			</column>
 		</createTable>
 	</changeSet>
@@ -73,10 +73,6 @@
 	</changeSet>
 	
 	<changeSet id="insert-dummy-data" author="Michael de Jong">
-		<insert tableName="users">
-			<column name="student_number">1314793</column>
-			<column name="net_id">mdejong2</column>
-		</insert>
 		<insert tableName="courses">
 			<column name="code">TI1705</column>
 			<column name="name">Softwarekwaliteit &amp; Testen</column>

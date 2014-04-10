@@ -25,25 +25,27 @@ import nl.tudelft.ewi.devhub.server.backend.ProjectsBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
+import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.GitServerClient;
 
 import org.eclipse.jetty.util.UrlEncoded;
+import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.persist.Transactional;
 
+@RequestScoped
 @Path("projects")
 @Produces(MediaType.TEXT_HTML)
+@RequireAuthenticatedUser
 public class ProjectsResource {
-
-	private static final int USER_ID = 1;
 
 	private final ProjectsBackend projectsBackend;
 	private final TemplateEngine templateEngine;
@@ -51,24 +53,24 @@ public class ProjectsResource {
 	private final GitServerClient client;
 	private final Groups groups;
 	private final Courses courses;
-	private final Users users;
+	private final RequestScope scope;
 
 	@Inject
 	ProjectsResource(TemplateEngine templateEngine, GroupMemberships groupMemberships, Groups groups, 
-			ProjectsBackend projectsBackend, Courses projects, Users users, GitServerClient client) {
+			ProjectsBackend projectsBackend, Courses projects, GitServerClient client, RequestScope scope) {
 
 		this.templateEngine = templateEngine;
 		this.groupMemberships = groupMemberships;
 		this.projectsBackend = projectsBackend;
 		this.courses = projects;
 		this.groups = groups;
-		this.users = users;
 		this.client = client;
+		this.scope = scope;
 	}
 
 	@GET
 	public String showProjectsOverview(@Context HttpServletRequest request) throws IOException {
-		User requester = users.find(USER_ID);
+		User requester = scope.getUser();
 		
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
@@ -84,7 +86,7 @@ public class ProjectsResource {
 	public Response showProjectSetupPage(@Context HttpServletRequest request, @QueryParam("error") String error) 
 			throws IOException {
 		
-		User requester = users.find(USER_ID);
+		User requester = scope.getUser();
 
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
@@ -120,12 +122,11 @@ public class ProjectsResource {
 			@PathParam("courseCode") String courseCode, 
 			@PathParam("groupNumber") String groupNumber) throws URISyntaxException, IOException {
 		
-		User requester = users.find(USER_ID);
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, Long.parseLong(groupNumber));
 
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", requester);
+		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
 		parameters.put("repository", client.repositories().retrieve(group.getRepositoryName()));
 

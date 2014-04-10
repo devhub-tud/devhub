@@ -20,7 +20,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthentication;
+import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
@@ -30,10 +30,10 @@ import org.jboss.resteasy.plugins.guice.RequestScoped;
 import com.google.inject.persist.Transactional;
 
 @Slf4j
+@RequestScoped
 @Path("hooks")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@RequestScoped
 public class HooksResource {
 
 	@Data
@@ -93,7 +93,7 @@ public class HooksResource {
 
 	@POST
 	@Path("build-result")
-	@RequireAuthentication
+	@RequireAuthenticatedBuildServer
 	@Transactional
 	public void onBuildResult(nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) {
 		for (String line : buildResult.getLogLines()) {

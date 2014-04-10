@@ -22,12 +22,12 @@ import com.google.inject.Singleton;
 
 @Singleton
 @javax.ws.rs.ext.Provider
-public class BasicAuthFilter implements ContainerRequestFilter {
+public class BuildServerAuthenticationFilter implements ContainerRequestFilter {
 	
 	private final Provider<BuildsBackend> backends;
 
 	@Inject
-	BasicAuthFilter(Provider<BuildsBackend> backends) {
+	BuildServerAuthenticationFilter(Provider<BuildsBackend> backends) {
 		this.backends = backends;
 	}
 	
@@ -42,11 +42,11 @@ public class BasicAuthFilter implements ContainerRequestFilter {
 		Method method = invoker.getMethod();
 		Class<?> resource = method.getDeclaringClass();
 		
-		checkRequireAuthentication(ctx, method, resource);
+		checkBuildServerAuthentication(ctx, method, resource);
 	}
 	
-	private void checkRequireAuthentication(ContainerRequestContext ctx, Method method, Class<?> resource) {
-		RequireAuthentication annotation = getAnnotation(method, resource, RequireAuthentication.class);
+	private void checkBuildServerAuthentication(ContainerRequestContext ctx, Method method, Class<?> resource) {
+		RequireAuthenticatedBuildServer annotation = getAnnotation(method, resource, RequireAuthenticatedBuildServer.class);
 		if (annotation != null) {
 			String authHeader = ctx.getHeaderString("Authorization");
 			if (Strings.isNullOrEmpty(authHeader) || !authHeader.startsWith("Basic ")) {

@@ -1,6 +1,6 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader i18n.translate("form.build-server-setup.title") /]
-[@macros.renderMenu i18n /]
+[@macros.renderMenu i18n user /]
 		<div class="container">
 [#if error?? && error?has_content]
 			<div class="alert alert-danger">
@@ -11,7 +11,7 @@
 			<form role="form" method="POST" action="">
 				<div class="form-group">
 					<label for="build-server-name">${i18n.translate("form.build-server-setup.build-server-name.label")}</label>
-					<input type="text" id="build-server-name" name="name" maxlength="32" class="form-control" placeholder="${i18n.translate("form.build-server-setup.build-server-name.label")}" data-placement="top" data-trigger="hover">
+					<input type="text" id="build-server-name" name="name" maxlength="32" class="form-control" autofocus="autofocus" placeholder="${i18n.translate("form.build-server-setup.build-server-name.label")}" data-placement="top" data-trigger="hover">
 				</div>
 				<div class="form-group">
 					<label for="build-server-secret">${i18n.translate("form.build-server-setup.build-server-secret.label")}</label>

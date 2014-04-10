@@ -1,6 +1,6 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader i18n.translate("form.ssh-key-setup.title") /]
-[@macros.renderMenu i18n /]
+[@macros.renderMenu i18n user /]
 		<div class="container">
 			<h4>${i18n.translate("form.ssh-key-setup.title")}</h4>
 [#if error?? && error?has_content]
@@ -11,7 +11,7 @@
 			<form role="form" method="POST" action="">
 				<div class="form-group">
 					<label for="key-name">${i18n.translate("form.ssh-key-setup.key-name.label")}</label>
-					<input type="text" id="key-name" name="name" class="form-control" placeholder="${i18n.translate("form.ssh-key-setup.key-name.label")}" data-placement="top" data-trigger="hover">
+					<input type="text" id="key-name" name="name" class="form-control" autofocus="autofocus" placeholder="${i18n.translate("form.ssh-key-setup.key-name.label")}" data-placement="top" data-trigger="hover">
 				</div>
 				<div class="form-group">
 					<label for="key-contents">${i18n.translate("form.ssh-key-setup.key-contents.label")}</label>

@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 
 import nl.tudelft.ewi.devhub.server.database.entities.QUser;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -17,9 +18,26 @@ public class Users extends Controller<User> {
 
 	@Transactional
 	public User find(long id) {
-		return query().from(QUser.user)
+		User user = query().from(QUser.user)
 				.where(QUser.user.id.eq(id))
 				.singleResult(QUser.user);
+		
+		if (user == null) {
+			throw new EntityNotFoundException();
+		}
+		return user;
+	}
+
+	@Transactional
+	public User findByNetId(String netId) {
+		User user = query().from(QUser.user)
+				.where(QUser.user.netId.eq(netId))
+				.singleResult(QUser.user);
+		
+		if (user == null) {
+			throw new EntityNotFoundException();
+		}
+		return user;
 	}
 	
 }

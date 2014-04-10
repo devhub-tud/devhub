@@ -1,6 +1,6 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader i18n.translate("form.project-setup.title") /]
-[@macros.renderMenu i18n /]
+[@macros.renderMenu i18n user /]
 		<div class="container">
 			<h4>${i18n.translate("form.project-setup.title")}</h4>
 [#if error?? && error?has_content]
@@ -13,7 +13,7 @@
 			<form role="form" method="POST" action="">
 				<div class="form-group">
 					<label for="course-id">${i18n.translate("form.project-setup.course-id.label")}</label>
-					<select class="form-control" id="course-id" name="course-id">
+					<select class="form-control" id="course-id" name="course-id" autofocus="autofocus">
 	[#list courses as course]
 						<option value="${course.getId()}">${course.getCode()} - ${course.getName()}</option>
 	[/#list]

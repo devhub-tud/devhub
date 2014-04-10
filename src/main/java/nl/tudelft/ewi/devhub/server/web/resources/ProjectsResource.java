@@ -144,7 +144,6 @@ public class ProjectsResource {
 		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
 		parameters.put("repository", client.repositories().retrieve(group.getRepositoryName()));
-		parameters.put("commitChecker", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return Response.ok()

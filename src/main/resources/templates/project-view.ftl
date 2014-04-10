@@ -13,7 +13,14 @@
 	[#list repository.getRecentCommits() as commit]
 					<tr>
 						<td>
-							<i style="color: #00aa00;" class="glyphicon glyphicon-ok-sign"></i>
+		[#assign commitSucceeded = commitChecker.hasSucceeded(commit.getCommitId())]
+		[#if commitSucceeded??]
+			[#if commitSucceeded] 
+							<i style="color: #00aa00;" class="glyphicon glyphicon-ok"></i>
+			[#else]
+							<i style="color: #aa0000;" class="glyphicon glyphicon-remove"></i>
+			[/#if]
+		[/#if]
 							${commit.getMessage()} 
 							<span class="pull-right" style="color: #bbb !important;">${commit.getAuthor()}</span>
 						</td>

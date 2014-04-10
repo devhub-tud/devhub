@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -144,6 +145,7 @@ public class ProjectsResource {
 		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
 		parameters.put("repository", client.repositories().retrieve(group.getRepositoryName()));
+		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return Response.ok()
@@ -165,7 +167,16 @@ public class ProjectsResource {
 		private final Group group;
 		private final BuildResults buildResults;
 		
-		public Boolean hasSucceeded(String commitId) {
+		public boolean hasFinished(String commitId) {
+			try {
+				return buildResults.find(group, commitId).getSuccess() != null;
+			}
+			catch (EntityNotFoundException e) {
+				return false;
+			}
+		}
+		
+		public boolean hasSucceeded(String commitId) {
 			return buildResults.find(group, commitId).getSuccess();
 		}
 	}

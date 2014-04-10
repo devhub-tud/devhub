@@ -13,6 +13,15 @@
 	[#list repository.getRecentCommits() as commit]
 					<tr>
 						<td>
+		[#if states.hasFinished(commit.getCommit())]
+			[#if states.hasSucceeded(commit.getCommit())]
+							<i style="color: #00aa00;" class="glyphicon glyphicon-ok icon"></i>
+			[#else]
+							<i style="color: #aa0000;" class="glyphicon glyphicon-remove icon"></i>
+			[/#if]
+		[#else]
+							<i class="icon"> </i>
+		[/#if]
 							${commit.getMessage()} 
 							<span class="pull-right" style="color: #bbb !important;">${commit.getAuthor()}</span>
 						</td>

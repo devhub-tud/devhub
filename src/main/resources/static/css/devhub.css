@@ -886,6 +886,7 @@ h1,h2,h3,h4,h5,h6{font-weight:300;line-height:100%;margin:8px 0px 18px 0px;paddi
 .menu{background-color:#fff;border-bottom:1px solid #ddd;padding:21px 0px;margin-bottom:24px;width:100%;}.menu .logo-text{font-size:22px;margin-bottom:0px;line-height:40px;color:#b8b8b8;}
 .menu a{font-size:17px;margin-bottom:0px;line-height:40px;color:#b8b8b8;}.menu a:not(:last-child){margin-right:32px;}
 .logo-image{width:44px;height:44px;}
+.icon{width:20px !important;display:inline-block;}
 .no-margin{margin:0;}
 td.minimal-width,th.minimal-width{width:1px;text-align:center;}
 td.no-data{color:#aaa;font-style:italic;}

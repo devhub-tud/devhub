@@ -1,5 +1,9 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
@@ -60,7 +64,7 @@ public class HooksResource {
 
 	@POST
 	@Path("git-push")
-	public void onGitPush(@Context HttpServletRequest request, GitPush push) {
+	public void onGitPush(@Context HttpServletRequest request, GitPush push) throws UnsupportedEncodingException {
 		log.info("Received git-push event: {}", push);
 		
 		DetailedRepositoryModel repository = client.repositories().retrieve(push.getRepository());
@@ -85,8 +89,14 @@ public class HooksResource {
 			source.setBranchName(branch.getName());
 			source.setCommitId(branch.getCommit());
 	
+			StringBuilder callbackBuilder = new StringBuilder();
+			callbackBuilder.append(DevhubServer.getHostUrl(request));
+			callbackBuilder.append("/hooks/build-result");
+			callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
+			callbackBuilder.append("&commit=" + URLEncoder.encode(branch.getCommit(), "UTF-8"));
+			
 			BuildRequest buildRequest = new BuildRequest();
-			buildRequest.setCallbackUrl(DevhubServer.getHostUrl(request) + "/hooks/build-result");
+			buildRequest.setCallbackUrl(callbackBuilder.toString());
 			buildRequest.setInstruction(instruction);
 			buildRequest.setSource(source);
 	
@@ -100,19 +110,21 @@ public class HooksResource {
 	@RequireAuthenticatedBuildServer
 	@Transactional
 	public void onBuildResult(@QueryParam("repository") String repository, @QueryParam("commit") String commit, 
-			nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) {
+			nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) throws UnsupportedEncodingException {
 		
-		Group group = groups.findByRepoName(repository);
+		String repoName = URLDecoder.decode(repository, "UTF-8");
+		String commitId = URLDecoder.decode(commit, "UTF-8");
+		Group group = groups.findByRepoName(repoName);
 		
 		BuildResult result;
 		try {
-			result = buildResults.find(group, commit);
+			result = buildResults.find(group, commitId);
 			result.setLog(Joiner.on('\n').join(buildResult.getLogLines()));
 			result.setSuccess(buildResult.getStatus() == Status.SUCCEEDED);
 			buildResults.merge(result);
 		}
 		catch (EntityNotFoundException e) {
-			result = BuildResult.newBuildResult(group, commit);
+			result = BuildResult.newBuildResult(group, commitId);
 			result.setLog(Joiner.on('\n').join(buildResult.getLogLines()));
 			result.setSuccess(buildResult.getStatus() == Status.SUCCEEDED);
 			buildResults.persist(result);

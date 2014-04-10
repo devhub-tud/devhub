@@ -28,26 +28,25 @@ public class LdapBackend {
 	
 	public boolean authenticate(String netId, String password) {
 		log.debug("Authenticating: {}", netId);
-		return true;
 		
-//		try (LdapConnection conn = new LdapNetworkConnection("ldaps.tudelft.nl", 636, true)) {
-//			BindRequest request = new BindRequestImpl();
-//			request.setSimple(true);
-//			request.setName(netId + "@tudelft.net");
-//			request.setCredentials(password);
-//			
-//			BindResponse response = conn.bind(request);
-//			LdapResult ldapResult = response.getLdapResult();
-//			ResultCodeEnum resultCode = ldapResult.getResultCode();
-//			
-//			conn.unBind();
-//			
-//			return resultCode == ResultCodeEnum.SUCCESS;
-//		}
-//		catch (Throwable e) {
-//			log.error(e.getMessage(), e);
-//			return false;
-//		}
+		try (LdapConnection conn = new LdapNetworkConnection("ldaps.tudelft.nl", 636, true)) {
+			BindRequest request = new BindRequestImpl();
+			request.setSimple(true);
+			request.setName(netId + "@tudelft.net");
+			request.setCredentials(password);
+			
+			BindResponse response = conn.bind(request);
+			LdapResult ldapResult = response.getLdapResult();
+			ResultCodeEnum resultCode = ldapResult.getResultCode();
+			
+			conn.unBind();
+			
+			return resultCode == ResultCodeEnum.SUCCESS;
+		}
+		catch (Throwable e) {
+			log.error(e.getMessage(), e);
+			return false;
+		}
 	}
 	
 	public String getEmail(String netId, String password) {

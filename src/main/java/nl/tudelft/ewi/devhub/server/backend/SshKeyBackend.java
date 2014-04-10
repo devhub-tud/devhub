@@ -29,7 +29,7 @@ public class SshKeyBackend {
 	}
 
 	public void createNewSshKey(User user, String name, String contents) throws ApiError {
-		if (name == null || !name.matches("^[a-zA-Z0-9\\.]+$")) {
+		if (name == null || !name.matches("^[a-zA-Z0-9]+$")) {
 			throw new ApiError(INVALID_KEY_NAME);
 		}
 		if (contents == null || !contents.matches("^ssh-rsa\\s.+$")) {
@@ -53,7 +53,7 @@ public class SshKeyBackend {
 	}
 	
 	public void deleteSshKey(User user, String name) throws ApiError {
-		if (name == null || !name.matches("^[a-zA-Z0-9\\.]+$")) {
+		if (name == null || !name.matches("^[a-zA-Z0-9]+$")) {
 			throw new ApiError(INVALID_KEY_NAME);
 		}
 		

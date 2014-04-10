@@ -38,7 +38,7 @@
 				var interval = setInterval(function() { validateForm(); }, 250);
 				
 				function validateForm() {
-					var nameValid = validateField(nameField, /^[a-zA-Z0-9\.]+$/, '${i18n.translate("error.invalid-build-server-name")}');
+					var nameValid = validateField(nameField, /^[a-zA-Z0-9]+$/, '${i18n.translate("error.invalid-build-server-name")}');
 					var secretValid = validateField(secretField, /^[a-zA-Z0-9]+$/, '${i18n.translate("error.invalid-build-server-secret")}');
 					var hostValid = validateField(hostField, /^http:\/\/.+$/, '${i18n.translate("error.invalid-build-server-host")}');
 					

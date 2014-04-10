@@ -33,7 +33,7 @@
 				var interval = setInterval(function() { validateForm(); }, 250);
 				
 				function validateForm() {
-					var keyNameValid = validateField(keyNameField, /^[a-zA-Z0-9\.]+$/, '${i18n.translate("error.invalid-key-name")}');
+					var keyNameValid = validateField(keyNameField, /^[a-zA-Z0-9]+$/, '${i18n.translate("error.invalid-key-name")}');
 					var keyContentsValid = validateField(keyContentsField, /^ssh-rsa\s.+$/, '${i18n.translate("error.invalid-key-contents")}');
 					
 					if (keyNameValid && keyContentsValid) {

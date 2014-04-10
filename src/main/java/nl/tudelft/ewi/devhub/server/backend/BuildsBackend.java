@@ -17,6 +17,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Queues;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
@@ -58,6 +59,14 @@ public class BuildsBackend {
 	}
 	
 	public void addBuildServer(BuildServer server) throws ApiError {
+		try {
+			String name = server.getName();
+			Preconditions.checkArgument(name.matches("^[a-zA-Z0-9]+$"));
+		}
+		catch (Throwable e) {
+			throw new ApiError("error.invalid-build-server-name");
+		}
+		
 		try {
 			buildServers.persist(server);
 		}

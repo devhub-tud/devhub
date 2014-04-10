@@ -21,7 +21,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import lombok.Data;
 import nl.tudelft.ewi.devhub.server.backend.ProjectsBackend;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
@@ -56,10 +58,12 @@ public class ProjectsResource {
 	private final Groups groups;
 	private final Courses courses;
 	private final RequestScope scope;
+	private final BuildResults buildResults;
 
 	@Inject
 	ProjectsResource(TemplateEngine templateEngine, GroupMemberships groupMemberships, Groups groups, 
-			ProjectsBackend projectsBackend, Courses projects, GitServerClient client, RequestScope scope) {
+			ProjectsBackend projectsBackend, Courses projects, GitServerClient client, RequestScope scope,
+			BuildResults buildResults) {
 
 		this.templateEngine = templateEngine;
 		this.groupMemberships = groupMemberships;
@@ -68,6 +72,7 @@ public class ProjectsResource {
 		this.groups = groups;
 		this.client = client;
 		this.scope = scope;
+		this.buildResults = buildResults;
 	}
 
 	@GET
@@ -122,6 +127,7 @@ public class ProjectsResource {
 	
 	@GET
 	@Path("{courseCode}/groups/{groupNumber}")
+	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request, 
 			@PathParam("courseCode") String courseCode, 
 			@PathParam("groupNumber") String groupNumber) throws URISyntaxException, IOException {
@@ -138,6 +144,7 @@ public class ProjectsResource {
 		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
 		parameters.put("repository", client.repositories().retrieve(group.getRepositoryName()));
+		parameters.put("commitChecker", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return Response.ok()
@@ -152,6 +159,16 @@ public class ProjectsResource {
 			}
 		}
 		return false;
+	}
+	
+	@Data
+	public static class CommitChecker {
+		private final Group group;
+		private final BuildResults buildResults;
+		
+		public Boolean hasSucceeded(String commitId) {
+			return buildResults.find(group, commitId).getSuccess();
+		}
 	}
 
 }

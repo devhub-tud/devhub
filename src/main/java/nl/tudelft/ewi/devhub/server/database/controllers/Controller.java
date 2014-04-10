@@ -23,6 +23,13 @@ public class Controller<T> {
 	}
 	
 	@Transactional
+	public T merge(T entity) {
+		entityManager.merge(entity);
+		entityManager.flush();
+		return entity;
+	}
+	
+	@Transactional
 	public T delete(T entity) {
 		entityManager.remove(entity);
 		entityManager.flush();

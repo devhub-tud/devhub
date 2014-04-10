@@ -1,17 +1,20 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
+import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
 import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
@@ -27,6 +30,7 @@ import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 
 import org.jboss.resteasy.plugins.guice.RequestScoped;
 
+import com.google.common.base.Joiner;
 import com.google.inject.persist.Transactional;
 
 @Slf4j
@@ -95,11 +99,24 @@ public class HooksResource {
 	@Path("build-result")
 	@RequireAuthenticatedBuildServer
 	@Transactional
-	public void onBuildResult(nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) {
-		for (String line : buildResult.getLogLines()) {
-			log.info("LOG: " + line);
+	public void onBuildResult(@QueryParam("repository") String repository, @QueryParam("commit") String commit, 
+			nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) {
+		
+		Group group = groups.findByRepoName(repository);
+		
+		BuildResult result;
+		try {
+			result = buildResults.find(group, commit);
+			result.setLog(Joiner.on('\n').join(buildResult.getLogLines()));
+			result.setSuccess(buildResult.getStatus() == Status.SUCCEEDED);
+			buildResults.merge(result);
 		}
-		log.info("STATUS: " + buildResult.getStatus());
+		catch (EntityNotFoundException e) {
+			result = BuildResult.newBuildResult(group, commit);
+			result.setLog(Joiner.on('\n').join(buildResult.getLogLines()));
+			result.setSuccess(buildResult.getStatus() == Status.SUCCEEDED);
+			buildResults.persist(result);
+		}
 	}
 	
 }

@@ -33,7 +33,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.devhub.server.web.errors.FatalNotAllowedException;
+import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -138,7 +138,7 @@ public class ProjectsResource {
 		Group group = groups.find(course, Long.parseLong(groupNumber));
 
 		if (!user.isAdmin() && !isMemberOf(user, group)) {
-			throw new FatalNotAllowedException();
+			throw new UnauthorizedException();
 		}
 
 		Map<String, Object> parameters = Maps.newHashMap();

@@ -25,7 +25,7 @@ import nl.tudelft.ewi.devhub.server.backend.SshKeyBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.devhub.server.web.errors.FatalNotAllowedException;
+import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -69,7 +69,7 @@ public class AccountResource {
 		User account = users.findByNetId(netId);
 		
 		if (!requester.isAdmin() && !requester.equals(account)) {
-			throw new FatalNotAllowedException();
+			throw new UnauthorizedException();
 		}
 		
 		Map<String, Object> parameters = Maps.newHashMap();
@@ -106,7 +106,7 @@ public class AccountResource {
 		User account = users.findByNetId(netId);
 		
 		if (!requester.isAdmin() && !requester.equals(account)) {
-			throw new FatalNotAllowedException();
+			throw new UnauthorizedException();
 		}
 		
 		try {
@@ -128,7 +128,7 @@ public class AccountResource {
 		User account = users.findByNetId(netId);
 		
 		if (!requester.isAdmin() && !requester.equals(account)) {
-			throw new FatalNotAllowedException();
+			throw new UnauthorizedException();
 		}
 		
 		try {

@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.server.web;
+package nl.tudelft.ewi.devhub.server.web.errors;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -10,8 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Provider
-public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundException> {@Override
+public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundException> {
 	
+	@Override
 	public Response toResponse(NotFoundException exception) {
 		log.warn("Failed attempt to request: " + exception.getMessage());
 		return Response.status(Status.NOT_FOUND).build();

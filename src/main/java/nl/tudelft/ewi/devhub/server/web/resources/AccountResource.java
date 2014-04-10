@@ -14,6 +14,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -21,8 +22,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import nl.tudelft.ewi.devhub.server.backend.SshKeyBackend;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.devhub.server.web.errors.FatalNotAllowedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -34,7 +37,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 @RequestScoped
-@Path("account")
+@Path("accounts")
 @Produces(MediaType.TEXT_HTML)
 @RequireAuthenticatedUser
 public class AccountResource {
@@ -42,30 +45,45 @@ public class AccountResource {
 	private final TemplateEngine templateEngine;
 	private final SshKeyBackend backend;
 	private final RequestScope scope;
+	private final Users users;
 
 	@Inject
-	AccountResource(TemplateEngine templateEngine, SshKeyBackend backend, RequestScope scope) {
+	AccountResource(TemplateEngine templateEngine, SshKeyBackend backend, RequestScope scope, Users users) {
 		this.templateEngine = templateEngine;
 		this.backend = backend;
 		this.scope = scope;
+		this.users = users;
 	}
 
 	@GET
-	public String showUserPage(@Context HttpServletRequest request) throws IOException {
+	public Response showPersonalUserPage() throws URISyntaxException {
+		return Response.seeOther(new URI("/accounts/" + scope.getUser().getNetId())).build();
+	}
+	
+	@GET
+	@Path("{netId}")
+	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId) 
+			throws IOException {
+		
 		User requester = scope.getUser();
+		User account = users.findByNetId(netId);
+		
+		if (!requester.isAdmin() && !requester.equals(account)) {
+			throw new FatalNotAllowedException();
+		}
 		
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
-		parameters.put("keys", backend.listKeys(requester));
+		parameters.put("keys", backend.listKeys(account));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("account.ftl", locales, parameters);
 	}
 	
 	@GET
-	@Path("setup")
-	public String showNewSshKeyPage(@Context HttpServletRequest request, @QueryParam("error") String error) 
-			throws IOException {
+	@Path("{netId}/setup")
+	public String showNewSshKeyPage(@Context HttpServletRequest request, @PathParam("netId") String netId, 
+			@QueryParam("error") String error) throws IOException {
 		
 		List<Locale> locales = Collections.list(request.getLocales());
 		
@@ -79,12 +97,19 @@ public class AccountResource {
 	}
 	
 	@POST
-	@Path("setup")
-	public Response addNewKey(@FormParam("name") String name, @FormParam("contents") String contents) 
-			throws URISyntaxException {
+	@Path("{netId}/setup")
+	public Response addNewKey(@QueryParam("netId") String netId, @FormParam("name") String name,
+			@FormParam("contents") String contents) throws URISyntaxException {
+		
+		User requester = scope.getUser();
+		User account = users.findByNetId(netId);
+		
+		if (!requester.isAdmin() && !requester.equals(account)) {
+			throw new FatalNotAllowedException();
+		}
 		
 		try {
-			backend.createNewSshKey(scope.getUser(), name, contents);
+			backend.createNewSshKey(account, name, contents);
 			return Response.seeOther(new URI("/account")).build();
 		}
 		catch (ApiError e) {
@@ -95,7 +120,16 @@ public class AccountResource {
 	
 	@POST
 	@Path("delete")
-	public Response deleteExistingKey(@FormParam("name") String name) throws URISyntaxException {
+	public Response deleteExistingKey(@QueryParam("netId") String netId, @FormParam("name") String name) 
+			throws URISyntaxException {
+		
+		User requester = scope.getUser();
+		User account = users.findByNetId(netId);
+		
+		if (!requester.isAdmin() && !requester.equals(account)) {
+			throw new FatalNotAllowedException();
+		}
+		
 		try {
 			backend.deleteSshKey(scope.getUser(), name);
 			return Response.seeOther(new URI("/account")).build();

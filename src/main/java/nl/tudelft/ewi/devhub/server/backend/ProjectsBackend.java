@@ -28,8 +28,6 @@ import com.google.inject.persist.Transactional;
 @Slf4j
 public class ProjectsBackend {
 
-	private static final int USER_ID = 1;
-
 	private static final String ALREADY_REGISTERED_FOR_COURSE = "error.already-registered-for-course";
 	private static final String COULD_NOT_FIND_COURSE = "error.could-not-find-course";
 	private static final String COULD_NOT_CREATE_GROUP = "error.could-not-create-group";
@@ -53,14 +51,13 @@ public class ProjectsBackend {
 		this.client = client;
 	}
 	
-	public void processNewProjectSetup(long courseId) throws ApiError {
-		User requester = users.find(USER_ID);
+	public void processNewProjectSetup(String netId, long courseId) throws ApiError {
+		User requester = users.findByNetId(netId);
 		
 		Group group = persistRepository(courseId, requester);
 		
 		String repositoryName = group.getRepositoryName();
 		String templateRepositoryUrl = group.getCourse().getTemplateRepositoryUrl();
-		String netId = requester.getNetId();
 		
 		provisionRepository(repositoryName, templateRepositoryUrl, netId);
 	}

@@ -9,9 +9,11 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
+@EqualsAndHashCode(of = { "netId" })
 @Table(name = "users")
 public class User {
 	

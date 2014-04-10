@@ -27,8 +27,10 @@ import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.devhub.server.web.errors.FatalNotAllowedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -106,8 +108,10 @@ public class ProjectsResource {
 	public Response processProjectSetup(@Context HttpServletRequest request, @FormParam("course-id") int courseId)
 			throws IOException, URISyntaxException {
 		
+		User user = scope.getUser();
+		
 		try {
-			projectsBackend.processNewProjectSetup(courseId);
+			projectsBackend.processNewProjectSetup(user.getNetId(), courseId);
 			return Response.seeOther(new URI("/projects")).build();
 		}
 		catch (ApiError e) {
@@ -122,8 +126,13 @@ public class ProjectsResource {
 			@PathParam("courseCode") String courseCode, 
 			@PathParam("groupNumber") String groupNumber) throws URISyntaxException, IOException {
 		
+		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, Long.parseLong(groupNumber));
+
+		if (!user.isAdmin() && !isMemberOf(user, group)) {
+			throw new FatalNotAllowedException();
+		}
 
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", scope.getUser());
@@ -134,6 +143,15 @@ public class ProjectsResource {
 		return Response.ok()
 				.entity(templateEngine.process("project-view.ftl", locales, parameters))
 				.build();
+	}
+	
+	private boolean isMemberOf(User user, Group group) {
+		for (GroupMembership membership : group.getMemberships()) {
+			if (membership.getUser().getId() == user.getId()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

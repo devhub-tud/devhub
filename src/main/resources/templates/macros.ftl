@@ -22,7 +22,7 @@
 					<a href="/build-servers">${i18n.translate("section.build-servers")}</a>
 [/#if]
 					<a href="/projects">${i18n.translate("section.projects")}</a>
-					<a href="/account">${i18n.translate("section.account")}</a>
+					<a href="/accounts">${i18n.translate("section.account")}</a>
 					<a href="/support">${i18n.translate("section.support")}</a>
 					<a href="/logout">${i18n.translate("section.logout")}</a>
 				</div>

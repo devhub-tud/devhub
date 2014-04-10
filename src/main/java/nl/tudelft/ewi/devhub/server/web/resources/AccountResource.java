@@ -74,6 +74,7 @@ public class AccountResource {
 		
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
+		parameters.put("path", request.getRequestURI());
 		parameters.put("keys", backend.listKeys(account));
 
 		List<Locale> locales = Collections.list(request.getLocales());
@@ -98,7 +99,7 @@ public class AccountResource {
 	
 	@POST
 	@Path("{netId}/setup")
-	public Response addNewKey(@QueryParam("netId") String netId, @FormParam("name") String name,
+	public Response addNewKey(@PathParam("netId") String netId, @FormParam("name") String name,
 			@FormParam("contents") String contents) throws URISyntaxException {
 		
 		User requester = scope.getUser();
@@ -110,17 +111,17 @@ public class AccountResource {
 		
 		try {
 			backend.createNewSshKey(account, name, contents);
-			return Response.seeOther(new URI("/account")).build();
+			return Response.seeOther(new URI("/accounts/" + netId)).build();
 		}
 		catch (ApiError e) {
 			String error = UrlEncoded.encodeString(e.getResourceKey());
-			return Response.seeOther(new URI("/account/setup?error=" + error)).build();
+			return Response.seeOther(new URI("/accounts/" + netId + "/setup?error=" + error)).build();
 		}
 	}
 	
 	@POST
-	@Path("delete")
-	public Response deleteExistingKey(@QueryParam("netId") String netId, @FormParam("name") String name) 
+	@Path("{netId}/delete")
+	public Response deleteExistingKey(@PathParam("netId") String netId, @FormParam("name") String name) 
 			throws URISyntaxException {
 		
 		User requester = scope.getUser();
@@ -131,12 +132,12 @@ public class AccountResource {
 		}
 		
 		try {
-			backend.deleteSshKey(scope.getUser(), name);
-			return Response.seeOther(new URI("/account")).build();
+			backend.deleteSshKey(account, name);
+			return Response.seeOther(new URI("/accounts/" + netId)).build();
 		}
 		catch (ApiError e) {
 			String error = UrlEncoded.encodeString(e.getResourceKey());
-			return Response.seeOther(new URI("/account?error=" + error)).build();
+			return Response.seeOther(new URI("/accounts/" + netId + "?error=" + error)).build();
 		}
 	}
 	

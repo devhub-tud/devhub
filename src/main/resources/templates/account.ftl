@@ -4,7 +4,7 @@
 		<div class="container">
 			<h4>
 				${i18n.translate("block.ssh-keys.title")}
-				<a href="/account/setup" class="btn btn-success btn-sm pull-right">
+				<a href="${path}/setup" class="btn btn-success btn-sm pull-right">
 					<i class="glyphicon glyphicon-plus-sign"></i> ${i18n.translate("block.ssh-keys.buttons.setup-new-ssh-key.caption")}
 				</a>
 			</h4>
@@ -19,7 +19,7 @@
 	[#list keys as key]
 					<tr>
 						<td>
-							<form action="account/delete" method="post" class="pull-right">
+							<form action="${path}/delete" method="post" class="pull-right">
 								<input type="hidden" name="name" value="${key.name}">
 								<button type="submit" class="btn btn-danger btn-sm" style="margin: 5px;">
 									<i class="glyphicon glyphicon-remove-sign"></i> ${i18n.translate("block.ssh-keys.buttons.delete-ssh-key.caption")}

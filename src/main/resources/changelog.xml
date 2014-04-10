@@ -73,6 +73,10 @@
 	</changeSet>
 	
 	<changeSet id="insert-dummy-data" author="Michael de Jong">
+		<insert tableName="users">
+			<column name="net_id">mdejong2</column>
+			<column name="admin">true</column>
+		</insert>
 		<insert tableName="courses">
 			<column name="code">TI1705</column>
 			<column name="name">Softwarekwaliteit &amp; Testen</column>

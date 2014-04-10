@@ -13,9 +13,8 @@
 	[#list repository.getRecentCommits() as commit]
 					<tr>
 						<td>
-		[#assign commitSucceeded = commitChecker.hasSucceeded(commit.getCommitId())]
-		[#if commitSucceeded??]
-			[#if commitSucceeded] 
+		[#if commitChecker.hasSucceeded(commit.getCommitId())??]
+			[#if commitChecker.hasSucceeded(commit.getCommitId())] 
 							<i style="color: #00aa00;" class="glyphicon glyphicon-ok"></i>
 			[#else]
 							<i style="color: #aa0000;" class="glyphicon glyphicon-remove"></i>

@@ -2,7 +2,11 @@
 <!DOCTYPE html>
 <html>
 	<head>
+[#if title?? && title != ""]
 		<title>DevHub - ${title}</title>
+[#else]
+		<title>DevHub</title>
+[/#if]
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="/static/css/devhub.css">
 		<!--[if lt IE 9]>
@@ -18,7 +22,7 @@
 			<div class="container">
 				<a href="/" class="logo-text"><img class="logo-image" src="/static/img/logo.png"> DEVHUB</a>
 				<div class="pull-right">
-[#if user.isAdmin()]
+[#if user?? && user.isAdmin()]
 					<a href="/build-servers">${i18n.translate("section.build-servers")}</a>
 [/#if]
 					<a href="/projects">${i18n.translate("section.projects")}</a>

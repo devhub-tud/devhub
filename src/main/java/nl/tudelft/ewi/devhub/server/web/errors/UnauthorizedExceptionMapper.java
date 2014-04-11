@@ -22,7 +22,7 @@ import com.google.inject.Provider;
 
 @Slf4j
 @javax.ws.rs.ext.Provider
-public class ThrowableMapper implements ExceptionMapper<Throwable> {
+public class UnauthorizedExceptionMapper implements ExceptionMapper<UnauthorizedException> {
 	
 	@Context
 	private HttpServletRequest request;
@@ -31,13 +31,13 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
 	private final Provider<RequestScope> scopeProvider;
 
 	@Inject
-	public ThrowableMapper(TemplateEngine templateEngine, Provider<RequestScope> scopeProvider) {
+	public UnauthorizedExceptionMapper(TemplateEngine templateEngine, Provider<RequestScope> scopeProvider) {
 		this.templateEngine = templateEngine;
 		this.scopeProvider = scopeProvider;
 	}
 
 	@Override
-	public Response toResponse(Throwable exception) {
+	public Response toResponse(UnauthorizedException exception) {
 		UUID id = UUID.randomUUID();
 		log.error(exception.getMessage() + " (" + id + ")", exception);
 		
@@ -49,7 +49,7 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
 			params.put("error_id", id);
 			
 			return Response.ok()
-					.entity(templateEngine.process("error.fatal.ftl", locales, params))
+					.entity(templateEngine.process("error.unauthorized.ftl", locales, params))
 					.build();
 		}
 		catch (IOException e) {

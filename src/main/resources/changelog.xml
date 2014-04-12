@@ -13,12 +13,8 @@
 			<column name="net_id" type="varchar(32)">
 				<constraints nullable="false" unique="true" />
 			</column>
-			<column name="name" type="varchar(128)">
-				<constraints nullable="false" />
-			</column>
-			<column name="email" type="varchar(255)">
-				<constraints nullable="false" />
-			</column>
+			<column name="name" type="varchar(128)" />
+			<column name="email" type="varchar(255)" />
 			<column name="admin" type="boolean" defaultValue="false">
 				<constraints nullable="false" />
 			</column>

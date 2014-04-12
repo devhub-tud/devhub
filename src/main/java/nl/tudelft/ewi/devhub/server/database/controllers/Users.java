@@ -1,5 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
@@ -38,6 +40,14 @@ public class Users extends Controller<User> {
 			throw new EntityNotFoundException();
 		}
 		return user;
+	}
+
+	@Transactional
+	public List<User> listAllWithNetIdPrefix(String prefix) {
+		return query().from(QUser.user)
+				.where(QUser.user.netId.startsWith(prefix))
+				.orderBy(QUser.user.netId.asc())
+				.list(QUser.user);
 	}
 	
 }

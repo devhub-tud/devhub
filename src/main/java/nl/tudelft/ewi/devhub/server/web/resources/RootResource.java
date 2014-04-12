@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -20,8 +19,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import nl.tudelft.ewi.devhub.server.backend.LdapBackend;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -39,14 +36,12 @@ public class RootResource {
 	
 	private final TemplateEngine engine;
 	private final LdapBackend ldapBackend;
-	private final Users users;
 	private final RequestScope scope;
 
 	@Inject
-	public RootResource(TemplateEngine engine, LdapBackend ldapBackend, Users users, RequestScope scope) {
+	public RootResource(TemplateEngine engine, LdapBackend ldapBackend, RequestScope scope) {
 		this.engine = engine;
 		this.ldapBackend = ldapBackend;
-		this.users = users;
 		this.scope = scope;
 	}
 	
@@ -91,11 +86,6 @@ public class RootResource {
 			throws URISyntaxException, LdapException, IOException {
 		
 		if (ldapBackend.authenticate(netId, password)) {
-			if (!userExists(netId)) {
-				User user = ldapBackend.fetch(netId, password);
-				users.persist(user);
-			}
-			
 			scope.setUser(netId);
 			if (Strings.isNullOrEmpty(redirectTo)) {
 				return Response.seeOther(new URI("/projects")).build();
@@ -103,16 +93,6 @@ public class RootResource {
 			return Response.seeOther(new URI("/" + URLDecoder.decode(redirectTo, "UTF-8"))).build();
 		}
 		return Response.seeOther(new URI("/login?error=error.invalid-credentials")).build();
-	}
-	
-	private boolean userExists(String netId) {
-		try {
-			users.findByNetId(netId);
-			return true;
-		}
-		catch (EntityNotFoundException e) {
-			return false;
-		}
 	}
 	
 }

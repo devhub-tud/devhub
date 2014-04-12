@@ -1,8 +1,10 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import org.apache.directory.api.ldap.codec.decorators.SearchResultEntryDecorator;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
@@ -54,8 +56,8 @@ public class LdapBackend {
 			return false;
 		}
 	}
-	
-	public void populateUserTable(String netId, String password) {
+
+	public User fetch(String netId, String password) throws LdapException, IOException {
 		log.debug("Populating user table using LDAP account: {}", netId);
 		
 		try (LdapConnection conn = new LdapNetworkConnection("ldaps.tudelft.nl", 636, true)) {
@@ -71,30 +73,40 @@ public class LdapBackend {
 				throw new IllegalStateException("Not authenticated!");
 			}
 
-			SearchCursor cursor = search(netId, conn);
+			SearchCursor cursor = search(netId, conn, 1);
 			Iterator<Response> iterator = cursor.iterator();
-			while (iterator.hasNext()) {
-				Response searchResponse = iterator.next();
-				SearchResultEntryDecorator decorator = (SearchResultEntryDecorator) searchResponse;
-				Entry entry = decorator.getEntry();
-				String email = entry.get("mail").toString();
-				String name = entry.get("displayName").toString();
+			if (!iterator.hasNext()) {
+				throw new LdapException("Could not find user with netID: " + netId);
 			}
+			
+			Response searchResponse = iterator.next();
+			SearchResultEntryDecorator decorator = (SearchResultEntryDecorator) searchResponse;
+			Entry entry = decorator.getEntry();
+			String email = entry.get("mail").getString();
+			String name = entry.get("displayName").getString();
+			
+			if (name.contains(" - ")) {
+				name = name.substring(0, name.indexOf(" - "));
+			}
+			
+			User user = new User();
+			user.setNetId(netId);
+			user.setName(name);
+			user.setEmail(email);
 
 			conn.unBind();
-		}
-		catch (Throwable e) {
-			log.error(e.getMessage(), e);
+			
+			return user;
 		}
 	}
-
-	private SearchCursor search(String netId, LdapConnection conn) throws LdapInvalidDnException, LdapException {
+	
+	private SearchCursor search(String netId, LdapConnection conn, int limit) throws LdapInvalidDnException, LdapException {
 		SearchRequest searchRequest = new SearchRequestImpl();
 		searchRequest.setBase(new Dn("OU=MDS,DC=tudelft,DC=net"));
 		searchRequest.setScope(SearchScope.SUBTREE);
 		searchRequest.setFilter("(uid=" + netId + ")");
-		SearchCursor cursor = conn.search(searchRequest);
-		return cursor;
+		searchRequest.setSizeLimit(limit);
+		return conn.search(searchRequest);
 	}
 	
 }

@@ -1,7 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -27,6 +26,7 @@ import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
+import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Strings;
@@ -88,13 +88,11 @@ public class RootResource {
 	@Path("login")
 	public Response handleLogin(@Context HttpServletRequest request, @FormParam("netID") String netId, 
 			@FormParam("password") String password, @QueryParam("redirect") String redirectTo) 
-			throws URISyntaxException, UnsupportedEncodingException {
+			throws URISyntaxException, LdapException, IOException {
 		
 		if (ldapBackend.authenticate(netId, password)) {
 			if (!userExists(netId)) {
-				User user = new User();
-				user.setNetId(netId);
-				user.setAdmin(false);
+				User user = ldapBackend.fetch(netId, password);
 				users.persist(user);
 			}
 			

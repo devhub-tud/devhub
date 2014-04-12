@@ -154,6 +154,19 @@ td.no-data {
 	text-overflow: ellipsis;
 }
 
+.spinner {
+	-webkit-animation: rotate 2.7s linear infinite; 
+}
+
+@-webkit-keyframes rotate {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to { 
+    -webkit-transform: rotate(360deg);
+  }
+}
+
 code {
 	color: #2493c7;
 	font-weight: bold;

@@ -13,6 +13,8 @@
 			<column name="net_id" type="varchar(32)">
 				<constraints nullable="false" unique="true" />
 			</column>
+			<column name="name" type="varchar(128)" />
+			<column name="email" type="varchar(255)" />
 			<column name="admin" type="boolean" defaultValue="false">
 				<constraints nullable="false" />
 			</column>
@@ -72,19 +74,6 @@
 			referencedTableName="users" referencedColumnNames="id" />
 	</changeSet>
 	
-	<changeSet id="insert-dummy-data" author="Michael de Jong">
-		<insert tableName="users">
-			<column name="net_id">mdejong2</column>
-			<column name="admin">true</column>
-		</insert>
-		<insert tableName="courses">
-			<column name="code">TI1705</column>
-			<column name="name">Softwarekwaliteit &amp; Testen</column>
-			<column name="template_repository_url">https://github.com/SERG-Delft/jpacman-template.git</column>
-			<column name="start">2014-01-01 00:00:00</column>
-		</insert>
-	</changeSet>
-	
 	<changeSet id="add_build_servers_table" author="Michael de Jong">
 		<createTable tableName="build_servers">
 			<column name="id" type="bigint" autoIncrement="true">
@@ -131,6 +120,21 @@
 			</column>
 		</addColumn>
 		<addUniqueConstraint columnNames="repository_name" tableName="groups" />
+	</changeSet>
+	
+	<changeSet id="insert-dummy-data" author="Michael de Jong">
+		<insert tableName="users">
+			<column name="net_id">mdejong2</column>
+			<column name="name">Michael de Jong</column>
+			<column name="email">M.deJong-2@student.tudelft.nl</column>
+			<column name="admin">true</column>
+		</insert>
+		<insert tableName="courses">
+			<column name="code">TI1705</column>
+			<column name="name">Softwarekwaliteit &amp; Testen</column>
+			<column name="template_repository_url">https://github.com/SERG-Delft/jpacman-template.git</column>
+			<column name="start">2014-01-01 00:00:00</column>
+		</insert>
 	</changeSet>
 	
 </databaseChangeLog>

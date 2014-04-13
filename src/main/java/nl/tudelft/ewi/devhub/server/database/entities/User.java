@@ -26,6 +26,12 @@ public class User {
 	@Column(name = "net_id")
 	private String netId;
 	
+	@Column(name = "name")
+	private String name;
+	
+	@Column(name = "email")
+	private String email;
+	
 	@Column(name = "admin")
 	private boolean admin;
 	

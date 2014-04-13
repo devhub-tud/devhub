@@ -30,26 +30,26 @@ import com.google.inject.persist.PersistFilter;
 
 @Slf4j
 public class DevhubServer {
-	
+
 	public static String getHostUrl(HttpServletRequest request) {
 		String fullUrl = request.getRequestURL().toString();
 		String pathUrl = request.getRequestURI();
-		return fullUrl.substring(0, fullUrl.indexOf(pathUrl)); 
+		return fullUrl.substring(0, fullUrl.indexOf(pathUrl));
 	}
-	
+
 	private static File determineRootFolder() {
 		File developmentFolder = new File("src/main/resources");
 		if (developmentFolder.exists()) {
 			return developmentFolder;
 		}
-		
+
 		return new File("config");
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
 		SLF4JBridgeHandler.install();
-		
+
 		DevhubServer server = new DevhubServer();
 		server.startServer();
 	}
@@ -59,29 +59,32 @@ public class DevhubServer {
 	public DevhubServer() {
 		Config config = new Config();
 		config.reload();
-		
+
 		File rootFolder = determineRootFolder();
 
 		ResourceHandler resources = new ResourceHandler();
 		resources.setBaseResource(Resource.newResource(new File(rootFolder, "static")));
 		resources.setDirectoriesListed(false);
 		resources.setCacheControl("max-age=3600");
-		
+
+		HashSessionManager hashSessionManager = new HashSessionManager();
+		hashSessionManager.setMaxInactiveInterval(1800);
+
 		DevhubHandler devhub = new DevhubHandler(config, rootFolder);
-		devhub.setHandler(new SessionHandler(new HashSessionManager()));
-		
+		devhub.setHandler(new SessionHandler(hashSessionManager));
+
 		ContextHandlerCollection handlers = new ContextHandlerCollection();
 		handlers.addContext("/static/", "/static").setHandler(resources);
 		handlers.addContext("/", "/").setHandler(devhub);
-		
+
 		server = new Server(config.getHttpPort());
-        server.setSessionIdManager(new HashSessionIdManager());
+		server.setSessionIdManager(new HashSessionIdManager());
 		server.setHandler(handlers);
 	}
-	
+
 	public void startServer() throws Exception {
 		server.start();
-		
+
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
@@ -93,32 +96,32 @@ public class DevhubServer {
 				}
 			}
 		});
-		
+
 		server.join();
 	}
-	
+
 	public void stopServer() throws Exception {
 		server.stop();
 	}
-	
+
 	private static class DevhubHandler extends ServletContextHandler {
-		
+
 		public DevhubHandler(final Config config, final File rootFolder) {
 			addEventListener(new GuiceResteasyBootstrapServletContextListener() {
 				@Override
 				protected List<Module> getModules(ServletContext context) {
-					return ImmutableList.<Module>of(new DevhubModule(config, rootFolder));
+					return ImmutableList.<Module> of(new DevhubModule(config, rootFolder));
 				}
-				
+
 				@Override
 				protected void withInjector(Injector injector) {
 					FilterHolder persistFilterHolder = new FilterHolder(injector.getInstance(PersistFilter.class));
-                    addFilter(persistFilterHolder, "/*", EnumSet.allOf(DispatcherType.class));
+					addFilter(persistFilterHolder, "/*", EnumSet.allOf(DispatcherType.class));
 				}
 			});
-			
+
 			addServlet(HttpServletDispatcher.class, "/");
 		}
 	}
-	
+
 }

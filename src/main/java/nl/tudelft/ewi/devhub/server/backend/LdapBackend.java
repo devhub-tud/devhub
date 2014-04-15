@@ -52,14 +52,14 @@ import com.google.inject.persist.UnitOfWork;
 
 /**
  * <p>
- * The {@link LdapBackend} class is responsible for authenticating users against a specified LDAP server using the
- * user's specified netID and password. DevHub is designed to run without an application service account in LDAP.
- * Instead it uses the user's LDAP connection to sychronize its database with the students and employees on the LDAP
- * server periodically.
+ * The {@link LdapBackend} class is responsible for authenticating users against a specified LDAP
+ * server using the user's specified netID and password. DevHub is designed to run without an
+ * application service account in LDAP. Instead it uses the user's LDAP connection to sychronize its
+ * database with the students and employees on the LDAP server periodically.
  * </p>
  * <p>
- * In addition to the periodic synchronization, DevHub also pulls information from the LDAP server when a user logs
- * which is not yet present in the database.
+ * In addition to the periodic synchronization, DevHub also pulls information from the LDAP server
+ * when a user logs which is not yet present in the database.
  * </p>
  * 
  * @author Michael de Jong <michaelj@minicom.nl>
@@ -68,7 +68,7 @@ import com.google.inject.persist.UnitOfWork;
 @Singleton
 public class LdapBackend {
 
-	private static final int SEARCHERS = 3;
+	private static final int SEARCHERS = 2;
 	private static final int INTERVAL = 14 * 24 * 60 * 60 * 1000;
 	private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -113,24 +113,25 @@ public class LdapBackend {
 
 	/**
 	 * <p>
-	 * This method will attempt to authenticate a user with the LDAP server. In case this is succesfull this method will
-	 * return TRUE. If the user provided incorrect credentials or if the LDAP server could not be reached, FALSE will be
-	 * returned.
+	 * This method will attempt to authenticate a user with the LDAP server. In case this is
+	 * succesfull this method will return TRUE. If the user provided incorrect credentials or if the
+	 * LDAP server could not be reached, FALSE will be returned.
 	 * </p>
 	 * <p>
 	 * This method has two side-effects:
 	 * <ul>
-	 * <li>Calling this method may trigger a full synchronization of the LDAP server with the database using this user's
-	 * LDAP credentials.</li>
-	 * <li>If the user succeeds in authenticating against the LDAP server but was not yet present in the database, this
-	 * method will block until it has fetched his or her data from the LDAP server and persist it to the database.</li>
+	 * <li>Calling this method may trigger a full synchronization of the LDAP server with the
+	 * database using this user's LDAP credentials.</li>
+	 * <li>If the user succeeds in authenticating against the LDAP server but was not yet present in
+	 * the database, this method will block until it has fetched his or her data from the LDAP
+	 * server and persist it to the database.</li>
 	 * </ul>
 	 * </p>
 	 * 
 	 * @param netId
-	 *        The netID of the user attempting to log in.
+	 *            The netID of the user attempting to log in.
 	 * @param password
-	 *        The password for the associated account.
+	 *            The password for the associated account.
 	 * @return TRUE if LDAP succesfully authenticates these credentials, or FALSE otherwise.
 	 */
 	public boolean authenticate(String netId, String password) {

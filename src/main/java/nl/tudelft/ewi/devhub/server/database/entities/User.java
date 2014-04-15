@@ -10,13 +10,15 @@ import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
 @Entity
 @EqualsAndHashCode(of = { "netId" })
+@ToString(of = { "netId" })
 @Table(name = "users")
 public class User {
-	
+
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,14 +27,14 @@ public class User {
 	@NotNull
 	@Column(name = "net_id")
 	private String netId;
-	
+
 	@Column(name = "name")
 	private String name;
-	
+
 	@Column(name = "email")
 	private String email;
-	
+
 	@Column(name = "admin")
 	private boolean admin;
-	
+
 }

@@ -7,11 +7,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.FormParam;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -28,6 +29,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
@@ -43,7 +45,9 @@ import org.eclipse.jetty.util.UrlEncoded;
 import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.persist.Transactional;
 
 @RequestScoped
@@ -59,11 +63,12 @@ public class ProjectsResource {
 	private final Groups groups;
 	private final Courses courses;
 	private final RequestScope scope;
+	private final Users users;
 	private final BuildResults buildResults;
 
 	@Inject
-	ProjectsResource(TemplateEngine templateEngine, GroupMemberships groupMemberships, Groups groups, 
-			ProjectsBackend projectsBackend, Courses projects, GitServerClient client, RequestScope scope,
+	ProjectsResource(TemplateEngine templateEngine, GroupMemberships groupMemberships, Groups groups,
+			ProjectsBackend projectsBackend, Courses projects, GitServerClient client, RequestScope scope, Users users,
 			BuildResults buildResults) {
 
 		this.templateEngine = templateEngine;
@@ -73,17 +78,18 @@ public class ProjectsResource {
 		this.groups = groups;
 		this.client = client;
 		this.scope = scope;
+		this.users = users;
 		this.buildResults = buildResults;
 	}
 
 	@GET
 	public String showProjectsOverview(@Context HttpServletRequest request) throws IOException {
 		User requester = scope.getUser();
-		
+
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
 		parameters.put("groups", groupMemberships.listParticipating(requester));
-		
+
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("projects.ftl", locales, parameters);
 	}
@@ -91,48 +97,169 @@ public class ProjectsResource {
 	@GET
 	@Path("setup")
 	@Transactional
-	public Response showProjectSetupPage(@Context HttpServletRequest request, @QueryParam("error") String error) 
+	public Response showProjectSetupPage(@Context HttpServletRequest request, @QueryParam("error") String error,
+			@QueryParam("step") Integer step) throws URISyntaxException, IOException {
+
+		if (step != null) {
+			if (step == 1) {
+				return showProjectSetupPageStep1(request, error);
+			}
+			else if (step == 2) {
+				return showProjectSetupPageStep2(request, error);
+			}
+			else if (step == 3) {
+				return showProjectSetupPageStep3(request, error);
+			}
+		}
+		return Response.seeOther(new URI("/projects/setup?step=1"))
+			.build();
+	}
+
+	private Response showProjectSetupPageStep1(@Context HttpServletRequest request, @QueryParam("error") String error)
 			throws IOException {
-		
+
 		User requester = scope.getUser();
+		HttpSession session = request.getSession();
 
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
 		parameters.put("courses", courses.listNotYetParticipatedCourses(requester));
+		if (session.getAttribute("projects.setup.course") != null) {
+			parameters.put("course", courses.find(String.valueOf(session.getAttribute("projects.setup.course"))));
+		}
 		if (!Strings.isNullOrEmpty(error)) {
 			parameters.put("error", error);
 		}
-		
+
 		List<Locale> locales = Collections.list(request.getLocales());
 		return Response.ok()
-				.entity(templateEngine.process("project-setup.ftl", locales, parameters))
-				.build();
+			.entity(templateEngine.process("project-setup-1.ftl", locales, parameters))
+			.build();
 	}
-	
+
+	@SuppressWarnings("unchecked")
+	private Response showProjectSetupPageStep2(@Context HttpServletRequest request, @QueryParam("error") String error)
+			throws IOException {
+
+		User requester = scope.getUser();
+		HttpSession session = request.getSession();
+		Course course = courses.find(String.valueOf(session.getAttribute("projects.setup.course")));
+		List<User> members = (List<User>) session.getAttribute("projects.setup.members");
+
+		int maxGroupSize = course.getMaxGroupSize();
+		int minGroupSize = course.getMinGroupSize();
+
+		if (requester.isAdmin()) {
+			maxGroupSize = 8;
+			minGroupSize = 1;
+		}
+
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("user", requester);
+		parameters.put("course", course);
+		if (members != null && !members.isEmpty()) {
+			parameters.put("members", members);
+		}
+		parameters.put("maxGroupSize", maxGroupSize);
+		parameters.put("minGroupSize", minGroupSize);
+		if (!Strings.isNullOrEmpty(error)) {
+			parameters.put("error", error);
+		}
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return Response.ok()
+			.entity(templateEngine.process("project-setup-2.ftl", locales, parameters))
+			.build();
+	}
+
+	@SuppressWarnings("unchecked")
+	private Response showProjectSetupPageStep3(@Context HttpServletRequest request, @QueryParam("error") String error)
+			throws IOException {
+
+		User requester = scope.getUser();
+		HttpSession session = request.getSession();
+		Course course = courses.find(String.valueOf(session.getAttribute("projects.setup.course")));
+		List<User> members = (List<User>) session.getAttribute("projects.setup.members");
+
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("user", requester);
+		parameters.put("course", course);
+		parameters.put("members", members);
+		if (!Strings.isNullOrEmpty(error)) {
+			parameters.put("error", error);
+		}
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return Response.ok()
+			.entity(templateEngine.process("project-setup-3.ftl", locales, parameters))
+			.build();
+	}
+
 	@POST
 	@Path("setup")
-	public Response processProjectSetup(@Context HttpServletRequest request, @FormParam("course-id") int courseId)
+	@SuppressWarnings("unchecked")
+	public Response processProjectSetup(@Context HttpServletRequest request, @QueryParam("step") int step)
 			throws IOException, URISyntaxException {
-		
-		User user = scope.getUser();
-		
+
+		HttpSession session = request.getSession();
+		User requester = scope.getUser();
+
+		if (step == 1) {
+			String courseCode = request.getParameter("course");
+			Course course = courses.find(courseCode);
+			courseCode = course.getCode();
+
+			String previousCourseCode = String.valueOf(session.getAttribute("projects.setup.course"));
+			session.setAttribute("projects.setup.course", courseCode);
+			if (!courseCode.equals(previousCourseCode)) {
+				session.removeAttribute("projects.setup.members");
+			}
+
+			return Response.seeOther(new URI("/projects/setup?step=2"))
+				.build();
+		}
+		else if (step == 2) {
+			List<User> groupMembers = getGroupMembers(request);
+			Course course = courses.find(String.valueOf(session.getAttribute("projects.setup.course")));
+			int maxGroupSize = course.getMaxGroupSize();
+			int minGroupSize = course.getMinGroupSize();
+
+			if (requester.isAdmin()) {
+				maxGroupSize = 8;
+				minGroupSize = 1;
+			}
+
+			if (groupMembers.size() < minGroupSize || groupMembers.size() > maxGroupSize) {
+				return Response.seeOther(new URI("/projects/setup?step=2&error=invalid-group-size"))
+					.build();
+			}
+
+			session.setAttribute("projects.setup.members", groupMembers);
+			return Response.seeOther(new URI("/projects/setup?step=3"))
+				.build();
+		}
+
 		try {
-			projectsBackend.processNewProjectSetup(user.getNetId(), courseId);
-			return Response.seeOther(new URI("/projects")).build();
+			Course course = courses.find(String.valueOf(session.getAttribute("projects.setup.course")));
+			List<User> members = (List<User>) session.getAttribute("projects.setup.members");
+			projectsBackend.processNewProjectSetup(course, members);
+			return Response.seeOther(new URI("/projects"))
+				.build();
 		}
 		catch (ApiError e) {
 			String error = UrlEncoded.encodeString(e.getResourceKey());
-			return Response.seeOther(new URI("/projects/setup?error=" + error)).build();
+			return Response.seeOther(new URI("/projects/setup?error=" + error))
+				.build();
 		}
 	}
-	
+
 	@GET
 	@Path("{courseCode}/groups/{groupNumber}")
 	@Transactional
-	public Response showProjectOverview(@Context HttpServletRequest request, 
-			@PathParam("courseCode") String courseCode, 
-			@PathParam("groupNumber") String groupNumber) throws URISyntaxException, IOException {
-		
+	public Response showProjectOverview(@Context HttpServletRequest request,
+			@PathParam("courseCode") String courseCode, @PathParam("groupNumber") String groupNumber)
+			throws URISyntaxException, IOException {
+
 		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, Long.parseLong(groupNumber));
@@ -144,40 +271,61 @@ public class ProjectsResource {
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
-		parameters.put("repository", client.repositories().retrieve(group.getRepositoryName()));
+		parameters.put("repository", client.repositories()
+			.retrieve(group.getRepositoryName()));
 		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return Response.ok()
-				.entity(templateEngine.process("project-view.ftl", locales, parameters))
-				.build();
+			.entity(templateEngine.process("project-view.ftl", locales, parameters))
+			.build();
 	}
-	
+
+	private List<User> getGroupMembers(HttpServletRequest request) {
+		String netId;
+		int memberId = 1;
+		Set<String> netIds = Sets.newHashSet();
+		while (!Strings.isNullOrEmpty((netId = request.getParameter("member-" + memberId)))) {
+			memberId++;
+			netIds.add(netId);
+		}
+
+		Map<String, User> members = users.mapByNetIds(netIds);
+		List<User> sortedMembers = Lists.newArrayList();
+		for (String memberNetId : netIds) {
+			sortedMembers.add(members.get(memberNetId));
+		}
+		return sortedMembers;
+	}
+
 	private boolean isMemberOf(User user, Group group) {
 		for (GroupMembership membership : group.getMemberships()) {
-			if (membership.getUser().getId() == user.getId()) {
+			if (membership.getUser()
+				.getId() == user.getId()) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	@Data
 	public static class CommitChecker {
 		private final Group group;
 		private final BuildResults buildResults;
-		
+
 		public boolean hasFinished(String commitId) {
 			try {
-				return buildResults.find(group, commitId).getSuccess() != null;
+				return buildResults.find(group, commitId)
+					.getSuccess() != null;
 			}
 			catch (EntityNotFoundException e) {
 				return false;
 			}
 		}
-		
+
 		public boolean hasSucceeded(String commitId) {
-			return buildResults.find(group, commitId).getSuccess();
+			return buildResults.find(group, commitId)
+				.getSuccess();
 		}
 	}
 

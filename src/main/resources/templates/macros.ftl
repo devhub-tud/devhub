@@ -27,7 +27,6 @@
 [/#if]
 					<a href="/projects">${i18n.translate("section.projects")}</a>
 					<a href="/accounts">${i18n.translate("section.account")}</a>
-					<a href="/support">${i18n.translate("section.support")}</a>
 					<a href="/logout">${i18n.translate("section.logout")}</a>
 				</div>
 			</div>
@@ -37,6 +36,7 @@
 [#macro renderScripts]
 		<script src="/static/js/jquery.min.js"></script>
 		<script src="/static/js/bootstrap.min.js"></script>
+		<script src="/static/js/validation.js"></script>
 [/#macro]
 
 [#macro renderFooter]

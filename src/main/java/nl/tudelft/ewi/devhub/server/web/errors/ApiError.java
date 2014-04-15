@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 public class ApiError extends Exception {
 
 	private static final long serialVersionUID = -8806603361456459296L;
-	
+
 	private final String resourceKey;
-	
+
 }

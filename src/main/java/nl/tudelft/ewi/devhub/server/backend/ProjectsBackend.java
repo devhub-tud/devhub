@@ -14,13 +14,14 @@ import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
-import nl.tudelft.ewi.git.models.UserModel;
 
 import org.hibernate.exception.ConstraintViolationException;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
@@ -34,48 +35,47 @@ public class ProjectsBackend {
 
 	private final GroupMemberships groupMemberships;
 	private final Groups groups;
-	private final Users users;
 	private final Courses courses;
 	private final GitServerClient client;
 
 	private final Object groupNumberLock = new Object();
 
 	@Inject
-	ProjectsBackend(GroupMemberships groupMemberships, Groups groups, Users users, Courses courses, 
+	ProjectsBackend(GroupMemberships groupMemberships, Groups groups, Users users, Courses courses,
 			GitServerClient client) {
-		
+
 		this.groupMemberships = groupMemberships;
 		this.groups = groups;
-		this.users = users;
 		this.courses = courses;
 		this.client = client;
 	}
-	
-	public void processNewProjectSetup(String netId, long courseId) throws ApiError {
-		User requester = users.findByNetId(netId);
-		
-		Group group = persistRepository(courseId, requester);
-		
+
+	public void processNewProjectSetup(Course course, List<User> members) throws ApiError {
+		Group group = persistRepository(course.getCode(), members);
+
 		String repositoryName = group.getRepositoryName();
-		String templateRepositoryUrl = group.getCourse().getTemplateRepositoryUrl();
-		
-		provisionRepository(repositoryName, templateRepositoryUrl, netId);
+		String templateRepositoryUrl = group.getCourse()
+			.getTemplateRepositoryUrl();
+
+		provisionRepository(repositoryName, templateRepositoryUrl, members);
 	}
 
 	@Transactional
-	Group persistRepository(long courseId, User requester) throws ApiError {
-		Course course = courses.find(courseId);
+	protected Group persistRepository(String courseCode, List<User> members) throws ApiError {
+		Course course = courses.find(courseCode);
 		if (course == null) {
 			throw new ApiError(COULD_NOT_FIND_COURSE);
 		}
-		
+
 		synchronized (groupNumberLock) {
 			List<Group> courseGroups = groups.find(course);
 			Set<Long> groupNumbers = getGroupNumbers(courseGroups);
 
 			// Ensure that requester has no other projects for same course.
-			if (isAlreadyRegisteredForCourse(requester, courseGroups)) {
-				throw new ApiError(ALREADY_REGISTERED_FOR_COURSE);
+			for (User member : members) {
+				if (isAlreadyRegisteredForCourse(member, courseGroups)) {
+					throw new ApiError(ALREADY_REGISTERED_FOR_COURSE);
+				}
 			}
 
 			// Select first free group number.
@@ -87,7 +87,8 @@ public class ProjectsBackend {
 			Group group = new Group();
 			group.setCourse(course);
 			group.setGroupNumber(newGroupNumber);
-			group.setRepositoryName("courses/" + course.getCode().toLowerCase() + "/group-" + group.getGroupNumber());
+			group.setRepositoryName("courses/" + course.getCode()
+				.toLowerCase() + "/group-" + group.getGroupNumber());
 
 			boolean worked = false;
 			for (int attempt = 1; attempt <= 3 && !worked; attempt++) {
@@ -98,7 +99,8 @@ public class ProjectsBackend {
 				catch (ConstraintViolationException e) {
 					log.warn("Could not persist group: {}", group);
 					group.setGroupNumber(group.getGroupNumber() + 1);
-					group.setRepositoryName("courses/" + course.getCode().toLowerCase() + "/group-" + group.getGroupNumber());
+					group.setRepositoryName("courses/" + course.getCode()
+						.toLowerCase() + "/group-" + group.getGroupNumber());
 				}
 			}
 
@@ -106,35 +108,41 @@ public class ProjectsBackend {
 				throw new ApiError(COULD_NOT_CREATE_GROUP);
 			}
 
-			GroupMembership membership = new GroupMembership();
-			membership.setGroup(group);
-			membership.setUser(requester);
-			groupMemberships.persist(membership);
-			
+			for (User member : members) {
+				GroupMembership membership = new GroupMembership();
+				membership.setGroup(group);
+				membership.setUser(member);
+				groupMemberships.persist(membership);
+			}
+
 			return group;
 		}
 	}
-	
-	private void provisionRepository(String repoName, String templateUrl, String netId) {
-		UserModel userModel = new UserModel();
-		userModel.setName(netId);
-		client.users().ensureExists(userModel);
+
+	private void provisionRepository(String repoName, String templateUrl, List<User> members) {
+		nl.tudelft.ewi.git.client.Users gitUsers = client.users();
+
+		Builder<String, Level> permissions = ImmutableMap.<String, Level> builder();
+		for (User member : members) {
+			gitUsers.ensureExists(member.getNetId());
+			permissions.put(member.getNetId(), Level.ADMIN);
+		}
 
 		CreateRepositoryModel repoModel = new CreateRepositoryModel();
 		repoModel.setName(repoName);
 		repoModel.setTemplateRepository(templateUrl);
-		repoModel.setPermissions(ImmutableMap.<String, Level> builder()
-				.put(userModel.getName(), Level.READ_WRITE)
-				.build());
+		repoModel.setPermissions(permissions.build());
 
-		client.repositories().create(repoModel);
+		Repositories repositories = client.repositories();
+		repositories.create(repoModel);
 	}
 
 	private boolean isAlreadyRegisteredForCourse(User requester, List<Group> courseGroups) {
 		for (Group group : courseGroups) {
 			Set<GroupMembership> memberships = group.getMemberships();
 			for (GroupMembership membership : memberships) {
-				if (membership.getUser().getId() == requester.getId()) {
+				if (membership.getUser()
+					.getId() == requester.getId()) {
 					return true;
 				}
 			}

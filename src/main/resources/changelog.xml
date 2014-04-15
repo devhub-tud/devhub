@@ -37,6 +37,12 @@
 				<constraints nullable="false" />
 			</column>
 			<column name="end" type="datetime" />
+			<column name="min_group_size" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="max_group_size" type="int">
+				<constraints nullable="false" />
+			</column>
 		</createTable>
 	</changeSet>
 
@@ -134,6 +140,8 @@
 			<column name="name">Softwarekwaliteit &amp; Testen</column>
 			<column name="template_repository_url">https://github.com/SERG-Delft/jpacman-template.git</column>
 			<column name="start">2014-01-01 00:00:00</column>
+			<column name="min_group_size">2</column>
+			<column name="max_group_size">2</column>
 		</insert>
 	</changeSet>
 	

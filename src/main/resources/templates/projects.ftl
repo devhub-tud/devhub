@@ -10,7 +10,8 @@
 			</h4>
 			<table class="table table-bordered">
 				<tbody>
-[#if groups?? && groups?has_content]
+[#assign groups=user.listGroups()]
+[#if groups?has_content]
 	[#list groups as group]
 					<tr>
 						<td>

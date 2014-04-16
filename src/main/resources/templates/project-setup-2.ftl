@@ -20,8 +20,8 @@
 					<label for="member-${x}">${i18n.translate("form.project-setup.group-member.label")} #${x}</label>
 		[#if members?? && members?size > x - 1]
 					<input type="text" class="form-control" name="member-${x}" placeholder="${i18n.translate("form.project-setup.net-id.label")}" value="${members[x - 1].getNetId()}">
-		[#elseif x == 1]
-					<input type="text" class="form-control" name="member-${x}" placeholder="${i18n.translate("form.project-setup.net-id.label")}" value="${user.getNetId()}">
+		[#elseif x == 1 && !user.isAdmin() && !user.isAssisting(course)]
+					<input type="text" class="form-control" name="member-${x}" placeholder="${i18n.translate("form.project-setup.net-id.label")}" value="${user.getNetId()}" readonly>
 		[#else]
 					<input type="text" class="form-control" name="member-${x}" placeholder="${i18n.translate("form.project-setup.net-id.label")}">
 		[/#if]

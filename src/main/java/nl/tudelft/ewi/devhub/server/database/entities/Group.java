@@ -18,6 +18,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import com.google.common.collect.Sets;
+
 @Data
 @Entity
 @Table(name = "groups")
@@ -45,5 +47,24 @@ public class Group {
 	@NotNull
 	@Column(name = "repository_name")
 	private String repositoryName;
+
+	public Set<User> getMembers() {
+		Set<User> members = Sets.newHashSet();
+		for (GroupMembership membership : memberships) {
+			members.add(membership.getUser());
+		}
+		return members;
+	}
+
+	public String getGroupName() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(course.getCode());
+		builder.append(" - ");
+		builder.append(course.getName());
+		builder.append(" (Group #");
+		builder.append(groupNumber);
+		builder.append(")");
+		return builder.toString();
+	}
 
 }

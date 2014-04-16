@@ -233,6 +233,11 @@
 			<artifactId>api-ldap-client-all</artifactId>
 			<version>1.0.0-M21</version>
 		</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.5.0-b01</version>
+		</dependency>
 	</dependencies>
 
 	<build>

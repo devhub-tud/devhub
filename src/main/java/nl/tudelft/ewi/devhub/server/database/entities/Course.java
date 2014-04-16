@@ -16,12 +16,14 @@ import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
 @Data
 @Entity
 @Table(name = "courses")
+@ToString(of = { "code" })
 @EqualsAndHashCode(of = { "id" })
 public class Course {
 

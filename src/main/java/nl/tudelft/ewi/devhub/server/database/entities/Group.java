@@ -16,18 +16,20 @@ import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
 @Entity
 @Table(name = "groups")
 @EqualsAndHashCode(of = { "groupId" })
+@ToString(of = { "groupId" })
 public class Group {
 
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long groupId;
-	
+
 	@NotNull
 	@ManyToOne
 	@JoinColumn(name = "course_id")
@@ -36,12 +38,12 @@ public class Group {
 	@NotNull
 	@Column(name = "group_number")
 	private long groupNumber;
-	
+
 	@OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
 	private Set<GroupMembership> memberships;
 
 	@NotNull
 	@Column(name = "repository_name")
 	private String repositoryName;
-	
+
 }

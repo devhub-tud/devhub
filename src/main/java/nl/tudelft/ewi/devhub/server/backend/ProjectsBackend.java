@@ -73,7 +73,7 @@ public class ProjectsBackend {
 
 			// Ensure that requester has no other projects for same course.
 			for (User member : members) {
-				if (isAlreadyRegisteredForCourse(member, courseGroups)) {
+				if (member.isParticipatingInCourse(course)) {
 					throw new ApiError(ALREADY_REGISTERED_FOR_COURSE);
 				}
 			}
@@ -135,19 +135,6 @@ public class ProjectsBackend {
 
 		Repositories repositories = client.repositories();
 		repositories.create(repoModel);
-	}
-
-	private boolean isAlreadyRegisteredForCourse(User requester, List<Group> courseGroups) {
-		for (Group group : courseGroups) {
-			Set<GroupMembership> memberships = group.getMemberships();
-			for (GroupMembership membership : memberships) {
-				if (membership.getUser()
-					.getId() == requester.getId()) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 	private Set<Long> getGroupNumbers(List<Group> groups) {

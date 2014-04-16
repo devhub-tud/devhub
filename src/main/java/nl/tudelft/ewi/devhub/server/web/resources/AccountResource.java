@@ -57,21 +57,23 @@ public class AccountResource {
 
 	@GET
 	public Response showPersonalUserPage() throws URISyntaxException {
-		return Response.seeOther(new URI("/accounts/" + scope.getUser().getNetId())).build();
+		return Response.seeOther(new URI("/accounts/" + scope.getUser()
+			.getNetId()))
+			.build();
 	}
-	
+
 	@GET
 	@Path("{netId}")
-	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId) 
-			throws IOException {
-		
+	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId)
+			throws IOException, ApiError {
+
 		User requester = scope.getUser();
 		User account = users.findByNetId(netId);
-		
+
 		if (!requester.isAdmin() && !requester.equals(account)) {
 			throw new UnauthorizedException();
 		}
-		
+
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", requester);
 		parameters.put("path", request.getRequestURI());
@@ -80,65 +82,69 @@ public class AccountResource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("account.ftl", locales, parameters);
 	}
-	
+
 	@GET
 	@Path("{netId}/setup")
-	public String showNewSshKeyPage(@Context HttpServletRequest request, @PathParam("netId") String netId, 
+	public String showNewSshKeyPage(@Context HttpServletRequest request, @PathParam("netId") String netId,
 			@QueryParam("error") String error) throws IOException {
-		
+
 		List<Locale> locales = Collections.list(request.getLocales());
-		
+
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", scope.getUser());
 		if (!Strings.isNullOrEmpty(error)) {
 			parameters.put("error", error);
 		}
-		
+
 		return templateEngine.process("account-setup.ftl", locales, parameters);
 	}
-	
+
 	@POST
 	@Path("{netId}/setup")
 	public Response addNewKey(@PathParam("netId") String netId, @FormParam("name") String name,
 			@FormParam("contents") String contents) throws URISyntaxException {
-		
+
 		User requester = scope.getUser();
 		User account = users.findByNetId(netId);
-		
+
 		if (!requester.isAdmin() && !requester.equals(account)) {
 			throw new UnauthorizedException();
 		}
-		
+
 		try {
 			backend.createNewSshKey(account, name, contents);
-			return Response.seeOther(new URI("/accounts/" + netId)).build();
+			return Response.seeOther(new URI("/accounts/" + netId))
+				.build();
 		}
 		catch (ApiError e) {
 			String error = UrlEncoded.encodeString(e.getResourceKey());
-			return Response.seeOther(new URI("/accounts/" + netId + "/setup?error=" + error)).build();
+			return Response.seeOther(new URI("/accounts/" + netId + "/setup?error=" + error))
+				.build();
 		}
 	}
-	
+
 	@POST
 	@Path("{netId}/delete")
-	public Response deleteExistingKey(@PathParam("netId") String netId, @FormParam("name") String name) 
+	public Response deleteExistingKey(@PathParam("netId") String netId, @FormParam("name") String name)
 			throws URISyntaxException {
-		
+
 		User requester = scope.getUser();
 		User account = users.findByNetId(netId);
-		
+
 		if (!requester.isAdmin() && !requester.equals(account)) {
 			throw new UnauthorizedException();
 		}
-		
+
 		try {
 			backend.deleteSshKey(account, name);
-			return Response.seeOther(new URI("/accounts/" + netId)).build();
+			return Response.seeOther(new URI("/accounts/" + netId))
+				.build();
 		}
 		catch (ApiError e) {
 			String error = UrlEncoded.encodeString(e.getResourceKey());
-			return Response.seeOther(new URI("/accounts/" + netId + "?error=" + error)).build();
+			return Response.seeOther(new URI("/accounts/" + netId + "?error=" + error))
+				.build();
 		}
 	}
-	
+
 }

@@ -57,6 +57,9 @@
 			<column name="group_number" type="bigint">
 				<constraints nullable="false" />
 			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" unique="true" />
+			</column>
 		</createTable>
 		<addForeignKeyConstraint constraintName="course_ref_in_groups"
 			baseTableName="groups" baseColumnNames="course_id"
@@ -119,13 +122,21 @@
 		<addUniqueConstraint columnNames="repository_id,commit_id" tableName="build_results" />
 	</changeSet>
 	
-	<changeSet id="add_repo_name_to_groups_table" author="Michael de Jong">
-		<addColumn tableName="groups">
-			<column name="repository_name" type="varchar(255)">
-				<constraints nullable="false" />
+	<changeSet id="create_course_assistants_table" author="Michael de Jong">
+		<createTable tableName="course_assistants">
+			<column name="course_id" type="bigint">
+				<constraints primaryKey="true" nullable="false" />
 			</column>
-		</addColumn>
-		<addUniqueConstraint columnNames="repository_name" tableName="groups" />
+			<column name="user_id" type="bigint">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+		</createTable>
+		<addForeignKeyConstraint constraintName="course_ref_in_course_assistants"
+			baseTableName="course_assistants" baseColumnNames="course_id"
+			referencedTableName="courses" referencedColumnNames="id" />
+		<addForeignKeyConstraint constraintName="user_ref_in_course_assistants"
+			baseTableName="course_assistants" baseColumnNames="user_id"
+			referencedTableName="users" referencedColumnNames="id" />
 	</changeSet>
 	
 	<changeSet id="insert-dummy-data" author="Michael de Jong">

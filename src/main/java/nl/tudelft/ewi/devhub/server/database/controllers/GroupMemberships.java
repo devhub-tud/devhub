@@ -22,11 +22,18 @@ public class GroupMemberships extends Controller<GroupMembership> {
 	@Transactional
 	public List<Group> listParticipating(User user) {
 		return query().from(QGroupMembership.groupMembership)
-				.where(QGroupMembership.groupMembership.user.id.eq(user.getId()))
-				.where(QGroupMembership.groupMembership.group.course.start.isNotNull())
-				.where(QGroupMembership.groupMembership.group.course.end.isNull())
-				.orderBy(QGroupMembership.groupMembership.group.course.code.asc())
-				.list(QGroupMembership.groupMembership.group);
+			.where(QGroupMembership.groupMembership.user.id.eq(user.getId()))
+			.where(QGroupMembership.groupMembership.group.course.start.isNotNull())
+			.where(QGroupMembership.groupMembership.group.course.end.isNull())
+			.orderBy(QGroupMembership.groupMembership.group.course.code.asc())
+			.list(QGroupMembership.groupMembership.group);
 	}
-	
+
+	@Transactional
+	public List<GroupMembership> ofGroup(Group group) {
+		return query().from(QGroupMembership.groupMembership)
+			.where(QGroupMembership.groupMembership.group.groupId.eq(group.getGroupId()))
+			.list(QGroupMembership.groupMembership);
+	}
+
 }

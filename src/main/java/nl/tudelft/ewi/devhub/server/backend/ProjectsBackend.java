@@ -32,6 +32,7 @@ public class ProjectsBackend {
 	private static final String ALREADY_REGISTERED_FOR_COURSE = "error.already-registered-for-course";
 	private static final String COULD_NOT_FIND_COURSE = "error.could-not-find-course";
 	private static final String COULD_NOT_CREATE_GROUP = "error.could-not-create-group";
+	private static final String GIT_SERVER_UNAVAILABLE = "error.git-server-unavailable";
 
 	private final GroupMemberships groupMemberships;
 	private final Groups groups;
@@ -57,7 +58,22 @@ public class ProjectsBackend {
 		String templateRepositoryUrl = group.getCourse()
 			.getTemplateRepositoryUrl();
 
-		provisionRepository(repositoryName, templateRepositoryUrl, members);
+		try {
+			provisionRepository(repositoryName, templateRepositoryUrl, members);
+		}
+		catch (Throwable e) {
+			deleteRepository(group);
+			throw new ApiError(GIT_SERVER_UNAVAILABLE);
+		}
+	}
+
+	@Transactional
+	protected void deleteRepository(Group group) {
+		List<GroupMembership> memberships = groupMemberships.ofGroup(group);
+		for (GroupMembership membership : memberships) {
+			groupMemberships.delete(membership);
+		}
+		groups.delete(groups.find(group.getGroupId()));
 	}
 
 	@Transactional

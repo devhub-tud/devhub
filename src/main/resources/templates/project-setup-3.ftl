@@ -8,7 +8,7 @@
 				${i18n.translate(error)}
 			</div>
 [/#if]
-			<form role="form" method="POST" action="">
+			<form role="form" id="project-setup-form" method="POST" action="">
 				<label for="course">${i18n.translate("form.project-setup.course-selected.label")}</label>
 				<div class="form-group">
 					<div class="well well-sm" id="course">
@@ -31,7 +31,7 @@
 			</table>
 				</div>
 				<div class="form-group pull-right">
-					<a class="btn btn-xl btn-default" href="/projects/setup?step=2">
+					<a class="btn btn-xl btn-default" name="back" href="/projects/setup?step=2">
 						<span class="glyphicon glyphicon-chevron-left"></span> ${i18n.translate("form.project-setup.buttons.previous.caption")}
 					</a>
 					<button type="submit" class="btn btn-xl btn-success" name="finish">
@@ -41,4 +41,22 @@
 			</form>
 		</div>
 [@macros.renderScripts /]
+		<script type="text/javascript">
+			$(document).ready(function() {
+				var submitted = false;
+				$('#project-setup-form').submit(function(e) {
+					if (!submitted) {
+						submitted = true;
+						setTimeout(function() {
+							$(".logo-image").addClass("spinner");
+							$('a[name="back"]').attr("disabled", "disabled");
+							$('button[name="finish"]').attr("disabled", "disabled");
+						}, 100);
+					}
+					else {
+						e.preventDefault();
+					}
+				});
+			});
+		</script>
 [@macros.renderFooter /]

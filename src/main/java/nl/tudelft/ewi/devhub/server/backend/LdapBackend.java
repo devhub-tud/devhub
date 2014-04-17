@@ -144,7 +144,7 @@ public class LdapBackend {
 			connection.close();
 
 			ensureUserPresent(netId, password);
-			pokeSynchronizer(netId, password);
+			// pokeSynchronizer(netId, password);
 
 			return true;
 		}

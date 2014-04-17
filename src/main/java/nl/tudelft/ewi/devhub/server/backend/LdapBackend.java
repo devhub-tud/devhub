@@ -5,13 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -44,7 +37,6 @@ import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -68,47 +60,11 @@ import com.google.inject.persist.UnitOfWork;
 @Singleton
 public class LdapBackend {
 
-	private static final int SEARCHERS = 2;
-	private static final int INTERVAL = 14 * 24 * 60 * 60 * 1000;
-	private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
-
 	private final Provider<Users> usersProvider;
-	private final LdapUserProcessor processor;
-	private final ExecutorService synchronizer;
-	private final AtomicLong lastSynchronized;
-	private final AtomicBoolean synchronizing;
 
 	@Inject
-	LdapBackend(Provider<Users> usersProvider, LdapUserProcessor processor) {
+	LdapBackend(Provider<Users> usersProvider) {
 		this.usersProvider = usersProvider;
-		this.processor = processor;
-		this.synchronizer = Executors.newFixedThreadPool(1);
-		this.lastSynchronized = new AtomicLong(0);
-		this.synchronizing = new AtomicBoolean(false);
-	}
-
-	private void pokeSynchronizer(final String netId, final String password) {
-		if (lastSynchronized.get() + INTERVAL < System.currentTimeMillis()) {
-			if (synchronizing.compareAndSet(false, true)) {
-				synchronizer.submit(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							log.debug("Synchronizing database with LDAP server...");
-							fetchAll(netId, password);
-							log.debug("Synchronization of database with LDAP server has completed!");
-						}
-						catch (LdapException | IOException | InterruptedException | ExecutionException e) {
-							log.error(e.getMessage(), e);
-						}
-						finally {
-							lastSynchronized.set(System.currentTimeMillis());
-							synchronizing.set(false);
-						}
-					}
-				});
-			}
-		}
 	}
 
 	/**
@@ -118,10 +74,8 @@ public class LdapBackend {
 	 * LDAP server could not be reached, FALSE will be returned.
 	 * </p>
 	 * <p>
-	 * This method has two side-effects:
+	 * This method has one side-effect:
 	 * <ul>
-	 * <li>Calling this method may trigger a full synchronization of the LDAP server with the
-	 * database using this user's LDAP credentials.</li>
 	 * <li>If the user succeeds in authenticating against the LDAP server but was not yet present in
 	 * the database, this method will block until it has fetched his or her data from the LDAP
 	 * server and persist it to the database.</li>
@@ -144,7 +98,6 @@ public class LdapBackend {
 			connection.close();
 
 			ensureUserPresent(netId, password);
-			// pokeSynchronizer(netId, password);
 
 			return true;
 		}
@@ -185,25 +138,6 @@ public class LdapBackend {
 
 			return user;
 		}
-	}
-
-	private void fetchAll(String netId, String password) throws LdapException, IOException, InterruptedException,
-			ExecutionException {
-
-		Queue<String> queue = Queues.newArrayBlockingQueue(2000);
-		ExecutorService executor = Executors.newFixedThreadPool(SEARCHERS);
-
-		LdapConnection conn = connect(netId, password);
-		for (int index = 0; index < ALPHABET.length(); index++) {
-			queue.add(Character.toString(ALPHABET.charAt(index)));
-		}
-		for (int searcher = 0; searcher < SEARCHERS; searcher++) {
-			executor.submit(new RecursiveSearcher(conn, queue));
-		}
-
-		executor.shutdown();
-		executor.awaitTermination(3, TimeUnit.HOURS);
-		conn.close();
 	}
 
 	private String getValue(Entry entry, String key) throws LdapInvalidAttributeValueException {
@@ -271,42 +205,6 @@ public class LdapBackend {
 		finally {
 			if (cursor != null) {
 				cursor.close();
-			}
-		}
-	}
-
-	private class RecursiveSearcher implements Runnable {
-
-		private final LdapConnection conn;
-		private final Queue<String> queue;
-
-		public RecursiveSearcher(LdapConnection conn, Queue<String> queue) {
-			this.conn = conn;
-			this.queue = queue;
-		}
-
-		@Override
-		public void run() {
-			String prefix;
-			while ((prefix = queue.poll()) != null) {
-				try {
-					performSearch(prefix);
-				}
-				catch (LdapException e) {
-					log.error(e.getMessage(), e);
-				}
-			}
-		}
-
-		private void performSearch(String prefix) throws LdapException {
-			List<LdapEntry> results = search(prefix + "*", conn);
-			if (results.size() == 1000) {
-				for (int index = 0; index < ALPHABET.length(); index++) {
-					queue.offer(prefix + ALPHABET.charAt(index));
-				}
-			}
-			else {
-				processor.synchronize(prefix, results);
 			}
 		}
 	}

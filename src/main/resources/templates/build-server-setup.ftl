@@ -7,7 +7,7 @@
 				${i18n.translate(error)}
 			</div>
 [/#if]
-			<h4>${i18n.translate("form.build-server-setup.title")}</h4>
+			<h2>${i18n.translate("form.build-server-setup.title")}</h2>
 			<form role="form" method="POST" action="">
 				<div class="form-group">
 					<label for="build-server-name">${i18n.translate("form.build-server-setup.build-server-name.label")}</label>

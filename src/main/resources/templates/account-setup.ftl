@@ -2,7 +2,7 @@
 [@macros.renderHeader i18n.translate("form.ssh-key-setup.title") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-			<h4>${i18n.translate("form.ssh-key-setup.title")}</h4>
+			<h2>${i18n.translate("form.ssh-key-setup.title")}</h2>
 [#if error?? && error?has_content]
 			<div class="alert alert-danger">
 				${i18n.translate(error)}

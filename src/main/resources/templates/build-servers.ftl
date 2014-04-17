@@ -7,12 +7,12 @@
 				${i18n.translate(error)}
 			</div>
 [/#if]
-			<h4>
+			<h2>
 				${i18n.translate("block.build-servers.title")}
 				<a href="/build-servers/setup" class="btn btn-success btn-sm pull-right">
 					<i class="glyphicon glyphicon-plus-sign"></i> ${i18n.translate("block.build-servers.buttons.setup-new-build-server.caption")}
 				</a>
-			</h4>
+			</h2>
 			<table class="table table-bordered">
 				<tbody>
 [#if servers?? && servers?has_content]

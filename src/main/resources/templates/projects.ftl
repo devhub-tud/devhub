@@ -2,12 +2,12 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-			<h4>
+			<h2>
 				${i18n.translate("block.current-projects.title")}
 				<a href="/projects/setup" class="btn btn-success btn-sm pull-right">
 					<i class="glyphicon glyphicon-plus-sign"></i> ${i18n.translate("block.current-projects.buttons.setup-new-project.caption")}
 				</a>
-			</h4>
+			</h2>
 			<table class="table table-bordered">
 				<tbody>
 [#assign groups=user.listGroups()]

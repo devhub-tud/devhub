@@ -2,12 +2,12 @@
 [@macros.renderHeader i18n.translate("section.account") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-			<h4>
+			<h2>
 				${i18n.translate("block.ssh-keys.title")}
 				<a href="${path}/setup" class="btn btn-success btn-sm pull-right">
 					<i class="glyphicon glyphicon-plus-sign"></i> ${i18n.translate("block.ssh-keys.buttons.setup-new-ssh-key.caption")}
 				</a>
-			</h4>
+			</h2>
 [#if error?? && error?has_content]
 			<div class="alert alert-danger">
 				${i18n.translate(error)}

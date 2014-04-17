@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.web.resources;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -22,6 +23,7 @@ import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
 import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.Config;
+import nl.tudelft.ewi.devhub.server.backend.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
@@ -36,6 +38,7 @@ import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.inject.persist.Transactional;
 
 @Slf4j
@@ -55,16 +58,18 @@ public class HooksResource {
 	private final GitServerClient client;
 	private final BuildResults buildResults;
 	private final Groups groups;
+	private final BuildResultMailer mailer;
 
 	@Inject
 	HooksResource(Config config, BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
-			Groups groups) {
+			Groups groups, BuildResultMailer mailer) {
 
 		this.config = config;
 		this.buildBackend = buildBackend;
 		this.client = client;
 		this.buildResults = buildResults;
 		this.groups = groups;
+		this.mailer = mailer;
 	}
 
 	@POST
@@ -138,6 +143,10 @@ public class HooksResource {
 				.join(buildResult.getLogLines()));
 
 			buildResults.persist(result);
+		}
+
+		if (!result.getSuccess()) {
+			mailer.sendFailedBuildResult(Lists.newArrayList(Locale.ENGLISH), result);
 		}
 	}
 

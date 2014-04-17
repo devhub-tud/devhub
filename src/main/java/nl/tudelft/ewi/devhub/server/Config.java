@@ -6,7 +6,10 @@ import java.util.Properties;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.google.inject.Singleton;
+
 @Slf4j
+@Singleton
 public class Config {
 
 	private final Properties properties;
@@ -34,7 +37,23 @@ public class Config {
 	}
 
 	public String getGitServerHost() {
-		return properties.getProperty("git-server.host", "http://localhost:8081");
+		return properties.getProperty("git-server.host");
+	}
+
+	public String getSmtpHost() {
+		return properties.getProperty("smtp-server.host");
+	}
+
+	public String getSmtpUser() {
+		return properties.getProperty("smtp-server.user");
+	}
+
+	public String getSmtpPass() {
+		return properties.getProperty("smtp-server.pass");
+	}
+
+	public String getSmtpOrigin() {
+		return properties.getProperty("smtp-server.origin");
 	}
 
 }

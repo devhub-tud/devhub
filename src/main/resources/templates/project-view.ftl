@@ -2,6 +2,7 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
+			<h2>${group.getGroupName()}</h2>
 			<h4>Git clone URL</h4>
 			<div class="well well-sm">
 [#if repository?? && repository?has_content]
@@ -17,19 +18,43 @@
 	[#if repository.getRecentCommits()?has_content]
 		[#list repository.getRecentCommits() as commit]
 					<tr>
-						<td>
-			[#if states.hasFinished(commit.getCommit())]
-				[#if states.hasSucceeded(commit.getCommit())]
-							<i style="color: #00aa00;" class="glyphicon glyphicon-ok icon"></i>
+			[#if states.hasStarted(commit.getCommit())]
+				[#if states.hasFinished(commit.getCommit())]
+					[#if states.hasSucceeded(commit.getCommit())]
+						<td class="commit succeeded">
+							<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
+							<a href="${path}/commits/${commit.getCommit()}">
+								<div class="comment">${commit.getMessage()}</div>
+								<div class="committer">${commit.getAuthor()}</div>
+							</a>
+						</td>
+					[#else]
+						<td class="commit failed">
+							<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
+							<a href="${path}/commits/${commit.getCommit()}">
+								<div class="comment">${commit.getMessage()}</div>
+								<div class="committer">${commit.getAuthor()}</div>
+							</a>
+						</td>
+					[/#if]
 				[#else]
-							<i style="color: #aa0000;" class="glyphicon glyphicon-remove icon"></i>
+						<td class="commit running">
+							<span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
+							<span>
+								<div class="comment">${commit.getMessage()}</div>
+								<div class="committer">${commit.getAuthor()}</div>
+							</span>
+						</td>
 				[/#if]
 			[#else]
-							<i class="icon"> </i>
-			[/#if]
-							${commit.getMessage()} 
-							<span class="pull-right" style="color: #bbb !important;">${commit.getAuthor()}</span>
+						<td class="commit">
+							<span class="state"></span>
+							<span>
+								<div class="comment">${commit.getMessage()}</div>
+								<div class="committer">${commit.getAuthor()}</div>
+							</span>
 						</td>
+			[/#if]
 					</tr>
 		[/#list]
 	[#else]

@@ -30,8 +30,7 @@
 }
 
 body, html {
-	height: 100%;
-	margin-bottom: 96px;
+	margin-bottom: 48px;
 	background-color: #f9f9f9;
 	font-family: 'Titillium Web';
 	color: #666;
@@ -60,6 +59,19 @@ h1, h2, h3, h4, h5, h6 {
 	.btn {
 		margin-top: -5px;
 	}
+}
+
+h1.header, h2.header, h3.header, h4.header, h5.header, h6.header {
+	margin-bottom: 0;
+}
+
+h1.subheader, h2.subheader, h3.subheader, h4.subheader, h5.subheader, h6.subheader {
+	margin-top: 0;
+}
+
+h4 {
+	margin-top: 32px;
+	margin-bottom: 13px;
 }
 
 h1 {
@@ -110,6 +122,8 @@ h1 {
 .no-margin {
 	margin: 0;
 }
+
+.no-bottom
 
 td.minimal-width, th.minimal-width {
 	width: 1px;
@@ -170,8 +184,103 @@ td.no-data {
   }
 }
 
+td.commit {
+	&.failed {
+		background-color: #fff0f0;
+		.state {
+			color: #aa0000;
+		}
+	}
+	&.succeeded {
+		background-color: #f0fff0;
+		.state {
+			color: #00aa00;
+		}
+	}
+	&.running {
+		.state {
+			color: #ccc;
+		}
+	}
+	
+	.state {
+		float: left; 
+		font-size: 38px; 
+		width: 38px; 
+		height: 38px; 
+		margin-right: 12px;
+	}
+	
+	.comment {
+		font-weight: bold;
+	}
+	
+	.committer {
+		color: #999;
+	}
+}
+
+div.commit {
+	&.failed {
+		.state {
+			color: #aa0000;
+		}
+	}
+	&.succeeded {
+		.state {
+			color: #00aa00;
+		}
+	}
+	&.running {
+		.state {
+			color: #ccc;
+		}
+	}
+	
+	.state {
+		float: right; 
+		font-size: 50px; 
+		height: 50px; 
+	}
+	
+	.comment {
+		font-weight: bold;
+	}
+	
+	.committer {
+		color: #999;
+	}
+}
+
+.popover {
+	max-width: 70%;
+}
+
+.well {
+	background-color: #fff;
+}
+
 code {
-	color: #2493c7;
+	color: #444;
 	font-weight: bold;
-	background-color: #f2f7f9;
+	white-space: normal;
+	background-color: #fff;
+	
+	&.log {
+		display: block;
+		font-weight: 300;
+		font-size: 11px;
+		
+		&.error {
+			color: #ff0000;
+			font-weight: bold;
+		}
+		&.warn {
+			color: #e38217;
+			font-weight: bold;
+		}
+		&.debug {
+			color: #bbb;
+		}
+	}
 }

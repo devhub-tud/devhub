@@ -27,6 +27,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -37,6 +38,7 @@ import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
+import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 
 import org.eclipse.jetty.util.UrlEncoded;
@@ -254,6 +256,7 @@ public class ProjectsResource extends Resource {
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
+		parameters.put("path", request.getRequestURI());
 		parameters.put("group", group);
 		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("repository", fetchRepositoryView(group));
@@ -262,10 +265,49 @@ public class ProjectsResource extends Resource {
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
 	}
 
+	@GET
+	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}")
+	@Transactional
+	public Response showCommitOverview(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
+			@PathParam("groupNumber") String groupNumber, @PathParam("commitId") String commitId,
+			@QueryParam("fatal") String fatal) throws IOException, ApiError {
+
+		User user = scope.getUser();
+		Course course = courses.find(courseCode);
+		Group group = groups.find(course, Long.parseLong(groupNumber));
+
+		if (!user.isAdmin() && !user.isAssisting(course) && user.isMemberOf(group)) {
+			throw new UnauthorizedException();
+		}
+
+		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		CommitModel commit = fetchCommitView(repository, commitId);
+
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", scope.getUser());
+		parameters.put("group", group);
+		parameters.put("commit", commit);
+		parameters.put("states", new CommitChecker(group, buildResults));
+		parameters.put("repository", repository);
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-commit-view.ftl", locales, parameters));
+	}
+
 	private DetailedRepositoryModel fetchRepositoryView(Group group) throws ApiError {
 		try {
 			Repositories repositories = client.repositories();
 			return repositories.retrieve(group.getRepositoryName());
+		}
+		catch (Throwable e) {
+			throw new ApiError("error.git-server-unavailable");
+		}
+	}
+
+	private CommitModel fetchCommitView(DetailedRepositoryModel repository, String commitId) throws ApiError {
+		try {
+			Repositories repositories = client.repositories();
+			return repositories.retrieveCommit(repository, commitId);
 		}
 		catch (Throwable e) {
 			throw new ApiError("error.git-server-unavailable");
@@ -296,8 +338,18 @@ public class ProjectsResource extends Resource {
 
 		public boolean hasFinished(String commitId) {
 			try {
-				return buildResults.find(group, commitId)
-					.getSuccess() != null;
+				BuildResult buildResult = buildResults.find(group, commitId);
+				return buildResult.getSuccess() != null;
+			}
+			catch (EntityNotFoundException e) {
+				return false;
+			}
+		}
+
+		public boolean hasStarted(String commitId) {
+			try {
+				buildResults.find(group, commitId);
+				return true;
 			}
 			catch (EntityNotFoundException e) {
 				return false;
@@ -305,8 +357,13 @@ public class ProjectsResource extends Resource {
 		}
 
 		public boolean hasSucceeded(String commitId) {
-			return buildResults.find(group, commitId)
-				.getSuccess();
+			BuildResult buildResult = buildResults.find(group, commitId);
+			return buildResult.getSuccess();
+		}
+
+		public String getLog(String commitId) {
+			BuildResult buildResult = buildResults.find(group, commitId);
+			return buildResult.getLog();
 		}
 	}
 

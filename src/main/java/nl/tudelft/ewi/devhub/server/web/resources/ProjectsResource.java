@@ -214,7 +214,7 @@ public class ProjectsResource extends Resource {
 				return redirect("/projects/setup?step=2&error=error.must-be-group-member");
 			}
 			if (groupMembers.size() < minGroupSize || groupMembers.size() > maxGroupSize) {
-				return redirect("/projects/setup?step=2&error=invalid-group-size");
+				return redirect("/projects/setup?step=2&error=error.invalid-group-size");
 			}
 
 			for (User user : groupMembers) {

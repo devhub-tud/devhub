@@ -42,9 +42,9 @@
 			$(document).ready(function() {
 [#list 1..maxGroupSize as x]
 	[#if x > minGroupSize]
-				addNetIdValidationRule($('input[name="member-' + ${x} + '"]'), "${i18n.translate("error.invalid-net-id")}", true);
+				addNetIdValidationRule($('input[name="member-' + ${x} + '"]'), "${i18n.translate("error.invalid-net-id")}", true, 'input[name^="member-"]');
 	[#else]
-				addNetIdValidationRule($('input[name="member-' + ${x} + '"]'), "${i18n.translate("error.invalid-net-id")}");
+				addNetIdValidationRule($('input[name="member-' + ${x} + '"]'), "${i18n.translate("error.invalid-net-id")}", false, 'input[name^="member-"]');
 	[/#if]
 [/#list]
 			});

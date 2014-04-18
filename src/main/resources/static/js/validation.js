@@ -1,34 +1,50 @@
 
-function addNetIdValidationRule(field, message, allowEmpty) {
+function addNetIdValidationRule(field, message, allowEmpty, uniqueGroup) {
 	allowEmpty = typeof allowEmpty !== 'undefined' ? allowEmpty : false;
-	addValidationRule(field, /^[a-zA-Z0-9]+$/, message, function() { validateNetId(field, message); }, !allowEmpty);
+	addValidationRule(field, /^[a-zA-Z0-9]+$/, message, function() { validateNetId(field, message); }, !allowEmpty, uniqueGroup);
 }
 
-function addValidationRule(field, regex, message, validator, validateOnEmpty) {
+function addValidationRule(field, regex, message, validator, validateOnEmpty, uniqueGroup) {
 	validator = typeof validator !== 'undefined' ? validator : function() { setFieldStatus(field, true, message); };
 	validateOnEmpty = typeof validateOnEmpty !== 'undefined' ? validateOnEmpty : true;
 	
-	var text = undefined;
+	var validated = undefined;
 	setInterval(function() {
-		if (text !== field.val()) {
+		if (field.val() == '' && !validateOnEmpty) {
+			setFieldStatus(field, true, message);
 			text = field.val();
-			if (text == '' && !validateOnEmpty) {
-				setFieldStatus(field, true, message);
-			}
-			else if (isValidField(field, regex)) {
+		}
+		else if (isValidField(field, regex, uniqueGroup)) {
+			if (validated !== field.val()) {
 				validator();
+				validated = field.val();
 			}
-			else {
-				setFieldStatus(field, false, message);
-			}
+		}
+		else {
+			setFieldStatus(field, false, message);
+			validated = undefined;
 		}
 	}, 100);
 }
 
-function isValidField(field, regex) {
+function isValidField(field, regex, uniqueGroup) {
 	var value = field.val();
 	if (value === null || !value.match(regex)) {
 		return false;
+	}
+	
+	if (typeof uniqueGroup !== 'undefined') {
+		var form = field.parentsUntil('form').parent();
+		var groups = form.find(uniqueGroup);
+		for (var index = 0; index < groups.length; index++) {
+			var group = $(groups[index]);
+			var groupValue = group.val();
+			var groupName = group.attr("name");
+			var fieldName = field.attr("name");
+			if (groupName !== fieldName && groupValue === value) {
+				return false;
+			}
+		}
 	}
 	return value.length > 0;
 }
@@ -64,8 +80,12 @@ function validateForm(form) {
 	}
 }
 
-function validateNetId(field, message) {
+function validateNetId(field, message, illegalValue) {
 	var netId = field.val();
+	if (netId == illegalValue) {
+		setFieldStatus(field, false, message);
+		return;
+	}
 	
 	$.ajax("/validation/netID?netID=" + netId, {
 		success: function() {

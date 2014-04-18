@@ -83,6 +83,7 @@ public class ProjectsResource extends Resource {
 	}
 
 	@GET
+	@Transactional
 	public Response showProjectsOverview(@Context HttpServletRequest request) throws IOException {
 		User requester = scope.getUser();
 
@@ -250,7 +251,7 @@ public class ProjectsResource extends Resource {
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, Long.parseLong(groupNumber));
 
-		if (!user.isAdmin() && !user.isAssisting(course) && user.isMemberOf(group)) {
+		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 			throw new UnauthorizedException();
 		}
 
@@ -276,7 +277,7 @@ public class ProjectsResource extends Resource {
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, Long.parseLong(groupNumber));
 
-		if (!user.isAdmin() && !user.isAssisting(course) && user.isMemberOf(group)) {
+		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 			throw new UnauthorizedException();
 		}
 

@@ -17,7 +17,8 @@
 				</div>
 	[#list 1..maxGroupSize as x]
 				<div class="form-group">
-					<label for="member-${x}">${i18n.translate("form.project-setup.group-member.label")} #${x}</label>
+					<label class="control-label" for="member-${x}">${i18n.translate("form.project-setup.group-member.label")} #${x}</label>
+ 					<span class="glyphicon form-control-feedback"></span>
 		[#if members?? && members?size > x - 1]
 					<input type="text" class="form-control" name="member-${x}" placeholder="${i18n.translate("form.project-setup.net-id.label")}" value="${members[x - 1].getNetId()}">
 		[#elseif x == 1 && !user.isAdmin() && !user.isAssisting(course)]
@@ -25,6 +26,7 @@
 		[#else]
 					<input type="text" class="form-control" name="member-${x}" placeholder="${i18n.translate("form.project-setup.net-id.label")}">
 		[/#if]
+					<span class="help-block"></span>
 				</div>
 	[/#list]
 				<div class="form-group pull-right">

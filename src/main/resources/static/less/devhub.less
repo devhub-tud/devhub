@@ -260,6 +260,34 @@ div.commit {
 	background-color: #fff;
 }
 
+.form-group {
+	margin-bottom: 20px;
+	
+	.form-control-feedback {
+		top: 35px;
+		right: 11px;
+		float: right;
+	}
+	
+	&.has-error {
+		span.glyphicon {
+			color: #a94442;
+		}
+	}
+	
+	&.has-success {
+		span.glyphicon {
+			color: #3c763d;
+		}
+	}
+	
+	.help-block {
+		height: 20px;
+		font-size: 12px;
+		color: #666;
+	}
+}
+
 code {
 	color: #444;
 	font-weight: bold;

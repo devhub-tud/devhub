@@ -34,7 +34,7 @@ public class SshKeyBackend {
 		if (name == null || !name.matches("^[a-zA-Z0-9]+$")) {
 			throw new ApiError(INVALID_KEY_NAME);
 		}
-		if (contents == null || !contents.matches("^ssh-rsa\\s.+$")) {
+		if (contents == null || !contents.matches("^ssh-rsa\\s.+\\s*$")) {
 			throw new ApiError(INVALID_KEY_CONTENTS);
 		}
 
@@ -45,14 +45,14 @@ public class SshKeyBackend {
 				throw new ApiError(NAME_ALREADY_EXISTS);
 			}
 			if (sshKeyModel.getContents()
-				.equals(contents)) {
+				.equals(contents.trim())) {
 				throw new ApiError(DUPLICATE_KEY);
 			}
 		}
 
 		SshKeyModel model = new SshKeyModel();
 		model.setName(name);
-		model.setContents(contents);
+		model.setContents(contents.trim());
 		client.users()
 			.sshKeys(userModel)
 			.registerSshKey(model);

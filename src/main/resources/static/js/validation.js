@@ -1,16 +1,16 @@
 
 function addNetIdValidationRule(field, message, allowEmpty, uniqueGroup) {
 	allowEmpty = typeof allowEmpty !== 'undefined' ? allowEmpty : false;
-	addValidationRule(field, /^[a-zA-Z0-9]+$/, message, function() { validateNetId(field, message); }, !allowEmpty, uniqueGroup);
+	addValidationRule(field, /^[a-zA-Z0-9]+$/, message, function() { validateNetId(field, message); }, allowEmpty, uniqueGroup);
 }
 
-function addValidationRule(field, regex, message, validator, validateOnEmpty, uniqueGroup) {
+function addValidationRule(field, regex, message, validator, allowEmpty, uniqueGroup) {
 	validator = typeof validator !== 'undefined' ? validator : function() { setFieldStatus(field, true, message); };
-	validateOnEmpty = typeof validateOnEmpty !== 'undefined' ? validateOnEmpty : true;
+	allowEmpty = typeof allowEmpty !== 'undefined' ? allowEmpty : false;
 	
 	var validated = undefined;
 	setInterval(function() {
-		if (field.val() == '' && !validateOnEmpty) {
+		if (field.val() == '' && allowEmpty) {
 			setFieldStatus(field, true, message);
 			text = field.val();
 		}
@@ -50,23 +50,36 @@ function isValidField(field, regex, uniqueGroup) {
 }
 
 function setFieldStatus(field, valid, message) {
+	var parent = field.parent();
+	var helpBlock = parent.find('.help-block');
+	var stateIcon = parent.find('.form-control-feedback');
+	
 	if (valid) {
-		if (field.parent().hasClass('has-error')) {
-			field.parent().removeClass('has-error');
-			field.popover('destroy');
-			
-			validateForm(field.parentsUntil('form').parent());
+		parent.removeClass('has-error');
+		stateIcon.removeClass('glyphicon-remove');
+		
+		if (field.val().length > 0) {
+			parent.addClass('has-success');
+			stateIcon.addClass('glyphicon-ok');
 		}
+		
+		helpBlock.text('');
+		helpBlock.css('display', 'none');
+		
+		validateForm(field.parentsUntil('form').parent());
 	}
 	else {
-		if (!field.parent().hasClass('has-error')) {
-			field.parent().addClass('has-error');
-			if (typeof message !== 'undefined') {
-				field.popover({ html: true, trigger: 'hover', placement: 'top', content: '<font color="#a94442">' + message + '</font>' });
-			}
-			
-			validateForm(field.parentsUntil('form').parent());
+		parent.removeClass('has-success');
+		parent.addClass('has-error');
+		stateIcon.removeClass('glyphicon-ok');
+		stateIcon.addClass('glyphicon-remove');
+		
+		if (typeof message !== 'undefined') {
+			helpBlock.css('display', 'block');
+			helpBlock.text(message);
 		}
+		
+		validateForm(field.parentsUntil('form').parent());
 	}
 }
 

@@ -12,7 +12,7 @@
 [#if courses?? && courses?has_content]
 			<form role="form" method="POST" action="">
 				<div class="form-group">
-					<label for="course">${i18n.translate("form.project-setup.course-id.label")}</label>
+					<label class="control-label" for="course">${i18n.translate("form.project-setup.course-id.label")}</label>
 					<select class="form-control" id="course" name="course">
 	[#if !course??]
 						<option value="" disabled selected>${i18n.translate("form.project-setup.course-id.label")}</option>
@@ -25,6 +25,7 @@
 		[/#if]
 	[/#list]
 					</select>
+					<span class="help-block"></span>
 				</div>
 				<div class="form-group pull-right">
 					<button type="submit" class="btn btn-xl btn-success" name="next">

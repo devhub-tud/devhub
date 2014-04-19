@@ -15,7 +15,7 @@
 							<form role="form" id="login-form" method="POST" action="">
 								<div class="form-group">
 									<label for="netID">${i18n.translate("form.login.net-id.label")}</label>
-									<input type="text" id="netID" name="netID" class="form-control" placeholder="${i18n.translate("form.login.net-id.label")}">
+									<input type="text" id="netID" name="netID" class="form-control" autofocus="autofocus" placeholder="${i18n.translate("form.login.net-id.label")}">
 								</div>
 								<div class="form-group">
 									<label for="password">${i18n.translate("form.login.password.label")}</label>

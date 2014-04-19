@@ -10,16 +10,22 @@
 			<h2>${i18n.translate("form.build-server-setup.title")}</h2>
 			<form role="form" method="POST" action="">
 				<div class="form-group">
-					<label for="build-server-name">${i18n.translate("form.build-server-setup.build-server-name.label")}</label>
+					<label class="control-label" for="build-server-name">${i18n.translate("form.build-server-setup.build-server-name.label")}</label>
+ 					<span class="glyphicon form-control-feedback"></span>
 					<input type="text" id="build-server-name" name="name" maxlength="32" class="form-control" autofocus="autofocus" placeholder="${i18n.translate("form.build-server-setup.build-server-name.label")}">
+					<span class="help-block"></span>
 				</div>
 				<div class="form-group">
-					<label for="build-server-secret">${i18n.translate("form.build-server-setup.build-server-secret.label")}</label>
+					<label class="control-label" for="build-server-secret">${i18n.translate("form.build-server-setup.build-server-secret.label")}</label>
+ 					<span class="glyphicon form-control-feedback"></span>
 					<input type="text" id="build-server-secret" name="secret" maxlength="40" class="form-control" placeholder="${i18n.translate("form.build-server-setup.build-server-secret.label")}">
+					<span class="help-block"></span>
 				</div>
 				<div class="form-group">
-					<label for="build-server-host">${i18n.translate("form.build-server-setup.build-server-host.label")}</label>
+					<label class="control-label" for="build-server-host">${i18n.translate("form.build-server-setup.build-server-host.label")}</label>
+ 					<span class="glyphicon form-control-feedback"></span>
 					<input type="text" id="build-server-host" name="host" maxlength="256" class="form-control" placeholder="${i18n.translate("form.build-server-setup.build-server-host.label")}">
+					<span class="help-block"></span>
 				</div>
 				<div class="form-group">
 					<input type="submit" class="btn btn-xl btn-success pull-right" name="add-build-server" value="${i18n.translate("form.build-server-setup.buttons.add-build-server.caption")}" disabled="disabled">

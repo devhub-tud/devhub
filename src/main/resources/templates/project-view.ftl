@@ -6,7 +6,7 @@
 			<h4>Git clone URL</h4>
 			<div class="well well-sm">
 [#if repository?? && repository?has_content]
-				<code>git clone ${repository.getUrl()} ${group.getCourse().getCode()?lower_case}</code>
+				<code>${repository.getUrl()}</code>
 [#else]
 				<code>Could not connect to the Git server!</code>
 [/#if]

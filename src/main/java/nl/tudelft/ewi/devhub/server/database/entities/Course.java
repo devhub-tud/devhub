@@ -20,6 +20,8 @@ import lombok.ToString;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
+import com.google.common.collect.Lists;
+
 @Data
 @Entity
 @Table(name = "courses")
@@ -61,5 +63,16 @@ public class Course {
 	@OrderBy("groupNumber ASC")
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
 	private List<Group> groups;
+	
+	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+	private List<CourseAssistant> courseAssistants;
 
+	public List<User> getAssistants() {
+		List<User> assistants = Lists.newArrayList();
+		for (CourseAssistant assistant : courseAssistants) {
+			assistants.add(assistant.getUser());
+		}
+		return assistants;
+	}
+	
 }

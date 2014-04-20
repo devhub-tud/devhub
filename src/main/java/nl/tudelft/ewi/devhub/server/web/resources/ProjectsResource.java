@@ -231,12 +231,12 @@ public class ProjectsResource extends Resource {
 		try {
 			Course course = courses.find(String.valueOf(session.getAttribute("projects.setup.course")));
 			List<User> members = (List<User>) session.getAttribute("projects.setup.members");
-			projectsBackend.processNewProjectSetup(course, members);
+			projectsBackend.setupProject(course, members);
 			return redirect("/projects");
 		}
 		catch (ApiError e) {
 			String error = UrlEncoded.encodeString(e.getResourceKey());
-			return redirect("/projects/setup?error=" + error);
+			return redirect("/projects/setup?step=3&error=" + error);
 		}
 	}
 

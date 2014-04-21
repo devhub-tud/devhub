@@ -108,7 +108,7 @@
 			<column name="repository_id" type="bigint">
 				<constraints nullable="false" />
 			</column>
-			<column name="commit_id" type="char(40)">
+			<column name="commit_id" type="varchar(40)">
 				<constraints nullable="false" />
 			</column>
 			<column name="success" type="boolean" />

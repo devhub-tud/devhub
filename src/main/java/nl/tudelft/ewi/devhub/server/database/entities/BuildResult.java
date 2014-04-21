@@ -27,7 +27,7 @@ public class BuildResult {
 		result.setLog(null);
 		return result;
 	}
-	
+
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,15 +37,15 @@ public class BuildResult {
 	@ManyToOne
 	@JoinColumn(name = "repository_id")
 	private Group repository;
-	
+
 	@NotEmpty
-	@Column(name = "commit_id", columnDefinition = "char(40)")
+	@Column(name = "commit_id")
 	private String commitId;
-	
+
 	@Column(name = "success")
 	private Boolean success;
-	
+
 	@Column(name = "log")
 	private String log;
-	
+
 }

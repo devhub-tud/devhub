@@ -174,8 +174,10 @@ public class ProjectsBackend {
 
 		Builder<String, Level> permissions = ImmutableMap.<String, Level> builder();
 		for (User member : members) {
-			gitUsers.ensureExists(member.getNetId());
-			permissions.put(member.getNetId(), Level.READ_WRITE);
+			if (!admins.contains(member)) {
+				gitUsers.ensureExists(member.getNetId());
+				permissions.put(member.getNetId(), Level.READ_WRITE);
+			}
 		}
 		for (User admin : admins) {
 			gitUsers.ensureExists(admin.getNetId());

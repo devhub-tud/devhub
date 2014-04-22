@@ -47,7 +47,7 @@ public class ProjectsBackend {
 	private final Object groupNumberLock = new Object();
 
 	@Inject
-	ProjectsBackend(Provider<GroupMemberships> groupMembershipsProvider, Provider<Groups> groupsProvider, 
+	ProjectsBackend(Provider<GroupMemberships> groupMembershipsProvider, Provider<Groups> groupsProvider,
 			Provider<Users> usersProvider, Provider<Courses> coursesProvider, GitServerClient client) {
 
 		this.groupMembershipsProvider = groupMembershipsProvider;
@@ -69,6 +69,7 @@ public class ProjectsBackend {
 			provisionRepository(repositoryName, templateRepositoryUrl, assistants, members);
 		}
 		catch (Throwable e) {
+			log.error(e.getMessage(), e);
 			deleteGroupFromDatabase(group);
 			deleteRepositoryFromGit(group);
 			throw new ApiError(GIT_SERVER_UNAVAILABLE);
@@ -79,13 +80,13 @@ public class ProjectsBackend {
 		try {
 			String repositoryName = group.getRepositoryName();
 			log.info("Deleting repository from Git server: {}", repositoryName);
-			
+
 			Repositories repositories = client.repositories();
 			DetailedRepositoryModel repo = repositories.retrieve(repositoryName);
 			repositories.delete(repo);
 		}
 		catch (Throwable e) {
-			log.warn(e.getMessage(), e);
+			log.warn(e.getMessage());
 		}
 	}
 
@@ -94,7 +95,7 @@ public class ProjectsBackend {
 		log.info("Deleting group from database: {}", group);
 		GroupMemberships groupMemberships = groupMembershipsProvider.get();
 		Groups groups = groupsProvider.get();
-		
+
 		List<GroupMembership> memberships = groupMemberships.ofGroup(group);
 		for (GroupMembership membership : memberships) {
 			groupMemberships.delete(membership);
@@ -107,7 +108,7 @@ public class ProjectsBackend {
 		Courses courses = coursesProvider.get();
 		GroupMemberships groupMemberships = groupMembershipsProvider.get();
 		Groups groups = groupsProvider.get();
-		
+
 		Course course = courses.find(courseCode);
 		if (course == null) {
 			throw new ApiError(COULD_NOT_FIND_COURSE);
@@ -166,7 +167,8 @@ public class ProjectsBackend {
 		}
 	}
 
-	private void provisionRepository(String repoName, String templateUrl, Collection<User> admins, Collection<User> members) {
+	private void provisionRepository(String repoName, String templateUrl, Collection<User> admins,
+			Collection<User> members) {
 		log.info("Provisioning new Git repository: {}", repoName);
 		nl.tudelft.ewi.git.client.Users gitUsers = client.users();
 

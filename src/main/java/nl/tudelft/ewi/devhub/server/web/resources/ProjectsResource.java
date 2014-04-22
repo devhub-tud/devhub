@@ -232,6 +232,9 @@ public class ProjectsResource extends Resource {
 			Course course = courses.find(String.valueOf(session.getAttribute("projects.setup.course")));
 			List<User> members = (List<User>) session.getAttribute("projects.setup.members");
 			projectsBackend.setupProject(course, members);
+			
+			session.removeAttribute("projects.setup.course");
+			session.removeAttribute("projects.setup.members");
 			return redirect("/projects");
 		}
 		catch (ApiError e) {

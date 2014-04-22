@@ -59,14 +59,13 @@ public class ProjectsBackend {
 	public void setupProject(Course course, Collection<User> members) throws ApiError {
 		log.info("Setting up new project for course: {} and members: {}", course, members);
 		Group group = persistRepository(course.getCode(), members);
-		Collection<User> assistants = course.getAssistants();
 
 		String repositoryName = group.getRepositoryName();
 		String templateRepositoryUrl = group.getCourse()
 			.getTemplateRepositoryUrl();
 
 		try {
-			provisionRepository(repositoryName, templateRepositoryUrl, assistants, members);
+			provisionRepository(course.getCode(), repositoryName, templateRepositoryUrl, members);
 		}
 		catch (Throwable e) {
 			log.error(e.getMessage(), e);
@@ -167,22 +166,17 @@ public class ProjectsBackend {
 		}
 	}
 
-	private void provisionRepository(String repoName, String templateUrl, Collection<User> admins,
-			Collection<User> members) {
+	private void provisionRepository(String courseCode, String repoName, String templateUrl, Collection<User> members) {
 		log.info("Provisioning new Git repository: {}", repoName);
 		nl.tudelft.ewi.git.client.Users gitUsers = client.users();
 
 		Builder<String, Level> permissions = ImmutableMap.<String, Level> builder();
 		for (User member : members) {
-			if (!admins.contains(member)) {
-				gitUsers.ensureExists(member.getNetId());
-				permissions.put(member.getNetId(), Level.READ_WRITE);
-			}
+			gitUsers.ensureExists(member.getNetId());
+			permissions.put(member.getNetId(), Level.READ_WRITE);
 		}
-		for (User admin : admins) {
-			gitUsers.ensureExists(admin.getNetId());
-			permissions.put(admin.getNetId(), Level.ADMIN);
-		}
+
+		permissions.put("@" + courseCode.toLowerCase(), Level.ADMIN);
 
 		CreateRepositoryModel repoModel = new CreateRepositoryModel();
 		repoModel.setName(repoName);

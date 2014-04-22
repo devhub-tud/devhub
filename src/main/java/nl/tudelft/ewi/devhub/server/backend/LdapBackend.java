@@ -95,16 +95,16 @@ public class LdapBackend {
 		LdapConnection connection = null;
 		try {
 			connection = connect(netId, password);
-			connection.close();
-
-			ensureUserPresent(netId, password);
-
-			return true;
+			if (connection != null) {
+				connection.close();
+				ensureUserPresent(netId, password);
+				return true;
+			}
 		}
 		catch (Throwable e) {
 			log.debug(e.getMessage(), e);
-			return false;
 		}
+		return false;
 	}
 
 	private void ensureUserPresent(String netId, String password) throws LdapException, IOException {

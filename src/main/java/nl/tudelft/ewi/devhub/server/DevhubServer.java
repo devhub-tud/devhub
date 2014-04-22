@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,14 +27,11 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.PersistFilter;
 
+/**
+ * This class bootstraps a DevHub server.
+ */
 @Slf4j
 public class DevhubServer {
-
-	public static String getHostUrl(HttpServletRequest request) {
-		String fullUrl = request.getRequestURL().toString();
-		String pathUrl = request.getRequestURI();
-		return fullUrl.substring(0, fullUrl.indexOf(pathUrl));
-	}
 
 	private static File determineRootFolder() {
 		File developmentFolder = new File("src/main/resources");
@@ -56,6 +52,9 @@ public class DevhubServer {
 
 	private final Server server;
 
+	/**
+	 * Constructs a new {@link DevhubServer} object.
+	 */
 	public DevhubServer() {
 		Config config = new Config();
 		config.reload();
@@ -82,6 +81,12 @@ public class DevhubServer {
 		server.setHandler(handlers);
 	}
 
+	/**
+	 * Starts the {@link DevhubServer} object.
+	 * 
+	 * @throws Exception
+	 *             In case the server could not be started.
+	 */
 	public void startServer() throws Exception {
 		server.start();
 
@@ -100,13 +105,19 @@ public class DevhubServer {
 		server.join();
 	}
 
+	/**
+	 * Stops the {@link DevhubServer} object.
+	 * 
+	 * @throws Exception
+	 *             In case the server could not be stopped.
+	 */
 	public void stopServer() throws Exception {
 		server.stop();
 	}
 
 	private static class DevhubHandler extends ServletContextHandler {
 
-		public DevhubHandler(final Config config, final File rootFolder) {
+		private DevhubHandler(final Config config, final File rootFolder) {
 			addEventListener(new GuiceResteasyBootstrapServletContextListener() {
 				@Override
 				protected List<Module> getModules(ServletContext context) {

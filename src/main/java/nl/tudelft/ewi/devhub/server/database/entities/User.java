@@ -27,6 +27,22 @@ import com.google.common.collect.Lists;
 @Table(name = "users")
 public class User {
 
+	private static final Comparator<Group> GROUP_COMPARATOR = new Comparator<Group>() {
+		@Override
+		public int compare(Group group1, Group group2) {
+			Course course1 = group1.getCourse();
+			Course course2 = group2.getCourse();
+			String code1 = course1.getCode();
+			String code2 = course2.getCode();
+			int compare = code1.compareTo(code2);
+			if (compare != 0) {
+				return compare;
+			}
+			
+			return (int) (group1.getGroupNumber() - group2.getGroupNumber());
+		}
+	};
+
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,17 +73,17 @@ public class User {
 			groups.add(membership.getGroup());
 		}
 
-		Collections.sort(groups, new Comparator<Group>() {
-			@Override
-			public int compare(Group group1, Group group2) {
-				Course course1 = group1.getCourse();
-				Course course2 = group2.getCourse();
-				String code1 = course1.getCode();
-				String code2 = course2.getCode();
-				return code1.compareTo(code2);
-			}
-		});
+		Collections.sort(groups, GROUP_COMPARATOR);
+		return groups;
+	}
+	
+	public List<Group> listAssistedGroups() {
+		List<Group> groups = Lists.newArrayList();
+		for (CourseAssistant assist : assists) {
+			groups.addAll(assist.getCourse().getGroups());
+		}
 
+		Collections.sort(groups, GROUP_COMPARATOR);
 		return groups;
 	}
 

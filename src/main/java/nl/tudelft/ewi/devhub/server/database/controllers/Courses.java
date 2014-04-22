@@ -13,6 +13,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
+import com.mysema.query.jpa.impl.JPAQuery;
 
 public class Courses extends Controller<Course> {
 
@@ -57,15 +58,18 @@ public class Courses extends Controller<Course> {
 			.where(QGroupMembership.groupMembership.user.id.eq(user.getId()))
 			.list(QGroupMembership.groupMembership.group.course.id);
 
-		return query().from(QCourse.course)
+		JPAQuery query = query().from(QCourse.course)
 			.where(QCourse.course.start.before(now))
 			.where(QCourse.course.end.isNull()
-				.or(QCourse.course.end.after(now)))
-			.where(QCourse.course.id.notIn(participatingCourses))
-			.orderBy(QCourse.course.code.asc())
+				.or(QCourse.course.end.after(now)));
+
+		if (!participatingCourses.isEmpty()) {
+			query = query.where(QCourse.course.id.notIn(participatingCourses));
+		}
+
+		return query.orderBy(QCourse.course.code.asc())
 			.orderBy(QCourse.course.name.asc())
 			.orderBy(QCourse.course.start.asc())
 			.list(QCourse.course);
 	}
-
 }

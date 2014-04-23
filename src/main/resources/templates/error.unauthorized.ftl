@@ -1,6 +1,8 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader "" /]
-[@macros.renderMenu i18n user /]
+[#if user??]
+	[@macros.renderMenu i18n user /]
+[/#if]
 		<div class="container">
 			<div style="width: 760px; margin-left: auto; margin-right: auto; margin-top: 96px;">
 				<img style="float: left;" src="/static/img/unauthorized.png">

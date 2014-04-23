@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
@@ -23,10 +24,10 @@ import com.google.inject.Provider;
 @Slf4j
 @javax.ws.rs.ext.Provider
 public class ThrowableMapper implements ExceptionMapper<Throwable> {
-	
+
 	@Context
 	private HttpServletRequest request;
-	
+
 	private final TemplateEngine templateEngine;
 	private final Provider<RequestScope> scopeProvider;
 
@@ -40,22 +41,36 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
 	public Response toResponse(Throwable exception) {
 		UUID id = UUID.randomUUID();
 		log.error(exception.getMessage() + " (" + id + ")", exception);
-		
+
 		List<Locale> locales = Collections.list(request.getLocales());
-		
+
 		try {
 			Map<String, Object> params = Maps.newHashMap();
-			params.put("user", scopeProvider.get().getUser());
+			params.put("user", determineUser());
 			params.put("error_id", id);
-			
+
 			return Response.ok()
-					.entity(templateEngine.process("error.fatal.ftl", locales, params))
-					.build();
+				.entity(templateEngine.process("error.fatal.ftl", locales, params))
+				.build();
 		}
 		catch (IOException e) {
-			return Response.serverError().entity("If you see this, something is very very wrong...")
-					.build();
+			return Response.serverError()
+				.entity("If you see this, something is very very wrong...")
+				.build();
 		}
+	}
+
+	private User determineUser() {
+		try {
+			RequestScope requestScope = scopeProvider.get();
+			if (requestScope != null) {
+				return requestScope.getUser();
+			}
+		}
+		catch (Throwable e) {
+			// Do nothing.
+		}
+		return null;
 	}
 
 }

@@ -156,4 +156,13 @@
 		</insert>
 	</changeSet>
 	
+	<changeSet id="add_timeouts_to_courses_and_groups" author="Michael de Jong">
+		<addColumn tableName="courses">
+			<column name="build_timeout" type="int" />
+		</addColumn>
+		<addColumn tableName="groups">
+			<column name="build_timeout" type="int" />
+		</addColumn>
+	</changeSet>
+	
 </databaseChangeLog>

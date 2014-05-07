@@ -5,17 +5,22 @@
 			<div class="commit">
 				<span class="state"></span>
 					<span>
-					<h2 class="header">Difference for: ${oldCommit.getMessage()} - ${newCommit.getMessage()}</h2>
-					<h5 class="subheader">${oldCommit.getAuthor()} - ${newCommit.getAuthor()}</h5>
+					<h2 class="header">Difference between commits</h2>
+					<h5 class="subheader"><strong>${oldCommit.message}</strong> - ${oldCommit.author}</h5>
+					<h5 class="subheader"><strong>${newCommit.message}</strong> - ${newCommit.author}</h5>
 				</span>
 			</div>
 			<table class="table table-bordered">
 				<tbody>
 	[#list diffs as diff]
 					<tr>
-						<td><strong>${diff.newPath} - ${diff.oldPath}</strong></td>
+		[#if diff.isDeleted()]
+						<td><strong>${diff.diffModel.oldPath}</strong></td>
+		[#else]
+						<td><strong>${diff.diffModel.newPath}</strong></td>
+		[/#if]
 					</tr>
-		[#list DiffLine.getLinesFor(diff) as line]
+		[#list diff.lines as line]
 					<tr>
 					[#if line.isRemoved()]
 						<td class="commit failed">

@@ -316,7 +316,7 @@ public class ProjectsResource extends Resource {
 		}
 		
 		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		List<DiffModel> diffs = fetchDiffs(repository, oldId, newId);
+		List<Diff> diffs = fetchDiffs(repository, oldId, newId);
 		CommitModel oldCommit = fetchCommitView(repository, oldId);
 		CommitModel newCommit = fetchCommitView(repository, newId);
 		
@@ -324,9 +324,6 @@ public class ProjectsResource extends Resource {
 		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
 		parameters.put("diffs", diffs);
-		// TODO how to pass static methods more friendly?
-		// Or should we create a diff wrapper anyways later on?
-		parameters.put("DiffLine", new DiffLine(0, null, null));
 		parameters.put("oldCommit", oldCommit);
 		parameters.put("newCommit", newCommit);
 		parameters.put("repository", repository);
@@ -355,13 +352,37 @@ public class ProjectsResource extends Resource {
 		}
 	}
 	
-	private List<DiffModel> fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
+	private List<Diff> fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
 		try {
 			Repositories repositories = client.repositories();
-			return repositories.listDiffs(repository, oldCommitId, newCommitId);
+			List<Diff> result = Lists.newArrayList();
+			List<DiffModel> diffs = repositories.listDiffs(repository, oldCommitId, newCommitId);
+			
+			for (DiffModel diff : diffs) {
+				result.add(new Diff(diff));
+			}
+			
+			return result;
 		} catch (Throwable e) {
 			throw new ApiError("error.git-server-unavailable");
 		}
+	}
+	
+	@Data
+	public static class Diff {
+		
+		private final List<DiffLine> lines;
+		private final DiffModel diffModel;
+		
+		public Diff(DiffModel diffModel) {
+			this.diffModel = diffModel;
+			this.lines = DiffLine.getLinesFor(diffModel);
+		}
+		
+		public boolean isDeleted() {
+			return diffModel.getType().equals(DiffModel.Type.DELETE);
+		}
+		
 	}
 
 	private List<User> getGroupMembers(HttpServletRequest request) {

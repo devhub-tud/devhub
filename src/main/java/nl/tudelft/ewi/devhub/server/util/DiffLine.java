@@ -87,7 +87,7 @@ public class DiffLine {
 				DiffLine line = new DiffLine(lineNumber, modifier, contents);
 				lines.add(line);
 				// Increment line numbers if line was not added between these commits
-				if(!modifier.equals(MODIFIER_ADDED))
+				if(!modifier.equals(MODIFIER_REMOVED))
 					lineNumber++;
 			}
 		}

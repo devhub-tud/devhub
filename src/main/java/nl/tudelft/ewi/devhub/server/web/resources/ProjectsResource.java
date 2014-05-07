@@ -31,6 +31,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.DiffLine;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
@@ -40,6 +41,7 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
+import nl.tudelft.ewi.git.models.DiffModel;
 
 import org.eclipse.jetty.util.UrlEncoded;
 import org.jboss.resteasy.plugins.guice.RequestScoped;
@@ -298,6 +300,41 @@ public class ProjectsResource extends Resource {
 		return display(templateEngine.process("project-commit-view.ftl", locales, parameters));
 	}
 
+	@GET
+	@Path("{courseCode}/groups/{groupNumber}/diff/{oldId}/{newId}")
+	@Transactional
+	public Response showDiff(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
+			@PathParam("groupNumber") long groupNumber, @PathParam("oldId") String oldId,
+			@PathParam("newId") String newId) throws ApiError, IOException {
+		
+		User user = scope.getUser();
+		Course course = courses.find(courseCode);
+		Group group = groups.find(course, groupNumber);
+		
+		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
+			throw new UnauthorizedException();
+		}
+		
+		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		List<DiffModel> diffs = fetchDiffs(repository, oldId, newId);
+		CommitModel oldCommit = fetchCommitView(repository, oldId);
+		CommitModel newCommit = fetchCommitView(repository, newId);
+		
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", scope.getUser());
+		parameters.put("group", group);
+		parameters.put("diffs", diffs);
+		// TODO how to pass static methods more friendly?
+		// Or should we create a diff wrapper anyways later on?
+		parameters.put("DiffLine", new DiffLine(0, null, null));
+		parameters.put("oldCommit", oldCommit);
+		parameters.put("newCommit", newCommit);
+		parameters.put("repository", repository);
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));
+	}
+	
 	private DetailedRepositoryModel fetchRepositoryView(Group group) throws ApiError {
 		try {
 			Repositories repositories = client.repositories();
@@ -314,6 +351,15 @@ public class ProjectsResource extends Resource {
 			return repositories.retrieveCommit(repository, commitId);
 		}
 		catch (Throwable e) {
+			throw new ApiError("error.git-server-unavailable");
+		}
+	}
+	
+	private List<DiffModel> fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
+		try {
+			Repositories repositories = client.repositories();
+			return repositories.listDiffs(repository, oldCommitId, newCommitId);
+		} catch (Throwable e) {
 			throw new ApiError("error.git-server-unavailable");
 		}
 	}

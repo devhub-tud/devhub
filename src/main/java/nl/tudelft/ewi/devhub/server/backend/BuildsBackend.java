@@ -12,6 +12,7 @@ import javax.ws.rs.NotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.client.BuildServerBackend;
+import nl.tudelft.ewi.build.client.BuildServerBackendImpl;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
@@ -139,7 +140,7 @@ public class BuildsBackend {
 						String name = buildServer.getName();
 						String secret = buildServer.getSecret();
 						
-						BuildServerBackend backend = new BuildServerBackend(host, name, secret);
+						BuildServerBackend backend = new BuildServerBackendImpl(host, name, secret);
 						if (backend.offerBuildRequest(buildRequest)) {
 							delivered = true;
 							buildQueue.poll();

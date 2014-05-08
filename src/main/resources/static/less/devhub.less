@@ -202,6 +202,11 @@ td.commit {
 			color: #ccc;
 		}
 	}
+	&.ignored {
+		.state {
+			color: #eee;
+		}
+	}
 	
 	.state {
 		float: left; 
@@ -236,10 +241,15 @@ div.commit {
 			color: #ccc;
 		}
 	}
+	&.ignored {
+		.state {
+			color: #eee;
+		}
+	}
 	
 	.state {
 		float: right; 
-		font-size: 50px; 
+		font-size: 50px;
 		height: 50px; 
 	}
 	
@@ -311,4 +321,8 @@ code {
 			color: #bbb;
 		}
 	}
+}
+
+.label {
+	font-weight: normal;
 }

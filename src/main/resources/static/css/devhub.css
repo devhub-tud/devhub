@@ -905,12 +905,14 @@ td.no-data{color:#aaa;font-style:italic;}
 @-webkit-keyframes rotate{from{-webkit-transform:rotate(0deg);} to{-webkit-transform:rotate(360deg);}}td.commit.failed{background-color:#fff0f0;}td.commit.failed .state{color:#aa0000;}
 td.commit.succeeded{background-color:#f0fff0;}td.commit.succeeded .state{color:#00aa00;}
 td.commit.running .state{color:#ccc;}
+td.commit.ignored .state{color:#eee;}
 td.commit .state{float:left;font-size:38px;width:38px;height:38px;margin-right:12px;}
 td.commit .comment{font-weight:bold;}
 td.commit .committer{color:#999;}
 div.commit.failed .state{color:#aa0000;}
 div.commit.succeeded .state{color:#00aa00;}
 div.commit.running .state{color:#ccc;}
+div.commit.ignored .state{color:#eee;}
 div.commit .state{float:right;font-size:50px;height:50px;}
 div.commit .comment{font-weight:bold;}
 div.commit .committer{color:#999;}
@@ -923,3 +925,4 @@ div.commit .committer{color:#999;}
 code{color:#444;font-weight:bold;white-space:normal;background-color:#fff;}code.log{display:block;font-weight:300;font-size:11px;}code.log.error{color:#ff0000;font-weight:bold;}
 code.log.warn{color:#e38217;font-weight:bold;}
 code.log.debug{color:#bbb;}
+.label{font-weight:normal;}

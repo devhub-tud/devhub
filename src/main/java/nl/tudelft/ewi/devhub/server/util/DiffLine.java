@@ -22,37 +22,38 @@ import com.google.common.collect.Lists;
 @Data
 public class DiffLine {
 
-	private final int lineNumber;
-	private final String modifier;
+	private final String oldLineNumber;
+	private final String newLineNumber;
+	private final char modifier;
 	private final String contents;
 	
-	public static final String MODIFIER_UNCHANGED = " ";
-	public static final String MODIFIER_ADDED = "+";
-	public static final String MODIFIER_REMOVED = "-";
+	public static final char MODIFIER_UNCHANGED = ' ';
+	public static final char MODIFIER_ADDED = '+';
+	public static final char MODIFIER_REMOVED = '-';
 	
 	/**
 	 * @return true if this line was added to the file between these commits
 	 */
 	public boolean isAdded() {
-		return modifier.equals(MODIFIER_ADDED);
+		return modifier == MODIFIER_ADDED;
 	}
 	
 	/**
 	 * @return true if this line was removed from the file between these commits
 	 */
 	public boolean isRemoved() {
-		return modifier.equals(MODIFIER_REMOVED);
+		return modifier == MODIFIER_REMOVED;
 	}
 	
 	/**
 	 * @return true if this line was not changed between these commits
 	 */
 	public boolean isUnchanged() {
-		return modifier.equals(MODIFIER_UNCHANGED);
+		return modifier == MODIFIER_UNCHANGED;
 	}
 	
 	private static final String FILE_CHANGE_PATTERN = "^(---|\\+\\+\\+)\\s(a/)?.*$";
-	private static final String BEGIN_END_LINES_PATTERN = "^@@\\s-\\d+(,\\d+){0,1}\\s+[+](\\d+)?(,\\d+){0,1}\\s@@$";
+	private static final String BEGIN_END_LINES_PATTERN = "^@@\\s-(\\d+)?(,\\d+){0,1}\\s+[+](\\d+)?(,\\d+){0,1}\\s@@$";
 	private static final String LINE_IN_FILE = "^(\\s|[+-])(.*)$";
 	
 	/**
@@ -65,7 +66,8 @@ public class DiffLine {
 
 	private static List<DiffLine> getLinesFor(String[] raw) {
 		List<DiffLine> lines = Lists.newArrayList();
-		int lineNumber = 0;
+		int newLineNumber = 0;
+		int oldLineNumber = 0;
 		
 		Pattern belp = Pattern.compile(BEGIN_END_LINES_PATTERN),
 				lif = Pattern.compile(LINE_IN_FILE);
@@ -76,19 +78,37 @@ public class DiffLine {
 					lifMatcher = lif.matcher(str);
 			
 			if(str.matches(FILE_CHANGE_PATTERN)) {
+				// Skip +++ and --- lines
 				continue;
 			} else if (belpMatcher.matches()) {
 				// Start counting line numbers
-				lineNumber = Integer.parseInt(belpMatcher.group(2));
+				oldLineNumber = Integer.parseInt(belpMatcher.group(1));
+				newLineNumber = Integer.parseInt(belpMatcher.group(3));
 			} else if (lifMatcher.matches()) {
 				// Create the line object and add it to the list
-				String modifier = lifMatcher.group(1);
+				char modifier = lifMatcher.group(1).charAt(0);
 				String contents = lifMatcher.group(2);
-				DiffLine line = new DiffLine(lineNumber, modifier, contents);
+				String olnStr = "", nlnStr = "";
+				
+				switch(modifier) {
+				case MODIFIER_UNCHANGED:
+					olnStr = Integer.toString(oldLineNumber);
+					nlnStr = Integer.toString(newLineNumber);
+					oldLineNumber++;
+					newLineNumber++;
+					break;
+				case MODIFIER_ADDED:
+					nlnStr = Integer.toString(newLineNumber);
+					newLineNumber++;
+					break;
+				case MODIFIER_REMOVED:
+					olnStr = Integer.toString(oldLineNumber);
+					oldLineNumber++;
+					break;
+				}
+				
+				DiffLine line = new DiffLine(olnStr, nlnStr, modifier, contents);
 				lines.add(line);
-				// Increment line numbers if line was not added between these commits
-				if(!modifier.equals(MODIFIER_REMOVED))
-					lineNumber++;
 			}
 		}
 		
@@ -106,4 +126,5 @@ public class DiffLine {
 			System.out.println(line);
 		}
 	}
+
 }

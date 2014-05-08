@@ -10,31 +10,33 @@
 					<h5 class="subheader"><strong>${newCommit.message}</strong> - ${newCommit.author}</h5>
 				</span>
 			</div>
+			
+	[#list diffs as diff]
+		[#if diff.isDeleted()]
+						<h3>${diff.diffModel.oldPath}</h3>
+		[#else]
+						<h3>${diff.diffModel.newPath}</h3>
+		[/#if]
+		
 			<table class="table table-bordered">
 				<tbody>
-	[#list diffs as diff]
-					<tr>
-		[#if diff.isDeleted()]
-						<td><strong>${diff.diffModel.oldPath}</strong></td>
-		[#else]
-						<td><strong>${diff.diffModel.newPath}</strong></td>
-		[/#if]
-					</tr>
 		[#list diff.lines as line]
 					<tr>
+					<td width="20px">${line.newLineNumber}</td>
+					<td width="20px">${line.oldLineNumber}</td>
+					
 					[#if line.isRemoved()]
-						<td class="commit failed">
+						<td class="commit failed">${line.contents}</td>
 					[#elseif line.isAdded()]
-						<td class="commit succeeded">
+						<td class="commit succeeded">${line.contents}</td>
 					[#else]
-						<td>
+						<td>${line.contents}</td>
 					[/#if]
-						${line.lineNumber}. ${line.contents}</td>	
 					</tr>
 		[/#list]
-	[/#list]
 				</tbody>
 			</table>
+	[/#list]
 		</div>
 [@macros.renderScripts /]
 [@macros.renderFooter /]

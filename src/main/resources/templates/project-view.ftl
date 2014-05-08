@@ -23,7 +23,7 @@
 					[#if states.hasSucceeded(commit.getCommit())]
 						<td class="commit succeeded">
 							<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
-							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
+							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary btn-sm pull-right" style="margin: 5px;"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
 							<a href="${path}/commits/${commit.getCommit()}">
 								<div class="comment">${commit.getMessage()}</div>
 								<div class="committer">${commit.getAuthor()}</div>
@@ -32,7 +32,7 @@
 					[#else]
 						<td class="commit failed">
 							<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
-							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
+							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary btn-sm pull-right" style="margin: 5px;"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
 							<a href="${path}/commits/${commit.getCommit()}">
 								<div class="comment">${commit.getMessage()}</div>
 								<div class="committer">${commit.getAuthor()}</div>
@@ -42,7 +42,7 @@
 				[#else]
 						<td class="commit running">
 							<span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
-							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
+							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary btn-sm pull-right" style="margin: 5px;"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
 							<span>
 								<div class="comment">${commit.getMessage()}</div>
 								<div class="committer">${commit.getAuthor()}</div>
@@ -52,7 +52,7 @@
 			[#else]
 						<td class="commit">
 							<span class="state"></span>
-							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
+							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary btn-sm pull-right" style="margin: 5px;"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
 							<span>
 								<div class="comment">${commit.getMessage()}</div>
 								<div class="committer">${commit.getAuthor()}</div>

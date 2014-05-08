@@ -5,8 +5,12 @@
 			<div class="commit">
 				<span class="state"></span>
 					<span>
+	[#if oldCommit??]
 					<h2 class="header">Difference between commits</h2>
 					<h5 class="subheader"><strong>${oldCommit.message}</strong> - ${oldCommit.author}</h5>
+	[#else]
+					<h2 class="header">Changes in commit</h2>
+	[/#if]
 					<h5 class="subheader"><strong>${newCommit.message}</strong> - ${newCommit.author}</h5>
 				</span>
 			</div>

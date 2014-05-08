@@ -305,28 +305,8 @@ public class ProjectsResource extends Resource {
 	@Transactional
 	public Response showCommitChanges(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId) throws IOException, ApiError {
-
-		User user = scope.getUser();
-		Course course = courses.find(courseCode);
-		Group group = groups.find(course, groupNumber);
-		
-		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
-			throw new UnauthorizedException();
-		}
-		
-		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		CommitModel newCommit = fetchCommitView(repository, commitId);
-		List<Diff> diffs = fetchDiffs(repository, commitId + "^", commitId);
-		
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", scope.getUser());
-		parameters.put("group", group);
-		parameters.put("diffs", diffs);
-		parameters.put("newCommit", newCommit);
-		parameters.put("repository", repository);
-
-		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));
+	
+		return showDiff(request, courseCode, groupNumber, null, commitId);
 	}
 
 	@GET
@@ -339,24 +319,27 @@ public class ProjectsResource extends Resource {
 		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, groupNumber);
-		
+
 		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 			throw new UnauthorizedException();
 		}
-		
+
 		DetailedRepositoryModel repository = fetchRepositoryView(group);
 		List<Diff> diffs = fetchDiffs(repository, oldId, newId);
-		CommitModel oldCommit = fetchCommitView(repository, oldId);
 		CommitModel newCommit = fetchCommitView(repository, newId);
-		
+
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
 		parameters.put("diffs", diffs);
-		parameters.put("oldCommit", oldCommit);
 		parameters.put("newCommit", newCommit);
 		parameters.put("repository", repository);
 
+		if(oldId != null) {
+			CommitModel oldCommit = fetchCommitView(repository, oldId);
+			parameters.put("oldCommit", oldCommit);
+		}
+		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));
 	}

@@ -33,9 +33,9 @@
 						<td class="diff ln">${line.oldLineNumber}</td>
 						
 						[#if line.isRemoved()]
-							<td class="diff add">${line.contents}</td>
-						[#elseif line.isAdded()]
 							<td class="diff delete">${line.contents}</td>
+						[#elseif line.isAdded()]
+							<td class="diff add">${line.contents}</td>
 						[#else]
 							<td class="diff">${line.contents}</td>
 						[/#if]

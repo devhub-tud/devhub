@@ -27,9 +27,19 @@ public class DiffLine {
 	private final char modifier;
 	private final String contents;
 	
+	public DiffLine(String oldLineNumber, String newLineNumber, char modifier,
+			String contents) {
+		this.oldLineNumber = oldLineNumber;
+		this.newLineNumber = newLineNumber;
+		this.modifier = modifier;
+		this.contents = contents;
+	}
+
 	public static final char MODIFIER_UNCHANGED = ' ';
 	public static final char MODIFIER_ADDED = '+';
 	public static final char MODIFIER_REMOVED = '-';
+	
+	
 	
 	/**
 	 * @return true if this line was added to the file between these commits
@@ -113,18 +123,6 @@ public class DiffLine {
 		}
 		
 		return lines;
-	}
-	
-	public static void main(String... args) {
-		String[] input = { "diff --git a/readme.md b/readme.md",
-				"index 983cc05..da041cc 100644", "--- a/readme.md",
-				"+++ b/readme.md", "@@ -1 +1,2 @@",
-				" A readme file with a bit of contents",
-				"+Now we've altered the readme a bit to work on the diffs" };
-		List<DiffLine> lines = getLinesFor(input);
-		for(DiffLine line : lines) {
-			System.out.println(line);
-		}
 	}
 
 }

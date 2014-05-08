@@ -22,15 +22,15 @@
 				<tbody>
 		[#list diff.lines as line]
 					<tr>
-					<td width="20px">${line.newLineNumber}</td>
-					<td width="20px">${line.oldLineNumber}</td>
+					<td class="diff ln">${line.newLineNumber}</td>
+					<td class="diff ln">${line.oldLineNumber}</td>
 					
 					[#if line.isRemoved()]
-						<td class="commit failed">${line.contents}</td>
+						<td class="diff add">${line.contents}</td>
 					[#elseif line.isAdded()]
-						<td class="commit succeeded">${line.contents}</td>
+						<td class="diff delete">${line.contents}</td>
 					[#else]
-						<td>${line.contents}</td>
+						<td class="diff">${line.contents}</td>
 					[/#if]
 					</tr>
 		[/#list]

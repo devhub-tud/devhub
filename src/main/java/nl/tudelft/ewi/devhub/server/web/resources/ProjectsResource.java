@@ -344,6 +344,36 @@ public class ProjectsResource extends Resource {
 		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));
 	}
 	
+	@GET
+	@Path("{courseCode}/groups/{groupNumber}/blob/{commitId}/{path:.+}")
+	@Transactional
+	public Response getBlob(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
+			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
+			@PathParam("path") String path) throws ApiError, IOException {
+
+		User user = scope.getUser();
+		Course course = courses.find(courseCode);
+		Group group = groups.find(course, groupNumber);
+
+		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
+			throw new UnauthorizedException();
+		}
+
+		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		String[] contents = client.repositories().showFile(repository, commitId, path).split("\\r?\\n");
+		
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", scope.getUser());
+		parameters.put("commit", commitId);
+		parameters.put("path", path);
+		parameters.put("contents", contents);
+		parameters.put("group", group);
+		parameters.put("repository", repository);
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
+	}
+	
 	private DetailedRepositoryModel fetchRepositoryView(Group group) throws ApiError {
 		try {
 			Repositories repositories = client.repositories();

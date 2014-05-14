@@ -890,7 +890,7 @@ h1{color:#000;font-size:60px;font-weight:800;font-style:bold;margin:0px;}
 .menu{background-color:#fff;border-bottom:1px solid #ddd;padding:21px 0px;margin-bottom:24px;width:100%;}.menu .logo-text{font-size:22px;margin-bottom:0px;line-height:40px;color:#b8b8b8;}
 .menu a{font-size:17px;margin-bottom:0px;line-height:40px;color:#b8b8b8;}.menu a:not(:last-child){margin-right:32px;}
 .logo-image{width:44px;height:44px;}
-.icon{width:20px !important;display:inline-block;}
+.icon{width:20px ! important;display:inline-block;}
 .no-margin{margin:0;}
 .no-bottom td.minimal-width,th.minimal-width{width:1px;text-align:center;}
 td.no-data{color:#aaa;font-style:italic;}
@@ -898,7 +898,7 @@ td.no-data{color:#aaa;font-style:italic;}
 .muted{color:#888;font-style:italic;}
 .alert{padding:9px;}
 .table{background-color:#fff;}
-.table td{padding:12px 15px !important;}
+.table td{padding:12px 15px ! important;}
 .btn i.glyphicon{vertical-align:-1px;margin-right:3px;}
 .truncate{width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant:italic;color:#808080;}
 .spinner{-webkit-animation:rotate 2.7s linear infinite;}
@@ -916,7 +916,7 @@ div.commit.ignored .state{color:#eee;}
 div.commit .state{float:right;font-size:50px;height:50px;}
 div.commit .comment{font-weight:bold;}
 div.commit .committer{color:#999;}
-td.diff{padding:2px 10px !important;}td.diff.ln{width:50px;text-align:center;background-color:#eaeaea;color:#888;}
+td.diff{padding:2px 10px ! important;}td.diff.ln{width:50px;text-align:center;background-color:#eaeaea;color:#888;}
 td.diff.add{background-color:#ceffce;}
 td.diff.delete{background-color:#f7c8c8;}
 .popover{max-width:70%;}
@@ -929,3 +929,17 @@ code{color:#444;font-weight:bold;white-space:normal;background-color:#fff;}code.
 code.log.warn{color:#e38217;font-weight:bold;}
 code.log.debug{color:#bbb;}
 .label{font-weight:normal;}
+.table-code{border:1px solid #ddd;background-color:#fff;width:100%;}.table-code .line-numbers{-webkit-user-select:none;-moz-user-select:none;user-select:none;font-family:consolas;padding:7px 12px;width:48px;text-align:right;background-color:#eee;}
+.table-code .code{font-family:consolas;}
+.table-code .hljs{display:inline-block;padding:0.5em;color:#000;background:#fff;}
+.table-code .hljs-subst,.table-code .hljs-title,.table-code .json .hljs-value{font-weight:normal;color:#000;}
+.table-code .hljs-comment,.table-code .hljs-template_comment,.table-code .hljs-javadoc,.table-code .diff .hljs-header{color:#808080;font-style:italic;}
+.table-code .hljs-annotation,.table-code .hljs-decorator,.table-code .hljs-preprocessor,.table-code .hljs-pragma,.table-code .hljs-doctype,.table-code .hljs-pi,.table-code .hljs-chunk,.table-code .hljs-shebang,.table-code .apache .hljs-cbracket,.table-code .hljs-prompt,.table-code .http .hljs-title{color:#808000;}
+.table-code .hljs-tag,.table-code .hljs-pi{background:#efefef;}
+.table-code .hljs-tag .hljs-title,.table-code .hljs-id,.table-code .hljs-attr_selector,.table-code .hljs-pseudo,.table-code .hljs-literal,.table-code .hljs-keyword,.table-code .hljs-hexcolor,.table-code .css .hljs-function,.table-code .ini .hljs-title,.table-code .css .hljs-class,.table-code .hljs-list .hljs-title,.table-code .clojure .hljs-title,.table-code .nginx .hljs-title,.table-code .tex .hljs-command,.table-code .hljs-request,.table-code .hljs-status{font-weight:bold;color:#7f0055;}
+.table-code .hljs-attribute,.table-code .hljs-rules .hljs-keyword,.table-code .hljs-number,.table-code .hljs-date,.table-code .hljs-regexp,.table-code .tex .hljs-special{font-weight:bold;color:#0000ff;}
+.table-code .hljs-number,.table-code .hljs-regexp{font-weight:normal;}
+.table-code .hljs-string,.table-code .hljs-value,.table-code .hljs-filter .hljs-argument,.table-code .css .hljs-function .hljs-params,.table-code .apache .hljs-tag{color:#0000ff;}
+.table-code .hljs-symbol,.table-code .ruby .hljs-symbol .hljs-string,.table-code .hljs-char,.table-code .tex .hljs-formula{color:#000;background:#d0eded;font-style:italic;}
+.table-code .hljs-phpdoc,.table-code .hljs-yardoctag,.table-code .hljs-javadoctag{text-decoration:underline;}
+.table-code .hljs-variable,.table-code .hljs-envvar,.table-code .apache .hljs-sqbracket,.table-code .nginx .hljs-built_in{color:#660e7a;}

@@ -1,6 +1,5 @@
 
 @import "bootstrap/bootstrap.less";
-
 @font-face {
 	font-weight: 300;
 	font-style: normal;
@@ -29,7 +28,7 @@
 	src: url(/static/fonts/TitilliumWeb-Bold.ttf);
 }
 
-body, html {
+body , html {
 	margin-bottom: 48px;
 	background-color: #f9f9f9;
 	font-family: 'Titillium Web';
@@ -39,33 +38,31 @@ body, html {
 a {
 	color: #3699d2;
 	font-weight: 400;
-	
 	&:hover {
 		text-decoration: none;
 		color: #3699d2;
 	}
 }
 
-li, ol, ul {
+li , ol , ul {
 	font-weight: 400;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1 , h2 , h3 , h4 , h5 , h6 {
 	font-weight: 300;
 	line-height: 100%;
 	margin: 8px 0px 18px 0px;
 	padding: 3px 0px;
-	
 	.btn {
 		margin-top: -5px;
 	}
 }
 
-h1.header, h2.header, h3.header, h4.header, h5.header, h6.header {
+h1.header , h2.header , h3.header , h4.header , h5.header , h6.header {
 	margin-bottom: 0;
 }
 
-h1.subheader, h2.subheader, h3.subheader, h4.subheader, h5.subheader, h6.subheader {
+h1.subheader , h2.subheader , h3.subheader , h4.subheader , h5.subheader , h6.subheader {
 	margin-top: 0;
 }
 
@@ -88,21 +85,18 @@ h1 {
 	padding: 21px 0px;
 	margin-bottom: 24px;
 	width: 100%;
-	
-	
 	.logo-text {
 		font-size: 22px;
 		margin-bottom: 0px;
 		line-height: 40px;
 		color: #b8b8b8;
 	}
-	
+
 	a {
 		font-size: 17px;
 		margin-bottom: 0px;
 		line-height: 40px;
 		color: #b8b8b8;
-		
 		&:not(:last-child) {
 			margin-right: 32px;
 		}
@@ -115,7 +109,7 @@ h1 {
 }
 
 .icon {
-	width: 20px !important;
+	width: 20px ! important;
 	display: inline-block;
 }
 
@@ -123,9 +117,7 @@ h1 {
 	margin: 0;
 }
 
-.no-bottom
-
-td.minimal-width, th.minimal-width {
+.no-bottom td.minimal-width , th.minimal-width {
 	width: 1px;
 	text-align: center;
 }
@@ -154,7 +146,7 @@ td.no-data {
 }
 
 .table td {
-	padding: 12px 15px !important;
+	padding: 12px 15px ! important;
 }
 
 .btn i.glyphicon {
@@ -172,16 +164,17 @@ td.no-data {
 }
 
 .spinner {
-	-webkit-animation: rotate 2.7s linear infinite; 
+	-webkit-animation: rotate 2.7s linear infinite;
 }
 
 @-webkit-keyframes rotate {
-  from {
-    -webkit-transform: rotate(0deg);
-  }
-  to { 
-    -webkit-transform: rotate(360deg);
-  }
+	from {
+		-webkit-transform: rotate(0deg);
+	}
+
+	to {
+		-webkit-transform: rotate(360deg);
+	}
 }
 
 td.commit {
@@ -191,35 +184,38 @@ td.commit {
 			color: #aa0000;
 		}
 	}
+
 	&.succeeded {
 		background-color: #f0fff0;
 		.state {
 			color: #00aa00;
 		}
 	}
+
 	&.running {
 		.state {
 			color: #ccc;
 		}
 	}
+
 	&.ignored {
 		.state {
 			color: #eee;
 		}
 	}
-	
+
 	.state {
-		float: left; 
-		font-size: 38px; 
-		width: 38px; 
-		height: 38px; 
+		float: left;
+		font-size: 38px;
+		width: 38px;
+		height: 38px;
 		margin-right: 12px;
 	}
-	
+
 	.comment {
 		font-weight: bold;
 	}
-	
+
 	.committer {
 		color: #999;
 	}
@@ -231,41 +227,42 @@ div.commit {
 			color: #aa0000;
 		}
 	}
+
 	&.succeeded {
 		.state {
 			color: #00aa00;
 		}
 	}
+
 	&.running {
 		.state {
 			color: #ccc;
 		}
 	}
+
 	&.ignored {
 		.state {
 			color: #eee;
 		}
 	}
-	
+
 	.state {
-		float: right; 
+		float: right;
 		font-size: 50px;
-		height: 50px; 
+		height: 50px;
 	}
-	
+
 	.comment {
 		font-weight: bold;
 	}
-	
+
 	.committer {
 		color: #999;
 	}
 }
 
 td.diff {
-
-	padding: 2px 10px !important;
-	
+	padding: 2px 10px ! important;
 	&.ln {
 		width: 50px;
 		text-align: center;
@@ -276,11 +273,10 @@ td.diff {
 	&.add {
 		background-color: #ceffce;
 	}
-	
+
 	&.delete {
 		background-color: #f7c8c8;
 	}
-	
 }
 
 .popover {
@@ -293,25 +289,24 @@ td.diff {
 
 .form-group {
 	margin-bottom: 20px;
-	
 	.form-control-feedback {
 		top: 35px;
 		right: 11px;
 		float: right;
 	}
-	
+
 	&.has-error {
 		span.glyphicon {
 			color: #a94442;
 		}
 	}
-	
+
 	&.has-success {
 		span.glyphicon {
 			color: #3c763d;
 		}
 	}
-	
+
 	.help-block {
 		height: 20px;
 		font-size: 12px;
@@ -324,20 +319,20 @@ code {
 	font-weight: bold;
 	white-space: normal;
 	background-color: #fff;
-	
 	&.log {
 		display: block;
 		font-weight: 300;
 		font-size: 11px;
-		
 		&.error {
 			color: #ff0000;
 			font-weight: bold;
 		}
+
 		&.warn {
 			color: #e38217;
 			font-weight: bold;
 		}
+
 		&.debug {
 			color: #bbb;
 		}
@@ -347,3 +342,83 @@ code {
 .label {
 	font-weight: normal;
 }
+
+.table-code {
+	border: 1px solid #ddd;
+	background-color: #fff;
+	width: 100%;
+	
+	.line-numbers {
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		user-select: none;
+		font-family: consolas;
+		padding: 7px 12px;
+		width: 48px;
+		text-align: right;
+		background-color: #eee;
+	}
+
+	.code {
+		font-family: consolas;
+	}
+
+	.hljs {
+		display: inline-block;
+		padding: 0.5em;
+		color: #000;
+		background: #fff;
+	}
+
+	.hljs-subst , .hljs-title , .json .hljs-value {
+		font-weight: normal;
+		color: #000;
+	}
+
+	.hljs-comment , .hljs-template_comment , .hljs-javadoc , .diff .hljs-header {
+		color: #808080;
+		font-style: italic;
+	}
+
+	.hljs-annotation , .hljs-decorator , .hljs-preprocessor , .hljs-pragma , .hljs-doctype , .hljs-pi , .hljs-chunk , .hljs-shebang , .apache .hljs-cbracket , .hljs-prompt , .http .hljs-title {
+		color: #808000;
+	}
+
+	.hljs-tag , .hljs-pi {
+		background: #efefef;
+	}
+
+	.hljs-tag .hljs-title , .hljs-id , .hljs-attr_selector , .hljs-pseudo , .hljs-literal , .hljs-keyword , .hljs-hexcolor , .css .hljs-function , .ini .hljs-title , .css .hljs-class , .hljs-list .hljs-title , .clojure .hljs-title , .nginx .hljs-title , .tex .hljs-command , .hljs-request , .hljs-status {
+		font-weight: bold;
+		color: #7f0055;
+	}
+
+	.hljs-attribute , .hljs-rules .hljs-keyword , .hljs-number , .hljs-date , .hljs-regexp , .tex .hljs-special {
+		font-weight: bold;
+		color: #0000ff;
+	}
+
+	.hljs-number , .hljs-regexp {
+		font-weight: normal;
+	}
+
+	.hljs-string , .hljs-value , .hljs-filter .hljs-argument , .css .hljs-function .hljs-params , .apache .hljs-tag {
+		color: #0000ff;
+	}
+
+	.hljs-symbol , .ruby .hljs-symbol .hljs-string , .hljs-char , .tex .hljs-formula {
+		color: #000;
+		background: #d0eded;
+		font-style: italic;
+	}
+
+	.hljs-phpdoc , .hljs-yardoctag , .hljs-javadoctag {
+		text-decoration: underline;
+	}
+
+	.hljs-variable , .hljs-envvar , .apache .hljs-sqbracket , .nginx .hljs-built_in {
+		color: #660e7a;
+	}
+	
+}
+

@@ -1,3 +1,15 @@
+[#macro listTags repository commitId]
+	[#list repository.getTags() as tag]
+		[#if tag.getCommit() == commitId]
+			[#if tag.getName()?starts_with("refs/tags/")]
+<span class="label label-primary">${tag.getName()?substring("refs/tags/"?length)}</span>
+			[#else]
+<span class="label label-primary">${tag.getName()}</span>
+			[/#if]
+		[/#if]
+	[/#list]
+[/#macro]
+
 [#import "macros.ftl" as macros]
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -25,7 +37,7 @@
 							<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
 							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary btn-sm pull-right" style="margin: 5px;"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
 							<a href="${path}/commits/${commit.getCommit()}">
-								<div class="comment">${commit.getMessage()}</div>
+								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
 								<div class="committer">${commit.getAuthor()}</div>
 							</a>
 						</td>
@@ -34,7 +46,7 @@
 							<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
 							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary btn-sm pull-right" style="margin: 5px;"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
 							<a href="${path}/commits/${commit.getCommit()}">
-								<div class="comment">${commit.getMessage()}</div>
+								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
 								<div class="committer">${commit.getAuthor()}</div>
 							</a>
 						</td>
@@ -44,17 +56,17 @@
 							<span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
 							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary btn-sm pull-right" style="margin: 5px;"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
 							<span>
-								<div class="comment">${commit.getMessage()}</div>
+								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
 								<div class="committer">${commit.getAuthor()}</div>
 							</span>
 						</td>
 				[/#if]
 			[#else]
-						<td class="commit">
-							<span class="state"></span>
+						<td class="commit ignored">
+							<span class="state glyphicon glyphicon-unchecked"></span>
 							<a href="${path}/diff/${commit.getCommit()}" class="btn btn-primary btn-sm pull-right" style="margin: 5px;"><span class="glyphicon glyphicon-indent-left"></span> Diff</a>
 							<span>
-								<div class="comment">${commit.getMessage()}</div>
+								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
 								<div class="committer">${commit.getAuthor()}</div>
 							</span>
 						</td>

@@ -59,6 +59,9 @@ public class Course {
 
 	@Column(name = "template_repository_url")
 	private String templateRepositoryUrl;
+	
+	@Column(name = "build_timeout")
+	private Integer buildTimeout;
 
 	@OrderBy("groupNumber ASC")
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)

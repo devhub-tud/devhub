@@ -40,6 +40,9 @@ public class Group {
 	@NotNull
 	@Column(name = "group_number")
 	private long groupNumber;
+	
+	@Column(name = "build_timeout")
+	private Integer buildTimeout;
 
 	@OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
 	private Set<GroupMembership> memberships;

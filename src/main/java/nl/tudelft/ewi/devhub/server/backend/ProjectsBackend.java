@@ -133,6 +133,7 @@ public class ProjectsBackend {
 			Group group = new Group();
 			group.setCourse(course);
 			group.setGroupNumber(newGroupNumber);
+			group.setBuildTimeout(course.getBuildTimeout());
 			group.setRepositoryName("courses/" + course.getCode()
 				.toLowerCase() + "/group-" + group.getGroupNumber());
 

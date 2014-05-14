@@ -110,6 +110,7 @@ public class HooksResource {
 			buildRequest.setCallbackUrl(callbackBuilder.toString());
 			buildRequest.setInstruction(instruction);
 			buildRequest.setSource(source);
+			buildRequest.setTimeout(group.getBuildTimeout());
 
 			buildBackend.offerBuild(buildRequest);
 			buildResults.persist(BuildResult.newBuildResult(group, branch.getCommit()));

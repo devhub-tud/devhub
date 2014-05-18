@@ -54,7 +54,7 @@ import com.google.inject.persist.Transactional;
 
 @RequestScoped
 @Path("projects")
-@Produces(MediaType.TEXT_HTML)
+@Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 @RequireAuthenticatedUser
 public class ProjectsResource extends Resource {
 

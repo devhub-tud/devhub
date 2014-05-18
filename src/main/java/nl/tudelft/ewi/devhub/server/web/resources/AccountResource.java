@@ -38,9 +38,9 @@ import com.google.common.collect.Maps;
 
 @RequestScoped
 @Path("accounts")
-@Produces(MediaType.TEXT_HTML)
+@Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 @RequireAuthenticatedUser
-public class AccountResource {
+public class AccountResource extends Resource {
 
 	private final TemplateEngine templateEngine;
 	private final SshKeyBackend backend;

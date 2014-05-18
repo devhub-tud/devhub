@@ -36,9 +36,9 @@ import com.google.inject.persist.Transactional;
 
 @RequestScoped
 @Path("build-servers")
-@Produces(MediaType.TEXT_HTML)
+@Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 @RequireAuthenticatedUser
-public class BuildServerResource {
+public class BuildServerResource extends Resource {
 
 	private final TemplateEngine templateEngine;
 	private final BuildsBackend backend;

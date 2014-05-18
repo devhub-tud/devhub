@@ -45,8 +45,8 @@ import com.google.inject.persist.Transactional;
 @RequestScoped
 @Path("hooks")
 @Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
-public class HooksResource {
+@Produces(MediaType.APPLICATION_JSON + Resource.UTF8_CHARSET)
+public class HooksResource extends Resource {
 
 	@Data
 	private static class GitPush {

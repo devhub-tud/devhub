@@ -2,62 +2,97 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
+[#if states.hasStarted(commit.getCommit())]
+	[#if states.hasFinished(commit.getCommit())]
+		[#if states.hasSucceeded(commit.getCommit())]
+			<div class="commit succeeded">
+				<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
+		[#else]
+			<div class="commit failed">
+				<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
+		[/#if]
+	[#else]
+			<div class="commit">
+				<span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
+	[/#if]
+[#else]
 			<div class="commit">
 				<span class="state"></span>
-					<span>
-	[#if oldCommit??]
-					<h2 class="header">${i18n.translate("diff.changes.commits")}</h2>
-					<h5 class="subheader"><strong>${oldCommit.message}</strong> - ${oldCommit.author}</h5>
-	[#else]
-					<h2 class="header">${i18n.translate("diff.changes.commit")}</h2>
-	[/#if]
-					<h5 class="subheader"><strong>${newCommit.message}</strong> - ${newCommit.author}</h5>
+[/#if]
+
+				<span>
+					<h2 class="header">${commit.getMessage()}</h2>
+					<h5 class="subheader">${commit.getAuthor()}</h5>
 				</span>
 			</div>
-			
-	
 	[#if diffs?has_content]
 		[#list diffs as diff]
-			[#if diff.isDeleted()]
-							<h3>${diff.diffModel.oldPath}</h3>
-			[#else]
-							<h3>${diff.diffModel.newPath}</h3>
-			[/#if]
-			
-				<table class="table table-bordered">
-					<tbody>
 			[#if  diff.lines ?has_content]
-			[#list diff.lines as line]
-						<tr>
-						<td class="diff ln">${line.newLineNumber}</td>
-						<td class="diff ln">${line.oldLineNumber}</td>
-						
+			<div class="diff box">
+				<div class="header">
+					<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
+					<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
+				[#if diff.isDeleted()]
+					<h5><i class="glyphicon glyphicon-remove"></i> ${diff.diffModel.oldPath}</h5>
+				[#elseif diff.isAdded()]
+					<h5><i class="glyphicon glyphicon-plus"></i> ${diff.diffModel.newPath}</h5>
+				[#else]
+					<h5><i class="glyphicon glyphicon-pencil"></i> ${diff.diffModel.newPath}</h5>
+				[/#if]
+				</div>
+				<div class="scrollable">
+					<table class="table diffs">
+						<tbody>
+				[#list diff.lines as line]
+					[#if line.contents??]
+							<tr>
 						[#if line.isRemoved()]
-							<td class="diff delete">${line.contents}</td>
+								<td class="ln delete">${line.oldLineNumber}</td>
+								<td class="ln delete">${line.newLineNumber}</td>
+								<td class="code delete"><pre>${line.contents}</pre></td>
 						[#elseif line.isAdded()]
-							<td class="diff add">${line.contents}</td>
+								<td class="ln add">${line.oldLineNumber}</td>
+								<td class="ln add">${line.newLineNumber}</td>
+								<td class="code add"><pre>${line.contents}</pre></td>
 						[#else]
-							<td class="diff">${line.contents}</td>
+								<td class="ln">${line.oldLineNumber}</td>
+								<td class="ln">${line.newLineNumber}</td>
+								<td class="code"><pre>${line.contents}</pre></td>
 						[/#if]
-						</tr>
-			[/#list]
+							</tr>
+					[/#if]
+				[/#list]
+						</tbody>
+					</table>
+				</div>
+			</div>
 			[#else]
-						<tr>
-							<td>${i18n.translate("diff.changes.nothing")}</td>
-						</tr>
+			<div>${i18n.translate("diff.changes.nothing")}</div>
 			[/#if]
-					</tbody>
-				</table>
 		[/#list]
 	[#else]
-			<table class="table table-bordered">
-				<tbody>
-					<tr>
-						<td>${i18n.translate("diff.changes.nothing")}</td>
-					</tr>
-				</tbody>
-			</table>
+			<div>${i18n.translate("diff.changes.nothing")}</div>
 	[/#if]
 		</div>
 [@macros.renderScripts /]
+		<script>
+			$(document).ready(function() {
+				$(".folder").click(function(e) {
+					var body = $(this).parentsUntil(".box").parent();
+					var unfolder = $(this).parent().find(".unfolder");
+					
+					body.addClass("folded");
+					$(this).css("display", "none").blur();
+					unfolder.css("display", "block"); 
+				});
+				$(".unfolder").click(function(e) {
+					var body = $(this).parentsUntil(".box").parent();
+					var folder = $(this).parent().find(".folder");
+
+					body.removeClass("folded");
+					$(this).css("display", "none").blur();
+					folder.css("display", "block"); 
+				});
+			});
+		</script>
 [@macros.renderFooter /]

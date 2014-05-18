@@ -301,16 +301,16 @@ public class ProjectsResource extends Resource {
 	}
 	
 	@GET
-	@Path("{courseCode}/groups/{groupNumber}/diff/{commitId}")
+	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/diff")
 	@Transactional
 	public Response showCommitChanges(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId) throws IOException, ApiError {
 	
-		return showDiff(request, courseCode, groupNumber, null, commitId);
+		return showDiff(request, courseCode, groupNumber, commitId, null);
 	}
 
 	@GET
-	@Path("{courseCode}/groups/{groupNumber}/diff/{oldId}/{newId}")
+	@Path("{courseCode}/groups/{groupNumber}/commits/{oldId}/diff/{newId}")
 	@Transactional
 	public Response showDiff(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") long groupNumber, @PathParam("oldId") String oldId,
@@ -325,19 +325,19 @@ public class ProjectsResource extends Resource {
 		}
 
 		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		List<Diff> diffs = fetchDiffs(repository, oldId, newId);
-		CommitModel newCommit = fetchCommitView(repository, newId);
+		List<Diff> diffs = fetchDiffs(repository, newId, oldId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
 		parameters.put("diffs", diffs);
-		parameters.put("newCommit", newCommit);
+		parameters.put("commit", fetchCommitView(repository, oldId));
 		parameters.put("repository", repository);
+		parameters.put("states", new CommitChecker(group, buildResults));
 
-		if(oldId != null) {
-			CommitModel oldCommit = fetchCommitView(repository, oldId);
-			parameters.put("oldCommit", oldCommit);
+		if(newId != null) {
+			CommitModel newCommit = fetchCommitView(repository, newId);
+			parameters.put("newCommit", newCommit);
 		}
 		
 		List<Locale> locales = Collections.list(request.getLocales());
@@ -393,6 +393,10 @@ public class ProjectsResource extends Resource {
 		
 		public boolean isDeleted() {
 			return diffModel.getType().equals(DiffModel.Type.DELETE);
+		}
+		
+		public boolean isAdded() {
+			return diffModel.getType().equals(DiffModel.Type.ADD);
 		}
 		
 	}

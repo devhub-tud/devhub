@@ -201,13 +201,13 @@ td.no-data {
 td.commit {
 	&.failed {
 		background-color: @red-background-color;
-		.state {
+		.state, .comment {
 			color: @red-text-color;
 		}
 	}
 	&.succeeded {
 		background-color: @green-background-color;
-		.state {
+		.state, .comment {
 			color: @green-text-color;
 		}
 	}
@@ -215,10 +215,16 @@ td.commit {
 		.state {
 			color: #ccc;
 		}
+		.comment {
+			color: #666;
+		}
 	}
 	&.ignored {
 		.state {
 			color: #eee;
+		}
+		.comment {
+			color: #666;
 		}
 	}
 	
@@ -265,6 +271,7 @@ div.commit {
 		display: inline-block;
 		font-size: 50px;
 		height: 50px; 
+		margin-right: 8px;
 	}
 	
 	.headers {
@@ -273,7 +280,8 @@ div.commit {
 	
 	.view-picker {
 		float: right;
-		margin-top: 20px;
+		display: inline-block;
+		margin-top: 11px;
 	}
 	
 	.comment {

@@ -903,10 +903,12 @@ td.no-data{color:#aaa;font-style:italic;}
 .btn i.glyphicon{vertical-align:-1px;margin-right:3px;}
 .truncate{width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant:italic;color:#808080;}
 .spinner{-webkit-animation:rotate 2.7s linear infinite;}
-@-webkit-keyframes rotate{from{-webkit-transform:rotate(0deg);} to{-webkit-transform:rotate(360deg);}}td.commit.failed{background-color:#f7c8c8;}td.commit.failed .state{color:#cc0000;}
-td.commit.succeeded{background-color:#ceffce;}td.commit.succeeded .state{color:#006600;}
+@-webkit-keyframes rotate{from{-webkit-transform:rotate(0deg);} to{-webkit-transform:rotate(360deg);}}td.commit.failed{background-color:#f7c8c8;}td.commit.failed .state,td.commit.failed .comment{color:#cc0000;}
+td.commit.succeeded{background-color:#ceffce;}td.commit.succeeded .state,td.commit.succeeded .comment{color:#006600;}
 td.commit.running .state{color:#ccc;}
+td.commit.running .comment{color:#666;}
 td.commit.ignored .state{color:#eee;}
+td.commit.ignored .comment{color:#666;}
 td.commit .state{float:left;font-size:38px;width:38px;height:38px;margin-right:12px;}
 td.commit .comment{font-weight:bold;}
 td.commit .committer{color:#999;}
@@ -914,9 +916,9 @@ div.commit.failed .state{color:#aa0000;}
 div.commit.succeeded .state{color:#00aa00;}
 div.commit.running .state{color:#ccc;}
 div.commit.ignored .state{color:#eee;}
-div.commit .state{display:inline-block;font-size:50px;height:50px;}
+div.commit .state{display:inline-block;font-size:50px;height:50px;margin-right:8px;}
 div.commit .headers{display:inline-block;}
-div.commit .view-picker{float:right;margin-top:20px;}
+div.commit .view-picker{float:right;display:inline-block;margin-top:11px;}
 div.commit .comment{font-weight:bold;}
 div.commit .committer{color:#999;}
 .scrollable{overflow:auto;}

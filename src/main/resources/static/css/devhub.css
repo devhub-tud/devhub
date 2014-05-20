@@ -887,6 +887,7 @@ h1.header,h2.header,h3.header,h4.header,h5.header,h6.header{margin-bottom:0;}
 h1.subheader,h2.subheader,h3.subheader,h4.subheader,h5.subheader,h6.subheader{margin-top:0;}
 h4{margin-top:32px;margin-bottom:13px;}
 h1{color:#000;font-size:60px;font-weight:800;font-style:bold;margin:0px;}
+.dropdown-menu{right:0;left:auto;}
 .menu{background-color:#fff;border-bottom:1px solid #ddd;padding:21px 0px;margin-bottom:24px;width:100%;}.menu .logo-text{font-size:22px;margin-bottom:0px;line-height:40px;color:#b8b8b8;}
 .menu a{font-size:17px;margin-bottom:0px;line-height:40px;color:#b8b8b8;}.menu a:not(:last-child){margin-right:32px;}
 .logo-image{width:44px;height:44px;}
@@ -902,8 +903,8 @@ td.no-data{color:#aaa;font-style:italic;}
 .btn i.glyphicon{vertical-align:-1px;margin-right:3px;}
 .truncate{width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant:italic;color:#808080;}
 .spinner{-webkit-animation:rotate 2.7s linear infinite;}
-@-webkit-keyframes rotate{from{-webkit-transform:rotate(0deg);} to{-webkit-transform:rotate(360deg);}}td.commit.failed{background-color:#fff0f0;}td.commit.failed .state{color:#aa0000;}
-td.commit.succeeded{background-color:#f0fff0;}td.commit.succeeded .state{color:#00aa00;}
+@-webkit-keyframes rotate{from{-webkit-transform:rotate(0deg);} to{-webkit-transform:rotate(360deg);}}td.commit.failed{background-color:#f7c8c8;}td.commit.failed .state{color:#cc0000;}
+td.commit.succeeded{background-color:#ceffce;}td.commit.succeeded .state{color:#006600;}
 td.commit.running .state{color:#ccc;}
 td.commit.ignored .state{color:#eee;}
 td.commit .state{float:left;font-size:38px;width:38px;height:38px;margin-right:12px;}
@@ -913,7 +914,9 @@ div.commit.failed .state{color:#aa0000;}
 div.commit.succeeded .state{color:#00aa00;}
 div.commit.running .state{color:#ccc;}
 div.commit.ignored .state{color:#eee;}
-div.commit .state{float:right;font-size:50px;height:50px;}
+div.commit .state{display:inline-block;font-size:50px;height:50px;}
+div.commit .headers{display:inline-block;}
+div.commit .view-picker{float:right;margin-top:20px;}
 div.commit .comment{font-weight:bold;}
 div.commit .committer{color:#999;}
 .scrollable{overflow:auto;}

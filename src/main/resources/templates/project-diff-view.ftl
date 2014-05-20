@@ -27,19 +27,23 @@
 			</div>
 	[#if diffs?has_content]
 		[#list diffs as diff]
-			[#if  diff.lines ?has_content]
 			<div class="diff box">
 				<div class="header">
 					<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
 					<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
-				[#if diff.isDeleted()]
-					<h5><i class="glyphicon glyphicon-remove"></i> ${diff.diffModel.oldPath}</h5>
-				[#elseif diff.isAdded()]
-					<h5><i class="glyphicon glyphicon-plus"></i> ${diff.diffModel.newPath}</h5>
-				[#else]
-					<h5><i class="glyphicon glyphicon-pencil"></i> ${diff.diffModel.newPath}</h5>
-				[/#if]
+			[#if diff.isMoved()]
+					<h5><span class="label label-warn">Moved</span> ${diff.diffModel.oldPath} -&gt; ${diff.diffModel.newPath}</h5>
+			[#elseif diff.isCopied()]
+					<h5><span class="label label-warn">Copied</span> ${diff.diffModel.oldPath} -&gt; ${diff.diffModel.newPath}</h5>
+			[#elseif diff.isDeleted()]
+					<h5><span class="label label-danger">Deleted</span> ${diff.diffModel.oldPath}</h5>
+			[#elseif diff.isAdded()]
+					<h5><span class="label label-success">Created</span> </i> ${diff.diffModel.newPath}</h5>
+			[#elseif diff.isModified()]
+					<h5><span class="label label-primary">Modified</span> ${diff.diffModel.newPath}</h5>
+			[/#if]
 				</div>
+			[#if  diff.lines?has_content]
 				<div class="scrollable">
 					<table class="table diffs">
 						<tbody>
@@ -65,10 +69,8 @@
 						</tbody>
 					</table>
 				</div>
-			</div>
-			[#else]
-			<div>${i18n.translate("diff.changes.nothing")}</div>
 			[/#if]
+			</div>
 		[/#list]
 	[#else]
 			<div>${i18n.translate("diff.changes.nothing")}</div>
@@ -77,6 +79,14 @@
 [@macros.renderScripts /]
 		<script>
 			$(document).ready(function() {
+				$(".diff").each(function() {
+					var diffBody = $(this).find(".diffs");
+					if (diffBody.length == 0) {
+						var folder = $(this).find(".folder");
+						folder.css("display", "none");
+					}
+				});
+				
 				$(".folder").click(function(e) {
 					var body = $(this).parentsUntil(".box").parent();
 					var unfolder = $(this).parent().find(".unfolder");

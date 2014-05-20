@@ -399,6 +399,18 @@ public class ProjectsResource extends Resource {
 			return diffModel.getType().equals(DiffModel.Type.ADD);
 		}
 		
+		public boolean isModified() {
+			return diffModel.getType().equals(DiffModel.Type.MODIFY);
+		}
+		
+		public boolean isCopied() {
+			return diffModel.getType().equals(DiffModel.Type.COPY);
+		}
+		
+		public boolean isMoved() {
+			return diffModel.getType().equals(DiffModel.Type.RENAME);
+		}
+		
 	}
 
 	private List<User> getGroupMembers(HttpServletRequest request) {

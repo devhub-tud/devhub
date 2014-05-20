@@ -286,9 +286,15 @@ div.commit {
 		padding: 8px 7px 0px 0px !important;
 		.rounded-top;
 		
+		
 		h5 {
-			padding: 5px 10px 0px 18px !important;
+			padding: 9px 10px 0px 13px !important;
 			margin: 0px;
+			
+			.label {
+				vertical-align: 2px;
+				margin-right: 4px;
+			}
 		}
 	}
 }
@@ -380,7 +386,12 @@ div.commit {
 		tr:last-child {
 			.rounded-bottom;
 			.add, .delete, pre, .ln, .code {
-				.rounded-bottom;
+				&:last-child {
+					.rounded-bottom-right;
+				}
+				&:first-child {
+					.rounded-bottom-left;
+				}
 			}
 		}
 	}
@@ -462,24 +473,39 @@ code {
 }
 
 .rounded {
-	-webkit-border-radius: 6px;
-	-moz-border-radius: 6px;
-	border-radius: 6px;
+	.rounded-top;
+	.rounded-bottom;
 }
 
 .rounded-top {
+	.rounded-top-left;
+	.rounded-top-right;
+}
+
+.rounded-bottom {
+	.rounded-bottom-left;
+	.rounded-bottom-right;
+}
+
+.rounded-top-left {
 	-webkit-border-top-left-radius: 6px;
 	-moz-border-top-left-radius: 6px;
 	border-top-left-radius: 6px;
+}
+
+.rounded-top-right {
 	-webkit-border-top-right-radius: 6px;
 	-moz-border-top-right-radius: 6px;
 	border-top-right-radius: 6px;
 }
 
-.rounded-bottom {
+.rounded-bottom-left {
 	-webkit-border-bottom-left-radius: 6px;
 	-moz-border-bottom-left-radius: 6px;
 	border-bottom-left-radius: 6px;
+}
+
+.rounded-bottom-right {
 	-webkit-border-bottom-right-radius: 6px;
 	-moz-border-bottom-right-radius: 6px;
 	border-bottom-right-radius: 6px;

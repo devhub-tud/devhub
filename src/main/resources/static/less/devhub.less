@@ -36,6 +36,14 @@ body, html {
 	color: #666;
 }
 
+@red-background-color: #f7c8c8;
+@red-border-color: #f7a8a8;
+@red-text-color: #cc0000;
+
+@green-background-color: #ceffce;
+@green-border-color: #99f799;
+@green-text-color: #006600;
+
 a {
 	color: #3699d2;
 	font-weight: 400;
@@ -80,6 +88,11 @@ h1 {
 	font-weight: 800;
 	font-style: bold;
 	margin: 0px;
+}
+
+.dropdown-menu {
+	right: 0;
+	left: auto;
 }
 
 .menu {
@@ -187,15 +200,15 @@ td.no-data {
 
 td.commit {
 	&.failed {
-		background-color: #fff0f0;
+		background-color: @red-background-color;
 		.state {
-			color: #aa0000;
+			color: @red-text-color;
 		}
 	}
 	&.succeeded {
-		background-color: #f0fff0;
+		background-color: @green-background-color;
 		.state {
-			color: #00aa00;
+			color: @green-text-color;
 		}
 	}
 	&.running {
@@ -249,9 +262,18 @@ div.commit {
 	}
 	
 	.state {
-		float: right; 
+		display: inline-block;
 		font-size: 50px;
 		height: 50px; 
+	}
+	
+	.headers {
+		display: inline-block;
+	}
+	
+	.view-picker {
+		float: right;
+		margin-top: 20px;
 	}
 	
 	.comment {
@@ -356,30 +378,30 @@ div.commit {
 		}
 	
 		.add {
-			background-color: #ceffce;
+			background-color: @green-background-color;
 			border-top: 1px solid #ceffce !important;
 			
 			&.ln {
-				color: #006600;
+				color: @green-text-color;
 				text-shadow: 1px 1px #99f799;
 			}
 			
 			&:not(:last-child) {
-				border-right: 1px solid #99f799;
+				border-right: 1px solid @green-border-color;
 			}
 		}
 		
 		.delete {
-			background-color: #f7c8c8;
+			background-color: @red-background-color;
 			border-top: 1px solid #f7c8c8 !important;
 			
 			&.ln {
-				color: #cc0000;
+				color: @red-text-color;
 				text-shadow: 1px 1px #f7a8a8;
 			}
 			
 			&:not(:last-child) {
-				border-right: 1px solid #f7a8a8;
+				border-right: 1px solid @red-border-color;
 			}
 		}
 		

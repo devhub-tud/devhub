@@ -1,12 +1,5 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +14,18 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.inject.persist.Transactional;
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.backend.ProjectsBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
@@ -42,15 +47,8 @@ import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffModel;
-
 import org.eclipse.jetty.util.UrlEncoded;
 import org.jboss.resteasy.plugins.guice.RequestScoped;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.inject.persist.Transactional;
 
 @RequestScoped
 @Path("projects")
@@ -273,8 +271,14 @@ public class ProjectsResource extends Resource {
 
 	@GET
 	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}")
+	public Response showCommitOverview(@Context HttpServletRequest request) {
+		return redirect(request.getPathInfo() + "/diff");
+	}
+	
+	@GET
+	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/build")
 	@Transactional
-	public Response showCommitOverview(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
+	public Response showCommitBuild(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") String groupNumber, @PathParam("commitId") String commitId,
 			@QueryParam("fatal") String fatal) throws IOException, ApiError {
 

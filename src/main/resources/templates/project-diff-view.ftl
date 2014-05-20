@@ -2,29 +2,7 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[#if states.hasStarted(commit.getCommit())]
-	[#if states.hasFinished(commit.getCommit())]
-		[#if states.hasSucceeded(commit.getCommit())]
-			<div class="commit succeeded">
-				<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
-		[#else]
-			<div class="commit failed">
-				<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
-		[/#if]
-	[#else]
-			<div class="commit">
-				<span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
-	[/#if]
-[#else]
-			<div class="commit">
-				<span class="state"></span>
-[/#if]
-
-				<span>
-					<h2 class="header">${commit.getMessage()}</h2>
-					<h5 class="subheader">${commit.getAuthor()}</h5>
-				</span>
-			</div>
+[@macros.renderCommitHeader i18n commit "View diff" /]
 	[#if diffs?has_content]
 		[#list diffs as diff]
 			<div class="diff box">

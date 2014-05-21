@@ -413,7 +413,7 @@ public class ProjectsResource extends Resource {
 	}
 	
 	@GET
-	@Path("{courseCode}/groups/{groupNumber}/blob/{commitId}/{path:.+}")
+	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/blob/{path:.+}")
 	@Transactional
 	public Response getBlob(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
@@ -449,8 +449,8 @@ public class ProjectsResource extends Resource {
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
-		parameters.put("commit", commitId);
-		parameters.put("uri", String.format("/projects/%s/groups/%s", courseCode, groupNumber));
+		parameters.put("commit", fetchCommitView(repository, commitId));
+		parameters.put("uri", String.format("/projects/%s/groups/%s/commits/%s", courseCode, groupNumber, commitId));
 		parameters.put("path", path);
 		parameters.put("contents", contents);
 		parameters.put("highlight", !path.matches("^[^.]+|.*[.](txt|md)$"));

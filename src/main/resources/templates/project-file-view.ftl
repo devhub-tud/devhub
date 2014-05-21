@@ -2,54 +2,40 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-			<div class="commit">
-				<span class="state"></span>
-					<span>
-					<h2 class="header">
-<a href="${uri}/tree/${commit}">${repository.getName()}</a> / 
-[#assign pathParts=path?split("/")]
-[#list pathParts as pathPart]
-	[#if pathPart_has_next]
-				<a href="${uri}/tree/${commit}/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a> /
-	[#else]
-				${pathPart}
-	[/#if]
-[/#list]
-					</h2>
-					<h5 class="subheader">${commit}</h5>
-				</span>
-			</div>
-			
-	
-	[#if contents??]
-			<div class="table-code">
-				<div class="line-numbers pull-left">
-		[#list contents as line]
-					${line_index + 1}<br/>
-		[/#list]
+[@macros.renderCommitHeader i18n commit "List files" /]
+			<div class="diff box">
+				<div class="header">
+					<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
+					<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
+					<h5>
+						[#assign pathParts=path?split("/")]
+						<a href="${uri}/tree">${repository.getName()}</a>
+						[#list pathParts as pathPart]
+							[#if pathPart_has_next]
+										/ <a href="${uri}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a>
+							[#elseif pathPart?has_content]
+										/ ${pathPart}
+							[/#if]
+						[/#list]
+					</h5>
 				</div>
-				<div class="code hljs">
-		[#list contents as line]
-			[#if line_has_next]
-${line}<br/>
-			[#else]
-${line}
+			[#if contents?? && contents?has_content]
+				<div class="scrollable">
+					<table class="table diffs">
+						<tbody>
+				[#list contents as line]
+							<tr>
+								<td class="ln">${line_index + 1}</td>
+								<td class="code"><pre>${line}</pre></td>
+							</tr>
+				[/#list]
+						</tbody>
+					</table>
+				</div>
 			[/#if]
-		[/#list]
-				</div>
 			</div>
-	[#else]
-			<table class="table table-bordered">
-				<tbody>
-					<tr>
-						<td>${i18n.translate("diff.changes.nothing")}</td>
-					</tr>
-				</tbody>
-			</table>
-	[/#if]
-		</div>			
+		</div>
 [@macros.renderScripts /]
-
 [#if highlight]
 	<script src="/static/js/highlight.pack.js"></script>
 	<script>
@@ -65,5 +51,4 @@ ${line}
 		});
 	</script>
 [/#if]
-
 [@macros.renderFooter /]

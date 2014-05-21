@@ -6,9 +6,6 @@ import org.junit.Test;
 
 public class LoginTest extends WebTest {
 
-	private static final String VALID_USERNAME = System.getProperty("username");
-	private static final String VALID_PASSWORD = System.getProperty("password");
-
 	/**
 	 * <h1>Scenario: A successful login attempt.</h1>
 	 * 
@@ -29,7 +26,7 @@ public class LoginTest extends WebTest {
 	 */
 	@Test
 	public void testThatValidUserCanLogin() {
-		getSession().login(VALID_USERNAME, VALID_PASSWORD);
+		getSession().login(NET_ID, PASSWORD);
 	}
 
 	/**
@@ -55,8 +52,8 @@ public class LoginTest extends WebTest {
 	public void testThatInvalidUserCannotLogin() {
 		String url = getSession().getCurrentUrl();
 
-		getSession().setUsernameField(VALID_USERNAME)
-				.setPasswordField(VALID_PASSWORD + "!")
+		getSession().setUsernameField(NET_ID)
+				.setPasswordField(PASSWORD + "!")
 				.clickLoginButton();
 
 		getSession().waitUntilCurrentUrlDiffersFrom(url);

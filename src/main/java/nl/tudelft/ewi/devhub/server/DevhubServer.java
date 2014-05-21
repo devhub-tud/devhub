@@ -1,14 +1,17 @@
 package nl.tudelft.ewi.devhub.server;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.ServletContext;
+
 import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
-
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.persist.PersistFilter;
 import lombok.extern.slf4j.Slf4j;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -21,11 +24,6 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.persist.PersistFilter;
 
 /**
  * This class bootstraps a DevHub server.
@@ -48,6 +46,7 @@ public class DevhubServer {
 
 		DevhubServer server = new DevhubServer();
 		server.startServer();
+		server.joinThread();
 	}
 
 	private final Server server;
@@ -101,7 +100,9 @@ public class DevhubServer {
 				}
 			}
 		});
-
+	}
+	
+	public void joinThread() throws InterruptedException {
 		server.join();
 	}
 

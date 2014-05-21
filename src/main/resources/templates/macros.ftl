@@ -33,6 +33,18 @@
 		</div>	
 [/#macro]
 
+[#macro renderTreeBreadcrumb uri repository path]
+	[#assign pathParts=path?split("/")]
+	<a href="${uri}/tree">${repository.getName()}</a>
+	[#list pathParts as pathPart]
+		[#if pathPart_has_next]
+					/ <a href="${uri}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a>
+		[#elseif pathPart?has_content]
+					/ ${pathPart}
+		[/#if]
+	[/#list]
+[/#macro]
+
 [#macro renderCommitHeader i18n commit currentView]
 	[#if states.hasStarted(commit.getCommit())]
 		[#if states.hasFinished(commit.getCommit())]

@@ -7,17 +7,7 @@
 		<div class="header">
 			<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
 			<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
-			<h5>
-				[#assign pathParts=path?split("/")]
-				<a href="${uri}/tree">${repository.getName()}</a>
-				[#list pathParts as pathPart]
-					[#if pathPart_has_next]
-								/ <a href="${uri}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a>
-					[#elseif pathPart?has_content]
-								/ ${pathPart}
-					[/#if]
-				[/#list]
-			</h5>
+			<h5>[@macros.renderTreeBreadcrumb uri repository path /]</h5>
 		</div>
 		[#if entries?? && entries?has_content]
 			<div class="scrollable">

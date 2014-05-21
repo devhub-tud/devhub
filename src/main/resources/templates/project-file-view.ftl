@@ -28,8 +28,10 @@
 [@macros.renderScripts /]
 [#if highlight]
 	<script src="/static/js/highlight.pack.js"></script>
+[/#if]
 	<script>
 		$(document).ready(function() {
+[#if highlight]
 			hljs.configure({
 				tabReplace: '&nbsp;&nbsp;&nbsp;&nbsp;',
 				useBR: true
@@ -38,7 +40,32 @@
 			$('.code').each(function(i, e) {
 				hljs.highlightBlock(e);
 			});
+[/#if]
+			$(".diff").each(function() {
+				var diffBody = $(this).find(".diffs");
+				if (diffBody.length == 0) {
+					var folder = $(this).find(".folder");
+					folder.css("display", "none");
+				}
+			});
+			
+			$(".folder").click(function(e) {
+				var body = $(this).parentsUntil(".box").parent();
+				var unfolder = $(this).parent().find(".unfolder");
+				
+				body.addClass("folded");
+				$(this).css("display", "none").blur();
+				unfolder.css("display", "block"); 
+			});
+			
+			$(".unfolder").click(function(e) {
+				var body = $(this).parentsUntil(".box").parent();
+				var folder = $(this).parent().find(".folder");
+
+				body.removeClass("folded");
+				$(this).css("display", "none").blur();
+				folder.css("display", "block"); 
+			});
 		});
 	</script>
-[/#if]
 [@macros.renderFooter /]

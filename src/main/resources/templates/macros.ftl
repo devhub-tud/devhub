@@ -60,6 +60,7 @@
 						</button>
 						<ul class="dropdown-menu" role="menu">
 							<li><a href="diff">View diff</a></li>
+							<li><a href="tree">List files</a></li>
 	[#if states.hasFinished(commit.getCommit())]
 							<li><a href="build">View build log</a></li>
 	[/#if]

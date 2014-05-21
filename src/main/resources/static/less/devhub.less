@@ -540,3 +540,82 @@ code {
 	-moz-border-bottom-right-radius: 6px;
 	border-bottom-right-radius: 6px;
 }
+
+.table-code {
+	border: 1px solid #ddd;
+	background-color: #fff;
+	width: 100%;
+	
+	.line-numbers {
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		user-select: none;
+		font-family: consolas;
+		padding: 7px 12px;
+		width: 48px;
+		text-align: right;
+		background-color: #eee;
+	}
+
+	.code {
+		font-family: consolas;
+	}
+
+	.hljs {
+		display: inline-block;
+		padding: 0.5em;
+		color: #000;
+		background: #fff;
+	}
+
+	.hljs-subst , .hljs-title , .json .hljs-value {
+		font-weight: normal;
+		color: #000;
+	}
+
+	.hljs-comment , .hljs-template_comment , .hljs-javadoc , .diff .hljs-header {
+		color: #808080;
+		font-style: italic;
+	}
+
+	.hljs-annotation , .hljs-decorator , .hljs-preprocessor , .hljs-pragma , .hljs-doctype , .hljs-pi , .hljs-chunk , .hljs-shebang , .apache .hljs-cbracket , .hljs-prompt , .http .hljs-title {
+		color: #808000;
+	}
+
+	.hljs-tag , .hljs-pi {
+		background: #efefef;
+	}
+
+	.hljs-tag .hljs-title , .hljs-id , .hljs-attr_selector , .hljs-pseudo , .hljs-literal , .hljs-keyword , .hljs-hexcolor , .css .hljs-function , .ini .hljs-title , .css .hljs-class , .hljs-list .hljs-title , .clojure .hljs-title , .nginx .hljs-title , .tex .hljs-command , .hljs-request , .hljs-status {
+		font-weight: bold;
+		color: #7f0055;
+	}
+
+	.hljs-attribute , .hljs-rules .hljs-keyword , .hljs-number , .hljs-date , .hljs-regexp , .tex .hljs-special {
+		font-weight: bold;
+		color: #0000ff;
+	}
+
+	.hljs-number , .hljs-regexp {
+		font-weight: normal;
+	}
+
+	.hljs-string , .hljs-value , .hljs-filter .hljs-argument , .css .hljs-function .hljs-params , .apache .hljs-tag {
+		color: #0000ff;
+	}
+
+	.hljs-symbol , .ruby .hljs-symbol .hljs-string , .hljs-char , .tex .hljs-formula {
+		color: #000;
+		background: #d0eded;
+		font-style: italic;
+	}
+
+	.hljs-phpdoc , .hljs-yardoctag , .hljs-javadoctag {
+		text-decoration: underline;
+	}
+
+	.hljs-variable , .hljs-envvar , .apache .hljs-sqbracket , .nginx .hljs-built_in {
+		color: #660e7a;
+	}
+	
+}

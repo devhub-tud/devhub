@@ -7,6 +7,8 @@ import javax.ws.rs.core.Response;
 import lombok.SneakyThrows;
 
 public class Resource {
+	
+	public static final String UTF8_CHARSET = "; charset=UTF8";
 
 	@SneakyThrows
 	public Response redirect(String path) {

@@ -46,7 +46,7 @@
 			});
 			
 			$('.code').each(function(i, e) {
-				hljs.highlightBlock(e)
+				hljs.highlightBlock(e);
 			});
 		});
 	</script>

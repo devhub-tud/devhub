@@ -1,14 +1,5 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -18,30 +9,37 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import nl.tudelft.ewi.devhub.server.backend.LdapBackend;
-import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
-import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
-import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-
-import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.jboss.resteasy.plugins.guice.RequestScoped;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
+import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
+import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
+import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 @Path("/")
 @RequestScoped
 public class RootResource {
 	
 	private final TemplateEngine engine;
-	private final LdapBackend ldapBackend;
+	private final AuthenticationBackend authenticationBackend;
 	private final RequestScope scope;
 
 	@Inject
-	public RootResource(TemplateEngine engine, LdapBackend ldapBackend, RequestScope scope) {
+	public RootResource(TemplateEngine engine, AuthenticationBackend authenticationBackend, RequestScope scope) {
 		this.engine = engine;
-		this.ldapBackend = ldapBackend;
+		this.authenticationBackend = authenticationBackend;
 		this.scope = scope;
 	}
 	
@@ -85,7 +83,7 @@ public class RootResource {
 			@FormParam("password") String password, @QueryParam("redirect") String redirectTo) 
 			throws URISyntaxException, LdapException, IOException {
 		
-		if (ldapBackend.authenticate(netId, password)) {
+		if (authenticationBackend.authenticate(netId, password)) {
 			scope.setUser(netId);
 			if (Strings.isNullOrEmpty(redirectTo)) {
 				return Response.seeOther(new URI("/projects")).build();

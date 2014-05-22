@@ -1,14 +1,19 @@
 package nl.tudelft.ewi.devhub.server;
 
-import java.io.File;
-import java.util.EnumSet;
-import java.util.List;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.File;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.persist.PersistFilter;
+import com.google.inject.util.Modules;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -21,11 +26,6 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.persist.PersistFilter;
 
 /**
  * This class bootstraps a DevHub server.
@@ -48,14 +48,16 @@ public class DevhubServer {
 
 		DevhubServer server = new DevhubServer();
 		server.startServer();
+		server.joinThread();
 	}
 
 	private final Server server;
+	private final AtomicReference<Injector> injector = new AtomicReference<>();
 
 	/**
 	 * Constructs a new {@link DevhubServer} object.
 	 */
-	public DevhubServer() {
+	public DevhubServer(Module... overrides) {
 		Config config = new Config();
 		config.reload();
 
@@ -69,12 +71,12 @@ public class DevhubServer {
 		HashSessionManager hashSessionManager = new HashSessionManager();
 		hashSessionManager.setMaxInactiveInterval(1800);
 
-		DevhubHandler devhub = new DevhubHandler(config, rootFolder);
-		devhub.setHandler(new SessionHandler(hashSessionManager));
+		DevhubHandler devhubHandler = new DevhubHandler(config, rootFolder, overrides);
+		devhubHandler.setHandler(new SessionHandler(hashSessionManager));
 
 		ContextHandlerCollection handlers = new ContextHandlerCollection();
 		handlers.addContext("/static/", "/static").setHandler(resources);
-		handlers.addContext("/", "/").setHandler(devhub);
+		handlers.addContext("/", "/").setHandler(devhubHandler);
 
 		server = new Server(config.getHttpPort());
 		server.setSessionIdManager(new HashSessionIdManager());
@@ -101,7 +103,9 @@ public class DevhubServer {
 				}
 			}
 		});
-
+	}
+	
+	public void joinThread() throws InterruptedException {
 		server.join();
 	}
 
@@ -115,24 +119,30 @@ public class DevhubServer {
 		server.stop();
 	}
 
-	private static class DevhubHandler extends ServletContextHandler {
-
-		private DevhubHandler(final Config config, final File rootFolder) {
+	private class DevhubHandler extends ServletContextHandler {
+		
+		private DevhubHandler(final Config config, final File rootFolder, final Module[] overrides) {
 			addEventListener(new GuiceResteasyBootstrapServletContextListener() {
 				@Override
 				protected List<Module> getModules(ServletContext context) {
-					return ImmutableList.<Module> of(new DevhubModule(config, rootFolder));
+					DevhubModule module = new DevhubModule(config, rootFolder);
+					return ImmutableList.<Module> of(Modules.override(module).with(overrides));
 				}
 
 				@Override
 				protected void withInjector(Injector injector) {
+					DevhubServer.this.injector.set(injector);
 					FilterHolder persistFilterHolder = new FilterHolder(injector.getInstance(PersistFilter.class));
 					addFilter(persistFilterHolder, "/*", EnumSet.allOf(DispatcherType.class));
 				}
 			});
-
+			
 			addServlet(HttpServletDispatcher.class, "/");
 		}
+	}
+	
+	public <T> T getInstance(Class<T> type) {
+		return injector.get().getInstance(type);
 	}
 
 }

@@ -17,6 +17,7 @@ import nl.tudelft.ewi.devhub.server.backend.LdapBackend.PersistingLdapUserProces
 import nl.tudelft.ewi.devhub.server.database.DbModule;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.GitServerClientImpl;
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.jboss.resteasy.plugins.guice.ext.RequestScopeModule;
 import org.reflections.Reflections;
@@ -44,7 +45,7 @@ public class DevhubModule extends AbstractModule {
 		bind(TranslatorFactory.class).toInstance(new TranslatorFactory("i18n.devhub"));
 		bind(Config.class).toInstance(config);
 		
-		bind(GitServerClient.class).toInstance(new GitServerClient(config.getGitServerHost()));
+		bind(GitServerClient.class).toInstance(new GitServerClientImpl(config.getGitServerHost()));
 		
 		bind(AuthenticationBackend.class).to(LdapBackend.class);
 		bind(LdapUserProcessor.class).to(PersistingLdapUserProcessor.class);

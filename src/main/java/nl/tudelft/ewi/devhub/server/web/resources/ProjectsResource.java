@@ -401,7 +401,6 @@ public class ProjectsResource extends Resource {
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
 		parameters.put("commit", fetchCommitView(repository, commitId));
-		parameters.put("uri", String.format("/projects/%s/groups/%s/commits/%s", courseCode, groupNumber, commitId));
 		parameters.put("path", path);
 		parameters.put("group", group);
 		parameters.put("repository", repository);
@@ -450,7 +449,6 @@ public class ProjectsResource extends Resource {
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
 		parameters.put("commit", fetchCommitView(repository, commitId));
-		parameters.put("uri", String.format("/projects/%s/groups/%s/commits/%s", courseCode, groupNumber, commitId));
 		parameters.put("path", path);
 		parameters.put("contents", contents);
 		parameters.put("highlight", !path.matches("^[^.]+|.*[.](txt|md)$"));

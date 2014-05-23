@@ -2,7 +2,7 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n commit "View build log" /]
+[@macros.renderCommitHeader i18n group commit "View build log" /]
 [#if states.hasFinished(commit.getCommit())]
 			<h4>Build log</h4>
 			<div class="well">

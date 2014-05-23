@@ -2,12 +2,12 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n commit "List files" /]
+[@macros.renderCommitHeader i18n group commit "List files" /]
 			<div class="diff box">
 				<div class="header">
 					<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
 					<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
-					<h5>[@macros.renderTreeBreadcrumb uri repository path /]</h5>
+					<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
 				</div>
 			[#if contents?? && contents?has_content]
 				<div class="scrollable">

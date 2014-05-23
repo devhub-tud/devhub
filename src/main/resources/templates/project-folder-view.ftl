@@ -2,12 +2,12 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n commit "List files" /]
+[@macros.renderCommitHeader i18n group commit "List files" /]
 	<div class="diff box">
 		<div class="header">
 			<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
 			<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
-			<h5>[@macros.renderTreeBreadcrumb uri repository path /]</h5>
+			<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
 		</div>
 		[#if entries?? && entries?has_content]
 			<div class="scrollable">
@@ -19,15 +19,15 @@
 							<td>
 				[#if type = "FOLDER"]
 					[#if path?? && path?has_content]
-							<i class="glyphicon glyphicon-folder-open"></i> <a href="${uri}/tree/${path}/${entry}">${entry}</a>
+							<i class="glyphicon glyphicon-folder-open"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree/${path}/${entry}">${entry}</a>
 					[#else]
-							<i class="glyphicon glyphicon-folder-open"></i> <a href="${uri}/tree/${entry}">${entry}</a>
+							<i class="glyphicon glyphicon-folder-open"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree/${entry}">${entry}</a>
 					[/#if]
 				[#else]
 					[#if path?? && path?has_content]
-							<i class="glyphicon glyphicon-file"></i> <a href="${uri}/blob/${path}/${entry}">${entry}</a>
+							<i class="glyphicon glyphicon-file"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/blob/${path}/${entry}">${entry}</a>
 					[#else]
-							<i class="glyphicon glyphicon-file"></i> <a href="${uri}/blob/${entry}">${entry}</a>
+							<i class="glyphicon glyphicon-file"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/blob/${entry}">${entry}</a>
 					[/#if]
 				[/#if]
 							</td>

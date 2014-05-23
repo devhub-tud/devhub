@@ -2,7 +2,7 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n commit "View diff" /]
+[@macros.renderCommitHeader i18n group commit "View diff" /]
 	[#if diffs?has_content]
 		[#list diffs as diff]
 			<div class="diff box">

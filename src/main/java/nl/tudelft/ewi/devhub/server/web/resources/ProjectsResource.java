@@ -1,5 +1,14 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
@@ -14,18 +23,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.inject.persist.Transactional;
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.backend.ProjectsBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
@@ -47,8 +44,16 @@ import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffModel;
+import nl.tudelft.ewi.git.models.EntryType;
+
 import org.eclipse.jetty.util.UrlEncoded;
 import org.jboss.resteasy.plugins.guice.RequestScoped;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.inject.persist.Transactional;
 
 @RequestScoped
 @Path("projects")
@@ -349,7 +354,65 @@ public class ProjectsResource extends Resource {
 	}
 	
 	@GET
-	@Path("{courseCode}/groups/{groupNumber}/blob/{commitId}/{path:.+}")
+	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/tree")
+	@Transactional
+	public Response getTree(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
+			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId)
+					throws ApiError, IOException {
+		return getTree(request, courseCode, groupNumber, commitId, "");
+	}
+	
+	@GET
+	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/tree/{path:.+}")
+	@Transactional
+	public Response getTree(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
+			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
+			@PathParam("path") String path) throws ApiError, IOException {
+		
+		User user = scope.getUser();
+		Course course = courses.find(courseCode);
+		Group group = groups.find(course, groupNumber);
+
+		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
+			throw new UnauthorizedException();
+		}
+
+		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
+
+			@Override
+			public int compare(String o1, String o2) {
+				if (o1.endsWith("/") && o2.endsWith("/")) {
+					return o1.compareTo(o2);
+				}
+				else if (!o1.endsWith("/") && !o2.endsWith("/")) {
+					return o1.compareTo(o2);
+				}
+				else if (o1.endsWith("/")) {
+					return -1;
+				}
+				return 1;
+			}
+			
+		});
+		
+		entries.putAll(client.repositories().listDirectoryEntries(repository, commitId, path));
+		
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", scope.getUser());
+		parameters.put("commit", fetchCommitView(repository, commitId));
+		parameters.put("path", path);
+		parameters.put("group", group);
+		parameters.put("repository", repository);
+		parameters.put("entries", entries);
+		parameters.put("states", new CommitChecker(group, buildResults));
+		
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-folder-view.ftl", locales, parameters));
+	}
+	
+	@GET
+	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/blob/{path:.+}")
 	@Transactional
 	public Response getBlob(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
@@ -362,17 +425,36 @@ public class ProjectsResource extends Resource {
 		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 			throw new UnauthorizedException();
 		}
-
+		
+		String folderPath = "";
+		String fileName = path;
+		if (path.contains("/")) {
+			folderPath = path.substring(0, path.lastIndexOf('/'));
+			fileName = path.substring(path.lastIndexOf('/') + 1);
+		}
+		
 		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		Map<String, EntryType> entries = client.repositories().listDirectoryEntries(repository, commitId, folderPath);
+		
+		EntryType type = entries.get(fileName);
+		
+		if (type == EntryType.BINARY) {
+			return Response.ok(client.repositories().showBinFile(repository, commitId, path))
+					.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
+					.build();
+		}
+		
 		String[] contents = client.repositories().showFile(repository, commitId, path).split("\\r?\\n");
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
-		parameters.put("commit", commitId);
+		parameters.put("commit", fetchCommitView(repository, commitId));
 		parameters.put("path", path);
 		parameters.put("contents", contents);
+		parameters.put("highlight", !path.matches("^[^.]+|.*[.](txt|md)$"));
 		parameters.put("group", group);
 		parameters.put("repository", repository);
+		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));

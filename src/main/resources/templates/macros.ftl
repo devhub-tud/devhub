@@ -33,7 +33,19 @@
 		</div>	
 [/#macro]
 
-[#macro renderCommitHeader i18n commit currentView]
+[#macro renderTreeBreadcrumb group commit repository path]
+	[#assign pathParts=path?split("/")]
+	<a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree">${repository.getName()}</a>
+	[#list pathParts as pathPart]
+		[#if pathPart_has_next]
+					/ <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a>
+		[#elseif pathPart?has_content]
+					/ ${pathPart}
+		[/#if]
+	[/#list]
+[/#macro]
+
+[#macro renderCommitHeader i18n group commit currentView]
 	[#if states.hasStarted(commit.getCommit())]
 		[#if states.hasFinished(commit.getCommit())]
 			[#if states.hasSucceeded(commit.getCommit())]
@@ -59,7 +71,8 @@
 							<span class="sr-only">Toggle Dropdown</span>
 						</button>
 						<ul class="dropdown-menu" role="menu">
-							<li><a href="diff">View diff</a></li>
+							<li><a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/diff">View diff</a></li>
+							<li><a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree">List files</a></li>
 	[#if states.hasFinished(commit.getCommit())]
 							<li><a href="build">View build log</a></li>
 	[/#if]

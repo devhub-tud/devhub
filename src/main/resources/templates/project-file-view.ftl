@@ -2,54 +2,70 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-			<div class="commit">
-				<span class="state"></span>
-					<span>
-					<h2 class="header">${path}</h2>
-					<h5 class="subheader">${commit}</h5>
-				</span>
-			</div>
-			
-	
-	[#if contents??]
-			<div class="table-code">
-				<div class="line-numbers pull-left">
-		[#list contents as line]
-					${line_index + 1}<br/>
-		[/#list]
+[@macros.renderCommitHeader i18n group commit "List files" /]
+			<div class="diff box">
+				<div class="header">
+					<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
+					<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
+					<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
 				</div>
-				<div class="code">
-		[#list contents as line]
-			[#if line_has_next]
-${line}<br/>
-			[#else]
-${line}
+			[#if contents?? && contents?has_content]
+				<div class="scrollable">
+					<table class="table diffs">
+						<tbody>
+				[#list contents as line]
+							<tr>
+								<td class="ln">${line_index + 1}</td>
+								<td class="code"><pre>${line}</pre></td>
+							</tr>
+				[/#list]
+						</tbody>
+					</table>
+				</div>
 			[/#if]
-		[/#list]
-				</div>
 			</div>
-	[#else]
-			<table class="table table-bordered">
-				<tbody>
-					<tr>
-						<td>${i18n.translate("diff.changes.nothing")}</td>
-					</tr>
-				</tbody>
-			</table>
-	[/#if]
 		</div>
 [@macros.renderScripts /]
-<script src="/static/js/highlight.pack.js"></script>
-<script>
-	$(document).ready(function() {
-		hljs.configure({
-			tabReplace: '&nbsp;&nbsp;&nbsp;&nbsp;',
-			useBR: true
+[#if highlight]
+	<script src="/static/js/highlight.pack.js"></script>
+[/#if]
+	<script>
+		$(document).ready(function() {
+[#if highlight]
+			hljs.configure({
+				tabReplace: '&nbsp;&nbsp;&nbsp;&nbsp;',
+				useBR: true
+			});
+			
+			$('.code').each(function(i, e) {
+				hljs.highlightBlock(e);
+			});
+[/#if]
+			$(".diff").each(function() {
+				var diffBody = $(this).find(".diffs");
+				if (diffBody.length == 0) {
+					var folder = $(this).find(".folder");
+					folder.css("display", "none");
+				}
+			});
+			
+			$(".folder").click(function(e) {
+				var body = $(this).parentsUntil(".box").parent();
+				var unfolder = $(this).parent().find(".unfolder");
+				
+				body.addClass("folded");
+				$(this).css("display", "none").blur();
+				unfolder.css("display", "block"); 
+			});
+			
+			$(".unfolder").click(function(e) {
+				var body = $(this).parentsUntil(".box").parent();
+				var folder = $(this).parent().find(".folder");
+
+				body.removeClass("folded");
+				$(this).css("display", "none").blur();
+				folder.css("display", "block"); 
+			});
 		});
-		
-		$('.code').each(function(i, e) {
-			hljs.highlightBlock(e)
-		});
-	});
-</script>
+	</script>
 [@macros.renderFooter /]

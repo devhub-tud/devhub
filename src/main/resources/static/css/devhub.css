@@ -933,8 +933,20 @@ div.commit .committer{color:#999;}
 .diff .diffs .delete:not(:last-child){border-right:1px solid #f7a8a8;}
 .diff .diffs tr:last-child{-webkit-border-bottom-left-radius:6px;-moz-border-bottom-left-radius:6px;border-bottom-left-radius:6px;-webkit-border-bottom-right-radius:6px;-moz-border-bottom-right-radius:6px;border-bottom-right-radius:6px;}.diff .diffs tr:last-child .add:last-child,.diff .diffs tr:last-child .delete:last-child,.diff .diffs tr:last-child pre:last-child,.diff .diffs tr:last-child .ln:last-child,.diff .diffs tr:last-child .code:last-child{-webkit-border-bottom-right-radius:6px;-moz-border-bottom-right-radius:6px;border-bottom-right-radius:6px;}
 .diff .diffs tr:last-child .add:first-child,.diff .diffs tr:last-child .delete:first-child,.diff .diffs tr:last-child pre:first-child,.diff .diffs tr:last-child .ln:first-child,.diff .diffs tr:last-child .code:first-child{-webkit-border-bottom-left-radius:6px;-moz-border-bottom-left-radius:6px;border-bottom-left-radius:6px;}
-.diff.folded .diffs{display:none;}
+.diff.folded .diffs,.diff.folded .files{display:none;}
 .diff.folded .header{border-bottom:0px;-webkit-border-bottom-left-radius:6px;-moz-border-bottom-left-radius:6px;border-bottom-left-radius:6px;-webkit-border-bottom-right-radius:6px;-moz-border-bottom-right-radius:6px;border-bottom-right-radius:6px;}
+.diff .hljs-subst,.diff .hljs-title,.diff .json .hljs-value{font-weight:normal;color:#000;}
+.diff .hljs-comment,.diff .hljs-template_comment,.diff .hljs-javadoc,.diff .diff .hljs-header{color:#808080;font-style:italic;}
+.diff .hljs-annotation,.diff .hljs-decorator,.diff .hljs-preprocessor,.diff .hljs-pragma,.diff .hljs-doctype,.diff .hljs-pi,.diff .hljs-chunk,.diff .hljs-shebang,.diff .apache .hljs-cbracket,.diff .hljs-prompt,.diff .http .hljs-title{color:#808000;}
+.diff .hljs-tag,.diff .hljs-pi{background:#efefef;}
+.diff .hljs-tag .hljs-title,.diff .hljs-id,.diff .hljs-attr_selector,.diff .hljs-pseudo,.diff .hljs-literal,.diff .hljs-keyword,.diff .hljs-hexcolor,.diff .css .hljs-function,.diff .ini .hljs-title,.diff .css .hljs-class,.diff .hljs-list .hljs-title,.diff .clojure .hljs-title,.diff .nginx .hljs-title,.diff .tex .hljs-command,.diff .hljs-request,.diff .hljs-status{font-weight:bold;color:#7f0055;}
+.diff .hljs-attribute,.diff .hljs-rules .hljs-keyword,.diff .hljs-number,.diff .hljs-date,.diff .hljs-regexp,.diff .tex .hljs-special{font-weight:bold;color:#0000ff;}
+.diff .hljs-number,.diff .hljs-regexp{font-weight:normal;}
+.diff .hljs-string,.diff .hljs-value,.diff .hljs-filter .hljs-argument,.diff .css .hljs-function .hljs-params,.diff .apache .hljs-tag{color:#0000ff;}
+.diff .hljs-symbol,.diff .ruby .hljs-symbol .hljs-string,.diff .hljs-char,.diff .tex .hljs-formula{color:#000;background:#d0eded;font-style:italic;}
+.diff .hljs-phpdoc,.diff .hljs-yardoctag,.diff .hljs-javadoctag{text-decoration:underline;}
+.diff .hljs-variable,.diff .hljs-envvar,.diff .apache .hljs-sqbracket,.diff .nginx .hljs-built_in{color:#660e7a;}
+.files{margin:0;-webkit-border-bottom-left-radius:6px;-moz-border-bottom-left-radius:6px;border-bottom-left-radius:6px;-webkit-border-bottom-right-radius:6px;-moz-border-bottom-right-radius:6px;border-bottom-right-radius:6px;}.files i{color:#3699d2;margin-right:5px;}
 .popover{max-width:70%;}
 .well{background-color:#fff;}
 .form-group{margin-bottom:20px;}.form-group .form-control-feedback{top:35px;right:11px;float:right;}
@@ -952,17 +964,3 @@ code.log.debug{color:#bbb;}
 .rounded-top-right{-webkit-border-top-right-radius:6px;-moz-border-top-right-radius:6px;border-top-right-radius:6px;}
 .rounded-bottom-left{-webkit-border-bottom-left-radius:6px;-moz-border-bottom-left-radius:6px;border-bottom-left-radius:6px;}
 .rounded-bottom-right{-webkit-border-bottom-right-radius:6px;-moz-border-bottom-right-radius:6px;border-bottom-right-radius:6px;}
-.table-code{border:1px solid #ddd;background-color:#fff;width:100%;}.table-code .line-numbers{-webkit-user-select:none;-moz-user-select:none;user-select:none;font-family:consolas;padding:7px 12px;width:48px;text-align:right;background-color:#eee;}
-.table-code .code{font-family:consolas;}
-.table-code .hljs{display:inline-block;padding:0.5em;color:#000;background:#fff;}
-.table-code .hljs-subst,.table-code .hljs-title,.table-code .json .hljs-value{font-weight:normal;color:#000;}
-.table-code .hljs-comment,.table-code .hljs-template_comment,.table-code .hljs-javadoc,.table-code .diff .hljs-header{color:#808080;font-style:italic;}
-.table-code .hljs-annotation,.table-code .hljs-decorator,.table-code .hljs-preprocessor,.table-code .hljs-pragma,.table-code .hljs-doctype,.table-code .hljs-pi,.table-code .hljs-chunk,.table-code .hljs-shebang,.table-code .apache .hljs-cbracket,.table-code .hljs-prompt,.table-code .http .hljs-title{color:#808000;}
-.table-code .hljs-tag,.table-code .hljs-pi{background:#efefef;}
-.table-code .hljs-tag .hljs-title,.table-code .hljs-id,.table-code .hljs-attr_selector,.table-code .hljs-pseudo,.table-code .hljs-literal,.table-code .hljs-keyword,.table-code .hljs-hexcolor,.table-code .css .hljs-function,.table-code .ini .hljs-title,.table-code .css .hljs-class,.table-code .hljs-list .hljs-title,.table-code .clojure .hljs-title,.table-code .nginx .hljs-title,.table-code .tex .hljs-command,.table-code .hljs-request,.table-code .hljs-status{font-weight:bold;color:#7f0055;}
-.table-code .hljs-attribute,.table-code .hljs-rules .hljs-keyword,.table-code .hljs-number,.table-code .hljs-date,.table-code .hljs-regexp,.table-code .tex .hljs-special{font-weight:bold;color:#0000ff;}
-.table-code .hljs-number,.table-code .hljs-regexp{font-weight:normal;}
-.table-code .hljs-string,.table-code .hljs-value,.table-code .hljs-filter .hljs-argument,.table-code .css .hljs-function .hljs-params,.table-code .apache .hljs-tag{color:#0000ff;}
-.table-code .hljs-symbol,.table-code .ruby .hljs-symbol .hljs-string,.table-code .hljs-char,.table-code .tex .hljs-formula{color:#000;background:#d0eded;font-style:italic;}
-.table-code .hljs-phpdoc,.table-code .hljs-yardoctag,.table-code .hljs-javadoctag{text-decoration:underline;}
-.table-code .hljs-variable,.table-code .hljs-envvar,.table-code .apache .hljs-sqbracket,.table-code .nginx .hljs-built_in{color:#660e7a;}

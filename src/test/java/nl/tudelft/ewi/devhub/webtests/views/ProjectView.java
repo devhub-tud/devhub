@@ -73,9 +73,9 @@ public class ProjectView extends AuthenticatedView {
 		@Getter(AccessLevel.NONE)
 		private final WebElement anchor;
 
-		public ProjectView click() {
+		public DiffView click() {
 			anchor.click();
-			return new ProjectView(getDriver());
+			return new DiffView(getDriver());
 		}
 		
 	}

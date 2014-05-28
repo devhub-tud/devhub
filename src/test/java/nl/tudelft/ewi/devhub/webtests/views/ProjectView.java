@@ -28,7 +28,7 @@ public class ProjectView extends AuthenticatedView {
 	}
 
 	private void assertInvariant() {
-		assertTrue(currentPathEquals("/projects"));
+		assertTrue(currentPathStartsWith("/projects"));
 		assertNotNull(getDriver().findElement(GIT_CLONE_URL));
 	}
 	

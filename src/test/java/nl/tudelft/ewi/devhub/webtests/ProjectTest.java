@@ -1,5 +1,7 @@
 package nl.tudelft.ewi.devhub.webtests;
 
+import static org.junit.Assert.*;
+
 import java.util.Date;
 
 import javax.persistence.EntityNotFoundException;
@@ -13,6 +15,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
+import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
@@ -37,10 +40,9 @@ public class ProjectTest extends WebTest {
 	public static final String COMMIT_ID = "6f69819c39b87566a65a2a005a6553831f6d7e7c";
 	public static final String COMMIT_MESSAGE = "Initial commit";
 	public static final String REPOSITORY_NAME = String.format("courses/%s/group-%s", COURSE_CODE, GROUP_NUMBER);
-	public static final String REPOSITORY_URL = String.format("shh://localhost:2222/%s", REPOSITORY_NAME);
+	public static final String REPOSITORY_URL = String.format("ssh://git@localhost:2222/%s", REPOSITORY_NAME);
 	
 	private static GitServerClient gitServerClient;
-	
 	
 	@Before
 	public void setUpRepository() {
@@ -141,9 +143,9 @@ public class ProjectTest extends WebTest {
 	 */
 	@Test
 	public void testICanOpenProject() {
-//		ProjectView view = 
-			openLoginScreen().login(NET_ID, PASSWORD)
+		ProjectView view = openLoginScreen().login(NET_ID, PASSWORD)
 				.toProjectsView().listMyProjects().get(0).click();
+		assertTrue(true);
 	}
 	
 	@After

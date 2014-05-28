@@ -946,7 +946,9 @@ div.commit .committer{color:#999;}
 .diff .hljs-symbol,.diff .ruby .hljs-symbol .hljs-string,.diff .hljs-char,.diff .tex .hljs-formula{color:#000;background:#d0eded;font-style:italic;}
 .diff .hljs-phpdoc,.diff .hljs-yardoctag,.diff .hljs-javadoctag{text-decoration:underline;}
 .diff .hljs-variable,.diff .hljs-envvar,.diff .apache .hljs-sqbracket,.diff .nginx .hljs-built_in{color:#660e7a;}
-.files{margin:0;-webkit-border-bottom-left-radius:6px;-moz-border-bottom-left-radius:6px;border-bottom-left-radius:6px;-webkit-border-bottom-right-radius:6px;-moz-border-bottom-right-radius:6px;border-bottom-right-radius:6px;}.files i{color:#3699d2;margin-right:5px;}
+.files{margin:0;-webkit-border-bottom-left-radius:6px;-moz-border-bottom-left-radius:6px;border-bottom-left-radius:6px;-webkit-border-bottom-right-radius:6px;-moz-border-bottom-right-radius:6px;border-bottom-right-radius:6px;}.files i{margin-right:5px;}.files i.folder{color:#555;}
+.files i.text{color:#999;}
+.files i.binary{color:#3699d2;}
 .popover{max-width:70%;}
 .well{background-color:#fff;}
 .form-group{margin-bottom:20px;}.form-group .form-control-feedback{top:35px;right:11px;float:right;}

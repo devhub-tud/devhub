@@ -33,14 +33,58 @@
 		</div>	
 [/#macro]
 
+[#macro renderFileTreeExplorer group commit repository path entries]
+	<div class="diff box">
+		<div class="header">
+			<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
+		</div>
+		[#if entries?? && entries?has_content]
+			<div class="scrollable">
+				<table class="table files">
+					<tbody>
+			[#list entries?keys as entry]
+			[#assign type=entries[entry]]
+						<tr>
+							<td>
+				[#if type = "FOLDER"]
+					[#if path?? && path?has_content]
+							<i class="folder glyphicon glyphicon-folder-open"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree/${path}/${entry}">${entry}</a>
+					[#else]
+							<i class="folder glyphicon glyphicon-folder-open"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree/${entry}">${entry}</a>
+					[/#if]
+				[#elseif type = "TEXT"]
+					[#if path?? && path?has_content]
+							<i class="text glyphicon glyphicon-file"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/blob/${path}/${entry}">${entry}</a>
+					[#else]
+							<i class="text glyphicon glyphicon-file"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/blob/${entry}">${entry}</a>
+					[/#if]
+				[#else]
+					[#if path?? && path?has_content]
+							<i class="binary glyphicon glyphicon-save"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/blob/${path}/${entry}">${entry}</a>
+					[#else]
+							<i class="binary glyphicon glyphicon-save"></i> <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/blob/${entry}">${entry}</a>
+					[/#if]
+				[/#if]
+							</td>
+						</tr>
+			[/#list]
+					</tbody>
+			</table>
+			</div>
+		[#else]
+			<div>${i18n.translate("diff.changes.nothing")}</div>
+		[/#if]
+	</div>
+[/#macro]
+
 [#macro renderTreeBreadcrumb group commit repository path]
 	[#assign pathParts=path?split("/")]
-	<a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree">${repository.getName()}</a>
+	<a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree">group-${group.groupId}</a> /
 	[#list pathParts as pathPart]
 		[#if pathPart_has_next]
-					/ <a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a>
+					<a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a> /
 		[#elseif pathPart?has_content]
-					/ ${pathPart}
+					${pathPart}
 		[/#if]
 	[/#list]
 [/#macro]
@@ -72,7 +116,7 @@
 						</button>
 						<ul class="dropdown-menu" role="menu">
 							<li><a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/diff">View diff</a></li>
-							<li><a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree">List files</a></li>
+							<li><a href="/projects/${group.course.code}/groups/${group.groupId}/commits/${commit.commit}/tree">View files</a></li>
 	[#if states.hasFinished(commit.getCommit())]
 							<li><a href="build">View build log</a></li>
 	[/#if]

@@ -451,7 +451,7 @@ public class ProjectsResource extends Resource {
 		parameters.put("commit", fetchCommitView(repository, commitId));
 		parameters.put("path", path);
 		parameters.put("contents", contents);
-		parameters.put("highlight", !path.matches("^[^.]+|.*[.](txt|md)$"));
+		parameters.put("highlight", !path.matches("^[^.]+|.*[.](txt|md|xml)$"));
 		parameters.put("group", group);
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));

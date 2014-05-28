@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.web;
+package nl.tudelft.ewi.devhub.webtests.views;
 
 import java.util.List;
 
@@ -47,8 +47,8 @@ public class View {
 	 */
 	public boolean currentPathEquals(String path) {
 		for (int i = 0; i < 100; i++) {
-			String currentUrl = driver.getCurrentUrl();
-			if (currentUrl.endsWith(path) || currentUrl.contains(path + "?")) {
+			String currentPath = getCurrentPath();
+			if (currentPath.equals(path) || currentPath.startsWith(path + "?")) {
 				return true;
 			}
 			try {
@@ -58,7 +58,30 @@ public class View {
 			}
 		}
 		return false;
+	}
 
+	/**
+	 * This method verifies that the specified <code>path</code> matches the beginning of
+	 * the path described by the current URL.
+	 * 
+	 * @param path
+	 *            The path to compare to the current URL.
+	 * @return True of the paths match, or false otherwise.
+	 */
+	public boolean currentPathStartsWith(String path) {
+		for (int i = 0; i < 100; i++) {
+			String currentPath = getCurrentPath();
+			if (currentPath.startsWith(path)) {
+				return true;
+			}
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				log.warn(e.getMessage(), e);
+			}
+		}
+		log.warn("Current path: {}, did not start with: {}", driver.getCurrentUrl(), path);
+		return false;
 	}
 
 	/**
@@ -107,6 +130,19 @@ public class View {
 			}
 		}
 		throw new IllegalStateException("Current URL did not mismatch after 10 seconds: " + url);
+	}
+	
+	public String getCurrentPath() {
+		String url = getCurrentUrl();
+		int index = url.indexOf("//");
+		if (index >= 0) {
+			url = url.substring(index + 2);
+		}
+		index = url.indexOf('/');
+		if (index >= 0) {
+			url = url.substring(index);
+		}
+		return url;
 	}
 
 	/**

@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.web;
+package nl.tudelft.ewi.devhub.webtests.views;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
 
 public class LoginView extends View {
 
@@ -15,9 +14,7 @@ public class LoginView extends View {
 	private static final By PASSWORD_FIELD = By.name("password");
 	private static final By LOGIN_BUTTON = By.name("login");
 
-	public static LoginView create(String host) {
-		WebDriver driver = new FirefoxDriver();
-		driver.manage().window().maximize();
+	public static LoginView create(WebDriver driver, String host) {
 		driver.navigate().to(host);
 		return new LoginView(driver);
 	}

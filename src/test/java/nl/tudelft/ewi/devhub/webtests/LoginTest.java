@@ -1,7 +1,9 @@
-package nl.tudelft.ewi.devhub;
+package nl.tudelft.ewi.devhub.webtests;
 
+import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
+
+import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 
 public class LoginTest extends WebTest {
@@ -26,7 +28,7 @@ public class LoginTest extends WebTest {
 	 */
 	@Test
 	public void testThatValidUserCanLogin() {
-		getSession().login(NET_ID, PASSWORD);
+		openLoginScreen().login(NET_ID, PASSWORD);
 	}
 
 	/**
@@ -50,14 +52,15 @@ public class LoginTest extends WebTest {
 	 */
 	@Test
 	public void testThatInvalidUserCannotLogin() {
-		String url = getSession().getCurrentUrl();
+		LoginView loginView = openLoginScreen();
+		String url = getDriver().getCurrentUrl();
 
-		getSession().setUsernameField(NET_ID)
+		loginView.setUsernameField(NET_ID)
 				.setPasswordField(PASSWORD + "!")
 				.clickLoginButton();
-
-		getSession().waitUntilCurrentUrlDiffersFrom(url);
-		assertEquals(1, getSession().listAlerts().size());
+		
+		loginView.waitUntilCurrentUrlDiffersFrom(url);
+		assertEquals(1, loginView.listAlerts().size());
 	}
 
 }

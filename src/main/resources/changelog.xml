@@ -146,12 +146,6 @@
 			<column name="email">M.deJong-2@student.tudelft.nl</column>
 			<column name="admin">true</column>
 		</insert>
-		<insert tableName="users">
-			<column name="net_id">jgmeligmeyling</column>
-			<column name="name">Jan-Willem Gmelig Meyling</column>
-			<column name="email">j.gmeligmeyling@student.tudelft.nl</column>
-			<column name="admin">true</column>
-		</insert>
 		<insert tableName="courses">
 			<column name="code">TI1705</column>
 			<column name="name">Softwarekwaliteit &amp; Testen</column>

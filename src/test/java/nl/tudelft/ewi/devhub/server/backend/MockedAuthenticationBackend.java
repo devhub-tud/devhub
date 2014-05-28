@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub;
+package nl.tudelft.ewi.devhub.server.backend;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -34,7 +34,7 @@ public class MockedAuthenticationBackend implements AuthenticationBackend {
 	}
 	
 	@Transactional
-	public MockedAuthenticationBackend addUser(String netId, String password) {
+	public MockedAuthenticationBackend addUser(String netId, String password, boolean admin) {
 		try {
 			users.findByNetId(netId);
 		}
@@ -43,7 +43,7 @@ public class MockedAuthenticationBackend implements AuthenticationBackend {
 			user.setEmail("no-reply@devhub.ewi.tudelft.nl");
 			user.setName(netId);
 			user.setNetId(netId);
-			user.setAdmin(false);
+			user.setAdmin(admin);
 			users.persist(user);
 		}
 		

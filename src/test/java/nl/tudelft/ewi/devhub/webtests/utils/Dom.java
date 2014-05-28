@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.web;
+package nl.tudelft.ewi.devhub.webtests.utils;
 
 import java.util.List;
 import java.util.Set;

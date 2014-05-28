@@ -1,9 +1,11 @@
-package nl.tudelft.ewi.devhub.web;
+package nl.tudelft.ewi.devhub.webtests.views;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+
+import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 
 import com.google.common.collect.Lists;
 import lombok.AccessLevel;
@@ -13,7 +15,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-public class ProjectsView extends View {
+public class ProjectsView extends AuthenticatedView {
 
 	private static final By MY_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'My projects')]");
 	private static final By CREATE_GROUP_BUTTON = By.xpath("//a[contains(normalize-space(.), 'Create new group')]");
@@ -69,7 +71,7 @@ public class ProjectsView extends View {
 		List<Project> projects = Lists.newArrayList();
 		for (WebElement entry : entries) {
 			WebElement projectLink = entry.findElement(By.tagName("a"));
-			Project project = new Project(projectLink.getText(), projectLink.getAttribute("href"));
+			Project project = new Project(projectLink.getText(), projectLink);
 			projects.add(project);
 		}
 		return projects;
@@ -80,10 +82,11 @@ public class ProjectsView extends View {
 		private final String name;
 
 		@Getter(AccessLevel.NONE)
-		private final String url;
+		private final WebElement anchor;
 
-		public void navigateTo() {
-			getDriver().navigate().to(url);
+		public ProjectView click() {
+			anchor.click();
+			return new ProjectView(getDriver());
 		}
 	}
 

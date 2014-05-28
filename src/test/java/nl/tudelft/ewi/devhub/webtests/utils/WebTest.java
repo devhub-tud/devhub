@@ -1,13 +1,21 @@
-package nl.tudelft.ewi.devhub;
+package nl.tudelft.ewi.devhub.webtests.utils;
 
+import nl.tudelft.ewi.devhub.webtests.views.LoginView;
+
+import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
 import com.google.inject.AbstractModule;
+import nl.tudelft.ewi.build.client.BuildServerBackend;
+import nl.tudelft.ewi.build.client.MockedBuildServerBackend;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
-import nl.tudelft.ewi.devhub.web.LoginView;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.GitServerClientMock;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 
 public abstract class WebTest {
 	
@@ -23,28 +31,35 @@ public abstract class WebTest {
 			@Override
 			protected void configure() {
 				bind(AuthenticationBackend.class).to(MockedAuthenticationBackend.class);
+				bind(GitServerClient.class).toInstance(new GitServerClientMock());
+				bind(BuildServerBackend.class).toInstance(new MockedBuildServerBackend(null, null));
 			}
 		});
 		server.startServer();
 		
 		authBackend = server.getInstance(MockedAuthenticationBackend.class);
-		authBackend.addUser(NET_ID, PASSWORD);
+		authBackend.addUser(NET_ID, PASSWORD, false);
 	}
 	
-	private LoginView session;
+	private WebDriver driver;
 	
 	@Before
 	public void setUp() {
-		session = LoginView.create("http://localhost:8080");
+		this.driver = new FirefoxDriver();
+		driver.manage().window().maximize();
 	}
 	
-	public LoginView getSession() {
-		return session;
+	public LoginView openLoginScreen() {
+		return LoginView.create(driver, "http://localhost:8080");
+	}
+	
+	public WebDriver getDriver() {
+		return driver;
 	}
 	
 	@After
 	public void tearDown() {
-		session.terminateBrowser();
+		driver.close();
 	}
 	
 	@AfterClass

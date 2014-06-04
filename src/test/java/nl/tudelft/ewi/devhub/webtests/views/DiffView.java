@@ -1,7 +1,6 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -9,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.util.DiffLine;
+import nl.tudelft.ewi.devhub.webtests.views.ProjectView.Commit;
 import nl.tudelft.ewi.git.models.DiffModel;
 
 import org.openqa.selenium.By;
@@ -20,15 +20,38 @@ import com.google.common.collect.Lists;
 public class DiffView extends View {
 	
 	private static final By HEADERS = By.xpath("//span[@class='headers']");
+	private static final By DROPDOWN_CARET = By.xpath("//button[contains(@class,'dropdown-toggle')]");
+	private static final By MESSAGE_HEADER = By.xpath(".//h2[@class='header']");
+	private static final By AUTHOR_SUB_HEADER = By.xpath(".//h5[@class='subheader']");
+	private static final By VIEW_FILES_BUTTON = By.xpath("//a[starts-with(normalize-space(.), 'View files')]");
 
-	public DiffView(WebDriver driver) {
+	private final Commit commit;
+	
+	public DiffView(WebDriver driver, Commit commit) {
 		super(driver);
+		this.commit = commit;
 		assertInvariant();
 	}
 
 	private void assertInvariant() {
 		assertTrue(currentPathStartsWith("/projects"));
-		assertNotNull(getDriver().findElement(HEADERS));
+		WebElement headers = getDriver().findElement(HEADERS);
+		
+		assertNotNull(headers);
+		assertNotNull(getDriver().findElement(DROPDOWN_CARET));
+		assertNotNull(commit);
+		
+		assertEquals(commit.getAuthor(), headers.findElement(AUTHOR_SUB_HEADER).getText());
+		assertEquals(commit.getMessage(), headers.findElement(MESSAGE_HEADER).getText());
+	}
+	
+	public FolderView viewFiles() {
+		WebElement container = getDriver().findElement(By.className("container"));
+		WebElement dropdownCaret = container.findElement(DROPDOWN_CARET);
+		dropdownCaret.click();
+		WebElement viewFilesButton = container.findElement(VIEW_FILES_BUTTON);
+		viewFilesButton.click();
+		return new FolderView(getDriver(), commit);
 	}
 	
 	public List<DiffElement> listDiffs() {

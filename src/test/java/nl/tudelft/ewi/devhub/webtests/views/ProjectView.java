@@ -75,7 +75,7 @@ public class ProjectView extends AuthenticatedView {
 
 		public DiffView click() {
 			anchor.click();
-			return new DiffView(getDriver());
+			return new DiffView(getDriver(), this);
 		}
 		
 	}

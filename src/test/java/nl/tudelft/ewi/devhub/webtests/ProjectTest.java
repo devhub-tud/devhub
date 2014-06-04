@@ -194,7 +194,9 @@ public class ProjectTest extends WebTest {
 			break;
 		}
 		
-		assertEquals(DiffLine.getLinesFor(model), result.getDiffLines());
+		List<DiffLine> expected = DiffLine.getLinesFor(model);
+		List<DiffLine> actual = result.getDiffLines();
+		assertEquals(expected, actual);
 	}
 	
 }

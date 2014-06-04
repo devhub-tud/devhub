@@ -365,49 +365,50 @@ public class ProjectsResource extends Resource {
 	@GET
 	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/tree/{path:.+}")
 	@Transactional
-	public Response getTree(@Context final HttpServletRequest request, @PathParam("courseCode") String courseCode,
-			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") final String commitId,
-			@PathParam("path") final String path) throws ApiError, IOException {
+	public Response getTree(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
+			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
+			@PathParam("path") String path) throws ApiError, IOException {
 		
-		return interact(courseCode, groupNumber, new Callback<Response>() {
+		User user = scope.getUser();
+		Course course = courses.find(courseCode);
+		Group group = groups.find(course, groupNumber);
+
+		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
+			throw new UnauthorizedException();
+		}
+
+		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
 
 			@Override
-			public Response call(User user, Course course, Group group) throws ApiError, IOException {
-				DetailedRepositoryModel repository = fetchRepositoryView(group);
-				Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
-					
-					@Override
-					public int compare(String o1, String o2) {
-						if (o1.endsWith("/") && o2.endsWith("/")) {
-							return o1.compareTo(o2);
-						}
-						else if (!o1.endsWith("/") && !o2.endsWith("/")) {
-							return o1.compareTo(o2);
-						}
-						else if (o1.endsWith("/")) {
-							return -1;
-						}
-						return 1;
-					}
-					
-				});
-				
-				entries.putAll(client.repositories().listDirectoryEntries(repository, commitId, path));
-				
-				Map<String, Object> parameters = Maps.newLinkedHashMap();
-				parameters.put("user", scope.getUser());
-				parameters.put("commit", fetchCommitView(repository, commitId));
-				parameters.put("path", path);
-				parameters.put("group", group);
-				parameters.put("repository", repository);
-				parameters.put("entries", entries);
-				parameters.put("states", new CommitChecker(group, buildResults));
-				
-				List<Locale> locales = Collections.list(request.getLocales());
-				return display(templateEngine.process("project-folder-view.ftl", locales, parameters));
+			public int compare(String o1, String o2) {
+				if (o1.endsWith("/") && o2.endsWith("/")) {
+					return o1.compareTo(o2);
+				}
+				else if (!o1.endsWith("/") && !o2.endsWith("/")) {
+					return o1.compareTo(o2);
+				}
+				else if (o1.endsWith("/")) {
+					return -1;
+				}
+				return 1;
 			}
 			
 		});
+		
+		entries.putAll(client.repositories().listDirectoryEntries(repository, commitId, path));
+		
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", scope.getUser());
+		parameters.put("commit", fetchCommitView(repository, commitId));
+		parameters.put("path", path);
+		parameters.put("group", group);
+		parameters.put("repository", repository);
+		parameters.put("entries", entries);
+		parameters.put("states", new CommitChecker(group, buildResults));
+		
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-folder-view.ftl", locales, parameters));
 	}
 	
 	@GET
@@ -595,32 +596,6 @@ public class ProjectsResource extends Resource {
 			return MAX_GROUP_SIZE;
 		}
 		return course.getMaxGroupSize();
-	}
-	
-	private interface Callback<T> {
-		T call(User user, Course course, Group group) throws ApiError, IOException;
-	}
-	
-	/**
-	 * Interact with a Repository, or throw an {@link UnauthorizedException} if the
-	 * {@link User} is not allowed.
-	 * @param courseCode
-	 * @param groupNumber
-	 * @param callback
-	 * @return the return value of the {@link Callback}
-	 * @throws ApiError 
-	 * @throws IOException 
-	 */
-	private <T> T interact(String courseCode, long groupNumber, Callback<T> callback) throws ApiError, IOException {
-		User user = scope.getUser();
-		Course course = courses.find(courseCode);
-		Group group = groups.find(course, groupNumber);
-
-		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
-			throw new UnauthorizedException();
-		} else {
-			return callback.call(user, course, group);
-		}
 	}
 
 }

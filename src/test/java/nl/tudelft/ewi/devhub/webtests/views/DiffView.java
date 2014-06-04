@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.util.DiffLine;
 import nl.tudelft.ewi.git.models.DiffModel;
 
 import org.openqa.selenium.By;
@@ -54,6 +55,8 @@ public class DiffView extends View {
 		
 		private final WebElement element;
 		
+		private List<DiffLine> diffLines;
+		
 		public boolean fold() {
 			return true;
 		}
@@ -75,29 +78,50 @@ public class DiffView extends View {
 			headerText = headerText.substring(headerText.indexOf(" ") + 1);
 			
 			switch (type) {
-			case ADD:
-			case MODIFY:
-				result.setNewPath(headerText);
-				break;
-			case DELETE:
-				result.setOldPath(headerText);
-				break;
-			default:
-				String[] split = headerText.split(" -> ");
-				result.setOldPath(split[0]);
-				result.setNewPath(split[1]);
-				break;
+				case ADD:
+				case MODIFY:
+					result.setNewPath(headerText);
+					break;
+				case DELETE:
+					result.setOldPath(headerText);
+					break;
+				default:
+					String[] split = headerText.split(" -> ");
+					result.setOldPath(split[0]);
+					result.setNewPath(split[1]);
+					break;
 			}
 			
-//			List<WebElement> lines = element.findElements(By.xpath("//div[@class='code']"));
-//			String[] raw = new String[lines.size()];
-//			int i = 0;
-//			for(WebElement line : lines) {
-//				raw[i++] = line.getText();
-//			}
-//			result.setRaw(raw);
-			
+			result.setDiffLines(getDiffLinesFor(element.findElements(By.tagName("tr"))));
 			return result;
+		}
+		
+		private static List<DiffLine> getDiffLinesFor(List<WebElement> rows) {
+			List<DiffLine> diffLines = Lists.newArrayList();
+			
+			for(WebElement codeRow : rows) {
+				List<WebElement> parts = codeRow.findElements(By.tagName("td"));
+				assert parts.size() == 3 : "Each diff line should have a column for old and new line number; and line contents.";
+				String oldLineNumber = parts.get(0).getText();
+				String newLineNumber = parts.get(1).getText();
+				char modifier = getModifierFor(parts.get(2));
+				String lineContents = parts.get(2).getText();
+				diffLines.add(new DiffLine(oldLineNumber, newLineNumber, modifier, lineContents));
+			}
+			
+			return diffLines;
+		}
+		
+		private static char getModifierFor(WebElement column) {
+			String styles = column.getAttribute("class");
+			
+			if(styles.contains("add")) {
+				return DiffLine.MODIFIER_ADDED;
+			} else if (styles.contains("delete")) {
+				return DiffLine.MODIFIER_REMOVED;
+			} else {
+				return DiffLine.MODIFIER_UNCHANGED;
+			}
 		}
 		
 		private static Type getTypeFor(String value) {

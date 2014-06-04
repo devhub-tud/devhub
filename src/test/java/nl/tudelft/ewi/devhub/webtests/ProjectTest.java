@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import nl.tudelft.ewi.devhub.server.util.DiffLine;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.DiffView;
 import nl.tudelft.ewi.devhub.webtests.views.DiffView.DiffElement;
@@ -36,6 +37,7 @@ public class ProjectTest extends WebTest {
 		gitServerClient = getGitServerClient();
 		user = gitServerClient.users().ensureExists(NET_ID);
 		repository = gitServerClient.repositories().retrieve("courses/ti1705/group-1");
+		createInitialCommit();
 	}
 	
 	private static CommitModel createInitialCommit() {
@@ -69,6 +71,7 @@ public class ProjectTest extends WebTest {
 	 */
 	@Test
 	public void testICanOpenProject() {
+		repository.setRecentCommits(Lists.<CommitModel> newArrayList());
 		ProjectView view = openLoginScreen().login(NET_ID, PASSWORD)
 				.toProjectsView().listMyProjects().get(0).click();
 		List<Commit> commits = view.listCommits();
@@ -95,7 +98,6 @@ public class ProjectTest extends WebTest {
 	 */
 	@Test
 	public void testListCommits() {
-		createInitialCommit();
 		ProjectView view = openLoginScreen().login(NET_ID, PASSWORD)
 				.toProjectsView().listMyProjects().get(0).click();
 		List<Commit> commits = view.listCommits();
@@ -107,7 +109,7 @@ public class ProjectTest extends WebTest {
 			CommitModel model = expected.get(i);
 			assertEquals(commit.getAuthor(), model.getAuthor());
 			assertEquals(commit.getMessage(), model.getMessage());
-		}
+		}		
 	}
 	
 	/**
@@ -130,7 +132,6 @@ public class ProjectTest extends WebTest {
 	 */
 	@Test
 	public void testViewCommitDiffEmpty() {
-		createInitialCommit();
 		DiffView view = openLoginScreen().login(NET_ID, PASSWORD)
 				.toProjectsView().listMyProjects().get(0).click()
 				.listCommits().get(0).click();
@@ -162,7 +163,11 @@ public class ProjectTest extends WebTest {
 		DiffModel model = new DiffModel();
 		model.setOldPath("the/old/path");
 		model.setNewPath("the/new/path");
-		model.setRaw(new String[] { "Line 1", "Line 2", "Line 3"});
+		model.setRaw(new String[] { "diff --git a/readme.md b/readme.md",
+				"index 983cc05..da041cc 100644", "--- a/readme.md",
+				"+++ b/readme.md", "@@ -1 +1,2 @@",
+				" A readme file with a bit of contents",
+				"+Now we've altered the readme a bit to work on the diffs" });
 		model.setType(Type.ADD);
 		
 		((RepositoriesMock) gitServerClient.repositories()).setListDiffs(Lists
@@ -189,7 +194,7 @@ public class ProjectTest extends WebTest {
 			break;
 		}
 		
-//		assertArrayEquals(model.getRaw(), result.getRaw());
+		assertEquals(DiffLine.getLinesFor(model), result.getDiffLines());
 	}
 	
 }

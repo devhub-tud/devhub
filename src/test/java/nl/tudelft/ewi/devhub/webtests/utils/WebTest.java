@@ -1,13 +1,13 @@
 package nl.tudelft.ewi.devhub.webtests.utils;
 
-import nl.tudelft.ewi.devhub.webtests.views.LoginView;
-
-import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
 import com.google.inject.AbstractModule;
 import nl.tudelft.ewi.build.client.BuildServerBackend;
 import nl.tudelft.ewi.build.client.MockedBuildServerBackend;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
+import nl.tudelft.ewi.devhub.server.backend.Bootstrapper;
+import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
+import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
 import org.junit.After;
@@ -19,11 +19,10 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 
 public abstract class WebTest {
 	
-	public static final String NET_ID = "test-student";
-	public static final String PASSWORD = "test-pw";
+	public static final String NET_ID = "student1";
+	public static final String PASSWORD = "student1";
 
 	private static DevhubServer server;
-	private static MockedAuthenticationBackend authBackend;
 	
 	@BeforeClass
 	public static void beforeClass() throws Exception {
@@ -36,9 +35,8 @@ public abstract class WebTest {
 			}
 		});
 		server.startServer();
-		
-		authBackend = server.getInstance(MockedAuthenticationBackend.class);
-		authBackend.addUser(NET_ID, PASSWORD, false);
+
+		server.getInstance(Bootstrapper.class).prepare("/simple-environment.json");
 	}
 	
 	private WebDriver driver;

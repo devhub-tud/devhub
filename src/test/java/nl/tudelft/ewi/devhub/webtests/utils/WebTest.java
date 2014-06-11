@@ -59,8 +59,8 @@ public abstract class WebTest {
 		return driver;
 	}
 	
-	protected static GitServerClient getGitServerClient() {
-		return server.getInstance(GitServerClient.class);
+	protected static GitServerClientMock getGitServerClient() {
+		return server.getInstance(GitServerClientMock.class);
 	}
 	
 	@After

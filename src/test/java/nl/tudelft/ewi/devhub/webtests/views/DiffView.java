@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.util.DiffLine;
-import nl.tudelft.ewi.devhub.webtests.views.ProjectView.Commit;
+import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 
 import org.openqa.selenium.By;
@@ -25,9 +25,9 @@ public class DiffView extends View {
 	private static final By AUTHOR_SUB_HEADER = By.xpath(".//h5[@class='subheader']");
 	private static final By VIEW_FILES_BUTTON = By.xpath("//a[starts-with(normalize-space(.), 'View files')]");
 
-	private final Commit commit;
+	private final CommitModel commit;
 	
-	public DiffView(WebDriver driver, Commit commit) {
+	public DiffView(WebDriver driver, CommitModel commit) {
 		super(driver);
 		this.commit = commit;
 		assertInvariant();
@@ -46,11 +46,14 @@ public class DiffView extends View {
 	}
 	
 	public FolderView viewFiles() {
+		assertInvariant();
+		
 		WebElement container = getDriver().findElement(By.className("container"));
 		WebElement dropdownCaret = container.findElement(DROPDOWN_CARET);
 		dropdownCaret.click();
 		WebElement viewFilesButton = container.findElement(VIEW_FILES_BUTTON);
 		viewFilesButton.click();
+		
 		return new FolderView(getDriver(), commit);
 	}
 	

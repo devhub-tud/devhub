@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
+import nl.tudelft.ewi.git.models.CommitModel;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -73,9 +74,9 @@ public class ProjectView extends AuthenticatedView {
 		@Getter(AccessLevel.NONE)
 		private final WebElement anchor;
 
-		public DiffView click() {
+		public DiffView click(CommitModel commit) {
 			anchor.click();
-			return new DiffView(getDriver(), this);
+			return new DiffView(getDriver(), commit);
 		}
 		
 	}

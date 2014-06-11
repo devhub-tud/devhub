@@ -10,8 +10,7 @@ import nl.tudelft.ewi.devhub.webtests.views.DiffView;
 import nl.tudelft.ewi.devhub.webtests.views.DiffView.DiffElement;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView.Commit;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.RepositoriesMock;
+import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffModel;
@@ -28,16 +27,17 @@ public class ProjectTest extends WebTest {
 	public static final String COMMIT_ID = "6f69819c39b87566a65a2a005a6553831f6d7e7c";
 	public static final String COMMIT_MESSAGE = "Initial commit";
 	
-	private static GitServerClient gitServerClient;
+	private static GitServerClientMock gitServerClient;
 	private static DetailedRepositoryModel repository;
 	private static UserModel user;
+	private static CommitModel commit;
 	
 	@BeforeClass
 	public static void setUpRepository() throws Exception {
 		gitServerClient = getGitServerClient();
 		user = gitServerClient.users().ensureExists(NET_ID);
 		repository = gitServerClient.repositories().retrieve("courses/ti1705/group-1");
-		createInitialCommit();
+		commit = createInitialCommit();
 	}
 	
 	private static CommitModel createInitialCommit() {
@@ -134,7 +134,7 @@ public class ProjectTest extends WebTest {
 	public void testViewCommitDiffEmpty() {
 		DiffView view = openLoginScreen().login(NET_ID, PASSWORD)
 				.toProjectsView().listMyProjects().get(0).click()
-				.listCommits().get(0).click();
+				.listCommits().get(0).click(commit);
 		List<DiffElement> list = view.listDiffs();
 		assertTrue("Expected empty list", list.isEmpty());
 	}
@@ -170,11 +170,10 @@ public class ProjectTest extends WebTest {
 				"+Now we've altered the readme a bit to work on the diffs" });
 		model.setType(Type.ADD);
 		
-		((RepositoriesMock) gitServerClient.repositories()).setListDiffs(Lists
-				.<DiffModel> newArrayList(model));
+		gitServerClient.repositories().setListDiffs(Lists.<DiffModel> newArrayList(model));
 		DiffView view = openLoginScreen().login(NET_ID, PASSWORD)
 				.toProjectsView().listMyProjects().get(0).click()
-				.listCommits().get(0).click();
+				.listCommits().get(0).click(commit);
 		
 		List<DiffElement> list = view.listDiffs();
 		DiffElement result = list.get(0);

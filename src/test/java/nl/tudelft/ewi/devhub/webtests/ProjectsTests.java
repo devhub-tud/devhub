@@ -1,9 +1,9 @@
 package nl.tudelft.ewi.devhub.webtests;
 
 import static org.junit.Assert.assertTrue;
-
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.AuthenticatedView;
+
 import org.junit.Test;
 
 public class ProjectsTests extends WebTest {

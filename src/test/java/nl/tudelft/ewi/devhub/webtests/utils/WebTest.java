@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.webtests.utils;
 
 import com.google.inject.AbstractModule;
+
 import nl.tudelft.ewi.build.client.BuildServerBackend;
 import nl.tudelft.ewi.build.client.MockedBuildServerBackend;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
@@ -10,6 +11,7 @@ import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
 import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -30,8 +32,10 @@ public abstract class WebTest {
 			@Override
 			protected void configure() {
 				bind(AuthenticationBackend.class).to(MockedAuthenticationBackend.class);
-				bind(GitServerClient.class).toInstance(new GitServerClientMock());
-				bind(BuildServerBackend.class).toInstance(new MockedBuildServerBackend(null, null));
+				bind(GitServerClient.class).to(GitServerClientMock.class);
+				bind(GitServerClientMock.class).toInstance(new GitServerClientMock());
+				bind(BuildServerBackend.class).to(MockedBuildServerBackend.class);
+				bind(MockedBuildServerBackend.class).toInstance(new MockedBuildServerBackend(null, null));
 			}
 		});
 		server.startServer();
@@ -53,6 +57,10 @@ public abstract class WebTest {
 	
 	public WebDriver getDriver() {
 		return driver;
+	}
+	
+	protected static GitServerClientMock getGitServerClient() {
+		return server.getInstance(GitServerClientMock.class);
 	}
 	
 	@After

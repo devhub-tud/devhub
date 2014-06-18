@@ -6,7 +6,7 @@ import nl.tudelft.ewi.devhub.webtests.views.AuthenticatedView;
 
 import org.junit.Test;
 
-public class ProjectsTests extends WebTest {
+public class ProjectsTest extends WebTest {
 	
 	/**
 	 * <h1>Opening the projects page.</h1>
@@ -25,7 +25,7 @@ public class ProjectsTests extends WebTest {
 	 * </ol>
 	 */
 	@Test
-	public void testICanOpenTheProjectsPage() {
+	public void testThatICanOpenTheProjectsPage() {
 		AuthenticatedView view = openLoginScreen().login(NET_ID, PASSWORD)
 				.toProjectsView();
 		

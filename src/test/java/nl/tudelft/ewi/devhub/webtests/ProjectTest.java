@@ -70,7 +70,7 @@ public class ProjectTest extends WebTest {
 	 * </ol>
 	 */
 	@Test
-	public void testICanOpenProject() {
+	public void testThatICanOpenProject() {
 		repository.setRecentCommits(Lists.<CommitModel> newArrayList());
 		ProjectView view = openLoginScreen().login(NET_ID, PASSWORD)
 				.toProjectsView().listMyProjects().get(0).click();

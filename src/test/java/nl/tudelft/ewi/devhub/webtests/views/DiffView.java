@@ -8,13 +8,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.util.DiffLine;
-import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 public class DiffView extends View {
@@ -25,24 +25,18 @@ public class DiffView extends View {
 	private static final By AUTHOR_SUB_HEADER = By.xpath(".//h5[@class='subheader']");
 	private static final By VIEW_FILES_BUTTON = By.xpath("//a[starts-with(normalize-space(.), 'View files')]");
 
-	private final CommitModel commit;
+	private final WebElement headers;
 	
-	public DiffView(WebDriver driver, CommitModel commit) {
+	public DiffView(WebDriver driver) {
 		super(driver);
-		this.commit = commit;
+		this.headers = getDriver().findElement(HEADERS);
 		assertInvariant();
 	}
 
 	private void assertInvariant() {
 		assertTrue(currentPathStartsWith("/projects"));
-		WebElement headers = getDriver().findElement(HEADERS);
-		
 		assertNotNull(headers);
 		assertNotNull(getDriver().findElement(DROPDOWN_CARET));
-		assertNotNull(commit);
-		
-		assertEquals(commit.getAuthor(), headers.findElement(AUTHOR_SUB_HEADER).getText());
-		assertEquals(commit.getMessage(), headers.findElement(MESSAGE_HEADER).getText());
 	}
 	
 	public FolderView viewFiles() {
@@ -54,9 +48,12 @@ public class DiffView extends View {
 		WebElement viewFilesButton = container.findElement(VIEW_FILES_BUTTON);
 		viewFilesButton.click();
 		
-		return new FolderView(getDriver(), commit);
+		return new FolderView(getDriver());
 	}
 	
+	/**
+	 * @return the {@link DiffElement DiffElements} in this {@code DiffView}
+	 */
 	public List<DiffElement> listDiffs() {
 		assertInvariant();
 		WebElement container = getDriver().findElement(By.className("container"));
@@ -65,15 +62,31 @@ public class DiffView extends View {
 	
 	private List<DiffElement> listDiffs(WebElement container) {
 		List<WebElement> elements = container.findElements(By.xpath("//div[@class='diff box']"));
-		List<DiffElement> diffElements = Lists.newArrayList();
 		
-		for(WebElement element : elements) {
-			diffElements.add(DiffElement.build(element));
-		}
-		
-		return diffElements;
-	}
+		return Lists.transform(elements, new Function<WebElement, DiffElement>() {
 
+			@Override
+			public DiffElement apply(WebElement element) {
+				return DiffElement.build(element);
+			}
+			
+		});
+	}
+	
+	/**
+	 * @return the text content of the author header
+	 */
+	public String getAuthorHeader() {
+		return headers.findElement(AUTHOR_SUB_HEADER).getText();
+	}
+	
+	/**
+	 * @return the text content of the message header
+	 */
+	public String getMessageHeader() {
+		return headers.findElement(MESSAGE_HEADER).getText();
+	}
+	
 	@Data
 	@ToString(callSuper=true)
 	@EqualsAndHashCode(callSuper=true)
@@ -82,11 +95,7 @@ public class DiffView extends View {
 		private final WebElement element;
 		
 		private List<DiffLine> diffLines;
-		
-		public boolean fold() {
-			return true;
-		}
-		
+				
 		/**
 		 * Build a {@link DiffElement} from a {@link WebElement} in the {@link DiffView}
 		 * @param element the {@link WebElement} to be converted into a {@link DiffElement}
@@ -143,9 +152,11 @@ public class DiffView extends View {
 			
 			if(styles.contains("add")) {
 				return DiffLine.MODIFIER_ADDED;
-			} else if (styles.contains("delete")) {
+			}
+			else if (styles.contains("delete")) {
 				return DiffLine.MODIFIER_REMOVED;
-			} else {
+			}
+			else {
 				return DiffLine.MODIFIER_UNCHANGED;
 			}
 		}
@@ -153,13 +164,17 @@ public class DiffView extends View {
 		private static Type getTypeFor(String value) {
 			if(value.equalsIgnoreCase("Created")) {
 				return Type.ADD;
-			} else if (value.equalsIgnoreCase("Copied")) {
+			}
+			else if (value.equalsIgnoreCase("Copied")) {
 				return Type.COPY;
-			} else if (value.equalsIgnoreCase("Deleted")) {
+			}
+			else if (value.equalsIgnoreCase("Deleted")) {
 				return Type.DELETE;
-			} else if (value.equalsIgnoreCase("Modified")) {
+			}
+			else if (value.equalsIgnoreCase("Modified")) {
 				return Type.MODIFY;
-			} else if (value.equalsIgnoreCase("Moved")) {
+			}
+			else if (value.equalsIgnoreCase("Moved")) {
 				return Type.RENAME;
 			}
 			return null;

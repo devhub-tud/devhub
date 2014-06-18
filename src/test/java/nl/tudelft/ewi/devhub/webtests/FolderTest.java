@@ -58,9 +58,19 @@ public class FolderTest extends WebTest {
 	}
 	
 	private FolderView getFolderView() {
-		return openLoginScreen().login(NET_ID, PASSWORD)
-				.toProjectsView().listMyProjects().get(0).click()
-				.listCommits().get(0).click(commit).viewFiles();
+		FolderView view = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toProjectsView()
+				.listMyProjects()
+				.get(0).click()
+				.listCommits()
+				.get(0).click()
+				.viewFiles();
+		
+		assertEquals(commit.getAuthor(), view.getAuthorHeader());
+		assertEquals(commit.getMessage(), view.getMessageHeader());
+		
+		return view;
 	}
 	
 	/**
@@ -91,6 +101,7 @@ public class FolderTest extends WebTest {
 		Map<String, EntryType> actual = view.getDirectoryEntries();
 		assertEquals(expected, actual);
 	}
+
 	/**
 	 * <h1>Opening a text file in the repository at a certain commit.</h1>
 	 * 
@@ -112,9 +123,14 @@ public class FolderTest extends WebTest {
 	 */	
 	@Test
 	public void testOpenFile() {
-		TextFileView view = getFolderView().getDirectoryElements().get(1).click();
-		assertThat(view.getPath(), containsString(REPO_NAME));
+		TextFileView view = getFolderView()
+				.getDirectoryElements()
+				.get(1).click();
+		
 		assertEquals(TEXT_FILE_NAME, view.getFilename());
+		assertThat(view.getPath(), containsString(REPO_NAME));
+		assertEquals(commit.getAuthor(), view.getAuthorHeader());
+		assertEquals(commit.getMessage(), view.getMessageHeader());
 		assertEquals(RepositoriesMock.DEFAULT_FILE_CONTENTS, view.getContent());
 	}
 	

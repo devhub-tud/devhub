@@ -1,6 +1,5 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -8,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.Data;
-import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.EntryType;
 
 import org.openqa.selenium.By;
@@ -26,24 +24,18 @@ public class FolderView extends View {
 	private static final By AUTHOR_SUB_HEADER = By.xpath(".//h5[@class='subheader']");
 	private static final By TABLE_FILES = By.xpath(".//table[@class='table files']"); 
 	
-	private final CommitModel commit;
+	private final WebElement headers;
 	
-	public FolderView(WebDriver driver, CommitModel commit) {
+	public FolderView(WebDriver driver) {
 		super(driver);
-		this.commit = commit;
+		this.headers = getDriver().findElement(HEADERS);
 		assertInvariant();
 	}
 	
 	private void assertInvariant() {
-		assertTrue(currentPathStartsWith("/projects"));
-		WebElement headers = getDriver().findElement(HEADERS);
-		
+		assertTrue(currentPathStartsWith("/projects"));		
 		assertNotNull(headers);
 		assertNotNull(getDriver().findElement(DROPDOWN_CARET));
-		assertNotNull(commit);
-		
-		assertEquals(commit.getAuthor(), headers.findElement(AUTHOR_SUB_HEADER).getText());
-		assertEquals(commit.getMessage(), headers.findElement(MESSAGE_HEADER).getText());
 	}
 	
 	/**
@@ -53,6 +45,20 @@ public class FolderView extends View {
 		return getDriver().findElement(By.cssSelector("div.header > h5")).getText().replace(" /", "/").replace("/ ", "/");
 	}
 	
+	/**
+	 * @return the text content of the author header
+	 */
+	public String getAuthorHeader() {
+		return headers.findElement(AUTHOR_SUB_HEADER).getText();
+	}
+	
+	/**
+	 * @return the text content of the message header
+	 */
+	public String getMessageHeader() {
+		return headers.findElement(MESSAGE_HEADER).getText();
+	}
+
 	/**
 	 * @return A {@code Map} containing the entry names and types
 	 */
@@ -94,7 +100,7 @@ public class FolderView extends View {
 		
 		public TextFileView click() {
 			element.click();
-			return new TextFileView(getDriver(), commit);
+			return new TextFileView(getDriver());
 		}
 		
 	}

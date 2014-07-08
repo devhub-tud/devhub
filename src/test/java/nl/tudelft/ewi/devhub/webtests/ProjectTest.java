@@ -72,8 +72,12 @@ public class ProjectTest extends WebTest {
 	@Test
 	public void testThatICanOpenProject() {
 		repository.setRecentCommits(Lists.<CommitModel> newArrayList());
-		ProjectView view = openLoginScreen().login(NET_ID, PASSWORD)
-				.toProjectsView().listMyProjects().get(0).click();
+		ProjectView view = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toProjectsView()
+				.listMyProjects()
+				.get(0).click();
+		
 		List<Commit> commits = view.listCommits();
 		assertTrue("Expected an empty list of commits", commits.isEmpty());
 	}
@@ -98,8 +102,12 @@ public class ProjectTest extends WebTest {
 	 */
 	@Test
 	public void testListCommits() {
-		ProjectView view = openLoginScreen().login(NET_ID, PASSWORD)
-				.toProjectsView().listMyProjects().get(0).click();
+		ProjectView view = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toProjectsView()
+				.listMyProjects()
+				.get(0).click();
+		
 		List<Commit> commits = view.listCommits();
 		List<CommitModel> expected = gitServerClient.repositories().listCommits(repository);
 		assertEquals(expected.size(), commits.size());
@@ -132,10 +140,16 @@ public class ProjectTest extends WebTest {
 	 */
 	@Test
 	public void testViewCommitDiffEmpty() {
-		DiffView view = openLoginScreen().login(NET_ID, PASSWORD)
-				.toProjectsView().listMyProjects().get(0).click()
-				.listCommits().get(0).click(commit);
+		DiffView view = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toProjectsView()
+				.listMyProjects()
+				.get(0).click()
+				.listCommits()
+				.get(0).click();
 		List<DiffElement> list = view.listDiffs();
+		assertEquals(commit.getAuthor(), view.getAuthorHeader());
+		assertEquals(commit.getMessage(), view.getMessageHeader());		
 		assertTrue("Expected empty list", list.isEmpty());
 	}
 	
@@ -171,14 +185,22 @@ public class ProjectTest extends WebTest {
 		model.setType(Type.ADD);
 		
 		gitServerClient.repositories().setListDiffs(Lists.<DiffModel> newArrayList(model));
-		DiffView view = openLoginScreen().login(NET_ID, PASSWORD)
-				.toProjectsView().listMyProjects().get(0).click()
-				.listCommits().get(0).click(commit);
+		
+		DiffView view = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toProjectsView()
+				.listMyProjects()
+				.get(0).click()
+				.listCommits()
+				.get(0).click();
 		
 		List<DiffElement> list = view.listDiffs();
 		DiffElement result = list.get(0);
 		
+		assertEquals(commit.getAuthor(), view.getAuthorHeader());
+		assertEquals(commit.getMessage(), view.getMessageHeader());		
 		assertEquals(model.getType(), result.getType());
+		
 		switch (model.getType()) {
 		case ADD:
 		case MODIFY:

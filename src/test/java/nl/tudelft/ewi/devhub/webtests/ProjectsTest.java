@@ -26,7 +26,8 @@ public class ProjectsTest extends WebTest {
 	 */
 	@Test
 	public void testThatICanOpenTheProjectsPage() {
-		AuthenticatedView view = openLoginScreen().login(NET_ID, PASSWORD)
+		AuthenticatedView view = openLoginScreen()
+				.login(NET_ID, PASSWORD)
 				.toProjectsView();
 		
 		assertTrue(view.currentPathEquals("/projects"));

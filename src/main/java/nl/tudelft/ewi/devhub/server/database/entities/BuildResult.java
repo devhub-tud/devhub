@@ -10,8 +10,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import lombok.Data;
+import java.util.Date;
 
+import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
 @Data
@@ -21,6 +22,7 @@ public class BuildResult {
 
 	public static BuildResult newBuildResult(Group group, String commit) {
 		BuildResult result = new BuildResult();
+		result.setQueued(new Date());
 		result.setRepository(group);
 		result.setCommitId(commit);
 		result.setSuccess(null);
@@ -32,7 +34,7 @@ public class BuildResult {
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
-
+	
 	@NotNull
 	@ManyToOne
 	@JoinColumn(name = "repository_id")
@@ -41,6 +43,15 @@ public class BuildResult {
 	@NotEmpty
 	@Column(name = "commit_id")
 	private String commitId;
+
+	@Column(name = "queued")
+	private Date queued;
+	
+	@Column(name = "started")
+	private Date started;
+	
+	@Column(name = "completed")
+	private Date completed;
 
 	@Column(name = "success")
 	private Boolean success;

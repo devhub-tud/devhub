@@ -1,10 +1,5 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.Locale;
-
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +11,13 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.Locale;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.inject.persist.Transactional;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
@@ -34,12 +36,7 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
-
 import org.jboss.resteasy.plugins.guice.RequestScoped;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.inject.persist.Transactional;
 
 @Slf4j
 @RequestScoped
@@ -92,6 +89,9 @@ public class HooksResource extends Resource {
 			if (buildResults.exists(group, branch.getCommit())) {
 				continue;
 			}
+			
+			BuildResult buildResult = BuildResult.newBuildResult(group, branch.getCommit());
+			buildResults.persist(buildResult);
 
 			log.info("Submitting a build for branch: {} of repository: {}", branch.getName(), repository.getName());
 
@@ -103,17 +103,15 @@ public class HooksResource extends Resource {
 			StringBuilder callbackBuilder = new StringBuilder();
 			callbackBuilder.append(config.getHttpUrl());
 			callbackBuilder.append("/hooks/build-result");
-			callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
-			callbackBuilder.append("&commit=" + URLEncoder.encode(branch.getCommit(), "UTF-8"));
+			callbackBuilder.append("?buildId=" + buildResult.getId());
 
 			BuildRequest buildRequest = new BuildRequest();
 			buildRequest.setCallbackUrl(callbackBuilder.toString());
 			buildRequest.setInstruction(instruction);
 			buildRequest.setSource(source);
 			buildRequest.setTimeout(group.getBuildTimeout());
-
-			buildBackend.offerBuild(buildRequest);
-			buildResults.persist(BuildResult.newBuildResult(group, branch.getCommit()));
+			
+			buildBackend.offerBuild(buildRequest, buildResult.getId());
 		}
 	}
 
@@ -121,33 +119,23 @@ public class HooksResource extends Resource {
 	@Path("build-result")
 	@RequireAuthenticatedBuildServer
 	@Transactional
-	public void onBuildResult(@QueryParam("repository") String repository, @QueryParam("commit") String commit,
+	public void onBuildResult(@QueryParam("buildId") long buildId,
 			nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) throws UnsupportedEncodingException {
 
-		String repoName = URLDecoder.decode(repository, "UTF-8");
-		String commitId = URLDecoder.decode(commit, "UTF-8");
-		Group group = groups.findByRepoName(repoName);
-
-		BuildResult result;
 		try {
-			result = buildResults.find(group, commitId);
+			BuildResult result = buildResults.find(buildId);
+			result.setCompleted(new Date());
 			result.setSuccess(buildResult.getStatus() == Status.SUCCEEDED);
-			result.setLog(Joiner.on('\n')
-				.join(buildResult.getLogLines()));
-
+			result.setLog(Joiner.on('\n').join(buildResult.getLogLines()));
 			buildResults.merge(result);
+
+			if (!result.getSuccess()) {
+				mailer.sendFailedBuildResult(Lists.newArrayList(Locale.ENGLISH), result);
+			}
 		}
 		catch (EntityNotFoundException e) {
-			result = BuildResult.newBuildResult(group, commitId);
-			result.setSuccess(buildResult.getStatus() == Status.SUCCEEDED);
-			result.setLog(Joiner.on('\n')
-				.join(buildResult.getLogLines()));
-
-			buildResults.persist(result);
-		}
-
-		if (!result.getSuccess()) {
-			mailer.sendFailedBuildResult(Lists.newArrayList(Locale.ENGLISH), result);
+			log.error("Could not find build result: " + buildId + ": " + e.getMessage(), e);
+			return;
 		}
 	}
 

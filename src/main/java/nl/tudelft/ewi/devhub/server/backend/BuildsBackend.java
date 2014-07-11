@@ -1,5 +1,9 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
+
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -7,22 +11,21 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
-
-import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.build.client.BuildServerBackend;
-import nl.tudelft.ewi.build.client.BuildServerBackendImpl;
-import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
-import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
-import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Queues;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import com.google.inject.persist.UnitOfWork;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.build.client.BuildServerBackend;
+import nl.tudelft.ewi.build.client.BuildServerBackendImpl;
+import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
+import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 
 /**
  * The {@link BuildServerClient} allows you to query and manipulate data from the build-server.
@@ -32,7 +35,7 @@ public class BuildsBackend {
 
 	private final BuildServers buildServers;
 	private final Provider<BuildSubmitter> submitters;
-	private final ConcurrentLinkedQueue<BuildRequest> buildQueue;
+	private final ConcurrentLinkedQueue<BuildRequestWithResultMapping> buildQueue;
 	private final ScheduledExecutorService executor;
 	private final AtomicBoolean running;
 
@@ -87,9 +90,9 @@ public class BuildsBackend {
 		}
 	}
 	
-	public void offerBuild(BuildRequest request) {
+	public void offerBuild(BuildRequest request, long buildResultId) {
 		synchronized (running) {
-			buildQueue.offer(request);
+			buildQueue.offer(new BuildRequestWithResultMapping(request, buildResultId));
 			if (running.compareAndSet(false, true)) {
 				BuildSubmitter task = submitters.get();
 				task.initialize(this);
@@ -103,18 +106,29 @@ public class BuildsBackend {
 		executor.awaitTermination(1, TimeUnit.MINUTES);
 	}
 	
+	@Data
+	private static class BuildRequestWithResultMapping {
+		private final BuildRequest request;
+		private final long id;
+	}
+	
 	private static class BuildSubmitter extends RunnableInUnitOfWork {
 		
 		private static final int NO_CAPACITY_DELAY = 5000;
 		
 		private final Provider<BuildServers> buildServersProvider;
+		private final Provider<BuildResults> buildResultsProvider;
 		
 		private BuildsBackend backend;
 
 		@Inject
-		BuildSubmitter(Provider<BuildServers> buildServersProvider, Provider<UnitOfWork> workProvider) {
+		BuildSubmitter(Provider<BuildServers> buildServersProvider, 
+				Provider<BuildResults> buildResultsProvider, 
+				Provider<UnitOfWork> workProvider) {
+			
 			super(workProvider);
 			this.buildServersProvider = buildServersProvider;
+			this.buildResultsProvider = buildResultsProvider;
 		}
 		
 		void initialize(BuildsBackend backend) {
@@ -124,14 +138,15 @@ public class BuildsBackend {
 		@Override
 		@Transactional
 		protected void runInUnitOfWork() {
-			ConcurrentLinkedQueue<BuildRequest> buildQueue = backend.buildQueue;
+			ConcurrentLinkedQueue<BuildRequestWithResultMapping> buildQueue = backend.buildQueue;
 			AtomicBoolean running = backend.running;
 			BuildServers buildServers = buildServersProvider.get();
+			BuildResults buildResults = buildResultsProvider.get();
 			
 			try {
 				while (!buildQueue.isEmpty()) {
 					boolean delivered = false;
-					BuildRequest buildRequest = buildQueue.peek();
+					BuildRequestWithResultMapping buildRequestWithId = buildQueue.peek();
 					List<BuildServer> allBuildServers = buildServers.listAll();
 					
 					while (!allBuildServers.isEmpty()) {
@@ -141,10 +156,14 @@ public class BuildsBackend {
 						String secret = buildServer.getSecret();
 						
 						BuildServerBackend backend = new BuildServerBackendImpl(host, name, secret);
-						if (backend.offerBuildRequest(buildRequest)) {
+						if (backend.offerBuildRequest(buildRequestWithId.getRequest())) {
 							delivered = true;
 							buildQueue.poll();
 							log.info("One build request was succesfully handed to: {}", name);
+							
+							BuildResult result = buildResults.find(buildRequestWithId.getId());
+							result.setStarted(new Date());
+							buildResults.merge(result);
 							break;
 						}
 					}

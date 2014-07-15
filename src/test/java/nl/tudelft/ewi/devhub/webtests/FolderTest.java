@@ -9,16 +9,16 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.FolderView;
 import nl.tudelft.ewi.devhub.webtests.views.TextFileView;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.client.RepositoriesMock;
+import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
-import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.EntryType;
+import nl.tudelft.ewi.git.models.MockedRepositoryModel;
 import nl.tudelft.ewi.git.models.UserModel;
 
 public class FolderTest extends WebTest {
@@ -30,7 +30,7 @@ public class FolderTest extends WebTest {
 	public static final String TEXT_FILE_NAME = "File.txt";
 	
 	private static GitServerClientMock gitServerClient;
-	private static DetailedRepositoryModel repository;
+	private static MockedRepositoryModel repository;
 	private static UserModel user;
 	private static CommitModel commit;
 	
@@ -40,20 +40,26 @@ public class FolderTest extends WebTest {
 		gitServerClient = getGitServerClient();
 		user = gitServerClient.users().ensureExists(NET_ID);
 		repository = gitServerClient.repositories().retrieve("courses/ti1705/group-1");
-		commit = createInitialCommit();
+		commit = createInitialCommit(repository);
 		gitServerClient.repositories().setDirectoryEntries(
 				ImmutableMap.<String, EntryType> of(FOLDER_NAME,
 						EntryType.FOLDER, TEXT_FILE_NAME, EntryType.TEXT));
 	}
 	
-	private static CommitModel createInitialCommit() {
+	private static CommitModel createInitialCommit(MockedRepositoryModel repository) {
 		CommitModel commit = new CommitModel();
 		commit.setAuthor(user.getName());
 		commit.setCommit(COMMIT_ID);
 		commit.setParents(new String[] {});
 		commit.setTime(System.currentTimeMillis());
 		commit.setMessage(COMMIT_MESSAGE);
-		repository.setRecentCommits(Lists.newArrayList(commit));
+		repository.addCommit(commit);
+
+		BranchModel branch = new BranchModel();
+		branch.setCommit(COMMIT_ID);
+		branch.setName("refs/remotes/origin/master");
+		repository.addBranch(branch);
+		
 		return commit;
 	}
 	

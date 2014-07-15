@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -42,6 +43,7 @@ import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.DetailedBranchModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.models.EntryType;
@@ -63,6 +65,7 @@ public class ProjectsResource extends Resource {
 
 	private static final int MAX_GROUP_SIZE = 8;
 	private static final int MIN_GROUP_SIZE = 1;
+	private static final int PAGE_SIZE = 25;
 
 	private final ProjectsBackend projectsBackend;
 	private final TemplateEngine templateEngine;
@@ -258,18 +261,67 @@ public class ProjectsResource extends Resource {
 		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, Long.parseLong(groupNumber));
-
+		
 		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 			throw new UnauthorizedException();
 		}
 
+		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		DetailedBranchModel branch;
+		
+		try {
+			branch = client.repositories().retrieveBranch(repository, "master", 0, PAGE_SIZE);
+		}
+		catch (Throwable e) {
+			if(!repository.getBranches().isEmpty()) {
+				String branchName = repository.getBranches().iterator().next().getName();
+				branch = fetchBranch(repository, branchName, 0, PAGE_SIZE);
+			}
+			else {
+				branch = null; // no commits
+			}
+		}
+		
+		return showBranchOverview(request, group, repository, branch);
+	}
+	
+	@GET
+	@Path("{courseCode}/groups/{groupNumber}/branch/{branchName}")
+	@Transactional
+	public Response showBranchOverview(@Context HttpServletRequest request,
+			@PathParam("courseCode") String courseCode,
+			@PathParam("groupNumber") String groupNumber,
+			@PathParam("branchName") String branchName,
+			@QueryParam("page") @DefaultValue("1") int page,
+			@QueryParam("fatal") String fatal) throws IOException, ApiError {
+
+		User user = scope.getUser();
+		Course course = courses.find(courseCode);
+		Group group = groups.find(course, Long.parseLong(groupNumber));
+		
+		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
+			throw new UnauthorizedException();
+		}
+
+		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		DetailedBranchModel branch = fetchBranch(repository, branchName, (page - 1) * PAGE_SIZE, PAGE_SIZE);
+		
+		return showBranchOverview(request, group, repository, branch);
+	}
+	
+	private Response showBranchOverview(HttpServletRequest request,
+			Group group, DetailedRepositoryModel repository,
+			DetailedBranchModel branch) throws IOException {
+		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
-		parameters.put("path", request.getRequestURI());
 		parameters.put("group", group);
 		parameters.put("states", new CommitChecker(group, buildResults));
-		parameters.put("repository", fetchRepositoryView(group));
-
+		parameters.put("repository", repository);
+		
+		if(branch != null)
+			parameters.put("branch", branch);
+		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
 	}
@@ -496,6 +548,16 @@ public class ProjectsResource extends Resource {
 		}
 	}
 	
+	private DetailedBranchModel fetchBranch(DetailedRepositoryModel repository,
+			String branchName, int skip, int limit) throws ApiError {
+		try {
+			return client.repositories().retrieveBranch(repository, branchName, skip, limit);
+		}
+		catch (Throwable e) {
+			throw new ApiError("error.git-server-unavailable");
+		}
+	}
+
 	@Data
 	public static class Diff {
 		

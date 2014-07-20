@@ -115,13 +115,13 @@
 			</table>
 
 
-[#if branch?? && branch?has_content]
-[#assign pageCount = branch.getPagination().getPageCount() ]
-[#assign currentPage = branch.getPagination().getPageIndex() ]
+[#if branch?? && branch?has_content && pagination?? ]
+[#assign pageCount = pagination.getPageCount() ]
+[#assign currentPage = pagination.getPage() ]
 			<div class="text-center">
 				<ul class="pagination pagination-lg">
 	[#list 1..pageCount as pageNumber ]
-		[#if pageNumber_index == currentPage ]
+		[#if pageNumber == currentPage ]
 					<li class="active"><a href="/projects/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
 		[#else]
 					<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>

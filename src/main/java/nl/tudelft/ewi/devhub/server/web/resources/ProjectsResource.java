@@ -275,14 +275,14 @@ public class ProjectsResource extends Resource {
 		catch (Throwable e) {
 			if(!repository.getBranches().isEmpty()) {
 				String branchName = repository.getBranches().iterator().next().getName();
-				branch = fetchBranch(repository, branchName, 0, PAGE_SIZE);
+				branch = fetchBranch(repository, branchName, 1);
 			}
 			else {
 				branch = null; // no commits
 			}
 		}
 		
-		return showBranchOverview(request, group, repository, branch);
+		return showBranchOverview(request, group, repository, branch, 1);
 	}
 	
 	@GET
@@ -304,14 +304,14 @@ public class ProjectsResource extends Resource {
 		}
 
 		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		DetailedBranchModel branch = fetchBranch(repository, branchName, (page - 1) * PAGE_SIZE, PAGE_SIZE);
+		DetailedBranchModel branch = fetchBranch(repository, branchName, page);
 		
-		return showBranchOverview(request, group, repository, branch);
+		return showBranchOverview(request, group, repository, branch, page);
 	}
 	
 	private Response showBranchOverview(HttpServletRequest request,
 			Group group, DetailedRepositoryModel repository,
-			DetailedBranchModel branch) throws IOException {
+			DetailedBranchModel branch, int page) throws IOException {
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
@@ -319,8 +319,10 @@ public class ProjectsResource extends Resource {
 		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("repository", repository);
 		
-		if(branch != null)
+		if(branch != null) {
 			parameters.put("branch", branch);
+			parameters.put("pagination", new Pagination(page, branch.getAmountOfCommits()));
+		}
 		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
@@ -549,9 +551,9 @@ public class ProjectsResource extends Resource {
 	}
 	
 	private DetailedBranchModel fetchBranch(DetailedRepositoryModel repository,
-			String branchName, int skip, int limit) throws ApiError {
+			String branchName, int page) throws ApiError {
 		try {
-			return client.repositories().retrieveBranch(repository, branchName, skip, limit);
+			return client.repositories().retrieveBranch(repository, branchName, (page - 1) * PAGE_SIZE, PAGE_SIZE);
 		}
 		catch (Throwable e) {
 			throw new ApiError("error.git-server-unavailable");
@@ -658,6 +660,17 @@ public class ProjectsResource extends Resource {
 			return MAX_GROUP_SIZE;
 		}
 		return course.getMaxGroupSize();
+	}
+	
+	@Data
+	static public class Pagination {
+				
+		private final int page, total;
+		
+		public int getPageCount() {
+			return (total + PAGE_SIZE - 1) / PAGE_SIZE;
+		}
+		
 	}
 
 }

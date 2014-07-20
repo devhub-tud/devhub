@@ -1,8 +1,12 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,10 +18,16 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.ToString;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 @Data
@@ -57,6 +67,16 @@ public class User {
 
 	@Column(name = "email")
 	private String email;
+	
+	@Getter(AccessLevel.NONE)
+	@Setter(AccessLevel.NONE)
+	@Column(name = "password")
+	private String password;
+
+	@Getter(AccessLevel.NONE)
+	@Setter(AccessLevel.NONE)
+	@Column(name = "salt")
+	private String salt;
 
 	@Column(name = "admin")
 	private boolean admin;
@@ -114,5 +134,31 @@ public class User {
 			}
 		}
 		return false;
+	}
+	
+	private static Random random = new SecureRandom();
+	
+	public void setPassword(String password) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(password));
+		synchronized(random) {
+			this.salt = SHA512(new BigInteger(130, random).toString(32));
+		}
+		this.password = SHA512(SHA512(password).concat(this.salt));
+	}
+	
+	public boolean isPasswordMatch(String password) {
+		return password != null && this.password != null && this.salt != null
+				&& SHA512(SHA512(password).concat(this.salt)).equals(this.password);
+	}
+	
+	@SneakyThrows
+	private static String SHA512(String toHash) {
+		MessageDigest md = MessageDigest.getInstance("SHA-512");
+		byte[] hash = md.digest(toHash.getBytes("UTF-8"));
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < hash.length; i++) {
+			sb.append(Integer.toString((hash[i] & 0xFF) + 0x100, 16).substring(1));
+		}
+		return sb.toString();
 	}
 }

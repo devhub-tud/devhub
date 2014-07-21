@@ -24,15 +24,16 @@
 			</div>
 		</div>
 [@macros.renderScripts /]
-[#if highlight]
+[#if highlight?? && highlight.isHighlight() ]
 	<script src="/static/js/highlight.pack.js"></script>
 [/#if]
 	<script>
 		$(document).ready(function() {
-[#if highlight]
+[#if highlight?? && highlight.isHighlight() ]
 			hljs.configure({
 				tabReplace: '	',
-				useBR: true
+				useBR: true,
+				languages : ["${highlight.getClassName()}"]
 			});
 			
 			$('.code').each(function(i, e) {

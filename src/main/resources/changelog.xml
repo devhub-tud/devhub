@@ -168,14 +168,7 @@
 	<changeSet id="add_cached_password_to_users" author="Jan-Willem Gmelig Meyling">
         <addColumn tableName="users">
 			<column name="password" type="varchar(128)" />
-			<column name="salt" type="varchar(128)" />
-        </addColumn>
-        <insert tableName="users">
-			<column name="net_id">jgmeligmeyling</column>
-			<column name="name">Jan-Willem Gmelig Meyling</column>
-			<column name="email">j.gmeligmeyling@student.tudelft.nl</column>
-			<column name="admin">true</column>
-		</insert>
-    </changeSet>
+		</addColumn>
+	</changeSet>
 	
 </databaseChangeLog>

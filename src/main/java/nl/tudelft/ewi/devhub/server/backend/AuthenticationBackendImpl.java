@@ -61,7 +61,7 @@ public class AuthenticationBackendImpl implements AuthenticationBackend {
 			return true;
 		}
 		catch (InvalidCredentialsException e) {
-			// Do not log
+			log.trace("Invalid credentials for user with netId {}", netId);
 		}
 		catch (IOException | AuthenticationProviderUnavailable e) {
 			log.info(e.getMessage(), e);

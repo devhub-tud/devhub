@@ -39,7 +39,7 @@ public interface AuthenticationProvider {
 	 * @author Jan-Willem
 	 *
 	 */
-	interface AuthenticationSession extends AutoCloseable {
+	static interface AuthenticationSession extends AutoCloseable {
 		
 		/**
 		 * Fetch user details for a user that has to be created in the database
@@ -70,7 +70,7 @@ public interface AuthenticationProvider {
 	 * @author Jan-Willem
 	 *
 	 */
-	public class AbstractAuthenticationSession implements AuthenticationSession {
+	static class AbstractAuthenticationSession implements AuthenticationSession {
 
 		@Override
 		public void fetch(User user) throws IOException {}
@@ -90,7 +90,7 @@ public interface AuthenticationProvider {
 	 * @author Jan-Willem
 	 *
 	 */
-	class AuthenticationProviderUnavailable extends Exception {
+	static class AuthenticationProviderUnavailable extends Exception {
 
 		private static final long serialVersionUID = -1208837406761307088L;
 		
@@ -110,7 +110,7 @@ public interface AuthenticationProvider {
 	 * @author Jan-Willem
 	 *
 	 */
-	class InvalidCredentialsException extends Exception {
+	static class InvalidCredentialsException extends Exception {
 
 		private static final long serialVersionUID = -4010638096567999252L;
 		

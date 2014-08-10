@@ -35,6 +35,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.DiffLine;
+import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
@@ -505,7 +506,7 @@ public class ProjectsResource extends Resource {
 		parameters.put("commit", fetchCommitView(repository, commitId));
 		parameters.put("path", path);
 		parameters.put("contents", contents);
-		parameters.put("highlight", !path.matches("^[^.]+|.*[.](txt|md|xml)$"));
+		parameters.put("highlight", Highlight.forFileName(path));
 		parameters.put("group", group);
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));

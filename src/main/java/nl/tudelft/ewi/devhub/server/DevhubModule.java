@@ -9,15 +9,19 @@ import java.lang.annotation.Annotation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
-import nl.tudelft.ewi.devhub.server.backend.LdapBackend;
+import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackendImpl;
+import nl.tudelft.ewi.devhub.server.backend.AuthenticationProvider;
+import nl.tudelft.ewi.devhub.server.backend.LdapAuthenticationProvider;
 import nl.tudelft.ewi.devhub.server.backend.LdapBackend.LdapUserProcessor;
 import nl.tudelft.ewi.devhub.server.backend.LdapBackend.PersistingLdapUserProcessor;
 import nl.tudelft.ewi.devhub.server.database.DbModule;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.GitServerClientImpl;
+
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.jboss.resteasy.plugins.guice.ext.RequestScopeModule;
 import org.reflections.Reflections;
@@ -47,7 +51,8 @@ public class DevhubModule extends AbstractModule {
 		
 		bind(GitServerClient.class).toInstance(new GitServerClientImpl(config.getGitServerHost()));
 		
-		bind(AuthenticationBackend.class).to(LdapBackend.class);
+		bind(AuthenticationBackend.class).to(AuthenticationBackendImpl.class);
+		bind(AuthenticationProvider.class).to(LdapAuthenticationProvider.class);
 		bind(LdapUserProcessor.class).to(PersistingLdapUserProcessor.class);
 		
 		findResourcesWith(Path.class);

@@ -88,5 +88,42 @@ public class Config {
 	public String getSmtpOrigin() {
 		return properties.getProperty("smtp-server.origin");
 	}
+	
+	/**
+	 * @return the LDAP host address, for example ldaps.tudelft.nl
+	 */
+	public String getLDAPHost() {
+		return properties.getProperty("ldap-server.host"); 
+	}
+	
+	/**
+	 * @return return the LDAP port, for example 636
+	 */
+	public int getLDAPPort() {
+		return Integer.parseInt(properties.getProperty("ldap-server.port", " 636"));
+	}
+	
+	/**
+	 * @return whether or not to use SSL for this LDAP connection
+	 */
+	public boolean isLDAPSSL() {
+		return properties.getProperty("ldap-server.usessl", "true")
+				.equalsIgnoreCase("true");
+	}
+	
+	/**
+	 * @return the LDAP extension. This is what follows after the username in
+	 *         order to logon to the domain. For example {@code &#64;tudelft.nl}
+	 */
+	public String getLDAPExtension() {
+		return properties.getProperty("ldap.extension", "");
+	}
+	
+	/**
+	 * @return the LDAP tree in which users can be found
+	 */
+	public String getLDAPPrimaryDomain() {
+		return properties.getProperty("ldap.primarydomain");
+	}
 
 }

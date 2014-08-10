@@ -165,4 +165,10 @@
 		</addColumn>
 	</changeSet>
 	
+	<changeSet id="add_cached_password_to_users" author="Jan-Willem Gmelig Meyling">
+        <addColumn tableName="users">
+			<column name="password" type="varchar(128)" />
+		</addColumn>
+	</changeSet>
+	
 </databaseChangeLog>

@@ -14,10 +14,17 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import org.mindrot.jbcrypt.BCrypt;
+
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 @Data
@@ -57,7 +64,12 @@ public class User {
 
 	@Column(name = "email")
 	private String email;
-
+	
+	@Getter(AccessLevel.NONE)
+	@Setter(AccessLevel.NONE)
+	@Column(name = "password")
+	private String password;
+	
 	@Column(name = "admin")
 	private boolean admin;
 
@@ -115,4 +127,15 @@ public class User {
 		}
 		return false;
 	}
+	
+	public void setPassword(String password) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(password));
+		this.password = BCrypt.hashpw(password, BCrypt.gensalt());
+	}
+	
+	public boolean isPasswordMatch(String password) {
+		return password != null && this.password != null
+				&& BCrypt.checkpw(password, this.password);
+	}
+	
 }

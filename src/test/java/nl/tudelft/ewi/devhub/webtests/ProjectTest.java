@@ -11,10 +11,11 @@ import nl.tudelft.ewi.devhub.webtests.views.DiffView.DiffElement;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView.Commit;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
+import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
-import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.models.DiffModel.Type;
+import nl.tudelft.ewi.git.models.MockedRepositoryModel;
 import nl.tudelft.ewi.git.models.UserModel;
 
 import org.junit.BeforeClass;
@@ -28,7 +29,7 @@ public class ProjectTest extends WebTest {
 	public static final String COMMIT_MESSAGE = "Initial commit";
 	
 	private static GitServerClientMock gitServerClient;
-	private static DetailedRepositoryModel repository;
+	private static MockedRepositoryModel repository;
 	private static UserModel user;
 	private static CommitModel commit;
 	
@@ -37,49 +38,24 @@ public class ProjectTest extends WebTest {
 		gitServerClient = getGitServerClient();
 		user = gitServerClient.users().ensureExists(NET_ID);
 		repository = gitServerClient.repositories().retrieve("courses/ti1705/group-1");
-		commit = createInitialCommit();
+		commit = createInitialCommit(repository);
 	}
 	
-	private static CommitModel createInitialCommit() {
+	private static CommitModel createInitialCommit(MockedRepositoryModel repository) {
 		CommitModel commit = new CommitModel();
 		commit.setAuthor(user.getName());
 		commit.setCommit(COMMIT_ID);
 		commit.setParents(new String[] {});
 		commit.setTime(System.currentTimeMillis());
 		commit.setMessage(COMMIT_MESSAGE);
-		repository.setRecentCommits(Lists.newArrayList(commit));
-		return commit;
-	}
-	
-	/**
-	 * <h1>Opening a project overview .</h1>
-	 * 
-	 * Given that:
-	 * <ol>
-	 *   <li>I am successfully logged in.</li>
-	 *   <li>I have a project.</li>
-	 *   <li>There are no commits in the project</li>
-	 * </ol>
-	 * When:
-	 * <ol>
-	 *   <li>I click on a project in the project list.</li>
-	 * </ol>
-	 * Then:
-	 * <ol>
-	 *   <li>I am redirected to the project page.</li>
-	 * </ol>
-	 */
-	@Test
-	public void testThatICanOpenProject() {
-		repository.setRecentCommits(Lists.<CommitModel> newArrayList());
-		ProjectView view = openLoginScreen()
-				.login(NET_ID, PASSWORD)
-				.toProjectsView()
-				.listMyProjects()
-				.get(0).click();
+		repository.addCommit(commit);
+
+		BranchModel branch = new BranchModel();
+		branch.setCommit(COMMIT_ID);
+		branch.setName("refs/remotes/origin/master");
+		repository.addBranch(branch);
 		
-		List<Commit> commits = view.listCommits();
-		assertTrue("Expected an empty list of commits", commits.isEmpty());
+		return commit;
 	}
 	
 	/**

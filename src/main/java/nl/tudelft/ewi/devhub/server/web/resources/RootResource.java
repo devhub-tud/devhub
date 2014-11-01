@@ -18,16 +18,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.jboss.resteasy.plugins.guice.RequestScoped;
 
+@Slf4j
 @Path("/")
 @RequestScoped
 public class RootResource {
@@ -83,13 +88,19 @@ public class RootResource {
 			@FormParam("password") String password, @QueryParam("redirect") String redirectTo) 
 			throws URISyntaxException, LdapException, IOException {
 		
-		if (authenticationBackend.authenticate(netId, password)) {
-			scope.setUser(netId);
-			if (Strings.isNullOrEmpty(redirectTo)) {
-				return Response.seeOther(new URI("/projects")).build();
+		try {
+			if (authenticationBackend.authenticate(netId, password)) {
+				scope.setUser(netId);
+				if (Strings.isNullOrEmpty(redirectTo)) {
+					return Response.seeOther(new URI("/projects")).build();
+				}
+				return Response.seeOther(new URI("/" + URLDecoder.decode(redirectTo, "UTF-8"))).build();
 			}
-			return Response.seeOther(new URI("/" + URLDecoder.decode(redirectTo, "UTF-8"))).build();
 		}
+		catch (IllegalArgumentException e) {
+			log.debug(e.getMessage(), e);
+		}
+		
 		return Response.seeOther(new URI("/login?error=error.invalid-credentials")).build();
 	}
 	

@@ -32,6 +32,7 @@ public class AuthenticationBackendImpl implements AuthenticationBackend {
 
 	@Override
 	public boolean authenticate(String netId, String password) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(netId));
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(password));
 		
 		try (AuthenticationSession session = authenticationProvider.get()

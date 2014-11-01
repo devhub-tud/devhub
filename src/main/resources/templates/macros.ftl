@@ -91,6 +91,12 @@
 [/#macro]
 
 [#macro renderCommitHeader i18n group commit currentView]
+			<ol class="breadcrumb">
+				<li><a href="/projects">Projects</a></li>
+				<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
+				<li class="active">${commit.getMessage()}</li>
+			</ol>
+
 	[#if states.hasStarted(commit.getCommit())]
 		[#if states.hasFinished(commit.getCommit())]
 			[#if states.hasSucceeded(commit.getCommit())]

@@ -911,7 +911,7 @@ td.commit.ignored .state{color:#eee;}
 td.commit.ignored .comment{color:#666;}
 td.commit .state{float:left;font-size:38px;width:38px;height:38px;margin-right:12px;}
 td.commit .comment{font-weight:bold;}
-td.commit .committer{color:#999;}
+td.commit .committer,td.commit .timestamp{display:inline-block;color:#999;}
 div.commit.failed .state{color:#aa0000;}
 div.commit.succeeded .state{color:#00aa00;}
 div.commit.running .state{color:#ccc;}

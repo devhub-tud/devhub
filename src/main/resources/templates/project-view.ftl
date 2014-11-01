@@ -61,40 +61,26 @@
 							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
 								<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
 							</a>
-							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
-								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
-								<div class="committer">${commit.getAuthor()}</div>
-							</a>
-						</td>
 					[#else]
 						<td class="commit failed">
 							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
 								<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
 							</a>
-							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
-								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
-								<div class="committer">${commit.getAuthor()}</div>
-							</a>
-						</td>
 					[/#if]
 				[#else]
 						<td class="commit running">
 							<span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
-							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
-								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
-								<div class="committer">${commit.getAuthor()}</div>
-							</a>
-						</td>
 				[/#if]
 			[#else]
 						<td class="commit ignored">
 							<span class="state glyphicon glyphicon-unchecked"></span>
+			[/#if]
 							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
 								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
 								<div class="committer">${commit.getAuthor()}</div>
+								<div class="timestamp" data-value="${(commit.getTime() * 1000)}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
 							</a>
 						</td>
-			[/#if]
 					</tr>
 		[/#list]
 	[#else]

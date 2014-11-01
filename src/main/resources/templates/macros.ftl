@@ -125,12 +125,11 @@
 					</div>
 				</span>
 				<span class="headers">
-	[#if commit.getMessage()?length > 50]
-					<h2 class="header">${commit.getMessage()?substring(0, 50)}...</h2>
-	[#else]
 					<h2 class="header">${commit.getMessage()}</h2>
-	[/#if]
 					<h5 class="subheader">${commit.getAuthor()}</h5>
+	[#if commit.getMessageTail()?has_content]
+					<div class="description">${commit.getMessageTail()}</div>
+	[/#if]
 				</span>
 			</div>
 [/#macro]

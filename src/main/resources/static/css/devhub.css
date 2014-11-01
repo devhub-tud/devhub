@@ -910,14 +910,16 @@ td.commit.running .comment{color:#666;}
 td.commit.ignored .state{color:#eee;}
 td.commit.ignored .comment{color:#666;}
 td.commit .state{float:left;font-size:38px;width:38px;height:38px;margin-right:12px;}
-td.commit .comment{font-weight:bold;}
-td.commit .committer{color:#999;}
+td.commit .comment{font-weight:bold;overflow:hidden;text-overflow:ellipsis;height:20px;}
+td.commit .committer{color:#999;overflow:hidden;text-overflow:ellipsis;height:20px;}
 div.commit.failed .state{color:#aa0000;}
 div.commit.succeeded .state{color:#00aa00;}
 div.commit.running .state{color:#ccc;}
 div.commit.ignored .state{color:#eee;}
-div.commit .state{display:inline-block;font-size:50px;height:50px;margin-right:8px;}
-div.commit .headers{display:inline-block;}
+div.commit .state{float:left;margin:10px 8px 0px 0px;font-size:50px;height:50px;width:50px;}
+div.commit .headers{display:block;padding-top:1px;}div.commit .headers .header,div.commit .headers .subheader{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+div.commit .headers .description{white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;font-family:monospace;font-size:13px;margin-bottom:15px;}
+div.commit .headers .view-picker{margin-left:10px;}
 div.commit .view-picker{float:right;display:inline-block;margin-top:11px;}
 div.commit .comment{font-weight:bold;}
 div.commit .committer{color:#999;}

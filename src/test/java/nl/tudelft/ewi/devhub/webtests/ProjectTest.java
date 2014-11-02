@@ -13,6 +13,7 @@ import nl.tudelft.ewi.devhub.webtests.views.ProjectView.Commit;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.models.DiffModel.Type;
 import nl.tudelft.ewi.git.models.MockedRepositoryModel;
@@ -31,7 +32,7 @@ public class ProjectTest extends WebTest {
 	private static GitServerClientMock gitServerClient;
 	private static MockedRepositoryModel repository;
 	private static UserModel user;
-	private static CommitModel commit;
+	private static DetailedCommitModel commit;
 	
 	@BeforeClass
 	public static void setUpRepository() throws Exception {
@@ -41,13 +42,13 @@ public class ProjectTest extends WebTest {
 		commit = createInitialCommit(repository);
 	}
 	
-	private static CommitModel createInitialCommit(MockedRepositoryModel repository) {
-		CommitModel commit = new CommitModel();
+	private static DetailedCommitModel createInitialCommit(MockedRepositoryModel repository) {
+		DetailedCommitModel commit = new DetailedCommitModel();
 		commit.setAuthor(user.getName());
 		commit.setCommit(COMMIT_ID);
 		commit.setParents(new String[] {});
 		commit.setTime(System.currentTimeMillis());
-		commit.setMessage(COMMIT_MESSAGE);
+		commit.setFullMessage(COMMIT_MESSAGE);
 		repository.addCommit(commit);
 
 		BranchModel branch = new BranchModel();

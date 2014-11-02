@@ -17,6 +17,7 @@ import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.client.RepositoriesMock;
 import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.EntryType;
 import nl.tudelft.ewi.git.models.MockedRepositoryModel;
 import nl.tudelft.ewi.git.models.UserModel;
@@ -46,13 +47,13 @@ public class FolderTest extends WebTest {
 						EntryType.FOLDER, TEXT_FILE_NAME, EntryType.TEXT));
 	}
 	
-	private static CommitModel createInitialCommit(MockedRepositoryModel repository) {
-		CommitModel commit = new CommitModel();
+	private static DetailedCommitModel createInitialCommit(MockedRepositoryModel repository) {
+		DetailedCommitModel commit = new DetailedCommitModel();
 		commit.setAuthor(user.getName());
 		commit.setCommit(COMMIT_ID);
 		commit.setParents(new String[] {});
 		commit.setTime(System.currentTimeMillis());
-		commit.setMessage(COMMIT_MESSAGE);
+		commit.setFullMessage(COMMIT_MESSAGE);
 		repository.addCommit(commit);
 
 		BranchModel branch = new BranchModel();

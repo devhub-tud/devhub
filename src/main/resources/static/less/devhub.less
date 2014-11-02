@@ -229,7 +229,7 @@ td.commit {
 	}
 	
 	.state {
-		float: left; 
+		float: left;
 		font-size: 38px; 
 		width: 38px; 
 		height: 38px; 
@@ -238,11 +238,17 @@ td.commit {
 	
 	.comment {
 		font-weight: bold;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		height: 20px;
 	}
 	
 	.committer, .timestamp {
 		display : inline-block;
 		color: #999;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		height: 20px;
 	}
 	
 }
@@ -270,14 +276,37 @@ div.commit {
 	}
 	
 	.state {
-		display: inline-block;
+		float: left;
+		margin: 10px 8px 0px 0px;
 		font-size: 50px;
-		height: 50px; 
-		margin-right: 8px;
+		height: 50px;
+		width: 50px;
 	}
 	
 	.headers {
-		display: inline-block;
+		display: block;
+		padding-top: 1px;
+		
+		.header, .subheader {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		
+		.description {
+			white-space: pre-wrap;
+			white-space: -moz-pre-wrap;
+			white-space: -pre-wrap;
+			white-space: -o-pre-wrap;
+			word-wrap: break-word;
+			font-family: monospace;
+			font-size: 13px;
+			margin-bottom: 15px;
+		}
+		
+		.view-picker {
+			margin-left: 10px;
+		}
 	}
 	
 	.view-picker {

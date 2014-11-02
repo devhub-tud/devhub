@@ -14,11 +14,16 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-			<h2>${group.getGroupName()}</h2>
+		
+			<ol class="breadcrumb">
+				<li><a href="/projects">Projects</a></li>
+				<li class="active">${group.getGroupName()}</li>
+			</ol>
+
 			<h4>Git clone URL</h4>
 			<div class="well well-sm">
 [#if repository?? && repository?has_content]
-				<code>${repository.getUrl()}</code>
+				<code>git clone ${repository.getUrl()}</code>
 [#else]
 				<code>Could not connect to the Git server!</code>
 [/#if]

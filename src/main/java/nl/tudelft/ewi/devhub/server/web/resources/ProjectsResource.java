@@ -43,8 +43,8 @@ import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedBranchModel;
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.models.EntryType;
@@ -351,7 +351,7 @@ public class ProjectsResource extends Resource {
 		}
 
 		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		CommitModel commit = fetchCommitView(repository, commitId);
+		DetailedCommitModel commit = fetchCommitView(repository, commitId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
@@ -400,7 +400,7 @@ public class ProjectsResource extends Resource {
 		parameters.put("states", new CommitChecker(group, buildResults));
 
 		if(newId != null) {
-			CommitModel newCommit = fetchCommitView(repository, newId);
+			DetailedCommitModel newCommit = fetchCommitView(repository, newId);
 			parameters.put("newCommit", newCommit);
 		}
 		
@@ -521,17 +521,17 @@ public class ProjectsResource extends Resource {
 			return repositories.retrieve(group.getRepositoryName());
 		}
 		catch (Throwable e) {
-			throw new ApiError("error.git-server-unavailable");
+			throw new ApiError("error.git-server-unavailable", e);
 		}
 	}
 
-	private CommitModel fetchCommitView(DetailedRepositoryModel repository, String commitId) throws ApiError {
+	private DetailedCommitModel fetchCommitView(DetailedRepositoryModel repository, String commitId) throws ApiError {
 		try {
 			Repositories repositories = client.repositories();
 			return repositories.retrieveCommit(repository, commitId);
 		}
 		catch (Throwable e) {
-			throw new ApiError("error.git-server-unavailable");
+			throw new ApiError("error.git-server-unavailable", e);
 		}
 	}
 	
@@ -547,7 +547,7 @@ public class ProjectsResource extends Resource {
 			
 			return result;
 		} catch (Throwable e) {
-			throw new ApiError("error.git-server-unavailable");
+			throw new ApiError("error.git-server-unavailable", e);
 		}
 	}
 	
@@ -557,7 +557,7 @@ public class ProjectsResource extends Resource {
 			return client.repositories().retrieveBranch(repository, branchName, (page - 1) * PAGE_SIZE, PAGE_SIZE);
 		}
 		catch (Throwable e) {
-			throw new ApiError("error.git-server-unavailable");
+			throw new ApiError("error.git-server-unavailable", e);
 		}
 	}
 

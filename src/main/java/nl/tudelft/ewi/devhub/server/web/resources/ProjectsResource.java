@@ -1,6 +1,10 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -25,6 +29,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import lombok.Data;
+import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
+import nl.tudelft.ewi.build.jaxrs.models.GitSource;
+import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
+import nl.tudelft.ewi.devhub.server.Config;
+import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.ProjectsBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
@@ -76,10 +85,14 @@ public class ProjectsResource extends Resource {
 	private final RequestScope scope;
 	private final Users users;
 	private final BuildResults buildResults;
+	private final Config config;
+	private final BuildsBackend buildBackend;
 
 	@Inject
-	ProjectsResource(TemplateEngine templateEngine, Groups groups, ProjectsBackend projectsBackend, Courses projects,
-			GitServerClient client, RequestScope scope, Users users, BuildResults buildResults) {
+	ProjectsResource(TemplateEngine templateEngine, Groups groups,
+			ProjectsBackend projectsBackend, Courses projects,
+			GitServerClient client, RequestScope scope, Users users,
+			BuildResults buildResults, Config config, BuildsBackend buildBackend) {
 
 		this.templateEngine = templateEngine;
 		this.projectsBackend = projectsBackend;
@@ -89,6 +102,8 @@ public class ProjectsResource extends Resource {
 		this.scope = scope;
 		this.users = users;
 		this.buildResults = buildResults;
+		this.config = config;
+		this.buildBackend = buildBackend;
 	}
 
 	@GET
@@ -364,6 +379,56 @@ public class ProjectsResource extends Resource {
 		return display(templateEngine.process("project-commit-view.ftl", locales, parameters));
 	}
 	
+	@GET
+	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/rebuild")
+	@Transactional
+	public Response rebuildCommit(@Context HttpServletRequest request,
+			@PathParam("courseCode") String courseCode,
+			@PathParam("groupNumber") String groupNumber,
+			@PathParam("commitId") String commitId) throws URISyntaxException,
+			UnsupportedEncodingException {
+
+		User user = scope.getUser();
+		Course course = courses.find(courseCode);
+		Group group = groups.find(course, Long.parseLong(groupNumber));
+
+		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
+			throw new UnauthorizedException();
+		}
+
+		MavenBuildInstruction instruction = new MavenBuildInstruction();
+		instruction.setWithDisplay(true);
+		instruction.setPhases(new String[] { "package" });
+
+		Repositories repositories = client.repositories();
+		DetailedRepositoryModel repository = repositories.retrieve(group.getRepositoryName());
+
+		StringBuilder callbackBuilder = new StringBuilder();
+		callbackBuilder.append(config.getHttpUrl());
+		callbackBuilder.append("/hooks/build-result");
+		callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
+		callbackBuilder.append("&commit=" + URLEncoder.encode(commitId, "UTF-8"));
+
+		GitSource source = new GitSource();
+		source.setRepositoryUrl(repository.getUrl());
+		source.setCommitId(commitId);
+
+		BuildRequest buildRequest = new BuildRequest();
+		buildRequest.setCallbackUrl(callbackBuilder.toString());
+		buildRequest.setInstruction(instruction);
+		buildRequest.setSource(source);
+		buildRequest.setTimeout(group.getBuildTimeout());
+
+		buildBackend.offerBuild(buildRequest);
+
+		if(!buildResults.exists(group, commitId)) {
+			buildResults.persist(BuildResult.newBuildResult(group, commitId));
+		}
+
+		URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
+		return Response.seeOther(responseUri).build();
+	}
+
 	@GET
 	@Path("{courseCode}/groups/{groupNumber}/commits/{commitId}/diff")
 	@Transactional

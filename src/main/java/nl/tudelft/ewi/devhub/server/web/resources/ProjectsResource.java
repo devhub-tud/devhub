@@ -396,6 +396,27 @@ public class ProjectsResource extends Resource {
 			throw new UnauthorizedException();
 		}
 
+		BuildResult buildResult;
+
+		try {
+			buildResult = buildResults.find(group, commitId);
+
+			if(buildResult.getSuccess() == null) {
+				// There is a build queued
+				URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
+				return Response.seeOther(responseUri).build();
+			}
+			else {
+				buildResult.setSuccess(null);
+				buildResult.setLog(null);
+				buildResults.merge(buildResult);
+			}
+		}
+		catch (EntityNotFoundException e) {
+			buildResult = BuildResult.newBuildResult(group, commitId);
+			buildResults.persist(buildResult);
+		}
+
 		MavenBuildInstruction instruction = new MavenBuildInstruction();
 		instruction.setWithDisplay(true);
 		instruction.setPhases(new String[] { "package" });
@@ -420,11 +441,6 @@ public class ProjectsResource extends Resource {
 		buildRequest.setTimeout(group.getBuildTimeout());
 
 		buildBackend.offerBuild(buildRequest);
-
-		if(!buildResults.exists(group, commitId)) {
-			buildResults.persist(BuildResult.newBuildResult(group, commitId));
-		}
-
 		URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
 		return Response.seeOther(responseUri).build();
 	}

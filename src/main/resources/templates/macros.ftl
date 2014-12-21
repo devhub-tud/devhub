@@ -126,8 +126,10 @@
 							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">${i18n.translate("commit.view-files")}</a></li>
 	[#if states.hasFinished(commit.getCommit())]
 							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/build">${i18n.translate("commit.view-build-log")}</a></li>
-	[/#if]
-	[#if !states.hasFinished(commit.getCommit()) || !states.hasSucceeded(commit.getCommit()) ]
+		[#if !states.hasSucceeded(commit.getCommit()) ]
+							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
+		[/#if]
+	[#elseif !states.hasStarted(commit.getCommit()) ]
 							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
 	[/#if]
 						</ul>

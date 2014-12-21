@@ -170,7 +170,7 @@
 			<column name="password" type="varchar(128)" />
 		</addColumn>
 	</changeSet>
-	
+
 	<changeSet id="add_unique_constraint_groups" author="Jan-Willem Gmelig Meyling">
 		<addUniqueConstraint columnNames="course_id,group_number" tableName="groups" />
 	</changeSet>
@@ -451,6 +451,46 @@
 			<!-- Rule for PMD warnings -->
 			<column name="rule" type="varchar(100)"/>
 		</createTable>
+	</changeSet>
+
+	<changeSet id="add_build_instruction_entity" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="build_instructions">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="instruction_type" type="varchar(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="command" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			<column name="withDisplay" type="boolean" />
+		</createTable>
+
+		<addColumn tableName="courses">
+			<column name="build_instruction" type="bigint"/>
+		</addColumn>
+		<addColumn tableName="groups">
+			<column name="build_instruction" type="bigint"/>
+		</addColumn>
+
+		<insert tableName="build_instructions">
+			<column name="instruction_type">java-maven</column>
+			<column name="command">package</column>
+			<column name="withDisplay">true</column>
+		</insert>
+
+		<update tableName="courses">
+			<column name="build_instruction" value="1"/>
+			<where>1</where>
+		</update>
+
+		<addForeignKeyConstraint constraintName="build_instruction_ref_in_courses"
+			baseTableName="courses" baseColumnNames="build_instruction"
+			referencedTableName="build_instructions" referencedColumnNames="id" />
+		<addForeignKeyConstraint constraintName="build_instruction_ref_in_groups"
+			baseTableName="groups" baseColumnNames="build_instruction"
+			referencedTableName="build_instructions" referencedColumnNames="id" />
 	</changeSet>
 
 </databaseChangeLog>

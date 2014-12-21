@@ -51,7 +51,11 @@ public class Group implements Serializable {
 	@NotNull
 	@Column(name = "repository_name")
 	private String repositoryName;
-	
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "build_instruction", nullable = true)
+	private BuildInstructionEntity buildInstruction;
+
 	public Set<User> getMembers() {
 		Set<User> members = Sets.newHashSet();
 		for (GroupMembership membership : memberships) {
@@ -74,5 +78,9 @@ public class Group implements Serializable {
 	public Integer getBuildTimeout() {
 		return buildTimeout != null ? buildTimeout : course.getBuildTimeout();
 	}
-	
+
+	public BuildInstructionEntity getBuildInstruction() {
+		return buildInstruction != null ? buildInstruction : course.getBuildInstruction();
+	}
+
 }

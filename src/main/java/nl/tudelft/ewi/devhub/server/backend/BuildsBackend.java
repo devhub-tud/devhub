@@ -103,7 +103,7 @@ public class BuildsBackend {
 		executor.awaitTermination(1, TimeUnit.MINUTES);
 	}
 	
-	private static class BuildSubmitter extends RunnableInUnitOfWork {
+	static class BuildSubmitter extends RunnableInUnitOfWork {
 		
 		private static final int NO_CAPACITY_DELAY = 5000;
 		
@@ -140,7 +140,7 @@ public class BuildsBackend {
 						String name = buildServer.getName();
 						String secret = buildServer.getSecret();
 						
-						BuildServerBackend backend = new BuildServerBackendImpl(host, name, secret);
+						BuildServerBackend backend = createBuildServerBackend(host, name, secret);
 						if (backend.offerBuildRequest(buildRequest)) {
 							delivered = true;
 							buildQueue.poll();
@@ -168,6 +168,11 @@ public class BuildsBackend {
 				}
 			}
 		}
+		
+		protected BuildServerBackend createBuildServerBackend(String host, String name, String secret) {
+			return new BuildServerBackendImpl(host, name, secret);
+		}
+		
 	}
 
 }

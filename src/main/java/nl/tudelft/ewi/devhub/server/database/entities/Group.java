@@ -39,7 +39,7 @@ public class Group {
 
 	@NotNull
 	@Column(name = "group_number")
-	private long groupNumber;
+	private Long groupNumber;
 	
 	@Column(name = "build_timeout")
 	private Integer buildTimeout;

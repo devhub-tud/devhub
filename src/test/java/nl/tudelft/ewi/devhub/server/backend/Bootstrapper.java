@@ -62,7 +62,7 @@ public class Bootstrapper {
 	
 	@Data
 	static class BGroup {
-		private int groupNumber;
+		private Long groupNumber;
 		private Integer buildTimeout;
 		private String templateRepositoryUrl;
 		private List<String> members;

@@ -171,4 +171,8 @@
 		</addColumn>
 	</changeSet>
 	
+	<changeSet id="add_unique_constraint_groups" author="Jan-Willem Gmelig Meyling">
+		<addUniqueConstraint columnNames="course_id,group_number" tableName="groups" />
+	</changeSet>
+	
 </databaseChangeLog>

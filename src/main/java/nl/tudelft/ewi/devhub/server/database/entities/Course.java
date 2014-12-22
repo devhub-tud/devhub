@@ -51,11 +51,11 @@ public class Course {
 
 	@NotNull
 	@Column(name = "min_group_size")
-	private int minGroupSize;
+	private Integer minGroupSize;
 
 	@NotNull
 	@Column(name = "max_group_size")
-	private int maxGroupSize;
+	private Integer maxGroupSize;
 
 	@Column(name = "template_repository_url")
 	private String templateRepositoryUrl;

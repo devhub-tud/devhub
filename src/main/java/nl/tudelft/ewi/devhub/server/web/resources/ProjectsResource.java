@@ -64,7 +64,6 @@ import com.google.inject.persist.Transactional;
 @RequireAuthenticatedUser
 public class ProjectsResource extends Resource {
 
-	private static final int MAX_GROUP_SIZE = 8;
 	private static final int MIN_GROUP_SIZE = 1;
 	private static final int PAGE_SIZE = 25;
 
@@ -656,10 +655,6 @@ public class ProjectsResource extends Resource {
 	}
 
 	public int getMaxGroupSize(Course course) {
-		User user = scope.getUser();
-		if (user.isAdmin() || user.isAssisting(course)) {
-			return MAX_GROUP_SIZE;
-		}
 		return course.getMaxGroupSize();
 	}
 	

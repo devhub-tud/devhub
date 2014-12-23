@@ -50,6 +50,9 @@ public class BuildsBackend {
 	}
 	
 	public boolean authenticate(String name, String secret) {
+		Preconditions.checkNotNull(name);
+		Preconditions.checkNotNull(secret);
+		
 		try {
 			buildServers.findByCredentials(name, secret);
 			return true;
@@ -60,6 +63,8 @@ public class BuildsBackend {
 	}
 	
 	public void addBuildServer(BuildServer server) throws ApiError {
+		Preconditions.checkNotNull(server);
+		
 		try {
 			String name = server.getName();
 			Preconditions.checkArgument(name.matches("^[a-zA-Z0-9]+$"));
@@ -88,6 +93,8 @@ public class BuildsBackend {
 	}
 	
 	public void offerBuild(BuildRequest request) {
+		Preconditions.checkNotNull(request);
+		
 		synchronized (running) {
 			buildQueue.offer(request);
 			if (running.compareAndSet(false, true)) {

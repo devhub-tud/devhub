@@ -21,6 +21,7 @@ import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 
 import org.hibernate.exception.ConstraintViolationException;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Sets;
@@ -53,6 +54,9 @@ public class ProjectsBackend {
 	}
 
 	public void setupProject(Course course, Collection<User> members) throws ApiError {
+		Preconditions.checkNotNull(course);
+		Preconditions.checkNotNull(members);
+		
 		log.info("Setting up new project for course: {} and members: {}", course, members);
 		Group group = persistRepository(course, members);
 

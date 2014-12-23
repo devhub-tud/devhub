@@ -9,6 +9,7 @@ import javax.persistence.EntityNotFoundException;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.database.entities.QBuildServer;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 
 public class BuildServers extends Controller<BuildServer> {
@@ -39,6 +40,9 @@ public class BuildServers extends Controller<BuildServer> {
 
 	@Transactional
 	public BuildServer findByCredentials(String name, String secret) {
+		Preconditions.checkNotNull(name);
+		Preconditions.checkNotNull(secret);
+		
 		BuildServer buildServer = query().from(QBuildServer.buildServer)
 				.where(QBuildServer.buildServer.name.eq(name))
 				.where(QBuildServer.buildServer.secret.eq(secret))

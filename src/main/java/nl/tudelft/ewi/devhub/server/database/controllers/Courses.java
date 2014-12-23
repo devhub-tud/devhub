@@ -52,6 +52,7 @@ public class Courses extends Controller<Course> {
 
 	@Transactional
 	public List<Course> listNotYetParticipatedCourses(User user) {
+		Preconditions.checkNotNull(user);
 		Date now = new Date();
 
 		List<Long> participatingCourses = query().from(QGroupMembership.groupMembership)

@@ -20,6 +20,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.Config;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Queues;
 import com.google.inject.Inject;
@@ -53,6 +54,7 @@ public class MailBackend {
 	}
 
 	public void sendMail(Mail mail) {
+		Preconditions.checkNotNull(mail);
 		if (Strings.isNullOrEmpty(mail.getAddressee())) {
 			log.warn("Not sending mail: {}, since addressee has no email address set", mail);
 			return;

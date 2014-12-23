@@ -11,6 +11,7 @@ import nl.tudelft.ewi.git.client.Users;
 import nl.tudelft.ewi.git.models.SshKeyModel;
 import nl.tudelft.ewi.git.models.UserModel;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
@@ -82,6 +83,7 @@ public class SshKeyBackend {
 	}
 
 	public List<SshKeyModel> listKeys(User user) throws ApiError {
+		Preconditions.checkNotNull(user);
 		UserModel userModel = fetchUser(user.getNetId());
 		List<SshKeyModel> keys = Lists.newArrayList(userModel.getKeys());
 		Collections.sort(keys, new Comparator<SshKeyModel>() {

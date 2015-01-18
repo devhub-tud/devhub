@@ -94,7 +94,11 @@
 			<ol class="breadcrumb">
 				<li><a href="/projects">Projects</a></li>
 				<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
+	[#if commit.getMessage()?length > 30 ]		
+				<li class="active">${commit.getMessage()?substring(0,30)}...</li>
+	[#else]
 				<li class="active">${commit.getMessage()}</li>
+	[/#if]
 			</ol>
 
 	[#if states.hasStarted(commit.getCommit())]

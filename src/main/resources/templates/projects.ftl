@@ -15,7 +15,7 @@
 	[#list groups as group]
 					<tr>
 						<td>
-							<a href="/projects/${group.course.code}/groups/${group.groupNumber?c}">${group.course.code} - ${group.course.name} (Group #${group.groupNumber?c})</a>
+							<a href="/projects/${group.course.code}/groups/${group.groupNumber?c}">${group.getGroupName()}</a>
 						</td>
 					</tr>
 	[/#list]
@@ -38,7 +38,7 @@
 	[#list groups as group]
 					<tr>
 						<td>
-							<a href="/projects/${group.course.code}/groups/${group.groupNumber?c}">${group.course.code} - ${group.course.name} (Group #${group.groupNumber?c})</a>
+							<a href="/projects/${group.course.code}/groups/${group.groupNumber?c}">${group.getGroupName()}</a>
 						</td>
 					</tr>
 	[/#list]

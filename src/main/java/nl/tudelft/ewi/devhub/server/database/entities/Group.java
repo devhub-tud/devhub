@@ -70,4 +70,8 @@ public class Group {
 		return builder.toString();
 	}
 
+	public Integer getBuildTimeout() {
+		return buildTimeout != null ? buildTimeout : course.getBuildTimeout();
+	}
+
 }

@@ -4,47 +4,55 @@
 		<div class="container">
 [@macros.renderCommitHeader i18n group commit "View diff" /]
 	[#if diffs?has_content]
-		[#list diffs as diff]
+		[#list diffs as diffModel]
 			<div class="diff box">
 				<div class="header">
 					<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
 					<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
-			[#if diff.isMoved()]
-					<h5><span class="label label-warn">Moved</span> ${diff.diffModel.oldPath} -&gt; ${diff.diffModel.newPath}</h5>
-			[#elseif diff.isCopied()]
-					<h5><span class="label label-warn">Copied</span> ${diff.diffModel.oldPath} -&gt; ${diff.diffModel.newPath}</h5>
-			[#elseif diff.isDeleted()]
-					<h5><span class="label label-danger">Deleted</span> ${diff.diffModel.oldPath}</h5>
-			[#elseif diff.isAdded()]
-					<h5><span class="label label-success">Created</span> </i> ${diff.diffModel.newPath}</h5>
-			[#elseif diff.isModified()]
-					<h5><span class="label label-primary">Modified</span> ${diff.diffModel.newPath}</h5>
+			[#if diffModel.isMoved()]
+					<h5><span class="label label-warn">Moved</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
+			[#elseif diffModel.isCopied()]
+					<h5><span class="label label-warn">Copied</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
+			[#elseif diffModel.isDeleted()]
+					<h5><span class="label label-danger">Deleted</span> ${diffModel.oldPath}</h5>
+			[#elseif diffModel.isAdded()]
+					<h5><span class="label label-success">Created</span> </i> ${diffModel.newPath}</h5>
+			[#elseif diffModel.isModified()]
+					<h5><span class="label label-primary">Modified</span> ${diffModel.newPath}</h5>
 			[/#if]
 				</div>
-			[#if  diff.lines?has_content]
+			[#if  diffModel.diffContexts?has_content]
 				<div class="scrollable">
 					<table class="table diffs">
+			[#list diffModel.diffContexts as diffContext]
 						<tbody>
-				[#list diff.lines as line]
-					[#if line.contents??]
+			[#assign oldLineNumber=diffContext.oldStart]
+			[#assign newLineNumber=diffContext.newStart]
+				[#list diffContext.diffLines as line]
+					[#if line.content??]
 							<tr>
 						[#if line.isRemoved()]
-								<td class="ln delete">${line.oldLineNumber}</td>
-								<td class="ln delete">${line.newLineNumber}</td>
-								<td class="code delete"><pre>${line.contents}</pre></td>
+								<td class="ln delete">${oldLineNumber}</td>
+								<td class="ln delete"></td>
+								<td class="code delete"><pre>${line.content}</pre></td>
+								[#assign oldLineNumber=oldLineNumber + 1]
 						[#elseif line.isAdded()]
-								<td class="ln add">${line.oldLineNumber}</td>
-								<td class="ln add">${line.newLineNumber}</td>
-								<td class="code add"><pre>${line.contents}</pre></td>
+								<td class="ln add"></td>
+								<td class="ln add">${newLineNumber}</td>
+								<td class="code add"><pre>${line.content}</pre></td>
+								[#assign newLineNumber=newLineNumber + 1]
 						[#else]
-								<td class="ln">${line.oldLineNumber}</td>
-								<td class="ln">${line.newLineNumber}</td>
-								<td class="code"><pre>${line.contents}</pre></td>
+								<td class="ln">${oldLineNumber}</td>
+								<td class="ln">${newLineNumber}</td>
+								<td class="code"><pre>${line.content}</pre></td>
+								[#assign oldLineNumber=oldLineNumber + 1]
+								[#assign newLineNumber=newLineNumber + 1]
 						[/#if]
 							</tr>
 					[/#if]
 				[/#list]
 						</tbody>
+			[/#list]
 					</table>
 				</div>
 			[/#if]

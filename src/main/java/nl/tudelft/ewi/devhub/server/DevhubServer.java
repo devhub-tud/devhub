@@ -11,9 +11,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistFilter;
+import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.util.Modules;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -132,7 +134,7 @@ public class DevhubServer {
 				@Override
 				protected void withInjector(Injector injector) {
 					DevhubServer.this.injector.set(injector);
-					FilterHolder persistFilterHolder = new FilterHolder(injector.getInstance(PersistFilter.class));
+					FilterHolder persistFilterHolder = new FilterHolder(injector.getInstance(GuiceFilter.class));
 					addFilter(persistFilterHolder, "/*", EnumSet.allOf(DispatcherType.class));
 				}
 			});

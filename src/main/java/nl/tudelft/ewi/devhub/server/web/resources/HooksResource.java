@@ -35,11 +35,10 @@ import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 
-import org.jboss.resteasy.plugins.guice.RequestScoped;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
 
 @Slf4j
 @RequestScoped

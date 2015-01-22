@@ -23,14 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.name.Named;
+import com.google.inject.servlet.RequestScoped;
 
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
-import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
-import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
 import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 @Slf4j
 @Path("/")
@@ -39,21 +40,26 @@ public class RootResource {
 	
 	private final TemplateEngine engine;
 	private final AuthenticationBackend authenticationBackend;
-	private final RequestScope scope;
+	private final Provider<User> currentUserProvider;
 
 	@Inject
-	public RootResource(TemplateEngine engine, AuthenticationBackend authenticationBackend, RequestScope scope) {
+	public RootResource(TemplateEngine engine,
+			AuthenticationBackend authenticationBackend,
+			@Named("current.user") Provider<User> currentUserProvider) {
 		this.engine = engine;
 		this.authenticationBackend = authenticationBackend;
-		this.scope = scope;
+		this.currentUserProvider = currentUserProvider;
 	}
 	
 	@GET
 	public Response onEntry(@Context HttpServletRequest request) throws URISyntaxException {
-		if (scope.getUser() == null) {
+		try {
+			currentUserProvider.get();
+			return Response.seeOther(new URI("/projects")).build();
+		}
+		catch (Exception e) {
 			return Response.seeOther(new URI("/login")).build();
 		}
-		return Response.seeOther(new URI("/projects")).build();
 	}
 	
 	@GET
@@ -76,9 +82,8 @@ public class RootResource {
 
 	@GET
 	@Path("logout")
-	@RequireAuthenticatedUser
 	public Response serveLogout(@Context HttpServletRequest request) throws URISyntaxException {
-		scope.invalidate();
+		request.getSession().invalidate();
 		return Response.seeOther(new URI("/login")).build();
 	}
 	
@@ -90,7 +95,7 @@ public class RootResource {
 		
 		try {
 			if (authenticationBackend.authenticate(netId, password)) {
-				scope.setUser(netId);
+				request.getSession().setAttribute("netID", netId);
 				if (Strings.isNullOrEmpty(redirectTo)) {
 					return Response.seeOther(new URI("/projects")).build();
 				}

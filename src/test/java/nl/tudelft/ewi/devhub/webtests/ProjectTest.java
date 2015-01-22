@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import nl.tudelft.ewi.devhub.server.util.DiffLine;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.DiffView;
 import nl.tudelft.ewi.devhub.webtests.views.DiffView.DiffElement;
@@ -14,6 +13,8 @@ import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.models.DiffContext;
+import nl.tudelft.ewi.git.models.DiffLine;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.models.DiffModel.Type;
 import nl.tudelft.ewi.git.models.MockedRepositoryModel;
@@ -151,15 +152,25 @@ public class ProjectTest extends WebTest {
 	 */
 	@Test
 	public void testViewCommitDiff() {
+		DiffLine a = new DiffLine();
+		a.setContent("A readme file with a bit of contents");
+		a.setType(DiffLine.Type.CONTEXT);
+		DiffLine b = new DiffLine();
+		b.setContent("Now we've altered the readme a bit to work on the diffs");
+		b.setType(DiffLine.Type.ADDED);
+		
+		DiffContext diffContext = new DiffContext();
+		diffContext.setOldStart(1);
+		diffContext.setOldEnd(1);
+		diffContext.setNewStart(1);
+		diffContext.setNewEnd(2);
+		diffContext.setDiffLines(Lists.<DiffLine> newArrayList(a, b));
+		
 		DiffModel model = new DiffModel();
 		model.setOldPath("the/old/path");
 		model.setNewPath("the/new/path");
-		model.setRaw(new String[] { "diff --git a/readme.md b/readme.md",
-				"index 983cc05..da041cc 100644", "--- a/readme.md",
-				"+++ b/readme.md", "@@ -1 +1,2 @@",
-				" A readme file with a bit of contents",
-				"+Now we've altered the readme a bit to work on the diffs" });
-		model.setType(Type.ADD);
+		model.setType(Type.MODIFY);
+		model.setDiffContexts(Lists.<DiffContext> newArrayList(diffContext));
 		
 		gitServerClient.repositories().setListDiffs(Lists.<DiffModel> newArrayList(model));
 		
@@ -173,28 +184,10 @@ public class ProjectTest extends WebTest {
 		
 		List<DiffElement> list = view.listDiffs();
 		DiffElement result = list.get(0);
-		
+
 		assertEquals(commit.getAuthor(), view.getAuthorHeader());
-		assertEquals(commit.getMessage(), view.getMessageHeader());		
-		assertEquals(model.getType(), result.getType());
-		
-		switch (model.getType()) {
-		case ADD:
-		case MODIFY:
-			assertEquals(model.getNewPath(), result.getNewPath());
-			break;
-		case DELETE:
-			assertEquals(model.getOldPath(), result.getOldPath());
-			break;
-		default:
-			assertEquals(model.getNewPath(), result.getNewPath());
-			assertEquals(model.getOldPath(), result.getOldPath());
-			break;
-		}
-		
-		List<DiffLine> expected = DiffLine.getLinesFor(model);
-		List<DiffLine> actual = result.getDiffLines();
-		assertEquals(expected, actual);
+		assertEquals(commit.getMessage(), view.getMessageHeader());
+		result.assertEqualTo(model);
 	}
 	
 }

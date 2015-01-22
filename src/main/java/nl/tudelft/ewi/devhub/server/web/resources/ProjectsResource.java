@@ -25,23 +25,21 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
-import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
 import org.eclipse.jetty.util.UrlEncoded;
-import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
 
 @RequestScoped
 @Path("projects")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-@RequireAuthenticatedUser
 public class ProjectsResource extends Resource {
 
 	private static final int MIN_GROUP_SIZE = 1;
@@ -49,27 +47,25 @@ public class ProjectsResource extends Resource {
 	private final ProjectsBackend projectsBackend;
 	private final TemplateEngine templateEngine;
 	private final Courses courses;
-	private final RequestScope scope;
+	private final User currentUser;
 	private final Users users;
 
 	@Inject
 	ProjectsResource(TemplateEngine templateEngine, ProjectsBackend projectsBackend, Courses projects,
-			RequestScope scope, Users users) {
+			@Named("current.user") User currentUser, Users users) {
 
 		this.templateEngine = templateEngine;
 		this.projectsBackend = projectsBackend;
 		this.courses = projects;
-		this.scope = scope;
+		this.currentUser = currentUser;
 		this.users = users;
 	}
 
 	@GET
 	@Transactional
 	public Response showProjectsOverview(@Context HttpServletRequest request) throws IOException {
-		User requester = scope.getUser();
-
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", requester);
+		parameters.put("user", currentUser);
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("projects.ftl", locales, parameters));
@@ -98,12 +94,11 @@ public class ProjectsResource extends Resource {
 	private Response showProjectSetupPageStep1(@Context HttpServletRequest request, @QueryParam("error") String error)
 			throws IOException {
 
-		User requester = scope.getUser();
 		HttpSession session = request.getSession();
 
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", requester);
-		parameters.put("courses", courses.listNotYetParticipatedCourses(requester));
+		parameters.put("user", currentUser);
+		parameters.put("courses", courses.listNotYetParticipatedCourses(currentUser));
 		if (session.getAttribute("projects.setup.course") != null) {
 			parameters.put("course", courses.find(String.valueOf(session.getAttribute("projects.setup.course"))));
 		}
@@ -119,7 +114,6 @@ public class ProjectsResource extends Resource {
 	private Response showProjectSetupPageStep2(@Context HttpServletRequest request, @QueryParam("error") String error)
 			throws IOException {
 
-		User requester = scope.getUser();
 		HttpSession session = request.getSession();
 		Course course = courses.find(String.valueOf(session.getAttribute("projects.setup.course")));
 		List<User> members = (List<User>) session.getAttribute("projects.setup.members");
@@ -128,7 +122,7 @@ public class ProjectsResource extends Resource {
 		int minGroupSize = getMinGroupSize(course);
 
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", requester);
+		parameters.put("user", currentUser);
 		parameters.put("course", course);
 		if (members != null && !members.isEmpty()) {
 			parameters.put("members", members);
@@ -147,13 +141,12 @@ public class ProjectsResource extends Resource {
 	private Response showProjectSetupPageStep3(@Context HttpServletRequest request, @QueryParam("error") String error)
 			throws IOException {
 
-		User requester = scope.getUser();
 		HttpSession session = request.getSession();
 		Course course = courses.find(String.valueOf(session.getAttribute("projects.setup.course")));
 		List<User> members = (List<User>) session.getAttribute("projects.setup.members");
 
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", requester);
+		parameters.put("user", currentUser);
 		parameters.put("course", course);
 		parameters.put("members", members);
 		if (!Strings.isNullOrEmpty(error)) {
@@ -171,7 +164,6 @@ public class ProjectsResource extends Resource {
 			throws IOException {
 
 		HttpSession session = request.getSession();
-		User requester = scope.getUser();
 
 		if (step == 1) {
 			String courseCode = request.getParameter("course");
@@ -192,7 +184,7 @@ public class ProjectsResource extends Resource {
 			int maxGroupSize = getMaxGroupSize(course);
 			int minGroupSize = getMinGroupSize(course);
 
-			if (!groupMembers.contains(requester) && !requester.isAdmin() && !requester.isAssisting(course)) {
+			if (!groupMembers.contains(currentUser) && !currentUser.isAdmin() && !currentUser.isAssisting(course)) {
 				return redirect("/projects/setup?step=2&error=error.must-be-group-member");
 			}
 			if (groupMembers.size() < minGroupSize || groupMembers.size() > maxGroupSize) {
@@ -242,8 +234,7 @@ public class ProjectsResource extends Resource {
 	}
 	
 	public int getMinGroupSize(Course course) {
-		User user = scope.getUser();
-		if (user.isAdmin() || user.isAssisting(course)) {
+		if (currentUser.isAdmin() || currentUser.isAssisting(course)) {
 			return MIN_GROUP_SIZE;
 		}
 		return course.getMinGroupSize();

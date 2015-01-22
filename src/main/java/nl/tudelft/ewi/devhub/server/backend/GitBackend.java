@@ -6,7 +6,6 @@ import java.util.Map;
 
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.devhub.server.web.resources.ProjectResource.Diff;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
@@ -16,7 +15,6 @@ import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.models.EntryType;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 /**
@@ -55,17 +53,9 @@ public class GitBackend {
 		}
 	}
 	
-	public List<Diff> fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
+	public List<DiffModel> fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
 		try {
-			Repositories repositories = client.repositories();
-			List<Diff> result = Lists.newArrayList();
-			List<DiffModel> diffs = repositories.listDiffs(repository, oldCommitId, newCommitId);
-			
-			for (DiffModel diff : diffs) {
-				result.add(new Diff(diff));
-			}
-			
-			return result;
+			return client.repositories().listDiffs(repository, oldCommitId, newCommitId);
 		} catch (Throwable e) {
 			throw new ApiError("error.git-server-unavailable", e);
 		}

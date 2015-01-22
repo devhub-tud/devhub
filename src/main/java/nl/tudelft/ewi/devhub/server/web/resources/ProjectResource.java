@@ -30,12 +30,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.util.DiffLine;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
-import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.models.DetailedBranchModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
@@ -43,15 +39,14 @@ import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.models.EntryType;
 
-import org.jboss.resteasy.plugins.guice.RequestScoped;
-
 import com.google.common.collect.Maps;
+import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
 
 @RequestScoped
 @Path("projects/{courseCode}/groups/{groupNumber}")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-@RequireAuthenticatedUser
 public class ProjectResource extends Resource {
 	
 	private static final int PAGE_SIZE = 25;
@@ -60,18 +55,19 @@ public class ProjectResource extends Resource {
 	private final GitBackend gitBackend;
 	private final Groups groups;
 	private final Courses courses;
-	private final RequestScope scope;
+	private final User currentUser;
 	private final BuildResults buildResults;
 
 	@Inject
-	ProjectResource(TemplateEngine templateEngine, Groups groups, Courses projects,
-			GitBackend gitBackend, RequestScope scope, BuildResults buildResults) {
+	ProjectResource(TemplateEngine templateEngine, Groups groups,
+			Courses projects, GitBackend gitBackend,
+			@Named("current.user") User currentUser, BuildResults buildResults) {
 
 		this.templateEngine = templateEngine;
 		this.courses = projects;
 		this.groups = groups;
 		this.gitBackend = gitBackend;
-		this.scope = scope;
+		this.currentUser = currentUser;
 		this.buildResults = buildResults;
 	}
 	
@@ -81,14 +77,9 @@ public class ProjectResource extends Resource {
 			@PathParam("courseCode") String courseCode, @PathParam("groupNumber") long groupNumber,
 			@QueryParam("fatal") String fatal) throws IOException, ApiError {
 
-		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, groupNumber);
 		
-		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
-			throw new UnauthorizedException();
-		}
-
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DetailedBranchModel branch;
 		
@@ -118,14 +109,9 @@ public class ProjectResource extends Resource {
 			@QueryParam("page") @DefaultValue("1") int page,
 			@QueryParam("fatal") String fatal) throws IOException, ApiError {
 
-		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, Long.parseLong(groupNumber));
 		
-		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
-			throw new UnauthorizedException();
-		}
-
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DetailedBranchModel branch = gitBackend.fetchBranch(repository, branchName, page, PAGE_SIZE);
 		
@@ -137,7 +123,7 @@ public class ProjectResource extends Resource {
 			DetailedBranchModel branch, int page) throws IOException {
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", scope.getUser());
+		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("repository", repository);
@@ -164,19 +150,14 @@ public class ProjectResource extends Resource {
 			@PathParam("groupNumber") String groupNumber, @PathParam("commitId") String commitId,
 			@QueryParam("fatal") String fatal) throws IOException, ApiError {
 
-		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, Long.parseLong(groupNumber));
-
-		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
-			throw new UnauthorizedException();
-		}
 
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DetailedCommitModel commit = gitBackend.fetchCommitView(repository, commitId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", scope.getUser());
+		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("commit", commit);
 		parameters.put("states", new CommitChecker(group, buildResults));
@@ -202,19 +183,14 @@ public class ProjectResource extends Resource {
 			@PathParam("groupNumber") long groupNumber, @PathParam("oldId") String oldId,
 			@PathParam("newId") String newId) throws ApiError, IOException {
 		
-		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, groupNumber);
 
-		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
-			throw new UnauthorizedException();
-		}
-
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		List<Diff> diffs = gitBackend.fetchDiffs(repository, newId, oldId);
+		List<DiffModel> diffs = gitBackend.fetchDiffs(repository, newId, oldId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", scope.getUser());
+		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("diffs", diffs);
 		parameters.put("commit", gitBackend.fetchCommitView(repository, oldId));
@@ -246,13 +222,8 @@ public class ProjectResource extends Resource {
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
 			@PathParam("path") String path) throws ApiError, IOException {
 		
-		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, groupNumber);
-
-		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
-			throw new UnauthorizedException();
-		}
 
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
@@ -276,7 +247,7 @@ public class ProjectResource extends Resource {
 		entries.putAll(gitBackend.listDirectoryEntries(repository, commitId, path));
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", scope.getUser());
+		parameters.put("user", currentUser);
 		parameters.put("commit", gitBackend.fetchCommitView(repository, commitId));
 		parameters.put("path", path);
 		parameters.put("group", group);
@@ -295,14 +266,9 @@ public class ProjectResource extends Resource {
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
 			@PathParam("path") String path) throws ApiError, IOException {
 
-		User user = scope.getUser();
 		Course course = courses.find(courseCode);
 		Group group = groups.find(course, groupNumber);
 
-		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
-			throw new UnauthorizedException();
-		}
-		
 		String folderPath = "";
 		String fileName = path;
 		if (path.contains("/")) {
@@ -324,7 +290,7 @@ public class ProjectResource extends Resource {
 		String[] contents = gitBackend.showFile(repository, commitId, path).split("\\r?\\n");
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", scope.getUser());
+		parameters.put("user", currentUser);
 		parameters.put("commit", gitBackend.fetchCommitView(repository, commitId));
 		parameters.put("path", path);
 		parameters.put("contents", contents);
@@ -337,41 +303,6 @@ public class ProjectResource extends Resource {
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
 	}
 	
-
-
-	@Data
-	public static class Diff {
-		
-		private final List<DiffLine> lines;
-		private final DiffModel diffModel;
-		
-		public Diff(DiffModel diffModel) {
-			this.diffModel = diffModel;
-			this.lines = DiffLine.getLinesFor(diffModel);
-		}
-		
-		public boolean isDeleted() {
-			return diffModel.getType().equals(DiffModel.Type.DELETE);
-		}
-		
-		public boolean isAdded() {
-			return diffModel.getType().equals(DiffModel.Type.ADD);
-		}
-		
-		public boolean isModified() {
-			return diffModel.getType().equals(DiffModel.Type.MODIFY);
-		}
-		
-		public boolean isCopied() {
-			return diffModel.getType().equals(DiffModel.Type.COPY);
-		}
-		
-		public boolean isMoved() {
-			return diffModel.getType().equals(DiffModel.Type.RENAME);
-		}
-		
-	}
-
 	@Data
 	public static class CommitChecker {
 		private final Group group;

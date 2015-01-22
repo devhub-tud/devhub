@@ -22,45 +22,44 @@ import javax.ws.rs.core.Response;
 
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
-import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
 import org.eclipse.jetty.util.UrlEncoded;
-import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
 
 @RequestScoped
 @Path("build-servers")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-@RequireAuthenticatedUser
 public class BuildServerResource extends Resource {
 
 	private final TemplateEngine templateEngine;
 	private final BuildsBackend backend;
-	private final RequestScope scope;
+	private final User currentUser;
 
 	@Inject
-	BuildServerResource(TemplateEngine templateEngine, BuildsBackend backend, RequestScope scope) {
+	BuildServerResource(TemplateEngine templateEngine, BuildsBackend backend, @Named("current.user") User currentUser) {
 		this.templateEngine = templateEngine;
 		this.backend = backend;
-		this.scope = scope;
+		this.currentUser = currentUser;
 	}
 
 	@GET
 	public Response showBuildServers(@Context HttpServletRequest request, @QueryParam("error") String error) 
 			throws IOException, URISyntaxException {
 		
-		if (!scope.isAdmin()) {
+		if (!currentUser.isAdmin()) {
 			return Response.seeOther(new URI("/")).build();
 		}
 		
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", scope.getUser());
+		parameters.put("user", currentUser);
 		parameters.put("servers", backend.listActiveBuildServers());
 		if (!Strings.isNullOrEmpty(error)) {
 			parameters.put("error", error);
@@ -75,14 +74,14 @@ public class BuildServerResource extends Resource {
 	public Response showNewBuildServerSetupPage(@Context HttpServletRequest request, @QueryParam("error") String error) 
 			throws IOException, URISyntaxException {
 		
-		if (!scope.isAdmin()) {
+		if (!currentUser.isAdmin()) {
 			return Response.seeOther(new URI("/")).build();
 		}
 		
 		List<Locale> locales = Collections.list(request.getLocales());
 		
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", scope.getUser());
+		parameters.put("user", currentUser);
 		if (!Strings.isNullOrEmpty(error)) {
 			parameters.put("error", error);
 		}
@@ -95,7 +94,7 @@ public class BuildServerResource extends Resource {
 	public Response addNewBuildServer(@FormParam("name") String name, @FormParam("secret") String secret, @FormParam("host") String host) 
 			throws URISyntaxException {
 		
-		if (!scope.isAdmin()) {
+		if (!currentUser.isAdmin()) {
 			return Response.seeOther(new URI("/")).build();
 		}
 		
@@ -118,7 +117,7 @@ public class BuildServerResource extends Resource {
 	@Path("delete")
 	@Transactional
 	public Response deleteBuildServer(@FormParam("id") long id) throws URISyntaxException {
-		if (!scope.isAdmin()) {
+		if (!currentUser.isAdmin()) {
 			return Response.seeOther(new URI("/")).build();
 		}
 		

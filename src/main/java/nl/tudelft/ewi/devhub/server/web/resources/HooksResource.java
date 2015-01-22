@@ -85,10 +85,12 @@ public class HooksResource extends Resource {
 
 		Group group = groups.findByRepoName(push.getRepository());
 		for (BranchModel branch : repository.getBranches()) {
+			String commitId = branch.getCommit().getCommit();
+			
 			if ("HEAD".equals(branch.getSimpleName())) {
 				continue;
 			}
-			if (buildResults.exists(group, branch.getCommit())) {
+			if (buildResults.exists(group, commitId)) {
 				continue;
 			}
 
@@ -97,13 +99,13 @@ public class HooksResource extends Resource {
 			GitSource source = new GitSource();
 			source.setRepositoryUrl(repository.getUrl());
 			source.setBranchName(branch.getName());
-			source.setCommitId(branch.getCommit());
+			source.setCommitId(commitId);
 
 			StringBuilder callbackBuilder = new StringBuilder();
 			callbackBuilder.append(config.getHttpUrl());
 			callbackBuilder.append("/hooks/build-result");
 			callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
-			callbackBuilder.append("&commit=" + URLEncoder.encode(branch.getCommit(), "UTF-8"));
+			callbackBuilder.append("&commit=" + URLEncoder.encode(commitId, "UTF-8"));
 
 			BuildRequest buildRequest = new BuildRequest();
 			buildRequest.setCallbackUrl(callbackBuilder.toString());
@@ -112,7 +114,7 @@ public class HooksResource extends Resource {
 			buildRequest.setTimeout(group.getBuildTimeout());
 
 			buildBackend.offerBuild(buildRequest);
-			buildResults.persist(BuildResult.newBuildResult(group, branch.getCommit()));
+			buildResults.persist(BuildResult.newBuildResult(group, commitId));
 		}
 	}
 

@@ -1,11 +1,7 @@
 [#macro listTags repository commitId]
 	[#list repository.getTags() as tag]
-		[#if tag.getCommit() == commitId]
-			[#if tag.getName()?starts_with("refs/tags/")]
-<span class="label label-primary">${tag.getName()?substring("refs/tags/"?length)}</span>
-			[#else]
-<span class="label label-primary">${tag.getName()}</span>
-			[/#if]
+		[#if tag.getCommit().getCommit() == commitId]
+<span class="label label-primary">${tag.getSimpleName()}</span>
 		[/#if]
 	[/#list]
 [/#macro]
@@ -37,6 +33,12 @@
 				<span class="octicon octicon-git-branch"></span>
 				<span class="text-muted">${i18n.translate("branch.current")}:</span>
 				${branch.getSimpleName()}
+[#if branch.behind?? && branch.ahead?? && branch.behind > 0 || branch.ahead > 0 ]
+				<span class="text-success octicon octicon-arrow-up"></span>
+				<span class="text-muted">${branch.getAhead()}</span>
+				<span class="text-danger octicon octicon-arrow-down"></span>
+				<span class="text-muted">${branch.getBehind()}</span>
+[/#if]
 			</button>
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 				<span class="caret"></span>
@@ -44,7 +46,15 @@
 			</button>
 			<ul class="dropdown-menu" role="menu">
 	[#list repository.getBranches() as b ]
-				<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/branch/${b.getSimpleName()}">${b.getSimpleName()}</a></li>
+				<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/branch/${b.getSimpleName()}" style="text-align:right;">
+				${b.getSimpleName()}
+[#if b.behind?? && b.ahead?? && b.behind > 0 || b.ahead > 0 ]
+				<span class="text-success octicon octicon-arrow-up"></span>
+				<span class="text-muted">${b.getAhead()}</span>
+				<span class="text-danger octicon octicon-arrow-down"></span>
+				<span class="text-muted">${b.getBehind()}</span>
+[/#if]
+				</a></li>
 	[/#list]
 			</ul>
 		</div>

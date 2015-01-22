@@ -1,133 +1,23 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.mail.Address;
-import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
 import lombok.Data;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.Config;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Queues;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.inject.ImplementedBy;
 
-@Slf4j
-@Singleton
-public class MailBackend {
+@ImplementedBy(MailBackendImpl.class)
+public interface MailBackend {
 
-	private static final int MAIL_QUEUE_SIZE = 1000;
+	int getQueueSize();
 
+	void sendMail(Mail mail);
+	
 	@Data
 	@ToString(exclude = { "content" })
 	public static class Mail {
 		private final String addressee;
 		private final String subject;
 		private final String content;
-	}
-
-	private final Config config;
-	private final Queue<Mail> mailQueue;
-	private final ExecutorService executor;
-	private final AtomicBoolean sending;
-
-	@Inject
-	MailBackend(Config config) {
-		this.config = config;
-		this.mailQueue = Queues.newArrayBlockingQueue(MAIL_QUEUE_SIZE);
-		this.executor = Executors.newSingleThreadExecutor();
-		this.sending = new AtomicBoolean(false);
-	}
-
-	public void sendMail(Mail mail) {
-		Preconditions.checkNotNull(mail);
-		if (Strings.isNullOrEmpty(mail.getAddressee())) {
-			log.warn("Not sending mail: {}, since addressee has no email address set", mail);
-			return;
-		}
-
-		synchronized (mailQueue) {
-			mailQueue.offer(mail);
-			if (sending.compareAndSet(false, true)) {
-				executor.submit(new Mailer());
-			}
-		}
-	}
-
-	public int getQueueSize() {
-		synchronized (mailQueue) {
-			return mailQueue.size();
-		}
-	}
-
-	private class Mailer implements Runnable {
-
-		@Override
-		public void run() {
-			while (true) {
-				Mail mail;
-				synchronized (mailQueue) {
-					mail = mailQueue.poll();
-					if (mail == null) {
-						sending.set(false);
-						return;
-					}
-				}
-
-				try {
-					sendMail(mail);
-				}
-				catch (MessagingException e) {
-					log.error(e.getMessage(), e);
-					synchronized (mailQueue) {
-						mailQueue.offer(mail);
-					}
-				}
-				catch (Throwable e) {
-					log.error(e.getMessage(), e);
-				}
-			}
-		}
-
-		private void sendMail(Mail mail) throws MessagingException, UnsupportedEncodingException {
-			String user = config.getSmtpUser();
-			String pass = config.getSmtpPass();
-			String host = config.getSmtpHost();
-			String origin = config.getSmtpOrigin();
-
-			Properties properties = System.getProperties();
-			properties.setProperty("mail.smtp.host", host);
-			if (!Strings.isNullOrEmpty(user)) {
-				properties.setProperty("mail.user", user);
-				properties.setProperty("mail.password", pass);
-			}
-
-			Session session = Session.getDefaultInstance(properties);
-
-			MimeMessage message = new MimeMessage(session);
-			message.addFrom(new Address[] { new InternetAddress(origin) });
-			message.setSubject(mail.getSubject());
-			message.setText(mail.getContent());
-			message.setRecipient(RecipientType.TO, new InternetAddress(mail.getAddressee()));
-
-			log.info("Sending mail: " + mail);
-			Transport.send(message);
-		}
-
 	}
 
 }

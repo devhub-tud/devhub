@@ -112,19 +112,29 @@ public class Bootstrapper {
 		}
 		
 		for (BCourse course : state.getCourses()) {
-			Course entity = new Course();
-			entity.setCode(course.getCode().toLowerCase());
-			entity.setName(course.getName());
-			entity.setTemplateRepositoryUrl(course.getTemplateRepositoryUrl());
-			entity.setStart(course.isStarted() ? new Date() : null);
-			entity.setEnd(course.isEnded() ? new Date() : null);
-			entity.setMinGroupSize(course.getMinGroupSize());
-			entity.setMaxGroupSize(course.getMaxGroupSize());
-			entity.setBuildTimeout(course.getBuildTimeout());
-			courses.persist(entity);
-			
-			log.debug("Persisted course: " + entity.getCode());
-			
+
+			Course entity;
+
+			try {
+				entity = courses.find(course.getCode());
+				log.debug("Course already existing in database: " + entity.getCode());
+			}
+			catch (Exception e) {
+				entity = new Course();
+				entity.setCode(course.getCode().toLowerCase());
+				entity.setName(course.getName());
+				entity.setTemplateRepositoryUrl(course.getTemplateRepositoryUrl());
+				entity.setStart(course.isStarted() ? new Date() : null);
+				entity.setEnd(course.isEnded() ? new Date() : null);
+				entity.setMinGroupSize(course.getMinGroupSize());
+				entity.setMaxGroupSize(course.getMaxGroupSize());
+				entity.setBuildTimeout(course.getBuildTimeout());
+				courses.persist(entity);
+
+				log.debug("Persisted course: " + entity.getCode());
+			}
+
+
 			GroupModel groupModel = new GroupModel();
 			groupModel.setName(entity.getCode());
 			
@@ -154,7 +164,7 @@ public class Bootstrapper {
 				groupEntity.setCourse(entity);
 				groupEntity.setGroupNumber(group.getGroupNumber());
 				groupEntity.setBuildTimeout(group.getBuildTimeout());
-				groupEntity.setRepositoryName("courses/" + entity.getCode() + "/group-" + group.getGroupNumber());
+				groupEntity.setRepositoryName("courses/" + entity.getCode().toLowerCase() + "/group-" + group.getGroupNumber());
 				groups.persist(groupEntity);
 				
 				log.debug("    Persisted group: " + groupEntity.getGroupName());

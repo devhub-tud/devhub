@@ -8,13 +8,13 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
+import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.client.SshKeys;
 import nl.tudelft.ewi.git.models.SshKeyModel;
 import nl.tudelft.ewi.git.models.UserModel;
-
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
@@ -99,7 +99,6 @@ public class SshKeyBackendTest {
 		backend.deleteSshKey(user, "abcd");
 	}
 	
-	
 	private final static Random random = new Random();
 	
 	protected String randomString() {
@@ -108,7 +107,7 @@ public class SshKeyBackendTest {
 
 	protected User createUser() {
 		User user = new User();
-		user.setMemberOf(Lists.newArrayList());
+		user.setMemberOf(Lists.<GroupMembership> newArrayList());
 		user.setNetId(randomString());
 		return user;
 	}

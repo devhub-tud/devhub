@@ -5,10 +5,10 @@ import java.util.Date;
 import java.util.Random;
 
 import javax.inject.Inject;
+import javax.persistence.PersistenceException;
 import javax.validation.ConstraintViolationException;
 
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
-
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
@@ -96,27 +96,28 @@ public class CoursesTest {
 		courses.persist(course);
 		assertEquals(course, courses.find(course.getCode()));
 	}
-	
-	@Test
+
+	@Test(expected=PersistenceException.class)
 	public void testInsertSameCodeTwice() {
 		Course course = createCourse();
 		courses.persist(course);
+
 		Course other = createCourse();
 		other.setCode(course.getCode());
 		courses.persist(other);
 	}
-	
-	@Test
-	public void testFindCourseForCodeFail() {
+
+	@Test(expected=PersistenceException.class)
+	public void testCourseCodeCaseInsensitive() {
 		Course course = createCourse();
+		course.setCode(course.getCode().toLowerCase());
 		courses.persist(course);
+
 		Course other = createCourse();
-		other.setCode(course.getCode());
+		other.setCode(course.getCode().toUpperCase());
 		courses.persist(other);
-		assertEquals(course, courses.find(course.getCode()));
-		assertEquals(other, courses.find(course.getCode()));
 	}
-	
+
 	@Test
 	public void testListActiveCourses() {
 		Course course = createCourse();

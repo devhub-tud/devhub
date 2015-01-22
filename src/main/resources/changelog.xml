@@ -175,4 +175,8 @@
 		<addUniqueConstraint columnNames="course_id,group_number" tableName="groups" />
 	</changeSet>
 	
+	<changeSet id="add_unique_constraint_course" author="Jan-Willem Gmelig Meyling">
+		<addUniqueConstraint columnNames="code" tableName="courses" />
+	</changeSet>
+
 </databaseChangeLog>

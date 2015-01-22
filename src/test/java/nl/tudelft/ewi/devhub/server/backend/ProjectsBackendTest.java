@@ -49,9 +49,9 @@ public class ProjectsBackendTest {
 	public void beforeTest() {
 		course = createCourse();
 		user = createUser();
-		when(groups.find(course)).thenReturn(Lists.newArrayList());
+		when(groups.find(course)).thenReturn(Lists.<Group> newArrayList());
 		when(groupMemberships.ofGroup(Mockito.any(Group.class)))
-			.thenReturn(Lists.newArrayList());
+			.thenReturn(Lists.<GroupMembership> newArrayList());
 	}
 	
 	@Test
@@ -117,7 +117,7 @@ public class ProjectsBackendTest {
 	
 	protected User createUser() {
 		User user = new User();
-		user.setMemberOf(Lists.newArrayList());
+		user.setMemberOf(Lists.<GroupMembership> newArrayList());
 		user.setNetId(randomString());
 		return user;
 	}

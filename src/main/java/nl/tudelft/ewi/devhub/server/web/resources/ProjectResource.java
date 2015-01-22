@@ -24,10 +24,7 @@ import javax.ws.rs.core.Response;
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.backend.GitBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
@@ -53,19 +50,19 @@ public class ProjectResource extends Resource {
 
 	private final TemplateEngine templateEngine;
 	private final GitBackend gitBackend;
-	private final Groups groups;
-	private final Courses courses;
 	private final User currentUser;
 	private final BuildResults buildResults;
+	private final Group group;
 
 	@Inject
-	ProjectResource(TemplateEngine templateEngine, Groups groups,
-			Courses projects, GitBackend gitBackend,
-			@Named("current.user") User currentUser, BuildResults buildResults) {
+	ProjectResource(final TemplateEngine templateEngine, 
+			final GitBackend gitBackend,
+			final @Named("current.user") User currentUser,
+			final @Named("current.group") Group group,
+			final BuildResults buildResults) {
 
 		this.templateEngine = templateEngine;
-		this.courses = projects;
-		this.groups = groups;
+		this.group = group;
 		this.gitBackend = gitBackend;
 		this.currentUser = currentUser;
 		this.buildResults = buildResults;
@@ -77,9 +74,7 @@ public class ProjectResource extends Resource {
 			@PathParam("courseCode") String courseCode, @PathParam("groupNumber") long groupNumber,
 			@QueryParam("fatal") String fatal) throws IOException, ApiError {
 
-		Course course = courses.find(courseCode);
-		Group group = groups.find(course, groupNumber);
-		
+
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DetailedBranchModel branch;
 		
@@ -109,9 +104,6 @@ public class ProjectResource extends Resource {
 			@QueryParam("page") @DefaultValue("1") int page,
 			@QueryParam("fatal") String fatal) throws IOException, ApiError {
 
-		Course course = courses.find(courseCode);
-		Group group = groups.find(course, Long.parseLong(groupNumber));
-		
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DetailedBranchModel branch = gitBackend.fetchBranch(repository, branchName, page, PAGE_SIZE);
 		
@@ -150,9 +142,6 @@ public class ProjectResource extends Resource {
 			@PathParam("groupNumber") String groupNumber, @PathParam("commitId") String commitId,
 			@QueryParam("fatal") String fatal) throws IOException, ApiError {
 
-		Course course = courses.find(courseCode);
-		Group group = groups.find(course, Long.parseLong(groupNumber));
-
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DetailedCommitModel commit = gitBackend.fetchCommitView(repository, commitId);
 
@@ -183,9 +172,6 @@ public class ProjectResource extends Resource {
 			@PathParam("groupNumber") long groupNumber, @PathParam("oldId") String oldId,
 			@PathParam("newId") String newId) throws ApiError, IOException {
 		
-		Course course = courses.find(courseCode);
-		Group group = groups.find(course, groupNumber);
-
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		List<DiffModel> diffs = gitBackend.fetchDiffs(repository, newId, oldId);
 
@@ -222,9 +208,6 @@ public class ProjectResource extends Resource {
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
 			@PathParam("path") String path) throws ApiError, IOException {
 		
-		Course course = courses.find(courseCode);
-		Group group = groups.find(course, groupNumber);
-
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
 
@@ -265,9 +248,6 @@ public class ProjectResource extends Resource {
 	public Response getBlob(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
 			@PathParam("path") String path) throws ApiError, IOException {
-
-		Course course = courses.find(courseCode);
-		Group group = groups.find(course, groupNumber);
 
 		String folderPath = "";
 		String fileName = path;

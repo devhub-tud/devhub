@@ -59,20 +59,7 @@ public class ProjectsBackend {
 		
 		log.info("Setting up new project for course: {} and members: {}", course, members);
 		Group group = persistRepository(course, members);
-
-		String repositoryName = group.getRepositoryName();
-		String templateRepositoryUrl = group.getCourse()
-			.getTemplateRepositoryUrl();
-
-		try {
-			provisionRepository(course.getCode(), repositoryName, templateRepositoryUrl, members);
-		}
-		catch (Throwable e) {
-			log.error(e.getMessage(), e);
-			deleteGroupFromDatabase(group);
-			deleteRepositoryFromGit(group);
-			throw new ApiError(GIT_SERVER_UNAVAILABLE);
-		}
+		provisionRepository(group, members);
 	}
 
 	private void deleteRepositoryFromGit(Group group) {
@@ -158,6 +145,23 @@ public class ProjectsBackend {
 
 			log.info("Created new group in database: {}", group);
 			return group;
+		}
+	}
+	
+	public void provisionRepository(Group group, Collection<User> members) throws ApiError {
+		String courseCode = group.getCourse().getCode();
+		String repositoryName = group.getRepositoryName();
+		String templateRepositoryUrl = group.getCourse()
+			.getTemplateRepositoryUrl();
+		
+		try {
+			provisionRepository(courseCode, repositoryName, templateRepositoryUrl, members);
+		}
+		catch (Throwable e) {
+			log.error(e.getMessage(), e);
+			deleteGroupFromDatabase(group);
+			deleteRepositoryFromGit(group);
+			throw new ApiError(GIT_SERVER_UNAVAILABLE);
 		}
 	}
 

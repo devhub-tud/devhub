@@ -12,7 +12,9 @@ import nl.tudelft.ewi.build.client.MockedBuildServerBackend;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.Bootstrapper;
+import nl.tudelft.ewi.devhub.server.backend.MailBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
+import nl.tudelft.ewi.devhub.server.backend.MockedMailBackend;
 import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
@@ -46,6 +48,7 @@ public abstract class WebTest {
 				bind(GitServerClientMock.class).toInstance(new GitServerClientMock());
 				bind(BuildServerBackend.class).to(MockedBuildServerBackend.class);
 				bind(MockedBuildServerBackend.class).toInstance(new MockedBuildServerBackend(null, null));
+				bind(MailBackend.class).to(MockedMailBackend.class);
 			}
 		});
 		server.startServer();

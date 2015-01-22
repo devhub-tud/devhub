@@ -9,16 +9,19 @@
 				<div class="header">
 					<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
 					<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
-			[#if diffModel.isMoved()]
-					<h5><span class="label label-warn">Moved</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
-			[#elseif diffModel.isCopied()]
-					<h5><span class="label label-warn">Copied</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
-			[#elseif diffModel.isDeleted()]
+			[#if diffModel.isDeleted()]
 					<h5><span class="label label-danger">Deleted</span> ${diffModel.oldPath}</h5>
-			[#elseif diffModel.isAdded()]
+			[#else]
+					<a href="/projects/${group.course.code}/groups/${group.groupNumber}/${commit.commit}/raw/${diffModel.newPath?url('UTF8')}" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
+				[#if diffModel.isMoved()]
+					<h5><span class="label label-warn">Moved</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
+				[#elseif diffModel.isCopied()]
+					<h5><span class="label label-warn">Copied</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
+				[#elseif diffModel.isAdded()]
 					<h5><span class="label label-success">Created</span> </i> ${diffModel.newPath}</h5>
-			[#elseif diffModel.isModified()]
+				[#elseif diffModel.isModified()]
 					<h5><span class="label label-primary">Modified</span> ${diffModel.newPath}</h5>
+				[/#if]
 			[/#if]
 				</div>
 			[#if  diffModel.diffContexts?has_content]

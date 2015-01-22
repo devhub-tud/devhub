@@ -36,7 +36,9 @@ public class GitResourceProxy extends Transparent {
         url.append("/api/repositories");
         if(matcher.matches()) {
         	// Repository name
-        	url.append('/').append("courses%2F").append(matcher.group(1)).append("%2Fgroup-").append(matcher.group(2));
+			url.append('/').append("courses%2F")
+					.append(matcher.group(1).toLowerCase()).append("%2Fgroup-")
+					.append(matcher.group(2));
         	url.append("/file");
         	// Commit id
         	url.append('/').append(matcher.group(3));

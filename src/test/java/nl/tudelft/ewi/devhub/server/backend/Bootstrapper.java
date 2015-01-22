@@ -115,7 +115,6 @@ public class Bootstrapper {
 		}
 		
 		for (BCourse course : state.getCourses()) {
-
 			Course entity;
 
 			try {
@@ -159,6 +158,8 @@ public class Bootstrapper {
 				
 				log.debug("    Persisted assistant: " + assistantUser.getNetId());
 			}
+			
+			gitClient.groups().create(courseGroupModel);
 			
 			for (BGroup group : course.getGroups()) {
 				Group groupEntity = new Group();

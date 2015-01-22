@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import lombok.Data;
+import nl.tudelft.ewi.devhub.server.backend.GitBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
@@ -36,8 +37,6 @@ import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.DetailedBranchModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
@@ -46,7 +45,6 @@ import nl.tudelft.ewi.git.models.EntryType;
 
 import org.jboss.resteasy.plugins.guice.RequestScoped;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.persist.Transactional;
 
@@ -59,7 +57,7 @@ public class ProjectResource extends Resource {
 	private static final int PAGE_SIZE = 25;
 
 	private final TemplateEngine templateEngine;
-	private final GitServerClient client;
+	private final GitBackend gitBackend;
 	private final Groups groups;
 	private final Courses courses;
 	private final RequestScope scope;
@@ -67,12 +65,12 @@ public class ProjectResource extends Resource {
 
 	@Inject
 	ProjectResource(TemplateEngine templateEngine, Groups groups, Courses projects,
-			GitServerClient client, RequestScope scope, BuildResults buildResults) {
+			GitBackend gitBackend, RequestScope scope, BuildResults buildResults) {
 
 		this.templateEngine = templateEngine;
 		this.courses = projects;
 		this.groups = groups;
-		this.client = client;
+		this.gitBackend = gitBackend;
 		this.scope = scope;
 		this.buildResults = buildResults;
 	}
@@ -91,16 +89,16 @@ public class ProjectResource extends Resource {
 			throw new UnauthorizedException();
 		}
 
-		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DetailedBranchModel branch;
 		
 		try {
-			branch = client.repositories().retrieveBranch(repository, "master", 0, PAGE_SIZE);
+			branch = gitBackend.retrieveBranch(repository, "master", 0, PAGE_SIZE);
 		}
 		catch (Throwable e) {
 			if(!repository.getBranches().isEmpty()) {
 				String branchName = repository.getBranches().iterator().next().getName();
-				branch = fetchBranch(repository, branchName, 1);
+				branch = gitBackend.fetchBranch(repository, branchName, 1, PAGE_SIZE);
 			}
 			else {
 				branch = null; // no commits
@@ -128,8 +126,8 @@ public class ProjectResource extends Resource {
 			throw new UnauthorizedException();
 		}
 
-		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		DetailedBranchModel branch = fetchBranch(repository, branchName, page);
+		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+		DetailedBranchModel branch = gitBackend.fetchBranch(repository, branchName, page, PAGE_SIZE);
 		
 		return showBranchOverview(request, group, repository, branch, page);
 	}
@@ -174,8 +172,8 @@ public class ProjectResource extends Resource {
 			throw new UnauthorizedException();
 		}
 
-		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		DetailedCommitModel commit = fetchCommitView(repository, commitId);
+		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+		DetailedCommitModel commit = gitBackend.fetchCommitView(repository, commitId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
@@ -212,19 +210,19 @@ public class ProjectResource extends Resource {
 			throw new UnauthorizedException();
 		}
 
-		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		List<Diff> diffs = fetchDiffs(repository, newId, oldId);
+		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+		List<Diff> diffs = gitBackend.fetchDiffs(repository, newId, oldId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
 		parameters.put("group", group);
 		parameters.put("diffs", diffs);
-		parameters.put("commit", fetchCommitView(repository, oldId));
+		parameters.put("commit", gitBackend.fetchCommitView(repository, oldId));
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));
 
 		if(newId != null) {
-			DetailedCommitModel newCommit = fetchCommitView(repository, newId);
+			DetailedCommitModel newCommit = gitBackend.fetchCommitView(repository, newId);
 			parameters.put("newCommit", newCommit);
 		}
 		
@@ -256,7 +254,7 @@ public class ProjectResource extends Resource {
 			throw new UnauthorizedException();
 		}
 
-		DetailedRepositoryModel repository = fetchRepositoryView(group);
+		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
 
 			@Override
@@ -275,11 +273,11 @@ public class ProjectResource extends Resource {
 			
 		});
 		
-		entries.putAll(client.repositories().listDirectoryEntries(repository, commitId, path));
+		entries.putAll(gitBackend.listDirectoryEntries(repository, commitId, path));
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
-		parameters.put("commit", fetchCommitView(repository, commitId));
+		parameters.put("commit", gitBackend.fetchCommitView(repository, commitId));
 		parameters.put("path", path);
 		parameters.put("group", group);
 		parameters.put("repository", repository);
@@ -312,22 +310,22 @@ public class ProjectResource extends Resource {
 			fileName = path.substring(path.lastIndexOf('/') + 1);
 		}
 		
-		DetailedRepositoryModel repository = fetchRepositoryView(group);
-		Map<String, EntryType> entries = client.repositories().listDirectoryEntries(repository, commitId, folderPath);
+		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+		Map<String, EntryType> entries = gitBackend.listDirectoryEntries(repository, commitId, folderPath);
 		
 		EntryType type = entries.get(fileName);
 		
 		if (type == EntryType.BINARY) {
-			return Response.ok(client.repositories().showBinFile(repository, commitId, path))
+			return Response.ok(gitBackend.showBinFile(repository, commitId, path))
 					.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
 					.build();
 		}
 		
-		String[] contents = client.repositories().showFile(repository, commitId, path).split("\\r?\\n");
+		String[] contents = gitBackend.showFile(repository, commitId, path).split("\\r?\\n");
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", scope.getUser());
-		parameters.put("commit", fetchCommitView(repository, commitId));
+		parameters.put("commit", gitBackend.fetchCommitView(repository, commitId));
 		parameters.put("path", path);
 		parameters.put("contents", contents);
 		parameters.put("highlight", Highlight.forFileName(path));
@@ -339,51 +337,7 @@ public class ProjectResource extends Resource {
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
 	}
 	
-	private DetailedRepositoryModel fetchRepositoryView(Group group) throws ApiError {
-		try {
-			Repositories repositories = client.repositories();
-			return repositories.retrieve(group.getRepositoryName());
-		}
-		catch (Throwable e) {
-			throw new ApiError("error.git-server-unavailable", e);
-		}
-	}
 
-	private DetailedCommitModel fetchCommitView(DetailedRepositoryModel repository, String commitId) throws ApiError {
-		try {
-			Repositories repositories = client.repositories();
-			return repositories.retrieveCommit(repository, commitId);
-		}
-		catch (Throwable e) {
-			throw new ApiError("error.git-server-unavailable", e);
-		}
-	}
-	
-	private List<Diff> fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
-		try {
-			Repositories repositories = client.repositories();
-			List<Diff> result = Lists.newArrayList();
-			List<DiffModel> diffs = repositories.listDiffs(repository, oldCommitId, newCommitId);
-			
-			for (DiffModel diff : diffs) {
-				result.add(new Diff(diff));
-			}
-			
-			return result;
-		} catch (Throwable e) {
-			throw new ApiError("error.git-server-unavailable", e);
-		}
-	}
-	
-	private DetailedBranchModel fetchBranch(DetailedRepositoryModel repository,
-			String branchName, int page) throws ApiError {
-		try {
-			return client.repositories().retrieveBranch(repository, branchName, (page - 1) * PAGE_SIZE, PAGE_SIZE);
-		}
-		catch (Throwable e) {
-			throw new ApiError("error.git-server-unavailable", e);
-		}
-	}
 
 	@Data
 	public static class Diff {

@@ -27,6 +27,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.GroupModel;
+import nl.tudelft.ewi.git.models.IdentifiableModel;
 import nl.tudelft.ewi.git.models.UserModel;
 
 @Slf4j
@@ -137,8 +138,9 @@ public class Bootstrapper {
 			}
 
 			GroupModel courseGroupModel = new GroupModel();
-			courseGroupModel.setName("@" + entity.getCode());
-			courseGroupModel = gitClient.groups().ensureExists(courseGroupModel);
+			courseGroupModel.setName("@" + entity.getCode().toLowerCase());
+			courseGroupModel.setMembers(Lists.<IdentifiableModel> newArrayList());
+			
 			
 			for (String assistantNetId : course.getAssistants()) {
 				User assistantUser = userMapping.get(assistantNetId);
@@ -151,15 +153,12 @@ public class Bootstrapper {
 				UserModel userModel = gitClient.users()
 						.ensureExists(assistantNetId);
 				
-				try {
-					gitClient.groups().groupMembers(courseGroupModel).addMember(userModel);
-				}
-				catch (Exception e) {}
+				courseGroupModel.getMembers().add(userModel);
 				
 				log.debug("    Persisted assistant: " + assistantUser.getNetId());
 			}
 			
-			gitClient.groups().create(courseGroupModel);
+			courseGroupModel = gitClient.groups().ensureExists(courseGroupModel);
 			
 			for (BGroup group : course.getGroups()) {
 				Group groupEntity = new Group();

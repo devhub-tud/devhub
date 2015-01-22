@@ -36,7 +36,7 @@
 			<button type="button" class="btn btn-default">
 				<span class="octicon octicon-git-branch"></span>
 				<span class="text-muted">${i18n.translate("branch.current")}:</span>
-				${branch.getName()}
+				${branch.getSimpleName()}
 			</button>
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 				<span class="caret"></span>

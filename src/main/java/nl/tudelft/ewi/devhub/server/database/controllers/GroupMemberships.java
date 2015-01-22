@@ -10,6 +10,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.QGroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 
 public class GroupMemberships extends Controller<GroupMembership> {
@@ -21,6 +22,7 @@ public class GroupMemberships extends Controller<GroupMembership> {
 
 	@Transactional
 	public List<Group> listParticipating(User user) {
+		Preconditions.checkNotNull(user);
 		return query().from(QGroupMembership.groupMembership)
 			.where(QGroupMembership.groupMembership.user.id.eq(user.getId()))
 			.where(QGroupMembership.groupMembership.group.course.start.isNotNull())
@@ -31,6 +33,7 @@ public class GroupMemberships extends Controller<GroupMembership> {
 
 	@Transactional
 	public List<GroupMembership> ofGroup(Group group) {
+		Preconditions.checkNotNull(group);
 		return query().from(QGroupMembership.groupMembership)
 			.where(QGroupMembership.groupMembership.group.groupId.eq(group.getGroupId()))
 			.list(QGroupMembership.groupMembership);

@@ -39,7 +39,7 @@ public class Course {
 	private String name;
 
 	@NotEmpty
-	@Column(name = "code")
+	@Column(name = "code", unique=true)
 	private String code;
 
 	@NotNull
@@ -51,11 +51,11 @@ public class Course {
 
 	@NotNull
 	@Column(name = "min_group_size")
-	private int minGroupSize;
+	private Integer minGroupSize;
 
 	@NotNull
 	@Column(name = "max_group_size")
-	private int maxGroupSize;
+	private Integer maxGroupSize;
 
 	@Column(name = "template_repository_url")
 	private String templateRepositoryUrl;
@@ -70,6 +70,10 @@ public class Course {
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
 	private List<CourseAssistant> courseAssistants;
 
+	public void setCode(String code) {
+		this.code = code.toUpperCase();
+	}
+
 	public List<User> getAssistants() {
 		List<User> assistants = Lists.newArrayList();
 		for (CourseAssistant assistant : courseAssistants) {
@@ -77,5 +81,5 @@ public class Course {
 		}
 		return assistants;
 	}
-	
+
 }

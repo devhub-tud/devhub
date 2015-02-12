@@ -1,7 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -12,7 +11,7 @@ import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.DetailedBranchModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
-import nl.tudelft.ewi.git.models.DiffModel;
+import nl.tudelft.ewi.git.models.DiffResponse;
 import nl.tudelft.ewi.git.models.EntryType;
 
 import com.google.inject.Inject;
@@ -53,7 +52,7 @@ public class GitBackend {
 		}
 	}
 	
-	public List<DiffModel> fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
+	public DiffResponse fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
 		try {
 			return client.repositories().listDiffs(repository, oldCommitId, newCommitId);
 		} catch (Throwable e) {

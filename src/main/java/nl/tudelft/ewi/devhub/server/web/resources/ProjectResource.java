@@ -33,7 +33,7 @@ import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.models.DetailedBranchModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
-import nl.tudelft.ewi.git.models.DiffModel;
+import nl.tudelft.ewi.git.models.DiffResponse;
 import nl.tudelft.ewi.git.models.EntryType;
 
 import com.google.common.collect.Maps;
@@ -173,12 +173,12 @@ public class ProjectResource extends Resource {
 			@PathParam("newId") String newId) throws ApiError, IOException {
 		
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		List<DiffModel> diffs = gitBackend.fetchDiffs(repository, newId, oldId);
+		DiffResponse diffs = gitBackend.fetchDiffs(repository, newId, oldId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
-		parameters.put("diffs", diffs);
+		parameters.put("diffs", diffs.getDiffs());
 		parameters.put("commit", gitBackend.fetchCommitView(repository, oldId));
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));

@@ -6,3 +6,4 @@ bin/
 .classpath
 target/
 *.db
+src/main/resources/static/css/devhub.css

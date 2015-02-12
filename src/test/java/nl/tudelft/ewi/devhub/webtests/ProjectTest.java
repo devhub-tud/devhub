@@ -16,6 +16,7 @@ import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DiffContext;
 import nl.tudelft.ewi.git.models.DiffLine;
 import nl.tudelft.ewi.git.models.DiffModel;
+import nl.tudelft.ewi.git.models.DiffResponse;
 import nl.tudelft.ewi.git.models.DiffModel.Type;
 import nl.tudelft.ewi.git.models.MockedRepositoryModel;
 import nl.tudelft.ewi.git.models.UserModel;
@@ -53,7 +54,7 @@ public class ProjectTest extends WebTest {
 		repository.addCommit(commit);
 
 		BranchModel branch = new BranchModel();
-		branch.setCommit(COMMIT_ID);
+		branch.setCommit(commit);
 		branch.setName("refs/remotes/origin/master");
 		repository.addBranch(branch);
 		
@@ -172,7 +173,9 @@ public class ProjectTest extends WebTest {
 		model.setType(Type.MODIFY);
 		model.setDiffContexts(Lists.<DiffContext> newArrayList(diffContext));
 		
-		gitServerClient.repositories().setListDiffs(Lists.<DiffModel> newArrayList(model));
+		DiffResponse diffResponse = new DiffResponse();
+		diffResponse.setDiffs(Lists.<DiffModel> newArrayList(model));
+		gitServerClient.repositories().setListDiffs(diffResponse);
 		
 		DiffView view = openLoginScreen()
 				.login(NET_ID, PASSWORD)

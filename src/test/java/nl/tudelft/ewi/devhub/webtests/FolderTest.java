@@ -57,7 +57,7 @@ public class FolderTest extends WebTest {
 		repository.addCommit(commit);
 
 		BranchModel branch = new BranchModel();
-		branch.setCommit(COMMIT_ID);
+		branch.setCommit(commit);
 		branch.setName("refs/remotes/origin/master");
 		repository.addBranch(branch);
 		

@@ -178,5 +178,57 @@
 	<changeSet id="add_unique_constraint_course" author="Jan-Willem Gmelig Meyling">
 		<addUniqueConstraint columnNames="code" tableName="courses" />
 	</changeSet>
+	
+	<changeSet id="case_insensitive_equality" author="Jan-Willem Gmelig Meyling">
+  		<modifyDataType tableName="users" columnName="net_id" newDataType="CITEXT"/>
+  		<modifyDataType tableName="users" columnName="email" newDataType="CITEXT"/>
+  		<modifyDataType tableName="courses" columnName="code" newDataType="CITEXT"/>
+  		<modifyDataType tableName="groups" columnName="repository_name" newDataType="CITEXT"/>
+  		<modifySql dbms="h2">
+        	<replace replace="CITEXT" with="VARCHAR_IGNORECASE"/>
+    	</modifySql>
+	</changeSet>
+	
+	<changeSet id="add_comment_tables" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="commit">
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="commit_repository_name_in_groups"
+			baseTableName="commit" baseColumnNames="repository_name"
+			referencedTableName="groups" referencedColumnNames="repository_name" />
+		
+		<createTable tableName="commit_comment">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			
+			<column name="old_line_number" type="int"/>
+			<column name="old_file_path" type="varchar(255)"/>
+			<column name="new_line_number" type="int"/>
+			<column name="new_file_path" type="varchar(255)" />
+			
+			<column name="content" type="text" />
+			<column name="user_id" type="bigint">
+				<constraints  nullable="false" />
+			</column>
+			<column name="time" type="datetime" />
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="commit_comment_commit_in_commits"
+			baseTableName="commit_comment" baseColumnNames="repository_name, commit_id"
+			referencedTableName="commit" referencedColumnNames="repository_name, commit_id" />
+	</changeSet>
 
 </databaseChangeLog>

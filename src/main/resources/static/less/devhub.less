@@ -328,6 +328,10 @@ div.commit {
 	overflow: auto;
 }
 
+.overflow-hidden {
+	overflow: hidden;
+}
+
 .box {
 	border: 1px solid #ccc;
 	margin: 0px 0px 16px 0px;
@@ -364,8 +368,6 @@ div.commit {
 	.diffs {
 		margin: 0px;
 		padding: 0px;
-		font-size: 12px;
-		line-height: 18px;
 		.rounded-bottom;
 		border: 0px;
 		
@@ -373,13 +375,42 @@ div.commit {
 			margin: 0px !important;
 			padding: 0px !important;
 			border-top: 1px solid #ccc;
+			position: relative;
 		}
 		
 		tbody {
 			overflow: auto;
 		}
 		
+		tr {
+			.btn-comment {
+				font-size: 10px;
+				padding: 0;
+				width: 20px;
+				height: 20px;
+				color: #fff;
+				opacity: 0;
+				-webkit-transform: scale(0.8, 0.8);
+				-ms-transform: scale(0.8, 0.8);
+				transform: scale(0.8, 0.8);
+				-webkit-transition: -webkit-transform 0.1s ease-in-out;
+				transition: transform 0.1s ease-in-out;
+				position: absolute;
+				top: 2px;
+				left: -10px;
+				
+				span {
+					cursor: pointer;
+				}
+			}
+			
+			&:hover .btn-comment {
+				opacity: 1;
+			}
+		}
+		
 		.code {
+			font-size: 12px;
 			margin: 0px;
 			border-top: 1px solid #fff;
 			
@@ -393,19 +424,21 @@ div.commit {
 				padding: 0px;
 				border: 0px;
 			}
+			
 		}
-		
+
 		.ln {
+			font-size: 12px;
+			line-height: 18px;
 			color: #bbb;
 			width: 64px;
 			min-width: 64px;
-			padding: 2px 5px !important;
+			padding: 2px 0px !important;
 			border-right: 1px solid #ddd;
 			border-top: 1px solid #fdfdfd !important;
 			text-shadow: 1px 1px #e0e0e0;
 			background-color: fdfdfd;
-			text-align: right;
-			
+			text-align: center;
 			-webkit-touch-callout: none;
 			-webkit-user-select: none;
 			-khtml-user-select: none;
@@ -414,6 +447,10 @@ div.commit {
 			user-select: none;
 			
 			content: counter;
+			
+			a {
+				color: #bbb;
+			}
 		}
 	
 		.add {
@@ -467,7 +504,22 @@ div.commit {
 		}
 	}
 	
-		.hljs-subst , .hljs-title , .json .hljs-value {
+	.comment-block {
+		border-top: 1px solid #dddddd;
+		border-bottom: 1px solid #dddddd;
+		
+		.panel {
+			margin: 20px;
+			width: 600px;
+		}
+		
+		.btn {
+			margin-top: 10px;
+			margin-right: 10px;
+		}
+	}
+	
+	.hljs-subst , .hljs-title , .json .hljs-value {
 		font-weight: normal;
 		color: #000;
 	}

@@ -1,8 +1,11 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -11,8 +14,11 @@ import java.util.TreeMap;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -21,10 +27,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.backend.GitBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
@@ -36,6 +48,8 @@ import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffResponse;
 import nl.tudelft.ewi.git.models.EntryType;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
@@ -53,18 +67,24 @@ public class ProjectResource extends Resource {
 	private final User currentUser;
 	private final BuildResults buildResults;
 	private final Group group;
+	private final Commits commits;
+	private final CommitComments commitComments;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine, 
 			final GitBackend gitBackend,
 			final @Named("current.user") User currentUser,
 			final @Named("current.group") Group group,
+			final Commits commits,
+			final CommitComments commitComments,
 			final BuildResults buildResults) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
 		this.gitBackend = gitBackend;
 		this.currentUser = currentUser;
+		this.commits = commits;
+		this.commitComments = commitComments;
 		this.buildResults = buildResults;
 	}
 	
@@ -156,21 +176,56 @@ public class ProjectResource extends Resource {
 		return display(templateEngine.process("project-commit-view.ftl", locales, parameters));
 	}
 	
+	@POST
+	@Path("/commits/{commitId}/diff/comment")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Transactional
+	public Response comment(@Context HttpServletRequest request,
+			@FormParam("commitId") String commitId,
+			@FormParam("oldLineNumber") Integer oldLineNumber,
+			@FormParam("oldFilePath") String oldFilePath,
+			@FormParam("newLineNumber") Integer newLineNumber,
+			@FormParam("newFilePath") String newFilePath,
+			@NotEmpty @FormParam("content") String content)
+			throws IOException, ApiError {
+		
+		Commit commit = commits.ensureExists(group, commitId);
+		
+		CommitComment comment = new CommitComment();
+		comment.setCommit(commit);
+		
+		comment.setOldLineNumber(oldLineNumber);
+		comment.setOldFilePath(oldFilePath);
+		comment.setNewLineNumber(newLineNumber);
+		comment.setNewFilePath(newFilePath);
+		
+		comment.setContent(content);
+		comment.setTime(new Date());
+		comment.setUser(currentUser);
+		commitComments.persist(comment);
+		
+		String uri = request.getRequestURI();
+		uri = uri.substring(0, uri.indexOf("/comment"));
+		return Response.seeOther(URI.create(uri)).build();
+	}
+	
 	@GET
 	@Path("/commits/{commitId}/diff")
 	@Transactional
-	public Response showCommitChanges(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
-			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId) throws IOException, ApiError {
+	public Response showCommitChanges(@Context HttpServletRequest request,
+			@PathParam("commitId") String commitId)
+			throws IOException, ApiError {
 	
-		return showDiff(request, courseCode, groupNumber, commitId, null);
+		return showDiff(request, commitId, null);
 	}
 
 	@GET
 	@Path("/commits/{oldId}/diff/{newId}")
 	@Transactional
-	public Response showDiff(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
-			@PathParam("groupNumber") long groupNumber, @PathParam("oldId") String oldId,
-			@PathParam("newId") String newId) throws ApiError, IOException {
+	public Response showDiff(@Context HttpServletRequest request,
+			@PathParam("oldId") String oldId,
+			@PathParam("newId") String newId)
+			throws ApiError, IOException {
 		
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DiffResponse diffs = gitBackend.fetchDiffs(repository, newId, oldId);
@@ -180,6 +235,7 @@ public class ProjectResource extends Resource {
 		parameters.put("group", group);
 		parameters.put("diffs", diffs.getDiffs());
 		parameters.put("commit", gitBackend.fetchCommitView(repository, oldId));
+		parameters.put("comments", new CommentChecker(commits.ensureExists(group, oldId)));
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));
 
@@ -317,6 +373,32 @@ public class ProjectResource extends Resource {
 			BuildResult buildResult = buildResults.find(group, commitId);
 			return buildResult.getLog();
 		}
+	}
+	
+	public static class CommentChecker {
+		
+		private final List<CommitComment> comments;
+		
+		public CommentChecker(final Commit commit) {
+			this.comments = commit.getComments();
+		}
+		
+		public Collection<CommitComment> commentsForLine(final String oldPath,
+				final Integer oldNumber, final String newPath,
+				final Integer newNumber) {
+			return Collections2.filter(comments, new Predicate<CommitComment>() {
+				@Override
+				public boolean apply(final CommitComment input) {
+					if(input.getNewFilePath() != null) {
+						return input.getNewFilePath().equals(newPath) &&
+								input.getNewLineNumber().equals(newNumber);
+					}
+					return input.getOldFilePath().equals(oldPath) &&
+							input.getOldLineNumber().equals(oldNumber);
+				}
+			});
+		}
+		
 	}
 	
 	@Data

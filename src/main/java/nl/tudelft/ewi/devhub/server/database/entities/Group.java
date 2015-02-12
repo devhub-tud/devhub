@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -25,7 +26,7 @@ import com.google.common.collect.Sets;
 @Table(name = "groups")
 @EqualsAndHashCode(of = { "groupId" })
 @ToString(of = { "groupId" })
-public class Group {
+public class Group implements Serializable {
 
 	@Id
 	@Column(name = "id")
@@ -50,7 +51,7 @@ public class Group {
 	@NotNull
 	@Column(name = "repository_name")
 	private String repositoryName;
-
+	
 	public Set<User> getMembers() {
 		Set<User> members = Sets.newHashSet();
 		for (GroupMembership membership : memberships) {
@@ -73,5 +74,5 @@ public class Group {
 	public Integer getBuildTimeout() {
 		return buildTimeout != null ? buildTimeout : course.getBuildTimeout();
 	}
-
+	
 }

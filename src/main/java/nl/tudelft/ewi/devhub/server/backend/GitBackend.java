@@ -8,6 +8,8 @@ import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
+import nl.tudelft.ewi.git.models.BranchModel;
+import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedBranchModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
@@ -109,6 +111,24 @@ public class GitBackend {
 		catch (Throwable e) {
 			throw new ApiError("error.git-server-unavailable", e);
 		}
+	}
+	
+	public CommitModel mergeBase(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
+		try {
+			return client.repositories().mergeBase(repository, oldCommitId, newCommitId);
+		}
+		catch (Throwable e) {
+			throw new ApiError("error.git-server-unavailable", e);
+		}
+	}
+	
+	public DiffResponse fetchDiffs(DetailedRepositoryModel repository, BranchModel branch) throws ApiError {
+		CommitModel commitModel = branch.getCommit();
+		BranchModel masterBranchModel = repository.getBranch("master");
+		CommitModel masterCommitModel = masterBranchModel.getCommit();
+		CommitModel mergeBase = mergeBase(repository,
+				masterCommitModel.getCommit(), commitModel.getCommit());
+		return fetchDiffs(repository, mergeBase.getCommit(), commitModel.getCommit());
 	}
 	
 }

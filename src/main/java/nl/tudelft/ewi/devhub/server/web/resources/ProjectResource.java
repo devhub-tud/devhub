@@ -30,24 +30,30 @@ import javax.ws.rs.core.Response;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import lombok.Data;
+
 import nl.tudelft.ewi.devhub.server.backend.GitBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+import nl.tudelft.ewi.git.models.BranchModel;
+import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedBranchModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffResponse;
 import nl.tudelft.ewi.git.models.EntryType;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
@@ -69,6 +75,7 @@ public class ProjectResource extends Resource {
 	private final Group group;
 	private final Commits commits;
 	private final CommitComments commitComments;
+	private final PullRequests pullRequests;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine, 
@@ -77,7 +84,8 @@ public class ProjectResource extends Resource {
 			final @Named("current.group") Group group,
 			final Commits commits,
 			final CommitComments commitComments,
-			final BuildResults buildResults) {
+			final BuildResults buildResults,
+			final PullRequests pullRequests) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
@@ -86,6 +94,7 @@ public class ProjectResource extends Resource {
 		this.commits = commits;
 		this.commitComments = commitComments;
 		this.buildResults = buildResults;
+		this.pullRequests = pullRequests;
 	}
 	
 	@GET
@@ -130,7 +139,7 @@ public class ProjectResource extends Resource {
 		return showBranchOverview(request, group, repository, branch, page);
 	}
 	
-	private Response showBranchOverview(HttpServletRequest request,
+	private Response showBranchOverview(@Context HttpServletRequest request,
 			Group group, DetailedRepositoryModel repository,
 			DetailedBranchModel branch, int page) throws IOException {
 		
@@ -143,10 +152,66 @@ public class ProjectResource extends Resource {
 		if(branch != null) {
 			parameters.put("branch", branch);
 			parameters.put("pagination", new Pagination(page, branch.getAmountOfCommits()));
+			
+			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
+			if(pullRequest != null) {
+				parameters.put("pullRequest", pullRequest);
+			}
 		}
 		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
+	}
+	
+	@POST
+	@Path("/pull")
+	@Transactional
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public Response createPullRequest(@Context HttpServletRequest request,
+			@FormParam("branchName") String branchName) {
+		
+		Preconditions.checkNotNull(branchName);
+		
+		if(pullRequests.findOpenPullRequest(group, branchName) != null) {
+			throw new IllegalArgumentException("There already is an open pull request for " + branchName);
+		}
+		
+		PullRequest pullRequest = new PullRequest();
+		pullRequest.setBranchName(branchName);
+		pullRequest.setGroup(group);
+		pullRequest.setOpen(true);
+		pullRequests.persist(pullRequest);
+		
+		String uri = request.getRequestURI() + "/" + pullRequest.getIssueId();
+		return Response.seeOther(URI.create(uri)).build();
+	}
+	
+	@GET
+	@Transactional
+	@Path("/pull/{pullId}")
+	public Response getPullRequest(@Context HttpServletRequest request,
+			@PathParam("pullId") long pullId) throws ApiError, IOException {
+		PullRequest pullRequest = pullRequests.findById(pullId);
+		
+		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+		BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
+		CommitModel commitModel = branchModel.getCommit();
+		DiffResponse diffs = gitBackend.fetchDiffs(repository, branchModel);
+
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("group", group);
+		parameters.put("diffs", diffs.getDiffs());
+		parameters.put("commit", gitBackend.fetchCommitView(repository, commitModel.getCommit()));
+		parameters.put("comments", new CommentChecker(commits.ensureExists(group, commitModel.getCommit())));
+		parameters.put("branch", branchModel);
+		parameters.put("commits", diffs.getCommits());
+		parameters.put("pullRequest", pullRequest);
+		parameters.put("repository", repository);
+		parameters.put("states", new CommitChecker(group, buildResults));
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
 	}
 
 	@GET

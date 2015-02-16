@@ -25,9 +25,8 @@
 [/#if]
 			</div>
 
-
 [#if repository?? && repository?has_content && branch?? && branch?has_content]
-	<span class="pull-right">
+	<span class="pull-right" style="margin-bottom: 20px;">
 		<div class="btn-group">
 			<button type="button" class="btn btn-default">
 				<span class="octicon octicon-git-branch"></span>
@@ -59,6 +58,21 @@
 			</ul>
 		</div>
 	</span>
+[/#if]
+
+[#if branch?? && branch.ahead?? && branch.ahead > 0 ]
+	<div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
+	[#if pullRequest??]
+		<span>Hey! There is an open pull request for this branch. Want to go to the pull request?</span>
+		<a href="/projects/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.getIssueId()}" class="btn btn-default pull-right">Go to Pull Request</a>
+	[#else]
+		<form method="POST" action="/projects/${group.course.code}/groups/${group.groupNumber}/pull" target="_self">
+			<span>Hey! It seems you're branch is ahead of the master. Want to merge?</span>
+			<input type="hidden" name="branchName" value="${branch.getName()}"/>
+			<button type="submit" class="btn btn-default pull-right">Create Pull Request</button>
+		</form>
+	[/#if]
+	</div>
 [/#if]
 		
 			<h4>Recent commits</h4>

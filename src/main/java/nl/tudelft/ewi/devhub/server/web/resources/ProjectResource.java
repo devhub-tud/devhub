@@ -219,8 +219,8 @@ public class ProjectResource extends Resource {
 		return showDiff(request, commitId, null);
 	}
 
-	@GET
-	@Path("/commits/{oldId}/diff/{newId}")
+//	@GET
+//	@Path("/commits/{oldId}/diff/{newId}")
 	@Transactional
 	public Response showDiff(@Context HttpServletRequest request,
 			@PathParam("oldId") String oldId,
@@ -389,7 +389,7 @@ public class ProjectResource extends Resource {
 			return Collections2.filter(comments, new Predicate<CommitComment>() {
 				@Override
 				public boolean apply(final CommitComment input) {
-					if(input.getNewFilePath() != null) {
+					if(input.getNewFilePath() != null && input.getNewLineNumber() != null) {
 						return input.getNewFilePath().equals(newPath) &&
 								input.getNewLineNumber().equals(newNumber);
 					}

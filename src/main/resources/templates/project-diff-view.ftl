@@ -29,8 +29,8 @@
 					<table class="table diffs">
 			[#list diffModel.diffContexts as diffContext]
 						<tbody>
-			[#assign oldLineNumber=diffContext.oldStart]
-			[#assign newLineNumber=diffContext.newStart]
+			[#assign oldLineNumber=diffContext.oldStart + 1]
+			[#assign newLineNumber=diffContext.newStart + 1]
 				[#list diffContext.diffLines as line]
 					[#if line.content??]
 							<tr>
@@ -145,7 +145,7 @@ function getCommentBlockWithInput(row) {
   	
   	newRowNumber = parseInt($("td", row).eq(1).text());
   	if(isNaN(newRowNumber))
-  		oldRowNumber = null;
+  		newRowNumber = null;
   	
   	data = row.closest(".diff").data();
     createCommentForm(commentBlock.find("td"), data.oldPath, oldRowNumber, data.newPath, newRowNumber);

@@ -8,6 +8,7 @@ import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
+import nl.tudelft.ewi.git.models.BlameModel;
 import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedBranchModel;
@@ -15,6 +16,7 @@ import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.DiffResponse;
 import nl.tudelft.ewi.git.models.EntryType;
+import nl.tudelft.ewi.git.models.RepositoryModel;
 
 import com.google.inject.Inject;
 
@@ -54,7 +56,7 @@ public class GitBackend {
 		}
 	}
 	
-	public DiffResponse fetchDiffs(DetailedRepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
+	public DiffResponse fetchDiffs(RepositoryModel repository, String oldCommitId, String newCommitId) throws ApiError {
 		try {
 			return client.repositories().listDiffs(repository, oldCommitId, newCommitId);
 		} catch (Throwable e) {
@@ -62,7 +64,7 @@ public class GitBackend {
 		}
 	}
 	
-	public DetailedBranchModel fetchBranch(DetailedRepositoryModel repository,
+	public DetailedBranchModel fetchBranch(RepositoryModel repository,
 			String branchName, int page, int pageSize) throws ApiError {
 		try {
 			return client.repositories().retrieveBranch(repository, branchName, (page - 1) * pageSize, pageSize);
@@ -129,6 +131,15 @@ public class GitBackend {
 		CommitModel mergeBase = mergeBase(repository,
 				masterCommitModel.getCommit(), commitModel.getCommit());
 		return fetchDiffs(repository, mergeBase.getCommit(), commitModel.getCommit());
+	}
+
+	public BlameModel blame(RepositoryModel repository, String commitId, String filePath) throws ApiError {
+		try {
+			return client.repositories().blame(repository, commitId, filePath);
+		}
+		catch (Throwable e) {
+			throw new ApiError("error.git-server-unavailable", e);
+		}
 	}
 	
 }

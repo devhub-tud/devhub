@@ -2,7 +2,6 @@ package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -30,7 +29,6 @@ import javax.ws.rs.core.Response;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import lombok.Data;
-
 import nl.tudelft.ewi.devhub.server.backend.GitBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
@@ -54,8 +52,6 @@ import nl.tudelft.ewi.git.models.DiffResponse;
 import nl.tudelft.ewi.git.models.EntryType;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
@@ -76,6 +72,7 @@ public class ProjectResource extends Resource {
 	private final Commits commits;
 	private final CommitComments commitComments;
 	private final PullRequests pullRequests;
+	private final CommentBackend commentBackend;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine, 
@@ -83,6 +80,7 @@ public class ProjectResource extends Resource {
 			final @Named("current.user") User currentUser,
 			final @Named("current.group") Group group,
 			final Commits commits,
+			final CommentBackend commentBackend,
 			final CommitComments commitComments,
 			final BuildResults buildResults,
 			final PullRequests pullRequests) {
@@ -93,6 +91,7 @@ public class ProjectResource extends Resource {
 		this.currentUser = currentUser;
 		this.commits = commits;
 		this.commitComments = commitComments;
+		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
 	}
@@ -195,17 +194,17 @@ public class ProjectResource extends Resource {
 		
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
-		CommitModel commitModel = branchModel.getCommit();
-		DiffResponse diffs = gitBackend.fetchDiffs(repository, branchModel);
-
+		CommitModel commitModel = gitBackend.fetchCommitView(repository, branchModel.getCommit().getCommit());
+		DiffResponse diffResponse = gitBackend.fetchDiffs(repository, branchModel);
+		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
-		parameters.put("diffs", diffs.getDiffs());
-		parameters.put("commit", gitBackend.fetchCommitView(repository, commitModel.getCommit()));
-		parameters.put("comments", new CommentChecker(commits.ensureExists(group, commitModel.getCommit())));
+		parameters.put("diffs", diffResponse.getDiffs());
+		parameters.put("commit", commitModel);
+		parameters.put("comments", commentBackend.newComments(group, repository, commitModel, diffResponse));
 		parameters.put("branch", branchModel);
-		parameters.put("commits", diffs.getCommits());
+		parameters.put("commits", diffResponse.getCommits());
 		parameters.put("pullRequest", pullRequest);
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));
@@ -293,14 +292,15 @@ public class ProjectResource extends Resource {
 			throws ApiError, IOException {
 		
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		DiffResponse diffs = gitBackend.fetchDiffs(repository, newId, oldId);
+		DiffResponse diffResponse = gitBackend.fetchDiffs(repository, newId, oldId);
+		CommitModel commitModel = gitBackend.fetchCommitView(repository, oldId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
-		parameters.put("diffs", diffs.getDiffs());
-		parameters.put("commit", gitBackend.fetchCommitView(repository, oldId));
-		parameters.put("comments", new CommentChecker(commits.ensureExists(group, oldId)));
+		parameters.put("diffs", diffResponse.getDiffs());
+		parameters.put("commit", commitModel);
+		parameters.put("comments", commentBackend.newComments(group, repository, commitModel, diffResponse));
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));
 
@@ -440,32 +440,6 @@ public class ProjectResource extends Resource {
 		}
 	}
 	
-	public static class CommentChecker {
-		
-		private final List<CommitComment> comments;
-		
-		public CommentChecker(final Commit commit) {
-			this.comments = commit.getComments();
-		}
-		
-		public Collection<CommitComment> commentsForLine(final String oldPath,
-				final Integer oldNumber, final String newPath,
-				final Integer newNumber) {
-			return Collections2.filter(comments, new Predicate<CommitComment>() {
-				@Override
-				public boolean apply(final CommitComment input) {
-					if(input.getNewFilePath() != null && input.getNewLineNumber() != null) {
-						return input.getNewFilePath().equals(newPath) &&
-								input.getNewLineNumber().equals(newNumber);
-					}
-					return input.getOldFilePath().equals(oldPath) &&
-							input.getOldLineNumber().equals(oldNumber);
-				}
-			});
-		}
-		
-	}
-	
 	@Data
 	static public class Pagination {
 				
@@ -476,4 +450,5 @@ public class ProjectResource extends Resource {
 		}
 		
 	}
+	
 }

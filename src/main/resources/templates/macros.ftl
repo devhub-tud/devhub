@@ -26,6 +26,7 @@
 [#if user?? && user.isAdmin()]
 					<a href="/build-servers">${i18n.translate("section.build-servers")}</a>
 [/#if]
+                    <a href="/courses">${i18n.translate("section.courses")}</a>
 					<a href="/projects">${i18n.translate("section.projects")}</a>
 					<a href="/accounts">${i18n.translate("section.account")}</a>
 					<a href="/logout">${i18n.translate("section.logout")}</a>

@@ -1,5 +1,6 @@
 [#import "macros.ftl" as macros]
 [@macros.renderHeader i18n.translate("section.account") /]
+
 [@macros.renderMenu i18n user /]
 		<div class="container">
 			<h2>
@@ -16,7 +17,7 @@
 			<table class="table table-bordered">
 				<tbody>
 [#if keys?? && keys?has_content]
-	[#list keys as key]
+        [#list keys as key]
 					<tr>
 						<td>
 							<form action="${path}/delete" method="post" class="pull-right">

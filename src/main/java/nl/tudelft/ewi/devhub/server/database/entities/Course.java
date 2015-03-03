@@ -34,11 +34,11 @@ public class Course {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	@NotEmpty
+	@NotEmpty(message = "error.course-name-empty")
 	@Column(name = "name")
 	private String name;
 
-	@NotEmpty
+	@NotEmpty(message = "course-code-empty")
 	@Column(name = "code", unique=true)
 	private String code;
 
@@ -49,17 +49,18 @@ public class Course {
 	@Column(name = "end")
 	private Date end;
 
-	@NotNull
+	@NotNull(message = "error.course-min-group-empty")
 	@Column(name = "min_group_size")
 	private Integer minGroupSize;
 
-	@NotNull
+	@NotNull(message = "error.course-max-group-empty")
 	@Column(name = "max_group_size")
 	private Integer maxGroupSize;
 
 	@Column(name = "template_repository_url")
 	private String templateRepositoryUrl;
-	
+
+    @NotNull(message = "error.course-timeout")
 	@Column(name = "build_timeout")
 	private Integer buildTimeout;
 

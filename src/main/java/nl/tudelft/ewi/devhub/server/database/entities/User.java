@@ -100,7 +100,7 @@ public class User {
 	}
 
 	public boolean isMemberOf(Group group) {
-		for (GroupMembership membership : memberOf) {
+		for (GroupMembership membership : getMemberOf()) {
 			if (group.equals(membership.getGroup())) {
 				return true;
 			}
@@ -109,7 +109,7 @@ public class User {
 	}
 
 	public boolean isAssisting(Course course) {
-		for (CourseAssistant assistant : assists) {
+		for (CourseAssistant assistant : getAssists()) {
 			Course assistedCourse = assistant.getCourse();
 			if (assistedCourse.getId() == course.getId()) {
 				return true;
@@ -119,7 +119,7 @@ public class User {
 	}
 
 	public boolean isParticipatingInCourse(Course course) {
-		for (GroupMembership membership : memberOf) {
+		for (GroupMembership membership : getMemberOf()) {
 			Group group = membership.getGroup();
 			if (course.equals(group.getCourse())) {
 				return true;

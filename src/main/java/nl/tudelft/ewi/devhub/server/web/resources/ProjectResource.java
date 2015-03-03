@@ -210,8 +210,36 @@ public class ProjectResource extends Resource {
 		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
+		return display(templateEngine.process("project-pull.ftl", locales, parameters));
 	}
+
+    @GET
+    @Transactional
+    @Path("/pull/{pullId}/diff")
+    public Response getPullRequestDiff(@Context HttpServletRequest request,
+                                   @PathParam("pullId") long pullId) throws ApiError, IOException {
+        PullRequest pullRequest = pullRequests.findById(pullId);
+
+        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+        BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
+        CommitModel commitModel = gitBackend.fetchCommitView(repository, branchModel.getCommit().getCommit());
+        DiffResponse diffResponse = gitBackend.fetchDiffs(repository, branchModel);
+
+        Map<String, Object> parameters = Maps.newLinkedHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("group", group);
+        parameters.put("diffs", diffResponse.getDiffs());
+        parameters.put("commit", commitModel);
+        parameters.put("comments", commentBackend.newComments(group, repository, commitModel, diffResponse));
+        parameters.put("branch", branchModel);
+        parameters.put("commits", diffResponse.getCommits());
+        parameters.put("pullRequest", pullRequest);
+        parameters.put("repository", repository);
+        parameters.put("states", new CommitChecker(group, buildResults));
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
+    }
 
 	@GET
 	@Path("/commits/{commitId}")

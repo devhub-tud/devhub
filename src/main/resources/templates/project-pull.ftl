@@ -126,7 +126,7 @@
 							<tr class="comment-block">
 							<td colspan="3">
 						[#list commentsForThisLine as comment]
-							[@commentComponent.renderComment commentComponent /]
+							[@commentComponent.renderComment comment     /]
 						[/#list]
 							</td>
 							</tr>

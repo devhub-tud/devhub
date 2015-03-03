@@ -29,19 +29,19 @@ public class CommentBackend {
 		this.gitBackend = gitBackend;
 	}
 	
-	public Comments newComments(final Group group, final RepositoryModel repository,
+	public CommentChecker newComments(final Group group, final RepositoryModel repository,
 			final CommitModel commit, final DiffResponse diffResponse) throws ApiError {
-		return new Comments(group, repository, commit, diffResponse);
+		return new CommentChecker(group, repository, commit, diffResponse);
 	}
 	
-	public class Comments {
+	public class CommentChecker {
 		
 		private final Group group;
 		private final RepositoryModel repository;
 		private final List<CommitComment> comments;
 		
-		public Comments(final Group group, final RepositoryModel repository,
-				final CommitModel commit, final DiffResponse diffResponse) throws ApiError {
+		public CommentChecker(final Group group, final RepositoryModel repository,
+                              final CommitModel commit, final DiffResponse diffResponse) throws ApiError {
 			this.group = group;
 			this.repository = repository;
 			this.comments = calculateCommits(commit, diffResponse.getCommits());

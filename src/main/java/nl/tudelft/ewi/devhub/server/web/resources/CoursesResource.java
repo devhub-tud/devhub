@@ -1,0 +1,201 @@
+package nl.tudelft.ewi.devhub.server.web.resources;
+
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
+
+import lombok.extern.slf4j.Slf4j;
+
+import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
+import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+import org.jboss.resteasy.annotations.Form;
+
+import javax.persistence.PersistenceException;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.*;
+
+/**
+ * @author Jan-Willem Gmelig Meyling
+ */
+@Slf4j
+@Path("courses")
+@RequestScoped
+@Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
+public class CoursesResource extends Resource {
+
+    @Inject
+    private Courses courses;
+
+    @Inject
+    private Groups groups;
+
+    @Inject
+    private GroupMemberships memberships;
+
+    @Inject @Named("current.user")
+    private User currentUser;
+
+    @Inject
+    private TemplateEngine templateEngine;
+
+    @GET
+    public Response getCourses(@Context HttpServletRequest request) throws IOException {
+        Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("courses", courses);
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("courses.ftl", locales, parameters));
+    }
+
+    @GET
+    @Path("{courseCode}")
+    public Response getCourse(@Context HttpServletRequest request,
+                              @PathParam("courseCode") String courseCode) throws IOException {
+        Course course = courses.find(courseCode);
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            Group group = memberships.forCourseAndUser(currentUser, course);
+            if(group != null) {
+                return redirect("/courses/" + course.getCode() + "/groups/" + group.getGroupNumber());
+            }
+            return redirect("/courses");
+        }
+
+        Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("course", course);
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("course-view.ftl", locales, parameters));
+    }
+
+    @GET
+    @Path("{courseCode}/edit")
+    public Response getEditPage(@Context HttpServletRequest request,
+                                @PathParam("courseCode") String courseCode,
+                                @QueryParam("error") String error) throws IOException {
+        Course course = courses.find(courseCode);
+
+        Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("course", course);
+
+        if(error != null)
+            parameters.put("error", error);
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("course-setup.ftl", locales, parameters));
+    }
+
+    @POST
+    @Path("{courseCode}/edit")
+    public Response editCourse(@Context HttpServletRequest request,
+                               @FormParam("id") Integer id,
+                               @FormParam("name") String courseName,
+                               @FormParam("template") String templateRepository,
+                               @FormParam("min") Integer minGroupSize,
+                               @FormParam("max") Integer maxGroupSize,
+                               @FormParam("timeout") Integer buildTimeout) {
+
+        Course course = courses.find(id);
+        course.setName(courseName);
+        course.setTemplateRepositoryUrl(templateRepository);
+        course.setMinGroupSize(minGroupSize);
+        course.setMaxGroupSize(maxGroupSize);
+        course.setBuildTimeout(buildTimeout);
+
+        try {
+            courses.merge(course);
+        }
+        catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
+            if(violations.isEmpty()) {
+                return redirect("/courses/" + course.getCode() + "/edit?error=error.course-create-error");
+            }
+            return redirect("/courses/" + course.getCode() + "/edit?error=" + violations.iterator().next().getMessage());
+        }
+        catch (Exception e) {
+            return redirect("/courses/" + course.getCode() + "/edit?error=error.course-create-error");
+        }
+
+        return redirect("/courses");
+    }
+
+    @GET
+    @Path("setup")
+    public Response getSetupPage(@Context HttpServletRequest request,
+                                 @QueryParam("error") String error) throws IOException {
+        Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("courses", courses);
+
+        if(error != null)
+            parameters.put("error", error);
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("course-setup.ftl", locales, parameters));
+    }
+
+    @POST
+    @Path("setup")
+    public Response setupCourse(@Context HttpServletRequest request,
+                                @FormParam("code") String courseCode,
+                                @FormParam("name") String courseName,
+                                @FormParam("template") String templateRepository,
+                                @FormParam("min") Integer minGroupSize,
+                                @FormParam("max") Integer maxGroupSize,
+                                @FormParam("timeout") Integer buildTimeout) {
+
+        Course course = new Course();
+        course.setCode(courseCode);
+        course.setName(courseName);
+        course.setTemplateRepositoryUrl(templateRepository);
+        course.setMinGroupSize(minGroupSize);
+        course.setMaxGroupSize(maxGroupSize);
+        course.setBuildTimeout(buildTimeout);
+        course.setStart(new Date());
+
+        try {
+            courses.persist(course);
+        }
+        catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
+            if(violations.isEmpty()) {
+                return redirect("/courses/setup?error=error.course-create-error");
+            }
+            return redirect("/courses/setup?error=" + violations.iterator().next().getMessage());
+        }
+        catch (Exception e) {
+            return redirect("/courses/setup?error=error.course-create-error");
+        }
+
+        return redirect("/courses");
+    }
+
+    @GET
+    @Path("assignments")
+    public Response getAssignments() {
+        return null;
+    }
+
+    @GET
+    @Path("assignments/{assignmentId}")
+    public Response getAssignment(@PathParam("assignmentId") Integer assignmentId) {
+        return null;
+    }
+
+}

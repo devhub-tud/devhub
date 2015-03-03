@@ -97,7 +97,7 @@ public class RootResource {
 			if (authenticationBackend.authenticate(netId, password)) {
 				request.getSession().setAttribute("netID", netId);
 				if (Strings.isNullOrEmpty(redirectTo)) {
-					return Response.seeOther(new URI("/projects")).build();
+					return Response.seeOther(new URI("/courses")).build();
 				}
 				return Response.seeOther(new URI("/" + URLDecoder.decode(redirectTo, "UTF-8"))).build();
 			}

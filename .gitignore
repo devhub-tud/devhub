@@ -7,3 +7,5 @@ bin/
 target/
 *.db
 src/main/resources/static/css/devhub.css
+.idea
+*.iml

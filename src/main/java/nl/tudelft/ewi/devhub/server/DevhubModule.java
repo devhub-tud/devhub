@@ -1,6 +1,8 @@
 package nl.tudelft.ewi.devhub.server;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
 
@@ -27,6 +29,7 @@ import nl.tudelft.ewi.devhub.server.database.DbModule;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
@@ -61,13 +64,14 @@ public class DevhubModule extends ServletModule {
 		bind(AuthenticationBackend.class).to(AuthenticationBackendImpl.class);
 		bind(AuthenticationProvider.class).to(LdapAuthenticationProvider.class);
 		bind(LdapUserProcessor.class).to(PersistingLdapUserProcessor.class);
-		
+
 		filter("/*").through(PersistFilter.class);
-		filter("/accounts", "/build-servers", "/projects", "/validation",
+		filter("/accounts", "/build-servers/*", "/projects/*", "/validation/*", "/courses/*",
 				"/accounts/*", "/build-servers/*", "/projects/*",
 				"/validation/*").through(UserAuthorizeFilter.class);
 		filterRegex("^/projects/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
 		serveRegex("/projects/[^/]+/groups/\\d+/\\w+/raw/.*").with(GitResourceProxy.class);
+
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);
 	}
@@ -83,9 +87,18 @@ public class DevhubModule extends ServletModule {
 	@Provides
 	@Named("current.user")
 	@RequestScoped
-	public User provideCurrentUser(HttpServletRequest request, Users users) {
-		String netId = request.getSession().getAttribute("netID").toString();
-		return users.findByNetId(netId);
+	public User provideCurrentUser(HttpServletRequest request, Users users) throws UnauthorizedException {
+        HttpSession session = request.getSession(false);
+        if(session != null) {
+            try {
+                String netId = request.getSession().getAttribute("netID").toString();
+                return users.findByNetId(netId);
+            }
+            catch (EntityNotFoundException e) {
+                throw new UnauthorizedException();
+            }
+        }
+        throw new UnauthorizedException();
 	}
 
 	@Provides

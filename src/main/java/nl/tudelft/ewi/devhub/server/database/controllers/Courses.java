@@ -6,6 +6,9 @@ import javax.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 
+import com.google.common.collect.ImmutableList;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
+
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 import com.mysema.query.jpa.impl.JPAQuery;
@@ -36,6 +39,28 @@ public class Courses extends Controller<Course> {
 			.where(QCourse.course.end.isNull())
 			.singleResult(QCourse.course), "Could not find course with code: " + courseCode);
 	}
+
+    @Transactional
+    public List<Course> listParticipatingCourses(User user) {
+        return query().from(QGroupMembership.groupMembership)
+            .where(QGroupMembership.groupMembership.user.id.eq(user.getId()))
+            .list(QGroupMembership.groupMembership.group.course);
+    }
+
+    @Transactional
+    public List<Course> listAssistingCourses(User user) {
+        return query().from(QCourseAssistant.courseAssistant)
+            .where(QCourseAssistant.courseAssistant.user.eq(user))
+            .list(QCourseAssistant.courseAssistant.course);
+    }
+
+    @Transactional
+    public List<Course> listAdministratingCourses(User user) {
+        if(user.isAdmin()) {
+            return query().from(QCourse.course).list(QCourse.course);
+        }
+        return ImmutableList.<Course> of();
+    }
 
 	@Transactional
 	public List<Course> listActiveCourses() {

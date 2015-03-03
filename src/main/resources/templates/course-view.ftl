@@ -19,7 +19,7 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     Groups
-                    <a href="#" class="btn btn-link btn-xs pull-right">
+                    <a href="/courses/${course.getCode()}/enroll" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
@@ -35,7 +35,7 @@
                         [#if groups?has_content]
                             [#list groups as group]
                             <tr>
-                                <td><a href="/projects/${course.getCode()}/groups/${group.getGroupNumber()}">${group.getGroupName()}</a></td>
+                                <td><a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}">${group.getGroupName()}</a></td>
                             </tr>
                             [/#list]
                         [#else]

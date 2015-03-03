@@ -5,7 +5,7 @@
 [@macros.renderCommitHeader i18n group commit "List files" /]
 			<div class="diff box">
 				<div class="header">
-					<a href="/projects/${group.course.code}/groups/${group.groupNumber}/${commit.commit}/raw/${path?url('UTF8')}" class="pull-right btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
+					<a href="/courses/${group.course.code}/groups/${group.groupNumber}/${commit.commit}/raw/${path?url('UTF8')}" class="pull-right btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
 					<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
 				</div>
 			[#if contents?? && contents?has_content]

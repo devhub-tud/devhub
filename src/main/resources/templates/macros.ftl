@@ -27,7 +27,6 @@
 					<a href="/build-servers">${i18n.translate("section.build-servers")}</a>
 [/#if]
                     <a href="/courses">${i18n.translate("section.courses")}</a>
-					<a href="/projects">${i18n.translate("section.projects")}</a>
 					<a href="/accounts">${i18n.translate("section.account")}</a>
 					<a href="/logout">${i18n.translate("section.logout")}</a>
 				</div>
@@ -50,21 +49,21 @@
 							<td>
 				[#if type = "FOLDER"]
 					[#if path?? && path?has_content]
-							<i class="folder glyphicon glyphicon-folder-open"></i> <a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree/${path}/${entry}">${entry}</a>
+							<i class="folder glyphicon glyphicon-folder-open"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree/${path}/${entry}">${entry}</a>
 					[#else]
-							<i class="folder glyphicon glyphicon-folder-open"></i> <a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree/${entry}">${entry}</a>
+							<i class="folder glyphicon glyphicon-folder-open"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree/${entry}">${entry}</a>
 					[/#if]
 				[#elseif type = "TEXT"]
 					[#if path?? && path?has_content]
-							<i class="text glyphicon glyphicon-file"></i> <a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/blob/${path}/${entry}">${entry}</a>
+							<i class="text glyphicon glyphicon-file"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/blob/${path}/${entry}">${entry}</a>
 					[#else]
-							<i class="text glyphicon glyphicon-file"></i> <a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/blob/${entry}">${entry}</a>
+							<i class="text glyphicon glyphicon-file"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/blob/${entry}">${entry}</a>
 					[/#if]
 				[#else]
 					[#if path?? && path?has_content]
-							<i class="binary glyphicon glyphicon-save"></i> <a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/blob/${path}/${entry}">${entry}</a>
+							<i class="binary glyphicon glyphicon-save"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/blob/${path}/${entry}">${entry}</a>
 					[#else]
-							<i class="binary glyphicon glyphicon-save"></i> <a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/blob/${entry}">${entry}</a>
+							<i class="binary glyphicon glyphicon-save"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/blob/${entry}">${entry}</a>
 					[/#if]
 				[/#if]
 							</td>
@@ -81,10 +80,10 @@
 
 [#macro renderTreeBreadcrumb group commit repository path]
 	[#assign pathParts=path?split("/")]
-	<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">group-${group.groupNumber}</a> /
+	<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">group-${group.groupNumber}</a> /
 	[#list pathParts as pathPart]
 		[#if pathPart_has_next]
-					<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a> /
+					<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a> /
 		[#elseif pathPart?has_content]
 					${pathPart}
 		[/#if]
@@ -93,8 +92,10 @@
 
 [#macro renderCommitHeader i18n group commit currentView]
 			<ol class="breadcrumb">
-				<li><a href="/projects">Projects</a></li>
-				<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
+
+                <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
+                <li><a href="/courses/${group.course.getCode()}">${group.course.getCode()} - ${group.course.getName()}</a></li>
+				<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">Group ${group.getGroupNumber()}</a></li>
 	[#if commit.getMessage()?length > 30 ]		
 				<li class="active">${commit.getMessage()?substring(0,30)}...</li>
 	[#else]
@@ -127,15 +128,15 @@
 							<span class="sr-only">Toggle Dropdown</span>
 						</button>
 						<ul class="dropdown-menu" role="menu">
-							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff">${i18n.translate("commit.view-diff")}</a></li>
-							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">${i18n.translate("commit.view-files")}</a></li>
+							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff">${i18n.translate("commit.view-diff")}</a></li>
+							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">${i18n.translate("commit.view-files")}</a></li>
 	[#if states.hasFinished(commit.getCommit())]
-							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/build">${i18n.translate("commit.view-build-log")}</a></li>
+							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/build">${i18n.translate("commit.view-build-log")}</a></li>
 		[#if !states.hasSucceeded(commit.getCommit()) ]
-							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
+							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
 		[/#if]
 	[#elseif !states.hasStarted(commit.getCommit()) ]
-							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
+							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
 	[/#if]
 						</ul>
 					</div>

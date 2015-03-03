@@ -12,8 +12,9 @@
 		<div class="container">
 		
 			<ol class="breadcrumb">
-				<li><a href="/projects">Projects</a></li>
-				<li class="active">${group.getGroupName()}</li>
+                <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
+                <li><a href="/courses/${group.course.getCode()}">${group.course.getCode()} - ${group.course.getName()}</a></li>
+				<li class="active">Group ${group.getGroupNumber()}</li>
 			</ol>
 
 			<h4>Git clone URL</h4>
@@ -45,7 +46,7 @@
 			</button>
 			<ul class="dropdown-menu" role="menu">
 	[#list repository.getBranches() as b ]
-				<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/branch/${b.getSimpleName()}" style="text-align:right;">
+				<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/branch/${b.getSimpleName()}" style="text-align:right;">
 				${b.getSimpleName()}
 [#if b.behind?? && b.ahead?? && b.behind > 0 || b.ahead > 0 ]
 				<span class="text-success octicon octicon-arrow-up"></span>
@@ -64,9 +65,9 @@
 	<div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
 	[#if pullRequest??]
 		<span>Hey! There is an open pull request for this branch. Want to go to the pull request?</span>
-		<a href="/projects/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.getIssueId()}" class="btn btn-default pull-right">Go to Pull Request</a>
+		<a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.getIssueId()}" class="btn btn-default pull-right">Go to Pull Request</a>
 	[#else]
-		<form method="POST" action="/projects/${group.course.code}/groups/${group.groupNumber}/pull" target="_self">
+		<form method="POST" action="/courses/${group.course.code}/groups/${group.groupNumber}/pull" target="_self">
 			<span>Hey! It seems you're branch is ahead of the master. Want to merge?</span>
 			<input type="hidden" name="branchName" value="${branch.getName()}"/>
 			<button type="submit" class="btn btn-default pull-right">Create Pull Request</button>
@@ -87,12 +88,12 @@
 				[#if states.hasFinished(commit.getCommit())]
 					[#if states.hasSucceeded(commit.getCommit())]
 						<td class="commit succeeded" id="${commit.getCommit()}">
-							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
+							<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
 								<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
 							</a>
 					[#else]
 						<td class="commit failed" id="${commit.getCommit()}">
-							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
+							<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
 								<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
 							</a>
 					[/#if]
@@ -104,7 +105,7 @@
 						<td class="commit ignored" id="${commit.getCommit()}">
 							<span class="state glyphicon glyphicon-unchecked"></span>
 			[/#if]
-							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
+							<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
 								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
 								<div class="committer">${commit.getAuthor()}</div>
 								<div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
@@ -145,9 +146,9 @@
 				<ul class="pagination pagination-lg">
 	[#list max(1, currentPage-4)..min(pageCount, currentPage+4) as pageNumber ]
 		[#if pageNumber == currentPage ]
-					<li class="active"><a href="/projects/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
+					<li class="active"><a href="/courses/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
 		[#else]
-					<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
+					<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
 		[/#if]
 	[/#list]
 				</ul>

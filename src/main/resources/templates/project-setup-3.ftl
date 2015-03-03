@@ -31,7 +31,7 @@
 			</table>
 				</div>
 				<div class="form-group pull-right">
-					<a class="btn btn-xl btn-default" name="back" href="/projects/setup?step=2">
+					<a class="btn btn-xl btn-default" name="back" href="/courses/setup?step=2">
 						<span class="glyphicon glyphicon-chevron-left"></span> ${i18n.translate("form.project-setup.buttons.previous.caption")}
 					</a>
 					<button type="submit" class="btn btn-xl btn-success" name="finish">

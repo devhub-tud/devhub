@@ -30,10 +30,10 @@ import java.util.*;
  * Created by jgmeligmeyling on 03/03/15.
  * @author Jan-Willem Gmelig Meyling
  */
-@Path("courses/{courseCode}/create")
+@Path("courses/{courseCode}/enroll")
 @RequestScoped
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-public class CourseGroupSetupResource extends Resource {
+public class CourseEnrollResource extends Resource {
 
     private final static int MIN_GROUP_SIZE = 1;
 
@@ -68,7 +68,7 @@ public class CourseGroupSetupResource extends Resource {
                 return showProjectSetupPageStep2(request, courseCode, error);
             }
         }
-        return redirect("/courses/" + courseCode + "/create?step=1");
+        return redirect("/courses/" + courseCode + "/enroll?step=1");
     }
 
     private Response showProjectSetupPageStep1(@Context HttpServletRequest request,
@@ -141,20 +141,20 @@ public class CourseGroupSetupResource extends Resource {
             int minGroupSize = getMinGroupSize(course);
 
             if (!groupMembers.contains(currentUser) && !currentUser.isAdmin() && !currentUser.isAssisting(course)) {
-                return redirect("/courses/" + courseCode + "/create?step=2&error=error.must-be-group-member");
+                return redirect("/courses/" + courseCode + "/enroll?step=2&error=error.must-be-group-member");
             }
             if (groupMembers.size() < minGroupSize || groupMembers.size() > maxGroupSize) {
-                return redirect("/courses/" + courseCode + "/create?step=2&error=error.invalid-group-size");
+                return redirect("/courses/" + courseCode + "/enroll?step=2&error=error.invalid-group-size");
             }
 
             for (User user : groupMembers) {
                 if (user.isParticipatingInCourse(course)) {
-                    return redirect("/courses/" + courseCode + "/create?step=2&error=error.already-registered-for-course");
+                    return redirect("/courses/" + courseCode + "/enroll?step=2&error=error.already-registered-for-course");
                 }
             }
 
             session.setAttribute("projects.setup.members", groupMembers);
-            return redirect("/courses/" + courseCode + "/create?step=2");
+            return redirect("/courses/" + courseCode + "/enroll?step=2");
         }
 
         try {
@@ -167,7 +167,7 @@ public class CourseGroupSetupResource extends Resource {
         }
         catch (ApiError e) {
             String error = UrlEncoded.encodeString(e.getResourceKey());
-            return redirect("/courses/" + courseCode + "/create?step=2&error=" + error);
+            return redirect("/courses/" + courseCode + "/enroll?step=2&error=" + error);
         }
     }
 

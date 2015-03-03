@@ -55,7 +55,7 @@ public class RootResource {
 	public Response onEntry(@Context HttpServletRequest request) throws URISyntaxException {
 		try {
 			currentUserProvider.get();
-			return Response.seeOther(new URI("/projects")).build();
+			return Response.seeOther(new URI("/courses")).build();
 		}
 		catch (Exception e) {
 			return Response.seeOther(new URI("/login")).build();

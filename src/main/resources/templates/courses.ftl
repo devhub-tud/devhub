@@ -38,7 +38,7 @@
                 [#list groups as group]
                 <tr>
                     <td>
-                        <a href="/projects/${group.course.code}/groups/${group.groupNumber?c}">${group.getGroupName()}</a>
+                        <a href="/courses/${group.course.code}/groups/${group.groupNumber?c}">${group.getGroupName()}</a>
                     </td>
                 </tr>
                 [/#list]
@@ -79,7 +79,7 @@
                 <tr>
                     <td>
                         ${course.getCode()} - ${course.getName()}
-                        <a href="/courses/${course.getCode()}/create" class="btn btn-primary pull-right btn-xs">Enroll</a>
+                        <a href="/courses/${course.getCode()}/enroll" class="btn btn-primary pull-right btn-xs">Enroll</a>
                     </td>
                 </tr>
                 [/#list]

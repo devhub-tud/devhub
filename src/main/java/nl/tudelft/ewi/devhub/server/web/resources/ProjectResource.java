@@ -58,7 +58,7 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 
 @RequestScoped
-@Path("projects/{courseCode}/groups/{groupNumber}")
+@Path("courses/{courseCode}/groups/{groupNumber}")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class ProjectResource extends Resource {
 	

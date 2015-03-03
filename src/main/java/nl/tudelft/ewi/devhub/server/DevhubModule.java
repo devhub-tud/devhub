@@ -66,11 +66,9 @@ public class DevhubModule extends ServletModule {
 		bind(LdapUserProcessor.class).to(PersistingLdapUserProcessor.class);
 
 		filter("/*").through(PersistFilter.class);
-		filter("/accounts", "/build-servers/*", "/projects/*", "/validation/*", "/courses/*",
-				"/accounts/*", "/build-servers/*", "/projects/*",
-				"/validation/*").through(UserAuthorizeFilter.class);
-		filterRegex("^/projects/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
-		serveRegex("/projects/[^/]+/groups/\\d+/\\w+/raw/.*").with(GitResourceProxy.class);
+		filter("/accounts*", "/build-servers*", "/projects*", "/validation*", "/courses*").through(UserAuthorizeFilter.class);
+		filterRegex("^/courses/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
+		serveRegex("/courses/[^/]+/groups/\\d+/\\w+/raw/.*").with(GitResourceProxy.class);
 
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);

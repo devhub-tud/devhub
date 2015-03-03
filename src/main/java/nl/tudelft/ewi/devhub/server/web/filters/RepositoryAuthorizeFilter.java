@@ -58,7 +58,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 		this.templateEngine = templateEngine;
 		this.coursesProvider = coursesProvider;
 		this.groupsProvider = groupsProvider;
-		this.pattern = Pattern.compile("^/projects/([^/]+)/groups/(\\d+)(/.*)?");
+		this.pattern = Pattern.compile("^/courses/([^/]+)/groups/(\\d+)(/.*)?");
 	}
 	
 	@Override

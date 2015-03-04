@@ -6,7 +6,7 @@
 [#if user.isAdmin()]
     <h2>Courses
         <a href="/courses/setup" class="btn btn-success btn-sm pull-right">
-            <i class="glyphicon glyphicon-plus-sign"></i> Setup course
+            <i class="glyphicon glyphicon-plus-sign"></i> ${ i18n.translate("course.set-up") }
         </a>
     </h2>
     <table class="table table-bordered">

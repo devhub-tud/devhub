@@ -1,5 +1,5 @@
 [#import "macros.ftl" as macros]
-[@macros.renderHeader i18n.translate("form.project-setup.title") /]
+[@macros.renderHeader i18n.translate("section.courses") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
 			<h2>Manage student assistants</h2>
@@ -19,7 +19,7 @@
         [#list members as assistant]
 				<div class="form-group member-field">
 					<label class="control-label" for="member-${assistant_index + 1}">
-                        Assistant #${assistant_index + 1}
+                    ${i18n.translate("course.control.assistant")} #${assistant_index + 1}
                     </label>
  					<span class="glyphicon form-control-feedback"></span>
 					<input type="text" class="form-control" name="member-${assistant_index + 1}" placeholder="${i18n.translate("form.project-setup.net-id.label")}" value="${assistant.getNetId()}">
@@ -28,7 +28,7 @@
         [/#list]
                 <div class="form-group member-field">
                     <label class="control-label" for="member-${members?size + 1}">
-                        Assistant #${members?size + 1}
+                    ${i18n.translate("course.control.assistant")}  #${members?size + 1}
                     </label>
                     <span class="glyphicon form-control-feedback"></span>
                     <input type="text" class="form-control" name="member-${members?size + 1}" placeholder="${i18n.translate("form.project-setup.net-id.label")}" value="">
@@ -37,7 +37,7 @@
     [#else]
                 <div class="form-group member-field">
                     <label class="control-label" for="member-1">
-                        Assistant #1
+                    ${i18n.translate("course.control.assistant")}  #1
                     </label>
                     <span class="glyphicon form-control-feedback"></span>
                     <input type="text" class="form-control" name="member-1" placeholder="${i18n.translate("form.project-setup.net-id.label")}" value="">
@@ -85,7 +85,7 @@
 					label = $("<label>")
 						.addClass("control-label")
 						.attr("for", "member-" + index)
-						.html("Assistant #" + index)
+						.html("${i18n.translate("course.control.assistant")}  #" + index)
 						.appendTo(wrapper),
 
 					icon = $("<span class=\"glyphicon form-control-feedback\"></span>").appendTo(wrapper),

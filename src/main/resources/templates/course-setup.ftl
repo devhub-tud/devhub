@@ -1,5 +1,5 @@
 [#import "macros.ftl" as macros]
-[@macros.renderHeader "Create a new course" /]
+[@macros.renderHeader i18n.translate("section.courses") /]
 [@macros.renderMenu i18n user /]
 <div class="container">
 
@@ -21,29 +21,29 @@
         [/#if]
 
         <div class="form-group">
-            <label for="code" class="col-sm-2 control-label">Course code</label>
+            <label for="code" class="col-sm-2 control-label">${i18n.translate("course.control.course-code")}</label>
             <div class="col-sm-10">
         [#if course?exists]
-                <input type="text" class="form-control" name="code" id="code" placeholder="TI1705, ..." value="${course.getCode()}" disabled>
+                <input type="text" class="form-control" name="code" id="code" placeholder="${i18n.translate("course.control.course-code.example")}" value="${course.getCode()}" disabled>
         [#else]
-                <input type="text" class="form-control" name="code" id="code" placeholder="TI1705, ...">
+                <input type="text" class="form-control" name="code" id="code" placeholder="${i18n.translate("course.control.course-code.example")}">
         [/#if]
             </div>
         </div>
 
         <div class="form-group">
-            <label for="name" class="col-sm-2 control-label">Course name</label>
+            <label for="name" class="col-sm-2 control-label">${i18n.translate("course.control.course-name")}</label>
             <div class="col-sm-10">
         [#if course?exists]
-                <input type="text" class="form-control" name="name" id="name" placeholder="Software Quality & Testing, ...." value="${course.getName()}">
+                <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.course-name.example")}" value="${course.getName()}">
         [#else]
-                <input type="text" class="form-control" name="name" id="name" placeholder="Software Quality & Testing, ....">
+                <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.course-name.example")}">
         [/#if]
             </div>
         </div>
 
         <div class="form-group">
-            <label for="template" class="col-sm-2 control-label">Template repository</label>
+            <label for="template" class="col-sm-2 control-label">${i18n.translate("course.control.template-repository-ul")}</label>
             <div class="col-sm-10">
         [#if course?exists]
                 <input type="text" class="form-control" name="template" id="template" value="${course.getTemplateRepositoryUrl()}">
@@ -54,7 +54,7 @@
         </div>
 
         <div class="form-group">
-            <label for="min" class="col-sm-2 control-label">Min group size</label>
+            <label for="min" class="col-sm-2 control-label">${i18n.translate("course.control.min-group-size")}</label>
             <div class="col-sm-10">
         [#if course?exists && course.getMinGroupSize()?exists]
             <input type="number" class="form-control" name="min" id="min" value="${course.getMinGroupSize()}" min="1" max="100">
@@ -65,7 +65,7 @@
         </div>
 
         <div class="form-group">
-            <label for="max" class="col-sm-2 control-label">Max group size</label>
+            <label for="max" class="col-sm-2 control-label">${i18n.translate("course.control.max-group-size")}</label>
             <div class="col-sm-10">
         [#if course?exists && course.getMaxGroupSize()?exists]
             <input type="number" class="form-control" name="max" id="max" value="${course.getMaxGroupSize()}" min="1" max="100">
@@ -76,7 +76,7 @@
         </div>
 
         <div class="form-group">
-            <label for="timeout" class="col-sm-2 control-label">Build timeout (seconds)</label>
+            <label for="timeout" class="col-sm-2 control-label">${i18n.translate("course.control.build-timeout")} (${i18n.translate("course.control.seconds")})</label>
             <div class="col-sm-10">
         [#if course?exists && course.getBuildTimeout()?exists]
             <input type="number" class="form-control" name="timeout" id="timeout" value="${course.getBuildTimeout()}" min="1" max="3600">
@@ -91,11 +91,11 @@
             <div class="col-sm-offset-2 col-sm-10">
                 <div class="pull-right">
 [#if course?exists]
-                    <a href="/courses/${course.getCode()}" class="btn btn-default">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <a href="/courses/${course.getCode()}" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
+                    <button type="submit" class="btn btn-primary">${i18n.translate("course.control.save")}</button>
 [#else]
-                    <a href="/courses" class="btn btn-default">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Create course</button>
+                    <a href="/courses" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
+                    <button type="submit" class="btn btn-primary">${i18n.translate("course.control.create")}</button>
 [/#if]
                 </div>
             </div>

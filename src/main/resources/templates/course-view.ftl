@@ -18,16 +18,15 @@
         <div class="col-md-8">
             <div class=" panel panel-default">
                 <div class="panel-heading">
-                    Groups
+                    ${i18n.translate("course.control.groups")}
                     <a href="/courses/${course.getCode()}/enroll" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
                 <table class="table panel-body">
-                <table class="table">
                     <thead>
                         <tr>
-                            <th>Group name</th>
+                            <th>${i18n.translate("course.control.group-name")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,7 +39,7 @@
             [/#list]
         [#else]
                         <tr>
-                            <td colspan="2">No groups for course</td>
+                            <td colspan="2">${i18n.translate("course.control.no-groups")}</td>
                         </tr>
         [/#if]
                     </tbody>
@@ -51,7 +50,7 @@
         <div class="col-md-4">
             <div class=" panel panel-default">
                 <div class="panel-heading">
-                    Assignments
+                    ${i18n.translate("course.control.assignments")}
                     <a href="#" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
@@ -59,9 +58,9 @@
                 <table class="table panel-body">
                     <thead>
                     <tr>
-                        <th>Assignment</th>
-                        <th>Due date</th>
-                        <th>Handed in</th>
+                        <th>${i18n.translate("course.control.assignment")}</th>
+                        <th>${i18n.translate("course.control.due-date")}</th>
+                        <th>${i18n.translate("course.control.handed-in")}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -82,19 +81,18 @@
 
             <div class=" panel panel-default">
                 <div class="panel-heading">
-                    Assistants
+                ${i18n.translate("course.control.assistants")}
         [#if user.isAdmin() ]
                     <a href="/courses/${course.getCode()}/assistants" class="btn btn-link btn-xs pull-right">
-                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                     </a>
         [/#if]
                 </div>
                 <table class="table panel-body">
-                <table class="table">
                     <thead>
                     <tr>
-                        <th>NedID</th>
-                        <th>Name</th>
+                        <th>${i18n.translate("course.control.username")}</th>
+                        <th>${i18n.translate("course.control.name")}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -113,7 +111,7 @@
             [/#list]
         [#else]
                     <tr>
-                        <td colspan="2">No assistants for course</td>
+                        <td colspan="2">${i18n.translate("course.control.no-assistants")}</td>
                     </tr>
         [/#if]
                     </tbody>
@@ -123,7 +121,7 @@
 
             <div class=" panel panel-default">
                 <div class="panel-heading">
-                    Details
+                    ${i18n.translate("course.control.details")}
                     <a href="/courses/${course.getCode()}/edit" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
@@ -132,25 +130,25 @@
                     <tbody>
     [#if course.getBuildTimeout()?exists]
                         <tr>
-                            <th>Build timeout</th>
+                            <th>${i18n.translate("course.control.build-timeout")}</th>
                             <td>${course.getBuildTimeout()} seconds</td>
                         </tr>
     [/#if]
     [#if course.getMinGroupSize()?exists]
                         <tr>
-                            <th>Min group size</th>
+                            <th>${i18n.translate("course.control.min-group-size")}</th>
                             <td>${course.getMinGroupSize()}</td>
                         </tr>
     [/#if]
     [#if course.getMaxGroupSize()?exists]
                         <tr>
-                            <th>Max group size</th>
+                            <th>${i18n.translate("course.control.max-group-size")}/th>
                             <td>${course.getMaxGroupSize()}</td>
                         </tr>
     [/#if]
     [#if course.getTemplateRepositoryUrl()?exists]
                         <tr>
-                            <th>Template repository</th>
+                            <th>${i18n.translate("course.control.template-repository-ul")}</th>
                             <td><code style="font-size:8px;">${course.getTemplateRepositoryUrl()}</code></td>
                         </tr>
     [/#if]

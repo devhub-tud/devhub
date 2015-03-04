@@ -1,5 +1,5 @@
 [#import "macros.ftl" as macros]
-[@macros.renderHeader i18n.translate("form.project-setup.title") /]
+[@macros.renderHeader i18n.translate("section.courses") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
             <h2>Manage student assistants</h2>
@@ -16,7 +16,7 @@
 					</div>
 				</div>
 				<div class="form-group">
-					<label for="members">Course assistants</label>
+					<label for="members">${i18n.translate("course.control.assistants")}</label>
 					<table class="table table-bordered">
 						<tbody>
     [#if members?? && members?has_content ]
@@ -31,7 +31,7 @@
     [#else]
                             <tr>
                                 <td>
-                                    <div>No student assistants</div>
+                                    <div>${i18n.translate("course.control.no-assistants")}</div>
                                 </td>
                             </tr>
     [/#if]

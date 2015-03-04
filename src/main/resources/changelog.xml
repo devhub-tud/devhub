@@ -276,4 +276,59 @@
 
     </changeSet>
 
+    <changeSet id="added_deliveries_table" author="Jan-Willem Gmelig Meyling">
+        <createTable tableName="assignment_deliveries">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+
+            <column name="course_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="assignment_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="group_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="commit_id" type="varchar(40)"/>
+            <column name="notes" type="text"/>
+            <column name="created" type="datetime">
+                <constraints  nullable="false" />
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints  nullable="false" />
+            </column>
+
+            <!-- Review -->
+            <column name="grade" type="int"/>
+            <column name="state" type="varchar(10)"/>
+            <column name="review_time" type="timestamp"/>
+            <column name="review_user" type="bigint"/>
+            <column name="commentary" type="text"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="assignment_deliveries" baseColumnNames="course_id, assignment_id"
+             constraintName="assignment_deliveries_assignment"
+             referencedTableName="assignments"
+             referencedColumnNames="course_id, assignment_id"></addForeignKeyConstraint>
+
+        <addForeignKeyConstraint constraintName="assignment_deliveries_group"
+             baseTableName="assignment_deliveries" baseColumnNames="group_id"
+             referencedTableName="groups" referencedColumnNames="id" />
+
+        <addForeignKeyConstraint constraintName="assignment_deliveries_user"
+             baseTableName="assignment_deliveries" baseColumnNames="user_id"
+             referencedTableName="users" referencedColumnNames="id" />
+
+
+        <addForeignKeyConstraint constraintName="assignment_deliveries_review_user"
+             baseTableName="assignment_deliveries" baseColumnNames="review_user"
+             referencedTableName="users" referencedColumnNames="id" />
+
+    </changeSet>
+
 </databaseChangeLog>

@@ -26,20 +26,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
+import nl.tudelft.ewi.devhub.server.database.controllers.*;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.backend.GitBackend;
-import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
-import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -73,9 +66,12 @@ public class ProjectResource extends Resource {
 	private final CommitComments commitComments;
 	private final PullRequests pullRequests;
 	private final CommentBackend commentBackend;
+    private final Deliveries deliveries;
+    private final DeliveriesBackend deliveriesBackend;
+    private final Assignments assignments;
 
 	@Inject
-	ProjectResource(final TemplateEngine templateEngine, 
+	ProjectResource(final TemplateEngine templateEngine,
 			final GitBackend gitBackend,
 			final @Named("current.user") User currentUser,
 			final @Named("current.group") Group group,
@@ -83,7 +79,10 @@ public class ProjectResource extends Resource {
 			final CommentBackend commentBackend,
 			final CommitComments commitComments,
 			final BuildResults buildResults,
-			final PullRequests pullRequests) {
+			final PullRequests pullRequests,
+            final Deliveries deliveries,
+            final DeliveriesBackend deliveriesBackend,
+            final Assignments assignments) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
@@ -94,8 +93,11 @@ public class ProjectResource extends Resource {
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
+        this.deliveries = deliveries;
+        this.deliveriesBackend  = deliveriesBackend;
+        this.assignments = assignments;
 	}
-	
+
 	@GET
 	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request,
@@ -105,7 +107,7 @@ public class ProjectResource extends Resource {
 
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		DetailedBranchModel branch;
-		
+
 		try {
 			branch = gitBackend.retrieveBranch(repository, "master", 0, PAGE_SIZE);
 		}
@@ -118,10 +120,10 @@ public class ProjectResource extends Resource {
 				branch = null; // no commits
 			}
 		}
-		
+
 		return showBranchOverview(request, group, repository, branch, 1);
 	}
-	
+
 	@GET
 	@Path("/branch/{branchName}")
 	@Transactional
@@ -184,6 +186,13 @@ public class ProjectResource extends Resource {
 		String uri = request.getRequestURI() + "/" + pullRequest.getIssueId();
 		return Response.seeOther(URI.create(uri)).build();
 	}
+
+    @GET
+    @Transactional
+    @Path("/pulls")
+    public Response getPullRequests(@Context HttpServletRequest request) throws IOException {
+        throw new javax.ws.rs.NotFoundException();
+    }
 	
 	@GET
 	@Transactional
@@ -311,8 +320,8 @@ public class ProjectResource extends Resource {
 		return showDiff(request, commitId, null);
 	}
 
-//	@GET
-//	@Path("/commits/{oldId}/diff/{newId}")
+	@GET
+	@Path("/commits/{oldId}/diff/{newId}")
 	@Transactional
 	public Response showDiff(@Context HttpServletRequest request,
 			@PathParam("oldId") String oldId,
@@ -390,7 +399,7 @@ public class ProjectResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-folder-view.ftl", locales, parameters));
 	}
-	
+
 	@GET
 	@Path("/commits/{commitId}/blob/{path:.+}")
 	@Transactional
@@ -431,7 +440,58 @@ public class ProjectResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
 	}
-	
+
+    /**
+     * Get assignment overview for project
+     * @param request the current HttpServletRequest
+     * @return rendered assignment overview
+     * @throws IOException if an I/O error occurs
+     */
+    @GET
+    @Transactional
+    @Path("/assignments")
+    public Response getAssignmentsOverview(@Context HttpServletRequest request) throws IOException, ApiError {
+        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+        Map<String, Object> parameters = Maps.newLinkedHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("group", group);
+        parameters.put("course", group.getCourse());
+        parameters.put("repository", repository);
+        parameters.put("deliveries", deliveries);
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("courses/assignments/group-assignments.ftl", locales, parameters));
+    }
+
+    /**
+     * Get a specific assignment. Administrators and assistants see delivered assignments.
+     * Students see whether or not an assignment has been delivered, and their grades.
+     * @param request the current HttpServletRequest
+     * @param assignmentId assignmentId for the assignment
+     * @return rendered assignment overview
+     * @throws IOException if an I/O error occurs
+     */
+    @GET
+    @Transactional
+    @Path("/assignments/{assignmentId}")
+    public Response getAssignmentView(@Context HttpServletRequest request,
+                                      @PathParam("assignmentId") Long assignmentId) throws IOException, ApiError {
+
+        Assignment assignment = assignments.find(group.getCourse(), assignmentId);
+        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+
+        Map<String, Object> parameters = Maps.newLinkedHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("group", group);
+        parameters.put("course", group.getCourse());
+        parameters.put("repository", repository);
+        parameters.put("assignment", assignment);
+        parameters.put("deliveries", deliveries);
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("courses/assignments/group-assignment-view.ftl", locales, parameters));
+    }
+
 	@Data
 	public static class CommitChecker {
 		private final Group group;

@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.annotation.Nullable;
@@ -15,6 +16,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name= "assignments")
+@EqualsAndHashCode(of={"course", "assignmentId"})
 public class Assignment implements Serializable {
 
     @Id

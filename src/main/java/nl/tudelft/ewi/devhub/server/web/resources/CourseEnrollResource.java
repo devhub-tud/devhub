@@ -77,13 +77,14 @@ public class CourseEnrollResource extends Resource {
 
         HttpSession session = request.getSession();
         Course course = courses.find(courseCode);
-        List<User> members = (List<User>) session.getAttribute("projects.setup.members");
 
         String previousCourseCode = String.valueOf(session.getAttribute("projects.setup.course"));
         session.setAttribute("projects.setup.course", courseCode);
         if (!courseCode.equals(previousCourseCode)) {
             session.removeAttribute("projects.setup.members");
         }
+
+        List<User> members = (List<User>) session.getAttribute("projects.setup.members");
 
         int maxGroupSize = getMaxGroupSize(course);
         int minGroupSize = getMinGroupSize(course);

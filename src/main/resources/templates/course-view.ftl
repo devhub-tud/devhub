@@ -31,18 +31,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                        [#assign groups=course.getGroups()]
-                        [#if groups?has_content]
-                            [#list groups as group]
+        [#assign groups=course.getGroups()]
+        [#if groups?has_content]
+            [#list groups as group]
                             <tr>
                                 <td><a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}">${group.getGroupName()}</a></td>
                             </tr>
-                            [/#list]
-                        [#else]
+            [/#list]
+        [#else]
                         <tr>
                             <td colspan="2">No groups for course</td>
                         </tr>
-                        [/#if]
+        [/#if]
                     </tbody>
 
                 </table>
@@ -83,9 +83,11 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     Assistants
-                    <a href="#" class="btn btn-link btn-xs pull-right">
+        [#if user.isAdmin() ]
+                    <a href="/courses/${course.getCode()}/assistants" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
+        [/#if]
                 </div>
                 <table class="table panel-body">
                 <table class="table">
@@ -96,9 +98,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                [#assign assistants=course.getAssistants()]
-                [#if assistants?has_content]
-                    [#list assistants as assistant]
+        [#assign assistants=course.getAssistants()]
+        [#if assistants?has_content]
+            [#list assistants as assistant]
                     <tr>
                         <td>${assistant.getNetId()}</td>
                         <td>
@@ -108,12 +110,12 @@
                             </a>
                         </td>
                     </tr>
-                    [/#list]
-                [#else]
+            [/#list]
+        [#else]
                     <tr>
                         <td colspan="2">No assistants for course</td>
                     </tr>
-                [/#if]
+        [/#if]
                     </tbody>
 
                 </table>

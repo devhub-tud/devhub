@@ -67,9 +67,13 @@ public class Course {
 	@OrderBy("groupNumber ASC")
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
 	private List<Group> groups;
-	
+
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
 	private List<CourseAssistant> courseAssistants;
+
+    @OrderBy("assignmentId ASC")
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+    private List<Assignment> assignments;
 
 	public void setCode(String code) {
 		this.code = code.toUpperCase();

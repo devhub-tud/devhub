@@ -252,4 +252,28 @@
 			referencedTableName="groups" referencedColumnNames="repository_name" />
 	</changeSet>
 
+    <changeSet id="added_assignments_table" author="Jan-Willem Gmelig Meyling">
+        <createTable tableName="assignments">
+            <column name="course_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="assignment_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="varchar(40)">
+                <constraints nullable="false" />
+            </column>
+            <column name="summary" type="text"/>
+            <column name="due_date" type="varchar(40)" />
+        </createTable>
+
+        <addPrimaryKey tableName="assignments" columnNames="course_id, assignment_id"></addPrimaryKey>
+
+        <addForeignKeyConstraint baseTableName="assignments" baseColumnNames="course_id"
+             constraintName="assignment_course_id"
+             referencedTableName="courses"
+             referencedColumnNames="id"></addForeignKeyConstraint>
+
+    </changeSet>
+
 </databaseChangeLog>

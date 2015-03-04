@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ * The CoursesResource is used to view, create and edit courses.
+ *
  * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
@@ -41,9 +43,6 @@ public class CoursesResource extends Resource {
     private Courses courses;
 
     @Inject
-    private Groups groups;
-
-    @Inject
     private GroupMemberships memberships;
 
     @Inject @Named("current.user")
@@ -52,6 +51,13 @@ public class CoursesResource extends Resource {
     @Inject
     private TemplateEngine templateEngine;
 
+    /**
+     * Get an course overview. This page lists the participating courses, assisting courses
+     * and administrating courses.
+     * @param request the current HttpServletRequest
+     * @return a Response containing the generated page
+     * @throws IOException if an I/O error occurs
+     */
     @GET
     public Response getCourses(@Context HttpServletRequest request) throws IOException {
         Map<String, Object> parameters = Maps.newHashMap();
@@ -61,6 +67,14 @@ public class CoursesResource extends Resource {
         return display(templateEngine.process("courses.ftl", locales, parameters));
     }
 
+    /**
+     * Get an overview for a specific course. For users this redirects to the group page.
+     * Administrators and assistants are presented with an overview of groups and assignments.
+     * @param request the current HttpServletRequest
+     * @param courseCode the course code for the course
+     * @return a Response containing the generated page
+     * @throws IOException if an I/O error occurs
+     */
     @GET
     @Path("{courseCode}")
     public Response getCourse(@Context HttpServletRequest request,
@@ -83,6 +97,14 @@ public class CoursesResource extends Resource {
         return display(templateEngine.process("course-view.ftl", locales, parameters));
     }
 
+    /**
+     * Edit a course
+     * @param request the current HttpServletRequest
+     * @param courseCode the course code for the course
+     * @param error an error message
+     * @return a Response containing the generated page
+     * @throws IOException if an I/O error occurs
+     */
     @GET
     @Path("{courseCode}/edit")
     public Response getEditPage(@Context HttpServletRequest request,
@@ -101,6 +123,17 @@ public class CoursesResource extends Resource {
         return display(templateEngine.process("course-setup.ftl", locales, parameters));
     }
 
+    /**
+     * Submit changes to a course
+     * @param request the current HttpServletRequest
+     * @param id the course id
+     * @param courseName name for the course
+     * @param templateRepository template repository url for the course
+     * @param minGroupSize min group size for the course
+     * @param maxGroupSize max group size for the course
+     * @param buildTimeout build timeout for the course
+     * @return a Response containing the generated page
+     */
     @POST
     @Path("{courseCode}/edit")
     public Response editCourse(@Context HttpServletRequest request,
@@ -135,6 +168,13 @@ public class CoursesResource extends Resource {
         return redirect("/courses");
     }
 
+    /**
+     * Set up a new course
+     * @param request the current HttpServletRequest
+     * @param error an error message
+     * @return a Response containing the generated page
+     * @throws IOException if an I/O error occurs
+     */
     @GET
     @Path("setup")
     public Response getSetupPage(@Context HttpServletRequest request,
@@ -150,6 +190,17 @@ public class CoursesResource extends Resource {
         return display(templateEngine.process("course-setup.ftl", locales, parameters));
     }
 
+    /**
+     * Submit a course creation
+     * @param request the current HttpServletRequest
+     * @param courseCode course code for the course
+     * @param courseName course name for the course
+     * @param templateRepository template repository url for the course
+     * @param minGroupSize min group size for the course
+     * @param maxGroupSize max group size for the course
+     * @param buildTimeout build timeout for the course
+     * @return a Response containing the generated page
+     */
     @POST
     @Path("setup")
     public Response setupCourse(@Context HttpServletRequest request,
@@ -184,18 +235,6 @@ public class CoursesResource extends Resource {
         }
 
         return redirect("/courses");
-    }
-
-    @GET
-    @Path("assignments")
-    public Response getAssignments() {
-        return null;
-    }
-
-    @GET
-    @Path("assignments/{assignmentId}")
-    public Response getAssignment(@PathParam("assignmentId") Integer assignmentId) {
-        return null;
     }
 
 }

@@ -23,7 +23,7 @@
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
-                <table class="table panel-body">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>${i18n.translate("course.control.group-name")}</th>
@@ -51,30 +51,48 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     ${i18n.translate("course.control.assignments")}
-                    <a href="#" class="btn btn-link btn-xs pull-right">
+                    <a href="/courses/${course.getCode()}/assignments/create" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
-                <table class="table panel-body">
+                <table class="table">
                     <thead>
                     <tr>
+                        <th>No.</th>
                         <th>${i18n.translate("course.control.assignment")}</th>
                         <th>${i18n.translate("course.control.due-date")}</th>
-                        <th>${i18n.translate("course.control.handed-in")}</th>
                     </tr>
                     </thead>
                     <tbody>
+        [#assign assignments = course.getAssignments()]
+        [#if assignments?? && assignments?has_content]
+        [#list assignments as assignment]
                     <tr>
-                        <td>Assignment 1</td>
-                        <td>16th March</td>
                         <td>
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
-                                    60%
-                                </div>
-                            </div>
+                            <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
+                                ${assignment.getAssignmentId()}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
+                                ${assignment.getName()}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
+                                ${assignment.getDueDate()}
+                            </a>
+                            <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}/edit" class="btn btn-default btn-xs pull-right">
+                                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                            </a>
                         </td>
                     </tr>
+        [/#list]
+        [#else]
+                    <tr>
+                        <td colspan="3">${ i18n.translate("course.control.no-assignments")}</td>
+                    </tr>
+        [/#if]
                     </tbody>
                 </table>
             </div>
@@ -88,7 +106,7 @@
                     </a>
         [/#if]
                 </div>
-                <table class="table panel-body">
+                <table class="table">
                     <thead>
                     <tr>
                         <th>${i18n.translate("course.control.username")}</th>
@@ -126,7 +144,7 @@
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
                 </div>
-                <table class="table panel-body">
+                <table class="table">
                     <tbody>
     [#if course.getBuildTimeout()?exists]
                         <tr>
@@ -142,7 +160,7 @@
     [/#if]
     [#if course.getMaxGroupSize()?exists]
                         <tr>
-                            <th>${i18n.translate("course.control.max-group-size")}/th>
+                            <th>${i18n.translate("course.control.max-group-size")}</th>
                             <td>${course.getMaxGroupSize()}</td>
                         </tr>
     [/#if]

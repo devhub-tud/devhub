@@ -331,4 +331,19 @@
 
     </changeSet>
 
+    <changeSet id="added_delivery_attachments" author="Jan-Willem Gmelig Meyling">
+        <createTable tableName="assignment_delivery_attachments">
+            <column name="path" type="varchar(255)">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="delivery_id" type="bigint">
+                <constraints  nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="assignment_delivery_attachments" baseColumnNames="delivery_id"
+             constraintName="assignment_delivery_attachments_delivery_id"
+             referencedTableName="assignment_deliveries" referencedColumnNames="id"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -33,9 +33,9 @@
         <label for="due-date" class="col-sm-2 control-label">Due date</label>
         <div class="col-sm-10">
         [#if assignment?exists]
-            <input type="text" class="form-control" name="due-date" id="due-date" value="${assignment.getDueDate()}">
+            <input type="text" class="form-control" name="due-date" id="due-date" placeholder="Due date" [#if assignment.getDueDate()??]value="${assignment.getDueDate()}"[/#if]>
         [#else]
-            <input type="text" class="form-control" name="due-date" id="due-date">
+            <input type="text" class="form-control" name="due-date" id="due-date" placeholder="Due date">
         [/#if]
         </div>
     </div>
@@ -55,7 +55,7 @@
         <label for="summary" class="col-sm-2 control-label">Summary</label>
         <div class="col-sm-10">
         [#if assignment?exists]
-            <textarea rows="8" class="form-control" name="summary" id="summary" placeholder="Summary">${assignment.getSummary()}</textarea>
+            <textarea rows="8" class="form-control" name="summary" id="summary" placeholder="Summary">[#if assignment.getSummary()??]${assignment.getSummary()}[/#if]</textarea>
         [#else]
             <textarea rows="8" class="form-control" name="summary" id="summary" placeholder="Summary"></textarea>
         [/#if]

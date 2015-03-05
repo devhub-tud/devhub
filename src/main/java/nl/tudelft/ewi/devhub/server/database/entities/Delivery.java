@@ -7,6 +7,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -24,7 +25,7 @@ public class Delivery implements Comparable<Delivery> {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long groupId;
+    private long deliveryId;
 
     @ManyToOne
     @JoinColumns({
@@ -53,35 +54,44 @@ public class Delivery implements Comparable<Delivery> {
     @Embedded
     private Review review;
 
+    @Basic(fetch=FetchType.LAZY)
     @Column(name = "notes")
     private String notes;
+
+    @JoinColumn(name = "delivery_id")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<DeliveryAttachment> attachments;
 
     @Data
     @Embeddable
     public static class Review {
 
         @Column(name = "grade")
+        @Basic(fetch=FetchType.LAZY)
         private Integer grade;
 
         @Column(name="review_time")
+        @Basic(fetch=FetchType.LAZY)
         @Temporal(TemporalType.TIMESTAMP)
         private Date reviewTime;
 
-        @Enumerated(EnumType.STRING)
         @Column(name = "state")
+        @Basic(fetch=FetchType.LAZY)
+        @Enumerated(EnumType.STRING)
         private State state;
 
-        @ManyToOne
         @JoinColumn(name = "review_user")
+        @ManyToOne(fetch = FetchType.LAZY)
         private User reviewUser;
 
+        @Basic(fetch=FetchType.LAZY)
         @Column(name = "commentary")
         private String commentary;
 
     }
 
     public boolean isSubmitted() {
-        return getReview() != null &&
+        return getReview() == null ||
             State.SUBMITTED.equals(getReview().getState());
     }
 

@@ -79,9 +79,12 @@
                             </a>
                         </td>
                         <td>
+                    [#if assignment.getDueDate()??]
                             <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
                                 ${assignment.getDueDate()}
                             </a>
+                    [#else]-
+                    [/#if]
                             <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}/edit" class="btn btn-default btn-xs pull-right">
                                 <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                             </a>

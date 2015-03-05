@@ -31,12 +31,30 @@
 		<selenium.version>2.44.0</selenium.version>
 	</properties>
 
-	<scm>
-		<connection>scm:git:git@github.com:michaeldejong/devhub.git</connection>
-		<developerConnection>scm:git:git@github.com:michaeldejong/devhub.git</developerConnection>
-		<url>https://github.com/michaeldejong/devhub.git</url>
-		<tag>HEAD</tag>
-	</scm>
+    <description>DevHub is a Continuous Integration system designed to give students a simple practical introduction into modern software development</description>
+
+    <organization>
+        <name>TU Delft</name>
+        <url>http://ewi.tudelft.nl</url>
+    </organization>
+
+    <scm>
+        <connection>scm:git:git@github.com:devhub-tud/DevHub.git</connection>
+        <developerConnection>scm:git:git@github.com:devhub-tud/DevHub.git</developerConnection>
+        <url>https://github.com/devhub-tud/DevHub</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Michael de Jong</name>
+            <email>M.deJong-2@student.tudelft.nl</email>
+        </developer>
+        <developer>
+            <name>Jan-Willem Gmelig Meyling</name>
+            <email>j.gmeligmeyling@student.tudelft.nl</email>
+        </developer>
+    </developers>
 
 	<dependencies>
 		<!-- Web -->
@@ -90,6 +108,11 @@
 			<artifactId>jackson-datatype-guava</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-multipart-provider</artifactId>
+            <version>${resteasy.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-webapp</artifactId>

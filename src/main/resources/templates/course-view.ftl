@@ -10,10 +10,8 @@
 [/#macro]
 
 <div class="container">
-
+[@renderBreadcrumb course /]
 [#if user.isAdmin() || user.isAssisting(course) ]
-    [@renderBreadcrumb course /]
-
     <div class="row">
         <div class="col-md-8">
             <div class=" panel panel-default">

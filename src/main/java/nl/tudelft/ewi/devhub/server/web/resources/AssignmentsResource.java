@@ -3,12 +3,17 @@ package nl.tudelft.ewi.devhub.server.web.resources;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import lombok.Data;
+import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
+import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
+import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+import org.jboss.resteasy.spi.NotImplementedYetException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
@@ -36,6 +41,12 @@ public class AssignmentsResource extends Resource {
     private Assignments assignmentsDAO;
 
     @Inject
+    private DeliveriesBackend deliveriesBackend;
+
+    @Inject
+    private Deliveries deliveriesDAO;
+
+    @Inject
     @Named("current.user")
     private User currentUser;
 
@@ -48,7 +59,7 @@ public class AssignmentsResource extends Resource {
     @GET
     public Response getOverviewPage(@Context HttpServletRequest request,
                                     @PathParam("courseCode") String courseCode) {
-        throw new NotFoundException();
+        throw new NotImplementedYetException();
     }
 
     /**
@@ -58,6 +69,7 @@ public class AssignmentsResource extends Resource {
      * @return a Response containing the generated page
      */
     @GET
+    @Transactional
     @Path("create")
     public Response getCreatePage(@Context HttpServletRequest request,
                                   @PathParam("courseCode") String courseCode,
@@ -126,11 +138,30 @@ public class AssignmentsResource extends Resource {
      * @return a Response containing the generated page
      */
     @GET
+    @Transactional
     @Path("{assignmentId : \\d+}")
-    public void getAssignmentPage(@Context HttpServletRequest request,
-                                  @PathParam("courseCode") String courseCode,
-                                  @PathParam("assignmentId") Integer assignmentId) {
-        throw new NotFoundException();
+    public Response getAssignmentPage(@Context HttpServletRequest request,
+                                      @PathParam("courseCode") String courseCode,
+                                      @PathParam("assignmentId") Long assignmentId) throws IOException {
+        Course course = courses.find(courseCode);
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
+
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
+        List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+        AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment);
+
+        Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("course", course);
+        parameters.put("assignment", assignment);
+        parameters.put("assignmentStats", assignmentStats);
+        parameters.put("lastDeliveries", lastDeliveries);
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("courses/assignments/assignment-view.ftl", locales, parameters));
     }
 
     /**
@@ -140,6 +171,7 @@ public class AssignmentsResource extends Resource {
      * @param assignmentId the assignment id
      */
     @GET
+    @Transactional
     @Path("{assignmentId : \\d+}/edit")
     public Response getEditAssignmentPage(@Context HttpServletRequest request,
                                           @PathParam("courseCode") String courseCode,

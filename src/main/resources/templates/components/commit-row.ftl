@@ -1,31 +1,37 @@
-[#macro render states commit]
+[#macro render group states commitId href=""]
 <tr>
-    [#if commit?? && commit?has_content]
-        [#if states.hasStarted(commit.getCommit())]
-            [#if states.hasFinished(commit.getCommit())]
-                [#if states.hasSucceeded(commit.getCommit())]
-                <td class="commit succeeded" id="${commit.getCommit()}">
-                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
+    [#if group?? && states?? && states?has_content && commitId??]
+        [#if states.hasStarted(commitId)]
+            [#if states.hasFinished(commitId)]
+                [#if states.hasSucceeded(commitId)]
+                <td class="commit succeeded" id="${commitId}">
+                    [#if href?? && href?has_content]<a href="${href}">[/#if]
+                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
                         <span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
                     </a>
                 [#else]
-                <td class="commit failed" id="${commit.getCommit()}">
-                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
+                <td class="commit failed" id="${commitId}">
+                    [#if href?? && href?has_content]<a href="${href}">[/#if]
+                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
                         <span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
                     </a>
                 [/#if]
             [#else]
-            <td class="commit running" id="${commit.getCommit()}">
+            <td class="commit running" id="${commitId}">
+                [#if href?? && href?has_content]<a href="${href}">[/#if]
                 <span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
             [/#if]
         [#else]
-        <td class="commit ignored" id="${commit.getCommit()}">
+        <td class="commit ignored" id="${commitId}">
+            [#if href?? && href?has_content]<a href="${href}">[/#if]
             <span class="state glyphicon glyphicon-unchecked"></span>
         [/#if]
     [#else]
-        <td class="commit">
+        <td class="commit" style="width:100%; min-height: 44px;">
+        [#if href?? && href?has_content]<a href="${href}">[/#if]
     [/#if]
     [#nested /]
+    [#if href?? && href?has_content]</a>[/#if]
     </td>
 </tr>
 [/#macro]

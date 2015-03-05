@@ -81,12 +81,10 @@
                 [#if repository?? && repository?has_content]
                     [#if branch?? && branch?has_content && branch.getCommits()?has_content]
                         [#list branch.getCommits() as commit]
-                            [@commitRow.render states commit]
-                                <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
-                                    <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
-                                    <div class="committer">${commit.getAuthor()}</div>
-                                    <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-                                </a>
+                            [@commitRow.render group states commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff"]
+                                <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
+                                <div class="committer">${commit.getAuthor()}</div>
+                                <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
                             [/@commitRow.render]
                         [/#list]
                     [#else]

@@ -21,11 +21,7 @@
         <div class="col-md-10">
             <table class="table table-bordered">
             [#assign commitId = delivery.getCommitId()!]
-            [#if commitId?has_content && repository?? && gitBackend??]
-                [#assign commit = gitBackend.fetchCommitView(repository, commitId)]
-            [/#if]
-
-            [@commitRow.render states commit!]
+            [@commitRow.render group states commitId!]
                 [#if delivery.isSubmitted()]
                     <span class="label label-info pull-right">Submitted</span>
                 [#elseif delivery.isApproved()]
@@ -45,24 +41,31 @@
 
                 [#assign attachments = delivery.getAttachments()!]
                 [#if attachments?has_content]
+                    <ul class="list-inline">
                     [#list attachments as attachment]
+                        <li>
                         <a class="btn btn-link btn-sm" target="_blank" href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}/attachment/${attachment.getPath()?url('ISO-8859-1')}">
                             <span class="glyphicon glyphicon-file aria-hidden="true"></span>
                         ${attachment.getFileName()}
                         </a>
+                        </li>
                     [/#list]
+                    </ul>
                 [/#if]
 
                 [#assign review = delivery.getReview()!]
-                [#if review?? && (review.getGrade()?? || review.getCommentary()??)]
+                [#if review?? && review?has_content && (review.getGrade()?? || review.getCommentary()??)]
                     <blockquote>
-                        [#if review.getGrade()??]
-                            <div><strong>Grade</strong>: ${review.getGrade()}</div>
-                        [/#if]
-                        [#if review.getCommentary()??]
-                            <div><strong>Remarks</strong>:</div>
-                            <div>${review.getCommentary()}</div>
-                        [/#if]
+                        <dl>
+                            [#if review.getGrade()??]
+                                <dt>Grade</dt>
+                                <dd>${review.getGrade()}</dd>
+                            [/#if]
+                            [#if review.getCommentary()??]
+                                <dt>Remarks</dt>
+                                <dd>${review.getCommentary()}</dd>
+                            [/#if]
+                        </dl>
                         <footer class="small">${review.reviewUser.getName()} on ${review.getReviewTime()?string["EEEE dd MMMM yyyy HH:mm"]}</footer>
                     </blockquote>
                 [/#if]
@@ -81,7 +84,7 @@
                                     <select class="form-control" name="state" id="state">
                                         [#if deliveryStates?? && deliveryStates?has_content]
                                             [#list deliveryStates as deliveryState]
-                                                <option value="${deliveryState?string}" [#if review?? && review.getState() == deliveryState]selected[/#if]>
+                                                <option value="${deliveryState?string}" [#if review?? && review?has_content && review.getState() == deliveryState]selected[/#if]>
                                                     ${ i18n.translate(deliveryState.getTranslationKey())}
                                                 </option>
                                             [/#list]
@@ -91,13 +94,13 @@
 
                                 <div class="form-group col-md-6">
                                     <label for="grade">Grade</label>
-                                    <input type="number" class="form-control" name="grade" id="grade" min="1" max="10" [#if review?? ]value="${review.getGrade()!}"[/#if]>
+                                    <input type="number" class="form-control" name="grade" id="grade" min="1" max="10" [#if review?? && review?has_content ]value="${review.getGrade()!}"[/#if]>
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label for="commentary">Remarks</label>
-                                <textarea class="form-control" name="commentary" id="commentary" rows="5">[#if review?? ]${review.getCommentary()!}[/#if]</textarea>
+                                <textarea class="form-control" name="commentary" id="commentary" rows="5">[#if review?? && review?has_content ]${review.getCommentary()!}[/#if]</textarea>
                             </div>
 
                             <button type="submit" class="btn btn-primary pull-right">Submit</button>

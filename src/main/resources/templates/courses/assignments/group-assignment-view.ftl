@@ -73,10 +73,7 @@
             [#if myDeliveries?has_content]
                 [#list myDeliveries as delivery]
                     [#assign commitId = delivery.getCommitId()!]
-                    [#if commitId?has_content && repository?? && gitBackend??]
-                        [#assign commit = gitBackend.fetchCommitView(repository, commitId)!]
-                    [/#if]
-                    [@commitRow.render states commit!]
+                    [@commitRow.render group states commitId! ""]
                         [@deliveryStateButton user course delivery/]
 
                         <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
@@ -87,24 +84,31 @@
 
                         [#assign attachments = delivery.getAttachments()!]
                         [#if attachments?has_content]
+                            <ul class="list-inline">
                             [#list attachments as attachment]
+                                <li>
                                 <a class="btn btn-link btn-sm" target="_blank" href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}/attachment/${attachment.getPath()?url('ISO-8859-1')}">
                                     <span class="glyphicon glyphicon-file aria-hidden="true"></span>
                                 ${attachment.getFileName()}
                                 </a>
+                                </li>
                             [/#list]
+                            </ul>
                         [/#if]
 
                         [#assign review = delivery.getReview()!]
-                        [#if review?? && (review.getGrade()?? || review.getCommentary()??)]
+                        [#if review?? && review?has_content && (review.getGrade()?? || review.getCommentary()??)]
                             <blockquote>
-                                [#if review.getGrade()??]
-                                    <div><strong>Grade</strong>: ${review.getGrade()}</div>
-                                [/#if]
-                                [#if review.getCommentary()??]
-                                    <div><strong>Remarks</strong>:</div>
-                                    <div>${review.getCommentary()}</div>
-                                [/#if]
+                                <dl>
+                                    [#if review.getGrade()??]
+                                        <dt>Grade</dt>
+                                        <dd>${review.getGrade()}</dd>
+                                    [/#if]
+                                    [#if review.getCommentary()??]
+                                        <dt>Remarks</dt>
+                                        <dd>${review.getCommentary()}</dd>
+                                    [/#if]
+                                </dl>
                                 <footer class="small">${review.reviewUser.getName()} on ${review.getReviewTime()?string["EEEE dd MMMM yyyy HH:mm"]}</footer>
                             </blockquote>
                         [/#if]

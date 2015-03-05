@@ -27,14 +27,14 @@ import java.util.List;
 public class DeliveriesBackend {
 
     private final User currentUser;
-    private final Deliveries deliveries;
+    private final Deliveries deliveriesDAO;
     private final StorageBackend storageBackend;
 
     @Inject
-    public DeliveriesBackend(Deliveries deliveries,
+    public DeliveriesBackend(Deliveries deliveriesDAO,
                              StorageBackend storageBackend,
                              @Named("current.user") User currentUser) {
-        this.deliveries = deliveries;
+        this.deliveriesDAO = deliveriesDAO;
         this.storageBackend = storageBackend;
         this.currentUser = currentUser;
     }
@@ -53,7 +53,7 @@ public class DeliveriesBackend {
         try {
             delivery.setCreatedUser(currentUser);
             delivery.setCreated(new Date());
-            deliveries.persist(delivery);
+            deliveriesDAO.persist(delivery);
         }
         catch (Exception e) {
             throw new ApiError("error.could-not-deliver", e);
@@ -93,7 +93,7 @@ public class DeliveriesBackend {
             attachments.add(attachment);
 
             try {
-                deliveries.merge(delivery);
+                deliveriesDAO.merge(delivery);
             }
             catch (Exception e) {
                 storageBackend.removeSilently(path, fileName);
@@ -133,7 +133,7 @@ public class DeliveriesBackend {
             review.setReviewUser(currentUser);
             review.setReviewTime(new Date());
             delivery.setReview(review);
-            deliveries.merge(delivery);
+            deliveriesDAO.merge(delivery);
         }
         catch (Exception e) {
             throw new ApiError("error.could-not-review", e);
@@ -152,7 +152,7 @@ public class DeliveriesBackend {
     public File getAttachment(Assignment assignment, Group group, String attachmentPath) throws UnauthorizedException, NotFoundException {
         checkUserAuthorized(group);
         File file = storageBackend.getFile(attachmentPath);
-        List<Delivery> deliveriesForAssignment = deliveries.getDeliveries(assignment, group);
+        List<Delivery> deliveriesForAssignment = deliveriesDAO.getDeliveries(assignment, group);
 
         // VERY IMPORTANT
         //   VERIFY THAT FILE ACTUALLY BELONGS TO THIS ASSIGNMENT
@@ -164,4 +164,15 @@ public class DeliveriesBackend {
 
         return file;
     }
+
+    /**
+     * Get the AssignmentStats for an Assignment
+     * @param assignment the assignment to get the statistics for
+     * @return statistics for the assignment
+     */
+    public AssignmentStats getAssignmentStats(Assignment assignment) {
+        List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
+        return new AssignmentStats(deliveries, assignment.getCourse().getGroups());
+    }
+
 }

@@ -228,6 +228,7 @@ public class ProjectAssignmentsResource extends Resource {
      * @return a view for reviewing the delivery
      */
     @GET
+    @Transactional
     @Path("deliveries/{deliveryId}/review")
     public Response getReviewView(@Context HttpServletRequest request,
                                   @PathParam("deliveryId") Long deliveryId) throws ApiError, IOException {
@@ -275,7 +276,13 @@ public class ProjectAssignmentsResource extends Resource {
         review.setState(state);
         review.setGrade(gradeInt);
         review.setCommentary(commentary);
-        deliveriesBackend.review(delivery, review);
+
+        try {
+            deliveriesBackend.review(delivery, review);
+        }
+        catch (Exception e){
+            throw new ApiError("error.could-not-review", e);
+        }
 
         return redirect(request.getRequestURI());
     }

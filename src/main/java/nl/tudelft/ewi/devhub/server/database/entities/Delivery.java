@@ -103,24 +103,24 @@ public class Delivery implements Comparable<Delivery> {
 
     }
 
+    public boolean hasState(State state) {
+        return review == null ? State.SUBMITTED.equals(state) : review.getState().equals(state);
+    }
+
     public boolean isSubmitted() {
-        return getReview() == null ||
-            State.SUBMITTED.equals(getReview().getState());
+        return hasState(State.SUBMITTED);
     }
 
     public boolean isApproved() {
-        return getReview() != null &&
-            State.APPROVED.equals(getReview().getState());
+        return hasState(State.APPROVED);
     }
 
     public boolean isDisapproved() {
-        return getReview() != null &&
-            State.DISAPPROVED.equals(getReview().getState());
+        return hasState(State.DISAPPROVED);
     }
 
     public boolean isRejected() {
-        return getReview() != null &&
-            State.REJECTED.equals(getReview().getState());
+        return hasState(State.REJECTED);
     }
 
     @Override

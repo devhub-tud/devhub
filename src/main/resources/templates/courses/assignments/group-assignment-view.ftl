@@ -53,9 +53,9 @@
                         [#assign attachments = delivery.getAttachments()!]
                         [#if attachments?has_content]
                             [#list attachments as attachment]
-                                <a href="#" class="btn btn-link btn-sm">
+                                <a class="btn btn-link btn-sm" target="_blank" href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}/attachment/${attachment.getPath()?url('ISO-8859-1')}">
                                     <span class="glyphicon glyphicon-file aria-hidden="true"></span>
-                                    ${attachment.getPath()}</a>
+                                    ${attachment.getFileName()}</a>
                             [/#list]
                         [/#if]
 

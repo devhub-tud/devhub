@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -529,6 +530,7 @@ public class ProjectResource extends Resource {
         List<InputPart> attachments = formDataMap.get("file-attachment");
         for(InputPart attachment : attachments) {
             String fileName = extractFilename(attachment);
+            if(fileName.isEmpty()) continue;
             InputStream in = attachment.getBody(new GenericType<InputStream>() {});
             deliveriesBackend.attach(delivery, fileName, in);
         }
@@ -550,6 +552,24 @@ public class ProjectResource extends Resource {
         }
 
         return null;
+    }
+
+    /**
+     * Get a file from a delivery
+     * @param request the current HttpServletRequest
+     * @param assignmentId assignmentId for the assignment
+     * @param attachmentPath requested file
+     * @return the requested file
+     */
+    @GET
+    @Path("/assignments/{assignmentId}/attachment/{path}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public File getAttachment(@Context HttpServletRequest request,
+                              @PathParam("assignmentId") Long assignmentId,
+                              @PathParam("path") String attachmentPath) {
+
+        Assignment assignment = assignments.find(group.getCourse(), assignmentId);
+        return deliveriesBackend.getAttachment(assignment, group, attachmentPath);
     }
 
     private static String extractString(Map<String, List<InputPart>> data, String key) throws IOException {

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.Config;
 import org.apache.commons.io.FileUtils;
 
+import javax.ws.rs.NotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,6 +65,25 @@ public class StorageBackend {
         catch (IOException e) {
             log.warn(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Get a file in the StorageBackend
+     *  <strong>
+     *      REMEMBER THAT THROUGH THIS METHOD YOU CAN RETRIEVE
+     *      EVERY FILE IN THE STATIC STORAGE. BE SURE TO CHECK
+     *      IF THE USER IS ALLOWED TO VIEW THE PARTICULAR FILE.
+     *  </strong>
+     * @param attachmentPath relative path of file
+     * @return the file
+     * @throws NotFoundException if the file could not be found
+     */
+    public File getFile(String attachmentPath) throws NotFoundException {
+        File file = new File(rootFolder, attachmentPath);
+        if(!file.exists()) {
+            throw new NotFoundException();
+        }
+        return file;
     }
 
 }

@@ -6,10 +6,7 @@ import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
-import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
-import nl.tudelft.ewi.devhub.server.database.entities.DeliveryAttachment;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import org.apache.commons.lang.StringUtils;
@@ -142,4 +139,18 @@ public class DeliveriesBackend {
         }
     }
 
+    public File getAttachment(Assignment assignment, Group group, String attachmentPath) {
+        checkUserAuthorized(group);
+        List<Delivery> deliveriesForAssignment = deliveries.getDeliveries(assignment, group);
+
+        // VERY IMPORTANT
+        //   VERIFY THAT FILE ACTUALLY BELONGS TO THIS ASSIGNMENT
+        if(deliveriesForAssignment.stream().noneMatch((delivery) ->
+            delivery.getAttachments().stream().anyMatch((attachment) ->
+                attachment.getPath().equals(attachmentPath)))) {
+            throw new UnauthorizedException();
+        }
+
+        return storageBackend.getFile(attachmentPath);
+    }
 }

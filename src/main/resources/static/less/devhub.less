@@ -199,19 +199,27 @@ td.no-data {
 }
 
 td.commit {
+    position: relative;
+
 	&.failed {
 		background-color: @red-background-color;
+        padding-left: 60px !important;
+
 		.state, .comment {
 			color: @red-text-color;
 		}
 	}
 	&.succeeded {
 		background-color: @green-background-color;
+        padding-left: 60px !important;
+
 		.state, .comment {
 			color: @green-text-color;
 		}
 	}
 	&.running {
+        padding-left: 60px !important;
+
 		.state {
 			color: #ccc;
 		}
@@ -220,20 +228,21 @@ td.commit {
 		}
 	}
 	&.ignored {
+        padding-left: 60px !important;
+
 		.state {
 			color: #eee;
-		}
-		.comment {
-			color: #666;
 		}
 	}
 	
 	.state {
-		float: left;
-		font-size: 38px; 
-		width: 38px; 
-		height: 38px; 
-		margin-right: 12px;
+        position: absolute;
+        left: 10px;
+        top: auto;
+        bottom: auto;
+        font-size: 38px;
+        width: 38px;
+        height: 38px;
 	}
 	
 	.comment {
@@ -241,6 +250,7 @@ td.commit {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		height: 20px;
+        color: #666;
 	}
 	
 	.committer, .timestamp {

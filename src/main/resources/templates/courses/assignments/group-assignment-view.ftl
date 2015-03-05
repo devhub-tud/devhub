@@ -1,5 +1,45 @@
 [#import "../../macros.ftl" as macros]
 [#import "../../components/project-frameset.ftl" as projectFrameset]
+[#import "../../components/commit-row.ftl" as commitRow]
+
+[#macro deliveryStateButton user course delivery]
+    [#if user.isAdmin() || user.isAssisting(course)]
+        <div class="btn-group pull-right">
+        [#if delivery.isSubmitted()]
+            <button type="button" class="btn btn-info">Submitted</button>
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        [#elseif delivery.isApproved()]
+            [#assign approved = true]
+            <button type="button" class="btn btn-success">Approved</button>
+        <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        [#elseif delivery.isDisapproved()]
+            <button type="button" class="btn btn-warning">Disapproved</button>
+        <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        [#elseif delivery.isRejected()]
+            <button type="button" class="btn btn-danger">Rejected</button>
+        <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        [/#if]
+                <span class="caret"></span>
+                <span class="sr-only">Options</span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li><a href="deliveries/${delivery.getDeliveryId()}/review">Review</a></li>
+            </ul>
+        </div>
+    [#else]
+        [#if delivery.isSubmitted()]
+        <span class="label label-info pull-right">Submitted</span>
+        [#elseif delivery.isApproved()]
+            [#assign approved = true]
+        <span class="label label-success pull-right">Approved</span>
+        [#elseif delivery.isDisapproved()]
+        <span class="label label-warning pull-right">Disapproved</span>
+        [#elseif delivery.isRejected()]
+        <span class="label label-danger pull-right">Rejected</span>
+        [/#if]
+    [/#if]
+[/#macro]
+
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 <div class="container">
@@ -32,20 +72,15 @@
             [#assign myDeliveries = deliveries.getDeliveries(assignment, group)!]
             [#if myDeliveries?has_content]
                 [#list myDeliveries as delivery]
-                    <tr>
-                        <td>
-                        [#if delivery.isSubmitted()]
-                            <span class="label label-info pull-right">Submitted</span>
-                        [#elseif delivery.isApproved()]
-                            [#assign approved = true]
-                            <span class="label label-success pull-right">Approved</span>
-                        [#elseif delivery.isDisapproved()]
-                            <span class="label label-warning pull-right">Disapproved</span>
-                        [#elseif delivery.isRejected()]
-                            <span class="label label-danger pull-right">Rejected</span>
-                        [/#if]
+                    [#assign commitId = delivery.getCommitId()!]
+                    [#if commitId?has_content && repository?? && gitBackend??]
+                        [#assign commit = gitBackend.fetchCommitView(repository, commitId)!]
+                    [/#if]
+                    [@commitRow.render states commit!]
+                        [@deliveryStateButton user course delivery/]
 
-                            <span class="small">${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]} by ${delivery.createdUser.getName()}</span>
+                        <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+
                         [#if delivery.getNotes()??]
                             <p>${delivery.getNotes()}</p>
                         [/#if]
@@ -55,12 +90,25 @@
                             [#list attachments as attachment]
                                 <a class="btn btn-link btn-sm" target="_blank" href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}/attachment/${attachment.getPath()?url('ISO-8859-1')}">
                                     <span class="glyphicon glyphicon-file aria-hidden="true"></span>
-                                    ${attachment.getFileName()}</a>
+                                ${attachment.getFileName()}
+                                </a>
                             [/#list]
                         [/#if]
 
-
-                    </tr>
+                        [#assign review = delivery.getReview()!]
+                        [#if review?? && (review.getGrade()?? || review.getCommentary()??)]
+                            <blockquote>
+                                [#if review.getGrade()??]
+                                    <div><strong>Grade</strong>: ${review.getGrade()}</div>
+                                [/#if]
+                                [#if review.getCommentary()??]
+                                    <div><strong>Remarks</strong>:</div>
+                                    <div>${review.getCommentary()}</div>
+                                [/#if]
+                                <footer class="small">${review.reviewUser.getName()} on ${review.getReviewTime()?string["EEEE dd MMMM yyyy HH:mm"]}</footer>
+                            </blockquote>
+                        [/#if]
+                    [/@commitRow.render]
                 [/#list]
             [#else]
                 <tr>
@@ -73,7 +121,7 @@
 
             [#if approved??]
                 <!-- APPROVED, hide submit panel -->
-            [#else]
+            [#elseif group.getMembers()?seq_contains(user)]
             <div class="panel panel-default">
                 <div class="panel-heading">Submit assignment</div>
                 <div class="panel-body">

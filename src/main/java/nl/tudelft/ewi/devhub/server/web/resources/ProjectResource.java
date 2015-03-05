@@ -1,8 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,10 +24,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -52,9 +48,6 @@ import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
-import org.jboss.resteasy.util.GenericType;
 
 @RequestScoped
 @Path("courses/{courseCode}/groups/{groupNumber}")
@@ -72,9 +65,6 @@ public class ProjectResource extends Resource {
 	private final CommitComments commitComments;
 	private final PullRequests pullRequests;
 	private final CommentBackend commentBackend;
-    private final Deliveries deliveries;
-    private final DeliveriesBackend deliveriesBackend;
-    private final Assignments assignments;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
@@ -85,10 +75,7 @@ public class ProjectResource extends Resource {
 			final CommentBackend commentBackend,
 			final CommitComments commitComments,
 			final BuildResults buildResults,
-			final PullRequests pullRequests,
-            final Deliveries deliveries,
-            final DeliveriesBackend deliveriesBackend,
-            final Assignments assignments) {
+			final PullRequests pullRequests) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
@@ -99,9 +86,6 @@ public class ProjectResource extends Resource {
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
-        this.deliveries = deliveries;
-        this.deliveriesBackend  = deliveriesBackend;
-        this.assignments = assignments;
 	}
 
 	@GET
@@ -446,139 +430,6 @@ public class ProjectResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
 	}
-
-    /**
-     * Get assignment overview for project
-     * @param request the current HttpServletRequest
-     * @return rendered assignment overview
-     * @throws IOException if an I/O error occurs
-     */
-    @GET
-    @Transactional
-    @Path("/assignments")
-    public Response getAssignmentsOverview(@Context HttpServletRequest request) throws IOException, ApiError {
-        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
-        parameters.put("course", group.getCourse());
-        parameters.put("repository", repository);
-        parameters.put("deliveries", deliveries);
-
-        List<Locale> locales = Collections.list(request.getLocales());
-        return display(templateEngine.process("courses/assignments/group-assignments.ftl", locales, parameters));
-    }
-
-    /**
-     * Get a specific assignment. Administrators and assistants see delivered assignments.
-     * Students see whether or not an assignment has been delivered, and their grades.
-     * @param request the current HttpServletRequest
-     * @param assignmentId assignmentId for the assignment
-     * @return rendered assignment overview
-     * @throws IOException if an I/O error occurs
-     */
-    @GET
-    @Transactional
-    @Path("/assignments/{assignmentId}")
-    public Response getAssignmentView(@Context HttpServletRequest request,
-                                      @PathParam("assignmentId") Long assignmentId) throws IOException, ApiError {
-
-        Assignment assignment = assignments.find(group.getCourse(), assignmentId);
-        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
-        parameters.put("course", group.getCourse());
-        parameters.put("repository", repository);
-        parameters.put("assignment", assignment);
-        parameters.put("deliveries", deliveries);
-        parameters.put("recentCommits", gitBackend.fetchBranch(repository, "master", 1, PAGE_SIZE).getCommits());
-
-        List<Locale> locales = Collections.list(request.getLocales());
-        return display(templateEngine.process("courses/assignments/group-assignment-view.ftl", locales, parameters));
-    }
-
-    /**
-     * Submit an assignment for a course
-     * @param request the current HttpServletRequest
-     * @param assignmentId assignmentId for the assignment
-     * @param formData submit data
-     * @return a redirect request to the assignment page
-     * @throws IOException if an I/O error occurs
-     * @throws ApiError if an ApiError occurs
-     */
-    @POST
-    @Path("/assignments/{assignmentId}")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response postAssignment(@Context HttpServletRequest request,
-                                   @PathParam("assignmentId") Long assignmentId,
-                                   MultipartFormDataInput formData) throws IOException, ApiError {
-
-        Map<String, List<InputPart>> formDataMap = formData.getFormDataMap();
-        String commitId = extractString(formDataMap, "commit-id");
-        String notes = extractString(formDataMap, "notes");
-
-        Assignment assignment = assignments.find(group.getCourse(), assignmentId);
-        Delivery delivery = new Delivery();
-        delivery.setAssignment(assignment);
-        delivery.setCommitId(commitId);
-        delivery.setNotes(notes);
-        delivery.setGroup(group);
-        deliveriesBackend.deliver(delivery);
-
-        List<InputPart> attachments = formDataMap.get("file-attachment");
-        for(InputPart attachment : attachments) {
-            String fileName = extractFilename(attachment);
-            if(fileName.isEmpty()) continue;
-            InputStream in = attachment.getBody(new GenericType<InputStream>() {});
-            deliveriesBackend.attach(delivery, fileName, in);
-        }
-
-        return redirect(request.getRequestURI());
-    }
-
-    private static String extractFilename(final InputPart attachment) {
-        Preconditions.checkNotNull(attachment);
-        MultivaluedMap<String, String> headers = attachment.getHeaders();
-        String contentDispositionHeader = headers.getFirst("Content-Disposition");
-        Preconditions.checkNotNull(contentDispositionHeader);
-
-        for(String headerPart : contentDispositionHeader.split(";(\\s)+")) {
-            String[] split = headerPart.split("=");
-            if(split.length == 2 && split[0].equalsIgnoreCase("filename")) {
-                return split[1].replace("\"", "");
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Get a file from a delivery
-     * @param request the current HttpServletRequest
-     * @param assignmentId assignmentId for the assignment
-     * @param attachmentPath requested file
-     * @return the requested file
-     */
-    @GET
-    @Path("/assignments/{assignmentId}/attachment/{path}")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public File getAttachment(@Context HttpServletRequest request,
-                              @PathParam("assignmentId") Long assignmentId,
-                              @PathParam("path") String attachmentPath) {
-
-        Assignment assignment = assignments.find(group.getCourse(), assignmentId);
-        return deliveriesBackend.getAttachment(assignment, group, attachmentPath);
-    }
-
-    private static String extractString(Map<String, List<InputPart>> data, String key) throws IOException {
-        List<InputPart> parts = data.get(key);
-        if(parts != null && (!(parts.isEmpty()))) {
-            return parts.get(0).getBodyAsString();
-        }
-        throw new IllegalArgumentException("No " + key + " in" + data.toString());
-    }
 
 	@Data
 	public static class CommitChecker {

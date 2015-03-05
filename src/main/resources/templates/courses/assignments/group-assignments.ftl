@@ -22,8 +22,9 @@
                 <colgroup>
                     <col span="1" width="5%"/>
                     <col span="1" width="65%"/>
-                    <col span="1" width="15%"/>
-                    <col span="1" width="15%"/>
+                    <col span="1" width="10%"/>
+                    <col span="1" width="10%"/>
+                    <col span="1" width="10%"/>
                 </colgroup>
             [#if assignments?? && assignments?has_content]
                 <thead>
@@ -31,6 +32,7 @@
                     <th>#</th>
                     <th>Assignment</th>
                     <th>Due date</th>
+                    <th>Grade</th>
                     <th>Status</th>
                 </tr>
                 </thead>
@@ -38,15 +40,16 @@
                 <tbody>
                 [#if assignments?? && assignments?has_content]
                     [#list assignments as assignment]
+                    [#assign delivery = deliveries.getLastDelivery(assignment, group)!]
                     <tr>
                         <td>
                             <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                            ${assignment.getAssignmentId()}
+                            ${assignment.getAssignmentId()!"-"}
                             </a>
                         </td>
                         <td>
                             <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                            ${assignment.getName()}
+                            ${assignment.getName()!"-"}
                             </a>
                         </td>
                         <td>
@@ -57,7 +60,12 @@
                             [/#if]
                         </td>
                         <td>
-                            [#assign delivery = deliveries.getLastDelivery(assignment, group)!]
+                            [#if delivery?has_content && delivery.getReview()??]
+                            [#assign review = delivery.getReview()]
+                            ${review.getGrade()!"-"}
+                            [/#if]
+                        </td>
+                        <td>
                             [#if delivery?has_content]
                                 [#if delivery.isSubmitted()]
                                     <a class="label label-info" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
@@ -86,7 +94,7 @@
                     [/#list]
                 [#else]
                 <tr>
-                    <td class="muted">
+                    <td class="muted" colspan="5">
                         There are no assignments for this course.
                     </td>
                 </tr>

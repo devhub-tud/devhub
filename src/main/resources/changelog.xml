@@ -305,7 +305,7 @@
 
             <!-- Review -->
             <column name="grade" type="int"/>
-            <column name="state" type="varchar(10)"/>
+            <column name="state" type="varchar(20)"/>
             <column name="review_time" type="timestamp"/>
             <column name="review_user" type="bigint"/>
             <column name="commentary" type="text"/>

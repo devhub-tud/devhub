@@ -8,6 +8,8 @@
 
 [#import "macros.ftl" as macros]
 [#import "../../components/project-frameset.ftl" as projectFrameset]
+[#import "../../components/commit-row.ftl" as commitRow]
+
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 <div class="container">
@@ -79,35 +81,13 @@
                 [#if repository?? && repository?has_content]
                     [#if branch?? && branch?has_content && branch.getCommits()?has_content]
                         [#list branch.getCommits() as commit]
-                        <tr>
-                            [#if states.hasStarted(commit.getCommit())]
-                                [#if states.hasFinished(commit.getCommit())]
-                                    [#if states.hasSucceeded(commit.getCommit())]
-                                    <td class="commit succeeded" id="${commit.getCommit()}">
-                                        <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
-                                            <span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
-                                        </a>
-                                    [#else]
-                                    <td class="commit failed" id="${commit.getCommit()}">
-                                        <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
-                                            <span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
-                                        </a>
-                                    [/#if]
-                                [#else]
-                                <td class="commit running" id="${commit.getCommit()}">
-                                    <span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
-                                [/#if]
-                            [#else]
-                            <td class="commit ignored" id="${commit.getCommit()}">
-                                <span class="state glyphicon glyphicon-unchecked"></span>
-                            [/#if]
-                            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
-                                <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
-                                <div class="committer">${commit.getAuthor()}</div>
-                                <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-                            </a>
-                        </td>
-                        </tr>
+                            [@commitRow.render states commit]
+                                <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
+                                    <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
+                                    <div class="committer">${commit.getAuthor()}</div>
+                                    <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                                </a>
+                            [/@commitRow.render]
                         [/#list]
                     [#else]
                     <tr>

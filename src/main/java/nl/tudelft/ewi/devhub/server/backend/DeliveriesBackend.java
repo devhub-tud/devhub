@@ -11,6 +11,7 @@ import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import org.apache.commons.lang.StringUtils;
 
+import javax.ws.rs.NotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -139,8 +140,18 @@ public class DeliveriesBackend {
         }
     }
 
-    public File getAttachment(Assignment assignment, Group group, String attachmentPath) {
+    /**
+     * Get the attachment for an assignment
+     * @param assignment Assignment to get the attachment for
+     * @param group Group to get the assignment path for
+     * @param attachmentPath path to the file
+     * @return the File for the assignment
+     * @throws UnauthorizedException if the file does not belong to the assignment or group
+     * @throws NotFoundException if the file could not be found
+     */
+    public File getAttachment(Assignment assignment, Group group, String attachmentPath) throws UnauthorizedException, NotFoundException {
         checkUserAuthorized(group);
+        File file = storageBackend.getFile(attachmentPath);
         List<Delivery> deliveriesForAssignment = deliveries.getDeliveries(assignment, group);
 
         // VERY IMPORTANT
@@ -151,6 +162,6 @@ public class DeliveriesBackend {
             throw new UnauthorizedException();
         }
 
-        return storageBackend.getFile(attachmentPath);
+        return file;
     }
 }

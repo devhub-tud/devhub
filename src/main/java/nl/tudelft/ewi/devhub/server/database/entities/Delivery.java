@@ -19,7 +19,20 @@ import java.util.List;
 public class Delivery implements Comparable<Delivery> {
 
     public enum State {
-        SUBMITTED, DISAPPROVED, REJECTED, APPROVED;
+        SUBMITTED("delivery.state.submitted"),
+        DISAPPROVED("delivery.state.disapproved"),
+        REJECTED("delivery.state.rejected"),
+        APPROVED("delivery.state.approved");
+
+        private final String translationKey;
+
+        private State(String translationKey) {
+            this.translationKey = translationKey;
+        }
+
+        public String getTranslationKey() {
+            return this.translationKey;
+        }
     }
 
     @Id

@@ -68,4 +68,16 @@ public class Deliveries extends Controller<Delivery> {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Find delivery by id
+     * @param deliveryId id for delivery
+     * @return Delivery for id
+     */
+    @Transactional
+    public Delivery find(Long deliveryId) {
+        return ensureNotNull(query().from(QDelivery.delivery)
+                .where(QDelivery.delivery.deliveryId.eq(deliveryId))
+                .singleResult(QDelivery.delivery),
+            "No delivery found for id " + deliveryId);
+    }
 }

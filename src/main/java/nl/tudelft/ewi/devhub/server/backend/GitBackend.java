@@ -133,9 +133,9 @@ public class GitBackend {
 		return fetchDiffs(repository, mergeBase.getCommit(), commitModel.getCommit());
 	}
 
-	public BlameModel blame(RepositoryModel repository, String commitId, String filePath) throws ApiError {
+	public BlameModel blame(RepositoryModel repository, CommitModel commit, String filePath) throws ApiError {
 		try {
-			return client.repositories().blame(repository, commitId, filePath);
+			return client.repositories().blame(repository, commit.getCommit(), filePath);
 		}
 		catch (Throwable e) {
 			throw new ApiError("error.git-server-unavailable", e);

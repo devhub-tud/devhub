@@ -345,5 +345,21 @@
              constraintName="assignment_delivery_attachments_delivery_id"
              referencedTableName="assignment_deliveries" referencedColumnNames="id"/>
     </changeSet>
+    
+    <changeSet id="change_messages_table" author="Jan-Willem Gmelig Meyling">
+        <dropColumn tableName="commit_comment" columnName="old_line_number"/>
+        <dropColumn tableName="commit_comment" columnName="old_file_path"/>
+        <renameColumn tableName="commit_comment" oldColumnName="new_line_number" newColumnName="source_line_number"/>
+        <renameColumn tableName="commit_comment" oldColumnName="new_file_path" newColumnName="source_file_path"/>
+        <addColumn tableName="commit_comment">
+            <column name="source_repository_name" type="varchar(255)"></column>
+        </addColumn>
+        <addColumn tableName="commit_comment">
+            <column name="source_commit_id" type="varchar(40)"></column>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="commit_comment" baseColumnNames="repository_name, source_commit_id"
+             constraintName="source_commit_comments_in_commits"
+             referencedTableName="commit" referencedColumnNames="repository_name, commit_id"/>
+    </changeSet>
 
 </databaseChangeLog>

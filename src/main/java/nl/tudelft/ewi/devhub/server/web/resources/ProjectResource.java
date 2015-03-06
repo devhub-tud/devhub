@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -26,8 +27,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
+import nl.tudelft.ewi.git.models.*;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import lombok.Data;
@@ -35,20 +39,15 @@ import nl.tudelft.ewi.devhub.server.backend.GitBackend;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.models.BranchModel;
-import nl.tudelft.ewi.git.models.CommitModel;
-import nl.tudelft.ewi.git.models.DetailedBranchModel;
-import nl.tudelft.ewi.git.models.DetailedCommitModel;
-import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
-import nl.tudelft.ewi.git.models.DiffResponse;
-import nl.tudelft.ewi.git.models.EntryType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
+import org.jboss.resteasy.annotations.Form;
 
+@Slf4j
 @RequestScoped
 @Path("courses/{courseCode}/groups/{groupNumber}")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
@@ -61,8 +60,6 @@ public class ProjectResource extends Resource {
 	private final User currentUser;
 	private final BuildResults buildResults;
 	private final Group group;
-	private final Commits commits;
-	private final CommitComments commitComments;
 	private final PullRequests pullRequests;
 	private final CommentBackend commentBackend;
 
@@ -71,9 +68,7 @@ public class ProjectResource extends Resource {
 			final GitBackend gitBackend,
 			final @Named("current.user") User currentUser,
 			final @Named("current.group") Group group,
-			final Commits commits,
 			final CommentBackend commentBackend,
-			final CommitComments commitComments,
 			final BuildResults buildResults,
 			final PullRequests pullRequests) {
 
@@ -81,8 +76,6 @@ public class ProjectResource extends Resource {
 		this.group = group;
 		this.gitBackend = gitBackend;
 		this.currentUser = currentUser;
-		this.commits = commits;
-		this.commitComments = commitComments;
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
@@ -194,23 +187,32 @@ public class ProjectResource extends Resource {
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
 		CommitModel commitModel = gitBackend.fetchCommitView(repository, branchModel.getCommit().getCommit());
-		DiffResponse diffResponse = gitBackend.fetchDiffs(repository, branchModel);
-		
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
+        CommitModel masterCommit = repository.getBranch("master").getCommit();
+        CommitModel oldCommit = gitBackend.mergeBase(repository, masterCommit.getCommit(), commitModel.getCommit());
+		DiffResponse diffResponse = gitBackend.fetchDiffs(repository, oldCommit.getCommit(), commitModel.getCommit());
+
+        List<String> commits = diffResponse.getCommits().stream().map((commit) ->
+                commit.getCommit()).collect(Collectors.toList());
+
+        Map < String, Object > parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("diffs", diffResponse.getDiffs());
 		parameters.put("commit", commitModel);
-		parameters.put("comments", commentBackend.newComments(group, repository, commitModel, diffResponse));
+        parameters.put("oldCommit", oldCommit);
+		parameters.put("comments", commentBackend.getCommentChecker(commits));
 		parameters.put("branch", branchModel);
 		parameters.put("commits", diffResponse.getCommits());
 		parameters.put("pullRequest", pullRequest);
 		parameters.put("repository", repository);
+        parameters.put("gitbackend", gitBackend);
 		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-pull.ftl", locales, parameters));
 	}
+
+
 
     @GET
     @Transactional
@@ -223,13 +225,15 @@ public class ProjectResource extends Resource {
         BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
         CommitModel commitModel = gitBackend.fetchCommitView(repository, branchModel.getCommit().getCommit());
         DiffResponse diffResponse = gitBackend.fetchDiffs(repository, branchModel);
+        List<String> commits = diffResponse.getCommits().stream().map((commit) ->
+                commit.getCommit()).collect(Collectors.toList());
 
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
         parameters.put("group", group);
         parameters.put("diffs", diffResponse.getDiffs());
         parameters.put("commit", commitModel);
-        parameters.put("comments", commentBackend.newComments(group, repository, commitModel, diffResponse));
+        parameters.put("comments", commentBackend.getCommentChecker(commits));
         parameters.put("branch", branchModel);
         parameters.put("commits", diffResponse.getCommits());
         parameters.put("pullRequest", pullRequest);
@@ -238,6 +242,30 @@ public class ProjectResource extends Resource {
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
+    }
+
+    @POST
+    @Transactional
+    @Path("/comment")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response commentOnPull(@Context HttpServletRequest request,
+                            @NotEmpty @FormParam("link-commit") String linkCommitId,
+                            @NotEmpty @FormParam("source-commit") String sourceCommitId,
+                            @FormParam("source-line-number") Integer sourceLineNumber,
+                            @NotEmpty @FormParam("source-file-name") String sourceFileName,
+                            @NotEmpty @FormParam("content") String message,
+                            @NotEmpty @FormParam("redirect") String redirect)
+                            throws IOException, ApiError {
+
+        commentBackend.commentBuilder()
+                .setCommitId(linkCommitId)
+                .setMessage(message)
+                .setSourceFilePath(sourceFileName)
+                .setSourceLineNumber(sourceLineNumber)
+                .setSourceCommitId(sourceCommitId)
+                .persist();
+
+        return Response.seeOther(URI.create(redirect)).build();
     }
 
 	@GET
@@ -266,41 +294,8 @@ public class ProjectResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-commit-view.ftl", locales, parameters));
 	}
-	
-	@POST
-	@Path("/commits/{commitId}/diff/comment")
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@Transactional
-	public Response comment(@Context HttpServletRequest request,
-			@FormParam("commitId") String commitId,
-			@FormParam("oldLineNumber") Integer oldLineNumber,
-			@FormParam("oldFilePath") String oldFilePath,
-			@FormParam("newLineNumber") Integer newLineNumber,
-			@FormParam("newFilePath") String newFilePath,
-			@NotEmpty @FormParam("content") String content)
-			throws IOException, ApiError {
-		
-		Commit commit = commits.ensureExists(group, commitId);
-		
-		CommitComment comment = new CommitComment();
-		comment.setCommit(commit);
-		
-		comment.setOldLineNumber(oldLineNumber);
-		comment.setOldFilePath(oldFilePath);
-		comment.setNewLineNumber(newLineNumber);
-		comment.setNewFilePath(newFilePath);
-		
-		comment.setContent(content);
-		comment.setTime(new Date());
-		comment.setUser(currentUser);
-		commitComments.persist(comment);
-		
-		String uri = request.getRequestURI();
-		uri = uri.substring(0, uri.indexOf("/comment"));
-		return Response.seeOther(URI.create(uri)).build();
-	}
-	
-	@GET
+
+    @GET
 	@Path("/commits/{commitId}/diff")
 	@Transactional
 	public Response showCommitChanges(@Context HttpServletRequest request,
@@ -311,36 +306,65 @@ public class ProjectResource extends Resource {
 	}
 
 	@GET
-	@Path("/commits/{oldId}/diff/{newId}")
+	@Path("/commits/{newId}/diff/{oldId}")
 	@Transactional
 	public Response showDiff(@Context HttpServletRequest request,
-			@PathParam("oldId") String oldId,
-			@PathParam("newId") String newId)
+			@PathParam("newId") String newId,
+			@PathParam("oldId") String oldId)
 			throws ApiError, IOException {
 		
-		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		DiffResponse diffResponse = gitBackend.fetchDiffs(repository, newId, oldId);
-		CommitModel commitModel = gitBackend.fetchCommitView(repository, oldId);
+        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+		CommitModel commitModel = gitBackend.fetchCommitView(repository, newId);
+
+        if(commitModel.getParents().length != 0 && oldId == null) {
+            oldId = commitModel.getParents()[0];
+        }
+
+		DiffResponse diffResponse = gitBackend.fetchDiffs(repository, oldId, newId);
+        List<String> commits = diffResponse.getCommits().stream().map((a) ->
+                a.getCommit()).collect(Collectors.toList());
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
+        parameters.put("commit", commitModel);
 		parameters.put("diffs", diffResponse.getDiffs());
-		parameters.put("commit", commitModel);
-		parameters.put("comments", commentBackend.newComments(group, repository, commitModel, diffResponse));
 		parameters.put("repository", repository);
+		parameters.put("comments", commentBackend.getCommentChecker(commits));
 		parameters.put("states", new CommitChecker(group, buildResults));
+        parameters.put("gitbackend", gitBackend);
 
-		if(newId != null) {
-			DetailedCommitModel newCommit = gitBackend.fetchCommitView(repository, newId);
-			parameters.put("newCommit", newCommit);
+		if(oldId != null) {
+			DetailedCommitModel oldCommit = gitBackend.fetchCommitView(repository, oldId);
+			parameters.put("oldCommit", oldCommit);
 		}
 		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));
 	}
-	
-	@GET
+
+    private Map<DiffModel, BlameModel> getBlameModelsForDiff(DetailedRepositoryModel repository,
+                                                             CommitModel commit,
+                                                             CommitModel oldCommit,
+                                                             DiffResponse diffResponse) throws ApiError {
+        Map<DiffModel, BlameModel> blames = Maps.<DiffModel, BlameModel> newHashMap();
+        for(DiffModel diffModel : diffResponse.getDiffs()) {
+            if(diffModel.isDeleted()) {
+                // If the file was added in this commit, there are no possible changes in previous commits
+            }
+            if(diffModel.isDeleted()) {
+                // If the file was deleted, we should fetch the blame of the old path in the old commit
+                blames.put(diffModel, gitBackend.blame(repository, oldCommit, diffModel.getOldPath()));
+            }
+            else {
+                // Else, fetch the blame of the new path in the current commit
+                blames.put(diffModel, gitBackend.blame(repository, commit, diffModel.getNewPath()));
+            }
+        }
+        return blames;
+    }
+
+    @GET
 	@Path("/commits/{commitId}/tree")
 	@Transactional
 	public Response getTree(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,

@@ -58,10 +58,10 @@ public class CommitsTest {
 		CommitComment actual = comments.get(0);
 		assertEquals(expected.getCommit(), actual.getCommit());
 		assertEquals(expected.getContent(), actual.getContent());
-		assertEquals(expected.getOldLineNumber(), actual.getOldLineNumber());
-		assertEquals(expected.getOldFilePath(), actual.getOldFilePath());
-		assertEquals(expected.getNewLineNumber(), actual.getNewLineNumber());
-		assertEquals(expected.getNewFilePath(), actual.getNewFilePath());
+		//assertEquals(expected.getOldLineNumber(), actual.getOldLineNumber());
+		//assertEquals(expected.getOldFilePath(), actual.getOldFilePath());
+		//assertEquals(expected.getNewLineNumber(), actual.getNewLineNumber());
+		//assertEquals(expected.getNewFilePath(), actual.getNewFilePath());
 		assertEquals(expected.getTime(), actual.getTime());
 		assertEquals(expected.getUser(), actual.getUser());
 	}
@@ -70,10 +70,10 @@ public class CommitsTest {
 		CommitComment comment = new CommitComment();
 		comment.setCommit(commit);
 		comment.setContent("This is a comment");
-		comment.setOldFilePath("dev/null");
-		comment.setOldLineNumber(null);
-		comment.setNewFilePath(".gitignore");
-		comment.setNewLineNumber(1);
+		//comment.setOldFilePath("dev/null");
+		//comment.setOldLineNumber(null);
+		//comment.setNewFilePath(".gitignore");
+		//comment.setNewLineNumber(1);
 		comment.setTime(new Date());
 		comment.setUser(student1());
 		commit.getComments().add(comment);

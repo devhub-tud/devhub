@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.GitBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;

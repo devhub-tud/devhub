@@ -26,6 +26,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
@@ -437,10 +438,15 @@ public class ProjectResource extends Resource {
 		}
 		
 		String[] contents = gitBackend.showFile(repository, commitId, path).split("\\r?\\n");
-		
+        CommitModel commit = gitBackend.fetchCommitView(repository, commitId);
+        BlameModel blame = gitBackend.blame(repository, commit, path);
+        CommentBackend.CommentChecker commentChecker = commentBackend.getCommentChecker(Lists.newArrayList(commitId));
+
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
-		parameters.put("commit", gitBackend.fetchCommitView(repository, commitId));
+		parameters.put("commit", commit);
+        parameters.put("blame", blame);
+        parameters.put("comments", commentChecker);
 		parameters.put("path", path);
 		parameters.put("contents", contents);
 		parameters.put("highlight", Highlight.forFileName(path));

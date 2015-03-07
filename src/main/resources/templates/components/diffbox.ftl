@@ -1,6 +1,7 @@
 [#import "difftable.ftl" as difftable]
 
-[#macro diffbox diffModel blame diffModel_index commit comments]
+[#macro diffbox diffViewModel diffModel index]
+[#assign commit=diffViewModel.newCommit]
 <div class="diff box" data-commit="${commit.getCommit()}" data-old-path="${diffModel.oldPath}" data-new-path="${diffModel.newPath}">
     <div class="header">
         <button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
@@ -22,7 +23,7 @@
     </div>
     [#if  diffModel.diffContexts?has_content]
         <div class="overflow-hidden">
-            [@difftable.diffTable diffModel blame diffModel_index commit comments/]
+            [@difftable.diffTable diffViewModel diffModel index commit/]
         </div>
     [/#if]
 </div>

@@ -35,7 +35,7 @@
         <h5 class="subheader">${commit.getAuthor()}</h5>
         <div>
             <ul class="list-unstyled">
-            [#list commits as commit]
+            [#list diffViewModel.diffResponse.commits as commit]
                 <li style="line-height:30px;">
                     <a href="">
                         <span class="octicon octicon-git-commit"></span>
@@ -52,17 +52,9 @@
     </div>
 </div>
 
-[#if diffs?has_content]
-    [#list diffs as diffModel]
-
-        [#if diffModel.isAdded()]
-        [#-- If the file was added in this commit, there are no possible changes in previous commits --]
-            [#assign blame=[]]
-        [#else]
-            [#assign blame=gitbackend.blame(repository, oldCommit, diffModel.getOldPath())]
-        [/#if]
-
-        [@diffbox.diffbox diffModel blame diffModel_index commit comments][/@diffbox.diffbox]
+[#if diffViewModel.diffResponse?has_content]
+    [#list diffViewModel.diffResponse.diffs as diffModel]
+        [@diffbox.diffbox diffViewModel diffModel diffModel_index][/@diffbox.diffbox]
     [/#list]
 [#else]
     <div>${i18n.translate("diff.changes.nothing")}</div>

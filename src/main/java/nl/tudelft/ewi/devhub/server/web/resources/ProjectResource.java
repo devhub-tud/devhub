@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
+import nl.tudelft.ewi.devhub.server.web.view.models.DiffViewModel;
 import nl.tudelft.ewi.git.models.*;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -45,7 +45,6 @@ import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
-import org.jboss.resteasy.annotations.Form;
 
 @Slf4j
 @RequestScoped
@@ -182,31 +181,29 @@ public class ProjectResource extends Resource {
 	@Path("/pull/{pullId}")
 	public Response getPullRequest(@Context HttpServletRequest request,
 			@PathParam("pullId") long pullId) throws ApiError, IOException {
-		PullRequest pullRequest = pullRequests.findById(pullId);
-		
+
+        PullRequest pullRequest = pullRequests.findById(pullId);
 		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
 		CommitModel commitModel = gitBackend.fetchCommitView(repository, branchModel.getCommit().getCommit());
         CommitModel masterCommit = repository.getBranch("master").getCommit();
-        CommitModel oldCommit = gitBackend.mergeBase(repository, masterCommit.getCommit(), commitModel.getCommit());
-		DiffResponse diffResponse = gitBackend.fetchDiffs(repository, oldCommit.getCommit(), commitModel.getCommit());
+        CommitModel mergeBase = gitBackend.mergeBase(repository, masterCommit.getCommit(), commitModel.getCommit());
 
-        List<String> commits = diffResponse.getCommits().stream().map((commit) ->
-                commit.getCommit()).collect(Collectors.toList());
+        DiffViewModel diffViewModel = DiffViewModel.builder(gitBackend, commentBackend)
+            .setNewCommit(commitModel)
+            .setOldCommit(mergeBase)
+            .setRepository(repository)
+            .build();
 
-        Map < String, Object > parameters = Maps.newLinkedHashMap();
+        Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
-		parameters.put("diffs", diffResponse.getDiffs());
 		parameters.put("commit", commitModel);
-        parameters.put("oldCommit", oldCommit);
-		parameters.put("comments", commentBackend.getCommentChecker(commits));
-		parameters.put("branch", branchModel);
-		parameters.put("commits", diffResponse.getCommits());
+        parameters.put("branch", branchModel);
 		parameters.put("pullRequest", pullRequest);
 		parameters.put("repository", repository);
-        parameters.put("gitbackend", gitBackend);
-		parameters.put("states", new CommitChecker(group, buildResults));
+        parameters.put("diffViewModel", diffViewModel);
+        parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-pull.ftl", locales, parameters));
@@ -218,26 +215,30 @@ public class ProjectResource extends Resource {
     @Transactional
     @Path("/pull/{pullId}/diff")
     public Response getPullRequestDiff(@Context HttpServletRequest request,
-                                   @PathParam("pullId") long pullId) throws ApiError, IOException {
-        PullRequest pullRequest = pullRequests.findById(pullId);
+                                       @PathParam("pullId") long pullId)
+                                       throws ApiError, IOException {
 
+        PullRequest pullRequest = pullRequests.findById(pullId);
         DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
         BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
         CommitModel commitModel = gitBackend.fetchCommitView(repository, branchModel.getCommit().getCommit());
-        DiffResponse diffResponse = gitBackend.fetchDiffs(repository, branchModel);
-        List<String> commits = diffResponse.getCommits().stream().map((commit) ->
-                commit.getCommit()).collect(Collectors.toList());
+        CommitModel masterCommit = repository.getBranch("master").getCommit();
+        CommitModel mergeBase = gitBackend.mergeBase(repository, masterCommit.getCommit(), commitModel.getCommit());
+
+        DiffViewModel diffViewModel = DiffViewModel.builder(gitBackend, commentBackend)
+                .setNewCommit(commitModel)
+                .setOldCommit(mergeBase)
+                .setRepository(repository)
+                .build();
 
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
         parameters.put("group", group);
-        parameters.put("diffs", diffResponse.getDiffs());
         parameters.put("commit", commitModel);
-        parameters.put("comments", commentBackend.getCommentChecker(commits));
         parameters.put("branch", branchModel);
-        parameters.put("commits", diffResponse.getCommits());
         parameters.put("pullRequest", pullRequest);
         parameters.put("repository", repository);
+        parameters.put("diffViewModel", diffViewModel);
         parameters.put("states", new CommitChecker(group, buildResults));
 
         List<Locale> locales = Collections.list(request.getLocales());
@@ -309,9 +310,9 @@ public class ProjectResource extends Resource {
 	@Path("/commits/{newId}/diff/{oldId}")
 	@Transactional
 	public Response showDiff(@Context HttpServletRequest request,
-			@PathParam("newId") String newId,
-			@PathParam("oldId") String oldId)
-			throws ApiError, IOException {
+                             @PathParam("newId") String newId,
+                             @PathParam("oldId") String oldId)
+                             throws ApiError, IOException {
 		
         DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
 		CommitModel commitModel = gitBackend.fetchCommitView(repository, newId);
@@ -320,24 +321,20 @@ public class ProjectResource extends Resource {
             oldId = commitModel.getParents()[0];
         }
 
-		DiffResponse diffResponse = gitBackend.fetchDiffs(repository, oldId, newId);
-        List<String> commits = diffResponse.getCommits().stream().map((a) ->
-                a.getCommit()).collect(Collectors.toList());
+        CommitModel oldCommitModel = oldId == null ? null : gitBackend.fetchCommitView(repository, oldId);
+        DiffViewModel diffViewModel = DiffViewModel.builder(gitBackend, commentBackend)
+                .setNewCommit(commitModel)
+                .setOldCommit(oldCommitModel)
+                .setRepository(repository)
+                .build();
 
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
+        Map<String, Object> parameters = Maps.newLinkedHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("group", group);
         parameters.put("commit", commitModel);
-		parameters.put("diffs", diffResponse.getDiffs());
-		parameters.put("repository", repository);
-		parameters.put("comments", commentBackend.getCommentChecker(commits));
-		parameters.put("states", new CommitChecker(group, buildResults));
-        parameters.put("gitbackend", gitBackend);
-
-		if(oldId != null) {
-			DetailedCommitModel oldCommit = gitBackend.fetchCommitView(repository, oldId);
-			parameters.put("oldCommit", oldCommit);
-		}
+        parameters.put("repository", repository);
+        parameters.put("diffViewModel", diffViewModel);
+        parameters.put("states", new CommitChecker(group, buildResults));
 		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));

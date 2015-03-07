@@ -1,6 +1,9 @@
 [#import "diffline.ftl" as diffline]
 
-[#macro diffTable diffModel blame index commit comments]
+[#macro diffTable diffViewModel diffModel index commit]
+[#assign blame=diffViewModel.getBlameModel(diffModel)![]]
+[#assign comments=diffViewModel.commentChecker]
+
 <table class="table diffs">
     [#list diffModel.diffContexts as diffContext]
         <tbody>

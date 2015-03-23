@@ -1,14 +1,16 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -28,10 +30,17 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
+import nl.tudelft.ewi.build.jaxrs.models.GitSource;
+import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
+import nl.tudelft.ewi.devhub.server.Config;
+import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.web.view.models.DiffViewModel;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.*;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -62,6 +71,9 @@ public class ProjectResource extends Resource {
 	private final Group group;
 	private final PullRequests pullRequests;
 	private final CommentBackend commentBackend;
+    private final GitServerClient client;
+    private final BuildsBackend buildBackend;
+    private final Config config;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
@@ -70,7 +82,10 @@ public class ProjectResource extends Resource {
 			final @Named("current.group") Group group,
 			final CommentBackend commentBackend,
 			final BuildResults buildResults,
-			final PullRequests pullRequests) {
+			final PullRequests pullRequests,
+            final GitServerClient client,
+            final BuildsBackend buildBackend,
+            final Config config) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
@@ -79,6 +94,9 @@ public class ProjectResource extends Resource {
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
+        this.client = client;
+        this.buildBackend = buildBackend;
+        this.config = config;
 	}
 
 	@GET
@@ -296,6 +314,63 @@ public class ProjectResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-commit-view.ftl", locales, parameters));
 	}
+
+    @GET
+    @Path("/commits/{commitId}/rebuild")
+    @Transactional
+    public Response rebuildCommit(@Context HttpServletRequest request,
+                                  @PathParam("courseCode") String courseCode,
+                                  @PathParam("groupNumber") String groupNumber,
+                                  @PathParam("commitId") String commitId) throws URISyntaxException, UnsupportedEncodingException {
+
+        BuildResult buildResult;
+
+        try {
+            buildResult = buildResults.find(group, commitId);
+
+            if(buildResult.getSuccess() == null) {
+                // There is a build queued
+                URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
+                return Response.seeOther(responseUri).build();
+            }
+            else {
+                buildResult.setSuccess(null);
+                buildResult.setLog(null);
+                buildResults.merge(buildResult);
+            }
+        }
+        catch (EntityNotFoundException e) {
+            buildResult = BuildResult.newBuildResult(group, commitId);
+            buildResults.persist(buildResult);
+        }
+
+        MavenBuildInstruction instruction = new MavenBuildInstruction();
+        instruction.setWithDisplay(true);
+        instruction.setPhases(new String[] { "package" });
+
+        Repositories repositories = client.repositories();
+        DetailedRepositoryModel repository = repositories.retrieve(group.getRepositoryName());
+
+        StringBuilder callbackBuilder = new StringBuilder();
+        callbackBuilder.append(config.getHttpUrl());
+        callbackBuilder.append("/hooks/build-result");
+        callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
+        callbackBuilder.append("&commit=" + URLEncoder.encode(commitId, "UTF-8"));
+
+        GitSource source = new GitSource();
+        source.setRepositoryUrl(repository.getUrl());
+        source.setCommitId(commitId);
+
+        BuildRequest buildRequest = new BuildRequest();
+        buildRequest.setCallbackUrl(callbackBuilder.toString());
+        buildRequest.setInstruction(instruction);
+        buildRequest.setSource(source);
+        buildRequest.setTimeout(group.getBuildTimeout());
+
+        buildBackend.offerBuild(buildRequest);
+        URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
+        return Response.seeOther(responseUri).build();
+    }
 
     @GET
 	@Path("/commits/{commitId}/diff")

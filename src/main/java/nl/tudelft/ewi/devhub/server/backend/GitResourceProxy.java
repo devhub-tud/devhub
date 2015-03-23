@@ -25,7 +25,7 @@ public class GitResourceProxy extends Transparent {
 	public GitResourceProxy(final Config config) {
 		super(config.getGitServerHost(), "/");
 		this.config = config;
-		this.pattern = Pattern.compile("^/projects/([^/]+)/groups/(\\d+)/(\\w+)/raw/(.*)$");
+		this.pattern = Pattern.compile("^/courses/([^/]+)/groups/(\\d+)/(\\w+)/raw/(.*)$");
 	}
 
     protected URI rewriteURI(HttpServletRequest request) {

@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.inject.Inject;
-import static com.mysema.query.group.GroupBy.*;;
+import static com.mysema.query.group.GroupBy.*;
 import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
 

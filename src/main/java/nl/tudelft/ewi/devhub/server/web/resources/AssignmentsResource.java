@@ -119,12 +119,12 @@ public class AssignmentsResource extends Resource {
         catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
             if(violations.isEmpty()) {
-                return redirect("/courses/" + courseCode + "/assignments/create?error=error.course-create-error");
+                return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-create-error");
             }
             return redirect("/courses/" + courseCode + "/assignments/create?error=" + violations.iterator().next().getMessage());
         }
         catch (Exception e) {
-            return redirect("/courses/" + courseCode + "/assignments/create?error=error.course-create-error");
+            return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-create-error");
         }
 
         return redirect("/courses/" + courseCode);
@@ -190,6 +190,38 @@ public class AssignmentsResource extends Resource {
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/create-assignment.ftl", locales, parameters));
+    }
+
+    @POST
+    @Path("{assignmentId : \\d+}/edit")
+    public Response editAssignment(@Context HttpServletRequest request,
+                               @PathParam("courseCode") String courseCode,
+                               @FormParam("id") Long assignmentId,
+                               @FormParam("name") String name,
+                               @FormParam("summary") String summary,
+                               @FormParam("due-date") String dueDate) {
+
+        Course course = courses.find(courseCode);
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
+        assignment.setDueDate(dueDate);
+        assignment.setName(name);
+        assignment.setSummary(summary);
+
+        try {
+            assignmentsDAO.merge(assignment);
+        }
+        catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
+            if(violations.isEmpty()) {
+                return redirect("/courses/" + courseCode + "/assignments/\" + assignmentId + \"/edit?error=error.assignment-create-error");
+            }
+            return redirect("/courses/" + courseCode + "/assignments/" + assignmentId + "/edit?error=" + violations.iterator().next().getMessage());
+        }
+        catch (Exception e) {
+            return redirect("/courses/" + courseCode + "/assignments/" + assignmentId + "/edit?error=error.assignment-create-error");
+        }
+
+        return redirect("/courses/" + courseCode);
     }
 
 }

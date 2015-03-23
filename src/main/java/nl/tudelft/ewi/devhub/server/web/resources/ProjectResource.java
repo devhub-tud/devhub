@@ -415,9 +415,11 @@ public class ProjectResource extends Resource {
 	@GET
 	@Path("/commits/{commitId}/blob/{path:.+}")
 	@Transactional
-	public Response getBlob(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
-			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
-			@PathParam("path") String path) throws ApiError, IOException {
+	public Response getBlob(@Context HttpServletRequest request,
+                            @PathParam("courseCode") String courseCode,
+                            @PathParam("groupNumber") long groupNumber,
+                            @PathParam("commitId") String commitId,
+                            @PathParam("path") String path) throws ApiError, IOException {
 
 		String folderPath = "";
 		String fileName = path;

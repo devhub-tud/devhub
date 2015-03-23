@@ -14,7 +14,8 @@
     <div class="form-group">
         <label for="code" class="col-sm-2 control-label">${i18n.translate("course.control.course-code")}</label>
         <div class="col-sm-10">
-            <input type="text" class="form-control" name="code" id="code" placeholder="${i18n.translate("course.control.course-code.example")}" value="${course.getCode()}" disabled>
+            <input type="text" class="form-control" name="code" id="code" placeholder="${i18n.translate("course.control.course-code.example")}" value="${course.code}" disabled>
+            <input type="hidden" name="code" value="${course.code}"/>
         </div>
     </div>
 
@@ -22,9 +23,10 @@
         <label for="name" class="col-sm-2 control-label">Assignment number</label>
         <div class="col-sm-10">
         [#if assignment?exists]
-            <input type="number" class="form-control" name="id" id="name" value="${assignment.getAssignmentId()}" disabled>
+            <input type="number" class="form-control" name="id" id="id" value="${assignment.assignmentId}" disabled>
+            <input type="hidden" name="id" value="${assignment.getAssignmentId()}"/>
         [#else]
-            <input type="number" class="form-control" name="id" id="name" value="1">
+            <input type="number" class="form-control" name="id" id="id" value="${course.getAssignments()?size + 1}">
         [/#if]
         </div>
     </div>

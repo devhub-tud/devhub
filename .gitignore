@@ -9,3 +9,4 @@ target/
 src/main/resources/static/css/devhub.css
 .idea
 *.iml
+storage/

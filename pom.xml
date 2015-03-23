@@ -56,6 +56,32 @@
         </developer>
     </developers>
 
+    <repositories>
+        <repository>
+            <id>jpacman-release-repository</id>
+            <url>https://github.com/devhub-tud/devhub-mvn-repo/raw/master/releases</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>jpacman-snapshot-repository</id>
+            <url>https://github.com/devhub-tud/devhub-mvn-repo/raw/master/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
 	<dependencies>
 		<!-- Web -->
 		<dependency>

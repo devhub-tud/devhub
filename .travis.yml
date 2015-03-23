@@ -1,16 +1,2 @@
 language: java
-before_install:
-  - git clone https://github.com/devhub-tud/Java-Gitolite-Manager.git
-  - cd Java-Gitolite-Manager
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true
-  - cd ../
-  - git clone https://github.com/devhub-tud/git-server.git
-  - cd git-server
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true
-  - cd ../
-  - git clone https://github.com/devhub-tud/build-server.git
-  - cd build-server
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true
-  - cd ../
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
+

@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -45,6 +46,7 @@ public class BuildResult {
 	@Column(name = "success")
 	private Boolean success;
 
+	@Lob
 	@Column(name = "log")
 	private String log;
 

@@ -15,11 +15,20 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<guice.version>3.0</guice.version>
-		<hibernate.version>4.2.2.Final</hibernate.version>
-		<jackson.version>2.3.0</jackson.version>
-		<jetty.version>9.0.6.v20130930</jetty.version>
-		<resteasy.version>3.0.4.Final</resteasy.version>
-		<slf4j.version>1.7.5</slf4j.version>
+		<hibernate.version>4.3.7.Final</hibernate.version>
+		<hibernate.validator.version>4.3.1.Final</hibernate.validator.version>
+		<jackson.version>2.4.4</jackson.version>
+		<jetty.version>9.2.6.v20141205</jetty.version>
+		<resteasy.version>3.0.10.Final</resteasy.version>
+		<freemarker.version>2.3.21</freemarker.version>
+		<slf4j.version>1.7.7</slf4j.version>
+		<httpclient.version>4.3.6</httpclient.version>
+		<h2.version>1.3.173</h2.version>
+		<liquibase.version>3.3.1</liquibase.version>
+		<liquibase.slf4j.version>1.7.7</liquibase.slf4j.version>
+		<querydsl.version>3.6.0</querydsl.version>
+		<logback.version>1.0.13</logback.version>
+		<selenium.version>2.44.0</selenium.version>
 	</properties>
 
 	<scm>
@@ -35,6 +44,16 @@
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>1.1.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.ejb</groupId>
+			<artifactId>ejb-api</artifactId>
+			<version>3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
@@ -62,6 +81,11 @@
 			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-hibernatevalidator-provider</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-guava</artifactId>
 			<version>${jackson.version}</version>
@@ -74,12 +98,12 @@
 		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
-			<version>2.3.20</version>
+			<version>${freemarker.version}</version>
 		</dependency>
 		<dependency>
 	       <groupId>org.apache.httpcomponents</groupId>
 	       <artifactId>httpclient</artifactId>
-	       <version>4.3.5</version>
+	       <version>${httpclient.version}</version>
 	   </dependency>
 
 		<!-- Persistence -->
@@ -101,7 +125,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<version>4.2.0.Final</version>
+			<version>${hibernate.validator.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -121,12 +145,12 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.173</version>
+			<version>${h2.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.liquibase</groupId>
 			<artifactId>liquibase-core</artifactId>
-			<version>3.0.2</version>
+			<version>${liquibase.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jdom</groupId>
@@ -136,35 +160,32 @@
 		<dependency>
 			<groupId>com.mattbertolini</groupId>
 			<artifactId>liquibase-slf4j</artifactId>
-			<version>1.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-jpamodelgen</artifactId>
-			<version>1.2.0.Final</version>
+			<version>1.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
-			<version>3.2.2</version>
+			<version>${querydsl.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
-			<version>3.2.2</version>
+			<version>${querydsl.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<version>1.1.0.Final</version>
-		</dependency>
-
 
 		<!-- Backend services -->
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
 			<artifactId>git-client</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>
+						resteasy-hibernatevalidator-provider
+					</artifactId>
+					<groupId>org.jboss.resteasy</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
@@ -177,6 +198,18 @@
 			<groupId>nl.tudelft.ewi.build</groupId>
 			<artifactId>build-client</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>guice</artifactId>
+					<groupId>com.google.inject</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>
+						resteasy-hibernatevalidator-provider
+					</artifactId>
+					<groupId>org.jboss.resteasy</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.ewi.build</groupId>
@@ -202,7 +235,7 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.0.13</version>
+			<version>${logback.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -231,13 +264,13 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
-			<version>1.9.5</version>
+			<version>1.10.8</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-firefox-driver</artifactId>
-			<version>2.43.1</version>
+			<version>${selenium.version}</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -249,7 +282,7 @@
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-support</artifactId>
-			<version>2.43.1</version>
+			<version>${selenium.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -263,7 +296,7 @@
 		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
-			<version>0.9.8</version>
+			<version>0.9.9</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -273,17 +306,17 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>15.0</version>
+			<version>18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.directory.api</groupId>
 			<artifactId>api-ldap-client-all</artifactId>
-			<version>1.0.0-M21</version>
+			<version>1.0.0-M26</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.5.0-b01</version>
+			<artifactId>javax.mail-api</artifactId>
+			<version>1.5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mindrot</groupId>

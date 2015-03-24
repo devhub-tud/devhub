@@ -94,7 +94,11 @@
 			<ol class="breadcrumb">
 				<li><a href="/projects">Projects</a></li>
 				<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
+	[#if commit.getMessage()?length > 30 ]		
+				<li class="active">${commit.getMessage()?substring(0,30)}...</li>
+	[#else]
 				<li class="active">${commit.getMessage()}</li>
+	[/#if]
 			</ol>
 
 	[#if states.hasStarted(commit.getCommit())]
@@ -122,10 +126,15 @@
 							<span class="sr-only">Toggle Dropdown</span>
 						</button>
 						<ul class="dropdown-menu" role="menu">
-							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff">View diff</a></li>
-							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">View files</a></li>
+							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff">${i18n.translate("commit.view-diff")}</a></li>
+							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">${i18n.translate("commit.view-files")}</a></li>
 	[#if states.hasFinished(commit.getCommit())]
-							<li><a href="build">View build log</a></li>
+							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/build">${i18n.translate("commit.view-build-log")}</a></li>
+		[#if !states.hasSucceeded(commit.getCommit()) ]
+							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
+		[/#if]
+	[#elseif !states.hasStarted(commit.getCommit()) ]
+							<li><a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
 	[/#if]
 						</ul>
 					</div>

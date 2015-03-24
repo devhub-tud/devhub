@@ -171,4 +171,22 @@
 		</addColumn>
 	</changeSet>
 	
+	<changeSet id="add_unique_constraint_groups" author="Jan-Willem Gmelig Meyling">
+		<addUniqueConstraint columnNames="course_id,group_number" tableName="groups" />
+	</changeSet>
+	
+	<changeSet id="add_unique_constraint_course" author="Jan-Willem Gmelig Meyling">
+		<addUniqueConstraint columnNames="code" tableName="courses" />
+	</changeSet>
+	
+	<changeSet id="case_insensitive_equality" author="Jan-Willem Gmelig Meyling">
+  		<modifyDataType tableName="users" columnName="net_id" newDataType="CITEXT"/>
+  		<modifyDataType tableName="users" columnName="email" newDataType="CITEXT"/>
+  		<modifyDataType tableName="courses" columnName="code" newDataType="CITEXT"/>
+  		<modifyDataType tableName="groups" columnName="repository_name" newDataType="CITEXT"/>
+  		<modifySql dbms="h2">
+        	<replace replace="CITEXT" with="VARCHAR_IGNORECASE"/>
+    	</modifySql>
+	</changeSet>
+
 </databaseChangeLog>

@@ -39,7 +39,7 @@ public class Group {
 
 	@NotNull
 	@Column(name = "group_number")
-	private long groupNumber;
+	private Long groupNumber;
 	
 	@Column(name = "build_timeout")
 	private Integer buildTimeout;
@@ -68,6 +68,10 @@ public class Group {
 		builder.append(groupNumber);
 		builder.append(")");
 		return builder.toString();
+	}
+
+	public Integer getBuildTimeout() {
+		return buildTimeout != null ? buildTimeout : course.getBuildTimeout();
 	}
 
 }

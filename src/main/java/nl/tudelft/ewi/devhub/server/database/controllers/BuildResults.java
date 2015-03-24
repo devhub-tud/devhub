@@ -4,14 +4,13 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 
-import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.QBuildResult;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 
-@Slf4j
 public class BuildResults extends Controller<BuildResult> {
 
 	@Inject
@@ -21,6 +20,9 @@ public class BuildResults extends Controller<BuildResult> {
 
 	@Transactional
 	public BuildResult find(Group group, String commitId) {
+		Preconditions.checkNotNull(group);
+		Preconditions.checkNotNull(commitId);
+		
 		BuildResult result = query().from(QBuildResult.buildResult)
 				.where(QBuildResult.buildResult.repository.groupId.eq(group.getGroupId()))
 				.where(QBuildResult.buildResult.commitId.eq(commitId))
@@ -34,15 +36,14 @@ public class BuildResults extends Controller<BuildResult> {
 	
 	@Transactional
 	public boolean exists(Group group, String commitId) {
+		Preconditions.checkNotNull(group);
+		Preconditions.checkNotNull(commitId);
+		
 		try {
 			find(group, commitId);
 			return true;
 		}
 		catch (EntityNotFoundException e) {
-			return false;
-		}
-		catch (Throwable e) {
-			log.error(e.getMessage(), e);
 			return false;
 		}
 	}

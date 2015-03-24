@@ -62,28 +62,28 @@
 			[#if states.hasStarted(commit.getCommit())]
 				[#if states.hasFinished(commit.getCommit())]
 					[#if states.hasSucceeded(commit.getCommit())]
-						<td class="commit succeeded">
+						<td class="commit succeeded" id="${commit.getCommit()}">
 							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
 								<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
 							</a>
 					[#else]
-						<td class="commit failed">
+						<td class="commit failed" id="${commit.getCommit()}">
 							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/build">
 								<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
 							</a>
 					[/#if]
 				[#else]
-						<td class="commit running">
+						<td class="commit running" id="${commit.getCommit()}">
 							<span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
 				[/#if]
 			[#else]
-						<td class="commit ignored">
+						<td class="commit ignored" id="${commit.getCommit()}">
 							<span class="state glyphicon glyphicon-unchecked"></span>
 			[/#if]
 							<a href="/projects/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff">
 								<div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
 								<div class="committer">${commit.getAuthor()}</div>
-								<div class="timestamp" data-value="${(commit.getTime() * 1000)}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+								<div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
 							</a>
 						</td>
 					</tr>
@@ -106,12 +106,20 @@
 			</table>
 
 
+[#function max x y]
+    [#if (x<y)][#return y][#else][#return x][/#if]
+[/#function]
+
+[#function min x y]
+    [#if (x<y)][#return x][#else][#return y][/#if]
+[/#function]
+
 [#if branch?? && branch?has_content && pagination?? ]
 [#assign pageCount = pagination.getPageCount() ]
 [#assign currentPage = pagination.getPage() ]
 			<div class="text-center">
 				<ul class="pagination pagination-lg">
-	[#list 1..pageCount as pageNumber ]
+	[#list max(1, currentPage-4)..min(pageCount, currentPage+4) as pageNumber ]
 		[#if pageNumber == currentPage ]
 					<li class="active"><a href="/projects/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
 		[#else]

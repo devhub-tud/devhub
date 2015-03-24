@@ -9,6 +9,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.QGroup;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 
 public class Groups extends Controller<Group> {
@@ -20,8 +21,9 @@ public class Groups extends Controller<Group> {
 
 	@Transactional
 	public Group findByRepoName(String repoName) {
+		Preconditions.checkNotNull(repoName);
 		Group group = query().from(QGroup.group)
-			.where(QGroup.group.repositoryName.eq(repoName))
+			.where(QGroup.group.repositoryName.equalsIgnoreCase(repoName))
 			.singleResult(QGroup.group);
 
 		return ensureNotNull(group, "Could not find group by repository name: " + repoName);
@@ -38,6 +40,7 @@ public class Groups extends Controller<Group> {
 
 	@Transactional
 	public List<Group> find(Course course) {
+		Preconditions.checkNotNull(course);
 		return query().from(QGroup.group)
 			.where(QGroup.group.course.id.eq(course.getId()))
 			.orderBy(QGroup.group.groupNumber.asc())
@@ -46,6 +49,7 @@ public class Groups extends Controller<Group> {
 
 	@Transactional
 	public Group find(Course course, long groupNumber) {
+		Preconditions.checkNotNull(course);
 		Group group = query().from(QGroup.group)
 			.where(QGroup.group.course.id.eq(course.getId()))
 			.where(QGroup.group.groupNumber.eq(groupNumber))

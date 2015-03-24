@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -22,6 +21,7 @@ import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 
 import org.hibernate.exception.ConstraintViolationException;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Sets;
@@ -35,44 +35,31 @@ import com.google.inject.persist.Transactional;
 public class ProjectsBackend {
 
 	private static final String ALREADY_REGISTERED_FOR_COURSE = "error.already-registered-for-course";
-	private static final String COULD_NOT_FIND_COURSE = "error.could-not-find-course";
 	private static final String COULD_NOT_CREATE_GROUP = "error.could-not-create-group";
 	private static final String GIT_SERVER_UNAVAILABLE = "error.git-server-unavailable";
 
 	private final Provider<GroupMemberships> groupMembershipsProvider;
 	private final Provider<Groups> groupsProvider;
-	private final Provider<Courses> coursesProvider;
 	private final GitServerClient client;
 
 	private final Object groupNumberLock = new Object();
 
 	@Inject
 	ProjectsBackend(Provider<GroupMemberships> groupMembershipsProvider, Provider<Groups> groupsProvider,
-			Provider<Users> usersProvider, Provider<Courses> coursesProvider, GitServerClient client) {
+			Provider<Users> usersProvider, GitServerClient client) {
 
 		this.groupMembershipsProvider = groupMembershipsProvider;
 		this.groupsProvider = groupsProvider;
-		this.coursesProvider = coursesProvider;
 		this.client = client;
 	}
 
 	public void setupProject(Course course, Collection<User> members) throws ApiError {
+		Preconditions.checkNotNull(course);
+		Preconditions.checkNotNull(members);
+		
 		log.info("Setting up new project for course: {} and members: {}", course, members);
-		Group group = persistRepository(course.getCode(), members);
-
-		String repositoryName = group.getRepositoryName();
-		String templateRepositoryUrl = group.getCourse()
-			.getTemplateRepositoryUrl();
-
-		try {
-			provisionRepository(course.getCode(), repositoryName, templateRepositoryUrl, members);
-		}
-		catch (Throwable e) {
-			log.error(e.getMessage(), e);
-			deleteGroupFromDatabase(group);
-			deleteRepositoryFromGit(group);
-			throw new ApiError(GIT_SERVER_UNAVAILABLE);
-		}
+		Group group = persistRepository(course, members);
+		provisionRepository(group, members);
 	}
 
 	private void deleteRepositoryFromGit(Group group) {
@@ -103,15 +90,9 @@ public class ProjectsBackend {
 	}
 
 	@Transactional
-	protected Group persistRepository(String courseCode, Collection<User> members) throws ApiError {
-		Courses courses = coursesProvider.get();
+	protected Group persistRepository(Course course, Collection<User> members) throws ApiError {
 		GroupMemberships groupMemberships = groupMembershipsProvider.get();
 		Groups groups = groupsProvider.get();
-
-		Course course = courses.find(courseCode);
-		if (course == null) {
-			throw new ApiError(COULD_NOT_FIND_COURSE);
-		}
 
 		synchronized (groupNumberLock) {
 			List<Group> courseGroups = groups.find(course);
@@ -166,6 +147,23 @@ public class ProjectsBackend {
 			return group;
 		}
 	}
+	
+	public void provisionRepository(Group group, Collection<User> members) throws ApiError {
+		String courseCode = group.getCourse().getCode();
+		String repositoryName = group.getRepositoryName();
+		String templateRepositoryUrl = group.getCourse()
+			.getTemplateRepositoryUrl();
+		
+		try {
+			provisionRepository(courseCode, repositoryName, templateRepositoryUrl, members);
+		}
+		catch (Throwable e) {
+			log.error(e.getMessage(), e);
+			deleteGroupFromDatabase(group);
+			deleteRepositoryFromGit(group);
+			throw new ApiError(GIT_SERVER_UNAVAILABLE);
+		}
+	}
 
 	private void provisionRepository(String courseCode, String repoName, String templateUrl, Collection<User> members) {
 		log.info("Provisioning new Git repository: {}", repoName);
@@ -190,7 +188,7 @@ public class ProjectsBackend {
 	}
 
 	private Set<Long> getGroupNumbers(Collection<Group> groups) {
-		Set<Long> groupNumbers = Sets.newHashSet();
+		Set<Long> groupNumbers = Sets.newTreeSet();
 		for (Group group : groups) {
 			groupNumbers.add(group.getGroupNumber());
 		}

@@ -4,6 +4,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 import com.mysema.query.jpa.impl.JPAQuery;
 
@@ -13,6 +14,7 @@ public class Controller<T> {
 
 	@Inject
 	public Controller(EntityManager entityManager) {
+		Preconditions.checkNotNull(entityManager);
 		this.entityManager = entityManager;
 	}
 

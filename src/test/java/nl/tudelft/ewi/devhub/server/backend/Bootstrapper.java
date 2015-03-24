@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseAssistants;
@@ -22,10 +24,9 @@ import nl.tudelft.ewi.devhub.server.database.entities.CourseAssistant;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.git.client.GitServerClientMock;
-import nl.tudelft.ewi.git.models.CreateRepositoryModel;
+import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.GroupModel;
-import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 import nl.tudelft.ewi.git.models.UserModel;
 
 @Slf4j
@@ -62,7 +63,7 @@ public class Bootstrapper {
 	
 	@Data
 	static class BGroup {
-		private int groupNumber;
+		private Long groupNumber;
 		private Integer buildTimeout;
 		private String templateRepositoryUrl;
 		private List<String> members;
@@ -75,12 +76,13 @@ public class Bootstrapper {
 	private final GroupMemberships memberships;
 	private final MockedAuthenticationBackend authBackend;
 	private final ObjectMapper mapper;
-	private final GitServerClientMock gitClient;
+	private final GitServerClient gitClient;
+	private final ProjectsBackend projects;
 
 	@Inject
 	Bootstrapper(Users users, Courses courses, CourseAssistants assistants, Groups groups, 
 			GroupMemberships memberships, MockedAuthenticationBackend authBackend, ObjectMapper mapper,
-			GitServerClientMock gitClient) {
+			GitServerClient gitClient, ProjectsBackend projects) {
 		
 		this.users = users;
 		this.courses = courses;
@@ -90,10 +92,11 @@ public class Bootstrapper {
 		this.authBackend = authBackend;
 		this.mapper = mapper;
 		this.gitClient = gitClient;
+		this.projects = projects;
 	}
 	
 	@Transactional
-	public void prepare(String path) throws IOException {
+	public void prepare(String path) throws IOException, ApiError {
 		InputStream inputStream = Bootstrapper.class.getResourceAsStream(path);
 		BState state = mapper.readValue(inputStream, BState.class);
 		
@@ -112,24 +115,31 @@ public class Bootstrapper {
 		}
 		
 		for (BCourse course : state.getCourses()) {
-			Course entity = new Course();
-			entity.setCode(course.getCode().toLowerCase());
-			entity.setName(course.getName());
-			entity.setTemplateRepositoryUrl(course.getTemplateRepositoryUrl());
-			entity.setStart(course.isStarted() ? new Date() : null);
-			entity.setEnd(course.isEnded() ? new Date() : null);
-			entity.setMinGroupSize(course.getMinGroupSize());
-			entity.setMaxGroupSize(course.getMaxGroupSize());
-			entity.setBuildTimeout(course.getBuildTimeout());
-			courses.persist(entity);
-			
-			log.debug("Persisted course: " + entity.getCode());
-			
-			GroupModel groupModel = new GroupModel();
-			groupModel.setName(entity.getCode());
-			
-			gitClient.groups()
-					.create(groupModel);
+
+			Course entity;
+
+			try {
+				entity = courses.find(course.getCode());
+				log.debug("Course already existing in database: " + entity.getCode());
+			}
+			catch (Exception e) {
+				entity = new Course();
+				entity.setCode(course.getCode().toLowerCase());
+				entity.setName(course.getName());
+				entity.setTemplateRepositoryUrl(course.getTemplateRepositoryUrl());
+				entity.setStart(course.isStarted() ? new Date() : null);
+				entity.setEnd(course.isEnded() ? new Date() : null);
+				entity.setMinGroupSize(course.getMinGroupSize());
+				entity.setMaxGroupSize(course.getMaxGroupSize());
+				entity.setBuildTimeout(course.getBuildTimeout());
+				courses.persist(entity);
+
+				log.debug("Persisted course: " + entity.getCode());
+			}
+
+			GroupModel courseGroupModel = new GroupModel();
+			courseGroupModel.setName("@" + entity.getCode());
+			courseGroupModel = gitClient.groups().ensureExists(courseGroupModel);
 			
 			for (String assistantNetId : course.getAssistants()) {
 				User assistantUser = userMapping.get(assistantNetId);
@@ -142,9 +152,10 @@ public class Bootstrapper {
 				UserModel userModel = gitClient.users()
 						.ensureExists(assistantNetId);
 				
-				gitClient.groups()
-						.groupMembers(groupModel)
-						.addMember(userModel);
+				try {
+					gitClient.groups().groupMembers(courseGroupModel).addMember(userModel);
+				}
+				catch (Exception e) {}
 				
 				log.debug("    Persisted assistant: " + assistantUser.getNetId());
 			}
@@ -154,35 +165,35 @@ public class Bootstrapper {
 				groupEntity.setCourse(entity);
 				groupEntity.setGroupNumber(group.getGroupNumber());
 				groupEntity.setBuildTimeout(group.getBuildTimeout());
-				groupEntity.setRepositoryName("courses/" + entity.getCode() + "/group-" + group.getGroupNumber());
+				groupEntity.setRepositoryName("courses/"
+						+ entity.getCode().toLowerCase() + "/group-"
+						+ group.getGroupNumber());
 				groups.persist(groupEntity);
 				
 				log.debug("    Persisted group: " + groupEntity.getGroupName());
 
-				CreateRepositoryModel repositoryModel = new CreateRepositoryModel();
-				repositoryModel.setName(groupEntity.getRepositoryName());
-				repositoryModel.setTemplateRepository(group.getTemplateRepositoryUrl());
-				
-				Map<String, Level> permissions = Maps.newHashMap();
-				permissions.put(groupModel.getName(), Level.ADMIN);
+				List<User> members = Lists.<User> newArrayList();
 				
 				for (String member : group.getMembers()) {
 					User memberUser = userMapping.get(member);
+					members.add(memberUser);
 					
 					GroupMembership membership = new GroupMembership();
 					membership.setGroup(groupEntity);
 					membership.setUser(memberUser);
 					memberships.persist(membership);
 					
-					permissions.put(member, Level.READ_WRITE);
-					
 					log.debug("        Persisted member: " + memberUser.getNetId());
 				}
 				
-				repositoryModel.setPermissions(permissions);
-				
-				gitClient.repositories()
-						.create(repositoryModel);
+				try {
+					// Allow cached versions of the repository
+					gitClient.repositories().retrieve(groupEntity.getRepositoryName());
+					log.info("Repository {} already exists", groupEntity.getRepositoryName());
+				}
+				catch (Exception e) {
+					projects.provisionRepository(groupEntity, members);
+				}
 			}
 		}
 	}

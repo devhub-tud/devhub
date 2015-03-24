@@ -13,6 +13,7 @@ import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 
 public class BuildResultMailer {
@@ -31,6 +32,9 @@ public class BuildResultMailer {
 	}
 
 	public void sendFailedBuildResult(List<Locale> locales, BuildResult buildResult) {
+		Preconditions.checkNotNull(locales);
+		Preconditions.checkNotNull(buildResult);
+		
 		Translator translator = factory.create(locales);
 
 		Group repository = buildResult.getRepository();

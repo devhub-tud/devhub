@@ -419,6 +419,7 @@
 						</manifestEntries>
 					</archive>
 					<excludes>
+						<exclude>changelog.xml</exclude>
 						<exclude>logback.xml</exclude>
 						<exclude>persistence.properties</exclude>
 					</excludes>

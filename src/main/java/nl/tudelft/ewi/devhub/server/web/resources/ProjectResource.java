@@ -78,12 +78,12 @@ public class ProjectResource extends Resource {
 	@GET
 	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request,
-			@PathParam("courseCode") String courseCode, @PathParam("groupNumber") String groupNumber,
+			@PathParam("courseCode") String courseCode, @PathParam("groupNumber") long groupNumber,
 			@QueryParam("fatal") String fatal) throws IOException, ApiError {
 
 		User user = scope.getUser();
 		Course course = courses.find(courseCode);
-		Group group = groups.find(course, Long.parseLong(groupNumber));
+		Group group = groups.find(course, groupNumber);
 		
 		if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 			throw new UnauthorizedException();

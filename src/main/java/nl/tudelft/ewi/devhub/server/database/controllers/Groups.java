@@ -1,16 +1,15 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.QGroup;
+import java.util.List;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.QGroup;
 
 public class Groups extends Controller<Group> {
 

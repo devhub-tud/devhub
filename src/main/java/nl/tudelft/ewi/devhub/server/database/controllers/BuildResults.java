@@ -4,12 +4,11 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 
+import com.google.common.base.Preconditions;
+import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.QBuildResult;
-
-import com.google.common.base.Preconditions;
-import com.google.inject.persist.Transactional;
 
 public class BuildResults extends Controller<BuildResult> {
 
@@ -25,7 +24,7 @@ public class BuildResults extends Controller<BuildResult> {
 		
 		BuildResult result = query().from(QBuildResult.buildResult)
 				.where(QBuildResult.buildResult.repository.groupId.eq(group.getGroupId()))
-				.where(QBuildResult.buildResult.commitId.eq(commitId))
+				.where(QBuildResult.buildResult.commitId.equalsIgnoreCase(commitId))
 				.singleResult(QBuildResult.buildResult);
 		
 		if (result == null) {

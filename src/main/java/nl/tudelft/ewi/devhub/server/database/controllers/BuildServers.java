@@ -1,16 +1,15 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 
-import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
-import nl.tudelft.ewi.devhub.server.database.entities.QBuildServer;
+import java.util.List;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
+import nl.tudelft.ewi.devhub.server.database.entities.QBuildServer;
 
 public class BuildServers extends Controller<BuildServer> {
 
@@ -22,7 +21,7 @@ public class BuildServers extends Controller<BuildServer> {
 	@Transactional
 	public List<BuildServer> listAll() {
 		return query().from(QBuildServer.buildServer)
-				.orderBy(QBuildServer.buildServer.name.asc())
+				.orderBy(QBuildServer.buildServer.name.toLowerCase().asc())
 				.list(QBuildServer.buildServer);
 	}
 
@@ -44,7 +43,7 @@ public class BuildServers extends Controller<BuildServer> {
 		Preconditions.checkNotNull(secret);
 		
 		BuildServer buildServer = query().from(QBuildServer.buildServer)
-				.where(QBuildServer.buildServer.name.eq(name))
+				.where(QBuildServer.buildServer.name.equalsIgnoreCase(name))
 				.where(QBuildServer.buildServer.secret.eq(secret))
 				.singleResult(QBuildServer.buildServer);
 		

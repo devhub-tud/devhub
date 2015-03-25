@@ -1,19 +1,18 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import java.util.Date;
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.QCourse;
-import nl.tudelft.ewi.devhub.server.database.entities.QGroupMembership;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
+import java.util.Date;
+import java.util.List;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 import com.mysema.query.jpa.impl.JPAQuery;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.QCourse;
+import nl.tudelft.ewi.devhub.server.database.entities.QGroupMembership;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 public class Courses extends Controller<Course> {
 
@@ -44,8 +43,8 @@ public class Courses extends Controller<Course> {
 			.where(QCourse.course.start.before(new Date()))
 			.where(QCourse.course.end.isNull()
 				.or(QCourse.course.end.after(new Date())))
-			.orderBy(QCourse.course.code.asc())
-			.orderBy(QCourse.course.name.asc())
+			.orderBy(QCourse.course.code.toLowerCase().asc())
+			.orderBy(QCourse.course.name.toLowerCase().asc())
 			.orderBy(QCourse.course.start.asc())
 			.list(QCourse.course);
 	}
@@ -69,7 +68,7 @@ public class Courses extends Controller<Course> {
 		}
 
 		return query.orderBy(QCourse.course.code.asc())
-			.orderBy(QCourse.course.name.asc())
+			.orderBy(QCourse.course.name.toLowerCase().asc())
 			.orderBy(QCourse.course.start.asc())
 			.list(QCourse.course);
 	}

@@ -1,205 +1,206 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import lombok.Data;
-import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
-import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.Branch;
+import nl.tudelft.ewi.git.client.GitClientException;
+import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author Jan-Willem Gmelig Meyling
  */
 public class PullRequestBackend {
+
+    enum EventType {
+        COMMIT,
+        COMMENT,
+        COMMENT_CONTEXT;
+    }
+
+    public static abstract class Event implements Comparable<Event> {
+
+        // Use an enumerated type over inheritance for freemarker checks
+        private final EventType eventType;
+
+        public Event(EventType eventType) {
+            this.eventType = eventType;
+        }
+
+        @Override
+        public int compareTo(Event other) {
+            return getDate().compareTo(other.getDate());
+        }
+
+        public abstract Date getDate();
+
+        public boolean isCommitEvent() {
+            return eventType.equals(EventType.COMMIT);
+        }
+
+        public boolean isCommentContextEvent() {
+            return eventType.equals(EventType.COMMENT_CONTEXT);
+        }
+    }
+
+    @Data
+    public static class CommitEvent extends Event {
+
+        private final CommitModel commit;
+
+        public CommitEvent(CommitModel commit) {
+            super(EventType.COMMIT);
+            this.commit = commit;
+        }
+
+        public Date getDate() {
+            return new Date(commit.getTime() * 1000);
+        }
+
+        public static Function<CommitModel, CommitEvent> transformer =
+                (commitModel) -> new CommitEvent(commitModel);
+
+    }
+
+    @Data
+    public static class CommentEvent extends Event {
+
+        private final CommitComment comment;
+
+        public CommentEvent(CommitComment comment) {
+            super(EventType.COMMENT);
+            this.comment = comment;
+        }
+
+        @Override
+        public Date getDate() {
+            return comment.getTime();
+        }
+
+        public static Function<CommitComment, CommentEvent> transformer =
+                (comment) -> new CommentEvent(comment);
+
+    }
+
+    @Data
+    public static class CommentContextEvent extends Event {
+
+        private final SortedSet<CommitComment> comments;
+        private final DiffBlameModel.DiffBlameFile diffBlameFile;
+
+        public CommentContextEvent(SortedSet<CommitComment> comments, DiffBlameModel.DiffBlameFile diffBlameFile) {
+            super(EventType.COMMENT_CONTEXT);
+            this.comments = comments;
+            this.diffBlameFile = diffBlameFile;
+        }
+
+        @Override
+        public Date getDate() {
+            return comments.first().getTime();
+        }
+
+    }
+
+    public class EventResolver {
+
+        private final DiffBlameModel diffModel;
+        private final List<CommitComment> comments;
+
+        public EventResolver(DiffBlameModel diffModel) {
+            this.diffModel = diffModel;
+            List<String> commitIds = Lists.transform(diffModel.getCommits(), CommitModel::getCommit);
+            this.comments = commentsDAO.getCommentsFor(commitIds);
+        }
+
+        public SortedSet<Event> getEvents() {
+            SortedSet<Event> result = Sets.newTreeSet();
+            result.addAll(getCommitEvents());
+            result.addAll(getCommentEvents());
+            return result;
+        }
+
+        private Collection<CommitEvent> getCommitEvents() {
+            return diffModel.getCommits().stream()
+                .map(CommitEvent::new)
+                .collect(Collectors.toList());
+        }
+
+        private Collection<CommentContextEvent> getCommentEvents() {
+            // Do not use parallel streams as the source objects can only be accessed
+            // through the current (thread local) transaction!
+            return comments.stream()
+                .collect(Collectors.groupingBy(CommitComment::getSource))
+                .entrySet().stream().map(entry -> {
+                    CommitComment.Source source = entry.getKey();
+                    SortedSet<CommitComment> comments = Sets.newTreeSet(entry.getValue());
+                    DiffBlameModel.DiffBlameFile subModel = findSubModel(source, comments);
+                    return new CommentContextEvent(comments, subModel);
+                })
+                .collect(Collectors.toList());
+        }
+
+        private DiffBlameModel.DiffBlameFile findSubModel(CommitComment.Source source, Collection<CommitComment> comments) {
+//            diffModel.getDiffs().stream()
+//                    .map(DiffBlameModel.DiffBlameFile::getContexts)
+//                    .flatMap(List::stream)
+//                    .reduce((diffBlameContext, diffBlameContext2) -> {
 //
-//    enum EventType {
-//        COMMIT, COMMENT, COMMENT_CONTEXT;
-//    }
-//
-//    public static abstract class Event implements Comparable<Event> {
-//
-//        // Use an enumerated type over inheritance for freemarker checks
-//        private final EventType eventType;
-//
-//        public Event(EventType eventType) {
-//            this.eventType = eventType;
-//        }
-//
-//        @Override
-//        public int compareTo(Event other) {
-//            return getDate().compareTo(other.getDate());
-//        }
-//
-//        public abstract Date getDate();
-//
-//        public boolean isCommit() {
-//            return eventType.equals(EventType.COMMIT);
-//        }
-//
-//        public boolean isComment() {
-//            return eventType.equals(EventType.COMMIT);
-//        }
-//    }
-//
-//    @Data
-//    public static class CommitEvent extends Event {
-//
-//        private final CommitModel commit;
-//
-//        public CommitEvent(CommitModel commit) {
-//            super(EventType.COMMIT);
-//            this.commit = commit;
-//        }
-//
-//        public Date getDate() {
-//            return new Date(commit.getTime());
-//        }
-//
-//        public static Function<CommitModel, CommitEvent> transformer =
-//                (commitModel) -> new CommitEvent(commitModel);
-//
-//    }
-//
-//    @Data
-//    public static class CommentEvent extends Event {
-//
-//        private final CommitComment comment;
-//
-//        public CommentEvent(CommitComment comment) {
-//            super(EventType.COMMENT);
-//            this.comment = comment;
-//        }
-//
-//        @Override
-//        public Date getDate() {
-//            return comment.getTime();
-//        }
-//
-//        public static Function<CommitComment, CommentEvent> transformer =
-//                (comment) -> new CommentEvent(comment);
-//
-//    }
-//
-//    @Data
-//    public static class CommentContextEvent extends Event {
-//
-//        private final SortedSet<CommitComment> comments;
-//        private final DiffContext diffContext;
-//
-//        public CommentContextEvent(SortedSet<CommitComment> comments, DiffContext diffContext) {
-//            super(EventType.COMMENT_CONTEXT);
-//            this.comments = comments;
-//            this.diffContext = diffContext;
-//        }
-//
-//        @Override
-//        public Date getDate() {
-//            return comments.first().getTime();
-//        }
-//
-//    }
-//
-//    class EventResolver {
-//
-//        private final RepositoryModel repositoryModel;
-//        private final BranchModel branchModel;
-//        private final DiffResponse diffResponse;
-//        private final CommitModel mergebase;
-//        private final List<CommitComment> comments;
-//        private final Map<DiffModel, BlameModel> blames;
-//
-//        public EventResolver(DetailedRepositoryModel repositoryModel, BranchModel branchModel) throws ApiError {
-//            BranchModel master = repositoryModel.getBranch("master");
-//
-//            this.repositoryModel = repositoryModel;
-//            this.branchModel = branchModel;
-//            this.blames = Maps.<DiffModel, BlameModel> newHashMap();
-//
-//            this.mergebase = gitBackend.mergeBase(repositoryModel, master.getCommit().getCommit(), branchModel.getCommit().getCommit());
-//            this.diffResponse = gitBackend.fetchDiffs(repositoryModel, mergebase.getCommit(), branchModel.getCommit().getCommit());
-//            List<String> commitIds = Lists.transform(diffResponse.getCommits(), CommitModel::getCommit);
-//            this.comments = commentsDAO.getCommentsFor(commitIds);
-//        }
-//
-//        @SneakyThrows
-//        private BlameModel getBlameModel(DiffModel diffModel) {
-//            BlameModel blame = blames.get(diffModel);
-//            if(blame == null && (!diffModel.isAdded())) {
-//                blame = gitBackend.blame(repositoryModel, mergebase, diffModel.getOldPath());
-//                blames.put(diffModel, blame);
-//            }
-//            return blame;
-//        }
-//
-//        public SortedSet<CommentContextEvent> getCommentContexts() {
-//            SortedSet<CommentContextEvent> commentContextEvents = Sets.newTreeSet();
-//            DiffBlameModel.BlameModelProvider provider = (diffModel) -> getBlameModel(diffModel);
-//            DiffBlameModel diffBlameModel = DiffBlameModel.transform(provider, mergebase, branchModel.getCommit(), diffResponse);
-//            return null;
-//        }
-//
-//    }
-//
-//    private final CommitComments commentsDAO;
-//    private final GitBackend gitBackend;
-//
-//    @Inject
-//    public PullRequestBackend(CommitComments commentsDAO, GitBackend gitBackend) {
-//        this.commentsDAO = commentsDAO;
-//        this.gitBackend = gitBackend;
-//    }
-//
-//    public SortedSet<Event> getEventsForPullRequest(PullRequest request) throws ApiError {
-//        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(request.getGroup());
-//        BranchModel branch = repository.getBranch(request.getBranchName());
-//        CommitModel commit = branch.getCommit();
-//        DiffResponse diffs = gitBackend.fetchDiffs(repository, branch);
-//        return getEvents(repository, diffs, commit);
-//    }
-//
-//    public SortedSet<Event> getEvents(RepositoryModel repository, DiffResponse diffs, CommitModel commit) throws ApiError {
-////        DiffBlameModel model = DiffBlameModel.transform((diffModel) -> {
-////            return null;
-////        }, d)
-////        Map<DiffModel, BlameModel> blames = Maps.newHashMap();
-////        for(DiffModel diffModel : diffs.getDiffs()) {
-////            if(!diffModel.isAdded()) {
-////                BlameModel blame = gitBackend.blame(repository, commit, diffModel.getNewPath());
-////            }
-////        }
-////
-////        SortedSet<Event> events = Sets.newTreeSet();
-////        diffs.getCommits().forEach(commitModel ->
-////                events.add(new CommitEvent(commitModel)));
-////
-////        List<String> commitIds = Lists.transform(diffs.getCommits(), CommitModel::getCommit);
-////        List<CommitComment> comments = commentsDAO.getCommentsFor(commitIds);
-////
-////        comments.parallelStream()
-////            .collect(Collectors.groupingBy(CommitComment::getSource))
-////            .entrySet().parallelStream().map(entry -> {
-////                CommitComment.Source source = entry.getKey();
-////                List<CommitComment> comments = entry.getValue();
-////                DiffContext context =
-////            })
-//
-//
-////        for(CommitComment comment : comments)
-////            events.add(new CommentEvent(comment));
-//        return null;
-////        return events;
-//    }
+//                    })
+            for(DiffBlameModel.DiffBlameFile diffFile : diffModel.getDiffs()) {
+                for(DiffBlameModel.DiffBlameContext diffContext : diffFile.getContexts()) {
+                    List<DiffBlameModel.DiffBlameLine> lines = diffContext.getLines();
+                    for(int i = 0, s = lines.size(); i < s; i++) {
+                        DiffBlameModel.DiffBlameLine line = lines.get(i);
+                        if(line.getSourceCommitId().equals(source.getSourceCommit().getCommitId()) &&
+                                line.getSourceFilePath().equals(source.getSourceFilePath()) &&
+                                line.getSourceLineNumber() == source.getSourceLineNumber()) {
+                            return createSubModel(diffFile, diffContext, i);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        private DiffBlameModel.DiffBlameFile createSubModel(DiffBlameModel.DiffBlameFile diffFile,
+                                              DiffBlameModel.DiffBlameContext diffContext,
+                                              int lineOfInterest) {
+            List<DiffBlameModel.DiffBlameLine> sublist =
+                    diffContext.getLines().subList(Math.max(0, lineOfInterest - 4), lineOfInterest + 1);
+
+            DiffBlameModel.DiffBlameContext contextCopy = new DiffBlameModel.DiffBlameContext();
+            contextCopy.setLines(sublist);
+
+            DiffBlameModel.DiffBlameFile fileCopy = new DiffBlameModel.DiffBlameFile();
+            fileCopy.setContexts(Lists.newArrayList(contextCopy));
+            fileCopy.setNewPath(diffFile.getNewPath());
+            fileCopy.setOldPath(diffFile.getOldPath());
+            fileCopy.setType(diffFile.getType());
+            return fileCopy;
+        }
+
+    }
+
+    private final CommitComments commentsDAO;
+
+    @Inject
+    public PullRequestBackend(CommitComments commentsDAO) {
+        this.commentsDAO = commentsDAO;
+    }
+
+    public SortedSet<Event> getEventsForPullRequest(Repository repository, PullRequest pullRequest) throws GitClientException {
+        Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
+        return new EventResolver(branch.diffBlame()).getEvents();
+    }
 
 }

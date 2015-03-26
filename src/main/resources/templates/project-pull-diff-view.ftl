@@ -30,14 +30,21 @@
 <div class="commit ignored">
     <span class="state glyphicon glyphicon-unchecked"></span>
 [/#if]
+
+    <span class="view-picker">
+        <div class="btn-group">
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}" class="btn btn-default">Overview</a>
+        </div>
+    </span>
+
     <div class="headers" style="display: inline-block;">
         <h2 class="header">${commit.getMessage()}</h2>
         <h5 class="subheader">${commit.getAuthor()}</h5>
         <div>
             <ul class="list-unstyled">
-            [#list diffViewModel.diffResponse.commits as commit]
+            [#list diffViewModel.commits as commit]
                 <li style="line-height:30px;">
-                    <a href="">
+                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff">
                         <span class="octicon octicon-git-commit"></span>
                         <span class="label label-default">${commit.getCommit()?substring(0,7)?upper_case }</span>
                         <span>${commit.getMessage()}</span>
@@ -46,15 +53,15 @@
             [/#list]
             </ul>
         </div>
-    [#if commit.getMessageTail()?has_content]
-        <div class="description">${commit.getMessageTail()}</div>
+    [#if commit.getMessage()?has_content]
+        <div class="description">${commit.getMessage()}</div>
     [/#if]
     </div>
 </div>
 
-[#if diffViewModel.diffResponse?has_content]
-    [#list diffViewModel.diffResponse.diffs as diffModel]
-        [@diffbox.diffbox diffViewModel diffModel diffModel_index][/@diffbox.diffbox]
+[#if diffViewModel.diffs?has_content]
+    [#list diffViewModel.diffs as diffModel]
+        [@diffbox.diffbox diffModel diffModel_index][/@diffbox.diffbox]
     [/#list]
 [#else]
     <div>${i18n.translate("diff.changes.nothing")}</div>

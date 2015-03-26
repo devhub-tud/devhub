@@ -10,7 +10,7 @@
 
     [#if diffViewModel?? && diffViewModel?has_content]
         [#list diffViewModel.diffs as diffModel]
-            [@diffbox.diffbox diffViewModel diffModel diffModel_index][/@diffbox.diffbox]
+            [@diffbox.diffbox diffModel diffModel_index][/@diffbox.diffbox]
         [/#list]
     [#else]
         <div>${i18n.translate("diff.changes.nothing")}</div>

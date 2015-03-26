@@ -46,6 +46,7 @@ public class CommitComment implements Comparable<CommitComment> {
 
     @Data
     @Embeddable
+	@EqualsAndHashCode
     public static class Source {
 
         @NotNull

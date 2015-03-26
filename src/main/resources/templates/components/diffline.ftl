@@ -1,4 +1,4 @@
-[#macro diffLine diffModel commit line index]
+[#macro diffLine line index]
 
 <tr data-source-commit="${line.sourceCommitId}" data-source-line-number="${line.sourceLineNumber}" data-source-file-name="${line.sourceFilePath}">
 

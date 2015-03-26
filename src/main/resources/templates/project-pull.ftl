@@ -1,6 +1,7 @@
 [#import "macros.ftl" as macros]
 [#import "components/difftable.ftl" as difftable]
 [#import "components/diffbox.ftl" as diffbox]
+[#import "components/comment.ftl" as commentElement]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -30,28 +31,50 @@
 <div class="commit ignored">
     <span class="state glyphicon glyphicon-unchecked"></span>
 [/#if]
+
+    <span class="view-picker">
+        <div class="btn-group">
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/diff" class="btn btn-default">View diff</a>
+        </div>
+    </span>
+
     <div class="headers" style="display: inline-block;">
         <h2 class="header">${commit.getMessage()}</h2>
         <h5 class="subheader">${commit.getAuthor()}</h5>
-        <div>
-            <ul class="list-unstyled">
-            [#list diffViewModel.commits as commit]
-                <li style="line-height:30px;">
-                    <a href="">
-                        <span class="octicon octicon-git-commit"></span>
-                        <span class="label label-default">${commit.getCommit()?substring(0,7)?upper_case }</span>
-                        <span>${commit.getMessage()}</span>
-                    </a>
-                </li>
-            [/#list]
-            </ul>
-        </div>
     [#if commit.getMessage()?has_content]
         <div class="description">${commit.getMessage()}</div>
     [/#if]
     </div>
 </div>
 
+[#if events?? && events?has_content]
+    [#list events as event]
+        [#if event.isCommitEvent()]
+            [#-- <div>${event.date?datetime}</div> --]
+            <ul class="list-unstyled">
+                <li style="line-height:30px;">
+                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${event.commit.commit}/diff">
+                        <span class="octicon octicon-git-commit"></span>
+                        <span class="label label-default">${event.commit.getCommit()?substring(0,7)?upper_case }</span>
+                        <span>${event.commit.getMessage()}</span>
+                    </a>
+                </li>
+            </ul>
+        [#elseif event.isCommentContextEvent()]
+            [#if event.comments?? && event.comments?has_content && event.diffBlameFile?? && event.diffBlameFile?has_content]
+                [#-- [@difftable.diffTable event.diffBlameFile event.diffBlameFile 0 commit/] --]
+                [@diffbox.diffbox event.diffBlameFile 0][/@diffbox.diffbox]
+
+                [#list event.comments as comment]
+                    [@commentElement.renderComment comment][/@commentElement.renderComment]
+                [/#list]
+            [/#if]
+
+        [/#if]
+    [/#list]
+[/#if]
+
+[#--
 [#if diffViewModel.diffs?has_content]
     [#list diffViewModel.diffs as diffModel]
         [@diffbox.diffbox diffViewModel diffModel diffModel_index][/@diffbox.diffbox]
@@ -59,6 +82,7 @@
 [#else]
     <div>${i18n.translate("diff.changes.nothing")}</div>
 [/#if]
+--]
 
 </div>
 

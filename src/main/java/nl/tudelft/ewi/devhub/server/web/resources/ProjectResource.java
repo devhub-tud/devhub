@@ -14,6 +14,7 @@ import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
+import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
@@ -57,6 +58,7 @@ public class ProjectResource extends Resource {
 	private final CommentBackend commentBackend;
     private final GitServerClient client;
     private final BuildsBackend buildBackend;
+	private final PullRequestBackend pullRequestBackend;
     private final Config config;
 	private final GitServerClient gitClient;
 
@@ -69,6 +71,7 @@ public class ProjectResource extends Resource {
 			final PullRequests pullRequests,
             final GitServerClient client,
             final BuildsBackend buildBackend,
+			final PullRequestBackend pullRequestBackend,
 			final GitServerClient gitClient,
             final Config config) {
 
@@ -80,6 +83,7 @@ public class ProjectResource extends Resource {
 		this.pullRequests = pullRequests;
         this.client = client;
         this.buildBackend = buildBackend;
+		this.pullRequestBackend = pullRequestBackend;
 		this.gitClient = gitClient;
         this.config = config;
 	}
@@ -161,18 +165,15 @@ public class ProjectResource extends Resource {
 		PullRequest pullRequest = pullRequests.findById(pullId);
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
-		DiffBlameModel diffBlameModel = branch.diffBlame();
-		List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("commit", branch.getCommit());
-		parameters.put("commentChecker", commentBackend.getCommentChecker(commitIds));
 		parameters.put("branch", branch);
 		parameters.put("pullRequest", pullRequest);
+		parameters.put("events", pullRequestBackend.getEventsForPullRequest(repository, pullRequest));
 		parameters.put("repository", repository);
-		parameters.put("diffViewModel", diffBlameModel);
 		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
@@ -206,7 +207,7 @@ public class ProjectResource extends Resource {
 		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("project-pull.ftl", locales, parameters));
+		return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
     }
 
     @POST

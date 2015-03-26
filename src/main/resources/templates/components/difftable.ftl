@@ -1,30 +1,29 @@
 [#import "diffline.ftl" as diffline]
 
-[#macro diffTable diffViewModel diffModel index commit]
-[#-- [#assign comments=diffViewModel.commentChecker] --]
-[#assign comments=[]]
+[#macro diffTable diffModel index commit]
 
 <table class="table diffs">
     [#list diffModel.contexts as diffContext]
         <tbody>
             [#list diffContext.lines as line]
                 [#if line.content??]
-                    [@diffline.diffLine diffModel commit line index/]
-
-                    [#assign commentsForThisLine = commentChecker.getCommentsForLine(line.sourceCommitId, line.sourceFilePath, line.sourceLineNumber)]
-                    [#if commentsForThisLine?has_content ]
-                    <tr class="comment-block">
-                        <td colspan="3">
-                            [#list commentsForThisLine as comment]
-                                <div class="panel panel-default panel-comment">
-                                    <div class="panel-heading"><strong>${comment.user.name}</strong> on ${comment.time}</div>
-                                    <div class="panel-body">
-                                        <p>${comment.content}</p>
+                    [@diffline.diffLine line index/]
+                    [#if commentChecker?? && commentChecker?has_content]
+                        [#assign commentsForThisLine = commentChecker.getCommentsForLine(line.sourceCommitId, line.sourceFilePath, line.sourceLineNumber)]
+                        [#if commentsForThisLine?has_content ]
+                        <tr class="comment-block">
+                            <td colspan="3">
+                                [#list commentsForThisLine as comment]
+                                    <div class="panel panel-default panel-comment">
+                                        <div class="panel-heading"><strong>${comment.user.name}</strong> on ${comment.time}</div>
+                                        <div class="panel-body">
+                                            <p>${comment.content}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            [/#list]
-                        </td>
-                    </tr>
+                                [/#list]
+                            </td>
+                        </tr>
+                        [/#if]
                     [/#if]
                 [/#if]
             [/#list]

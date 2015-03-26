@@ -79,8 +79,8 @@
             <table class="table table-bordered">
                 <tbody>
                 [#if repository?? && repository?has_content]
-                    [#if branch?? && branch?has_content && branch.getCommits()?has_content]
-                        [#list branch.getCommits() as commit]
+                    [#if commits?? && commits?has_content]
+                        [#list commits.commits as commit]
                             [@commitRow.render group states commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff"]
                                 <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
                                 <div class="committer">${commit.getAuthor()}</div>

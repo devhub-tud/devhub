@@ -8,8 +8,8 @@
 
     [@macros.renderCommitHeader i18n group commit "View diff" /]
 
-    [#if diffViewModel.diffResponse?has_content]
-        [#list diffViewModel.diffResponse.diffs as diffModel]
+    [#if diffViewModel?? && diffViewModel?has_content]
+        [#list diffViewModel.diffs as diffModel]
             [@diffbox.diffbox diffViewModel diffModel diffModel_index][/@diffbox.diffbox]
         [/#list]
     [#else]

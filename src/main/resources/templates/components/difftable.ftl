@@ -1,23 +1,17 @@
 [#import "diffline.ftl" as diffline]
 
 [#macro diffTable diffViewModel diffModel index commit]
-[#assign blame=diffViewModel.getBlameModel(diffModel)![]]
-[#assign comments=diffViewModel.commentChecker]
+[#-- [#assign comments=diffViewModel.commentChecker] --]
+[#assign comments=[]]
 
 <table class="table diffs">
-    [#list diffModel.diffContexts as diffContext]
+    [#list diffModel.contexts as diffContext]
         <tbody>
-            [#assign oldLineNumber=diffContext.oldStart + 1]
-            [#assign newLineNumber=diffContext.newStart + 1]
-            [#list diffContext.diffLines as line]
+            [#list diffContext.lines as line]
                 [#if line.content??]
-                    [@diffline.diffLine diffModel blame commit line index oldLineNumber newLineNumber/]
-                    [#if line.isAdded()]
-                        [#assign commentsForThisLine = comments.getCommentsForLine(commit.getCommit(), diffModel.newPath, (newLineNumber - 1))]
-                    [#else]
-                        [#assign block = blame.getBlameBlock(oldLineNumber -1)]
-                        [#assign commentsForThisLine = comments.getCommentsForLine(block.getFromCommitId(), block.getFromFilePath(), block.getFromLineNumber(oldLineNumber - 1))]
-                    [/#if]
+                    [@diffline.diffLine diffModel commit line index/]
+
+                    [#assign commentsForThisLine = commentChecker.getCommentsForLine(line.sourceCommitId, line.sourceFilePath, line.sourceLineNumber)]
                     [#if commentsForThisLine?has_content ]
                     <tr class="comment-block">
                         <td colspan="3">
@@ -31,15 +25,6 @@
                             [/#list]
                         </td>
                     </tr>
-                    [/#if]
-
-                    [#if line.isRemoved()]
-                        [#assign oldLineNumber=oldLineNumber + 1]
-                    [#elseif line.isAdded()]
-                        [#assign newLineNumber=newLineNumber + 1]
-                    [#else]
-                        [#assign oldLineNumber=oldLineNumber + 1]
-                        [#assign newLineNumber=newLineNumber + 1]
                     [/#if]
                 [/#if]
             [/#list]

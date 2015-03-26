@@ -13,25 +13,31 @@
 					<table class="table diffs">
 						<tbody>
 				[#list contents as line]
-                            <tr data-source-line-number="${line_index}">
-								<td class="ln">${line_index + 1}</td>
-								<td class="code"> <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a><pre>${line}</pre></td>
-							</tr>
+                            [#-- <tr data-source-line-number="${line_index}"> --]
+                    [#assign blameBlock = blame.getBlameBlock(line_index + 1)]
+                    [#assign sourceLineNumber = blameBlock.getFromLineNumber(line_index + 1)]
+                    [#assign commentsForThisLine = comments.getCommentsForLine(blameBlock.fromCommitId, blameBlock.fromFilePath, sourceLineNumber)]
 
-                    [#assign commentsForThisLine = comments.getCommentsForLine(commit.getCommit(), path, line_index)]
+                            <tr data-source-commit="${blameBlock.fromCommitId}"
+                                data-source-line-number="${sourceLineNumber}"
+                                data-source-file-name="${blameBlock.fromFilePath}">
+                                <td class="ln">${line_index + 1}</td>
+                                <td class="code"> <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a><pre>${line}</pre></td>
+                            </tr>
+
                     [#if commentsForThisLine?has_content ]
-                    <tr class="comment-block">
-                        <td colspan="3">
-                            [#list commentsForThisLine as comment]
-                                <div class="panel panel-default panel-comment">
-                                    <div class="panel-heading"><strong>${comment.user.name}</strong> on ${comment.time}</div>
-                                    <div class="panel-body">
-                                        <p>${comment.content}</p>
-                                    </div>
-                                </div>
-                            [/#list]
-                        </td>
-                    </tr>
+                            <tr class="comment-block">
+                                <td colspan="3">
+                                    [#list commentsForThisLine as comment]
+                                        <div class="panel panel-default panel-comment">
+                                            <div class="panel-heading"><strong>${comment.user.name}</strong> on ${comment.time}</div>
+                                            <div class="panel-body">
+                                                <p>${comment.content}</p>
+                                            </div>
+                                        </div>
+                                    [/#list]
+                                </td>
+                            </tr>
                     [/#if]
 				[/#list]
 						</tbody>
@@ -103,9 +109,9 @@
             '<div class="panel-body">' +
             '<form class="form-horizontal" action="/courses/${group.course.getCode()}/groups/${group.getGroupId()}/comment" method="POST">' +
             '<input type="hidden" name="link-commit" value="${ commit.commit }"/>' +
-            '<input type="hidden" name="source-commit" value="${commit.commit }"/>' +
+            '<input type="hidden" name="source-commit" value="' + lineData.sourceCommit + '"/>' +
             '<input type="hidden" name="source-line-number" value="' + lineData.sourceLineNumber + '"/>' +
-            '<input type="hidden" name="source-file-name" value="${path}"/>' +
+            '<input type="hidden" name="source-file-name" value="' + lineData.sourceFileName + '"/>' +
             '<input type="hidden" name="redirect" value="' + location.pathname + '"/>' +
             '<textarea rows="5" class="form-control" name="content"></textarea>' +
             '<button type="submit" class="btn btn-primary">Submit</button>' +

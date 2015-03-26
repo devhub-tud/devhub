@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
@@ -98,7 +99,7 @@ public class Bootstrapper {
 	}
 	
 	@Transactional
-	public void prepare(String path) throws IOException, ApiError {
+	public void prepare(String path) throws IOException, ApiError, GitClientException {
 		InputStream inputStream = Bootstrapper.class.getResourceAsStream(path);
 		BState state = mapper.readValue(inputStream, BState.class);
 		

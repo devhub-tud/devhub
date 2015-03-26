@@ -1,18 +1,10 @@
-[#macro diffLine diffModel blame commit line index oldLineNumber newLineNumber]
-<tr
-    [#if line.isAdded()]
-            data-source-commit="${commit.getCommit()}"
-            data-source-line-number="${newLineNumber - 1}"
-            data-source-file-name="${diffModel.newPath}">
-    [#else]
-        [#assign block = blame.getBlameBlock(oldLineNumber -1)]
-        data-source-commit="${block.getFromCommitId()}"
-        data-source-line-number="${block.getFromLineNumber(oldLineNumber - 1)}"
-        data-source-file-name="${block.getFromFilePath()}">
-    [/#if]
+[#macro diffLine diffModel commit line index]
+
+<tr data-source-commit="${line.sourceCommitId}" data-source-line-number="${line.sourceLineNumber}" data-source-file-name="${line.sourceFilePath}">
+
     [#if line.isRemoved()]
         <td class="ln delete">
-            <a href="#${index}L${oldLineNumber}" id="${index}L${oldLineNumber}">${oldLineNumber}</a>
+            <a href="#${index}L${line.oldLineNumber}" id="${index}L${line.oldLineNumber}">${line.oldLineNumber}</a>
         </td>
         <td class="ln delete"></td>
         <td class="code delete">
@@ -22,7 +14,7 @@
     [#elseif line.isAdded()]
         <td class="ln add"></td>
         <td class="ln add">
-            <a href="#${index}R${newLineNumber}" id="${index}R${newLineNumber}">${newLineNumber}</a>
+            <a href="#${index}R${line.newLineNumber}" id="${index}R${line.newLineNumber}">${line.newLineNumber}</a>
         </td>
         <td class="code add">
             <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a>
@@ -30,10 +22,10 @@
         </td>
     [#else]
         <td class="ln">
-            <a href="#${index}L${oldLineNumber}" id="${index}L${oldLineNumber}">${oldLineNumber}</a>
+            <a href="#${index}L${line.oldLineNumber}" id="${index}L${line.oldLineNumber}">${line.oldLineNumber}</a>
         </td>
         <td class="ln">
-            <a href="#${index}R${newLineNumber}" id="${index}R${newLineNumber}">${newLineNumber}</a>
+            <a href="#${index}R${line.newLineNumber}" id="${index}R${line.newLineNumber}">${line.newLineNumber}</a>
         </td>
         <td class="code">
             <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a>

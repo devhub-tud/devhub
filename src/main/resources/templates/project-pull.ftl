@@ -35,7 +35,7 @@
         <h5 class="subheader">${commit.getAuthor()}</h5>
         <div>
             <ul class="list-unstyled">
-            [#list diffViewModel.diffResponse.commits as commit]
+            [#list diffViewModel.commits as commit]
                 <li style="line-height:30px;">
                     <a href="">
                         <span class="octicon octicon-git-commit"></span>
@@ -46,14 +46,14 @@
             [/#list]
             </ul>
         </div>
-    [#if commit.getMessageTail()?has_content]
-        <div class="description">${commit.getMessageTail()}</div>
+    [#if commit.getMessage()?has_content]
+        <div class="description">${commit.getMessage()}</div>
     [/#if]
     </div>
 </div>
 
-[#if diffViewModel.diffResponse?has_content]
-    [#list diffViewModel.diffResponse.diffs as diffModel]
+[#if diffViewModel.diffs?has_content]
+    [#list diffViewModel.diffs as diffModel]
         [@diffbox.diffbox diffViewModel diffModel diffModel_index][/@diffbox.diffbox]
     [/#list]
 [#else]

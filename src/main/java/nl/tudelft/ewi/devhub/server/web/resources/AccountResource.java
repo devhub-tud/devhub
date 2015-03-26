@@ -28,6 +28,7 @@ import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
+import nl.tudelft.ewi.git.client.GitClientException;
 import org.eclipse.jetty.util.UrlEncoded;
 
 import com.google.common.base.Strings;
@@ -98,7 +99,7 @@ public class AccountResource extends Resource {
 	@POST
 	@Path("{netId}/setup")
 	public Response addNewKey(@PathParam("netId") String netId, @FormParam("name") String name,
-			@FormParam("contents") String contents) throws URISyntaxException {
+			@FormParam("contents") String contents) throws URISyntaxException, GitClientException {
 
 		User account = users.findByNetId(netId);
 
@@ -121,7 +122,7 @@ public class AccountResource extends Resource {
 	@POST
 	@Path("{netId}/delete")
 	public Response deleteExistingKey(@PathParam("netId") String netId, @FormParam("name") String name)
-			throws URISyntaxException {
+			throws URISyntaxException, GitClientException  {
 
 		User account = users.findByNetId(netId);
 

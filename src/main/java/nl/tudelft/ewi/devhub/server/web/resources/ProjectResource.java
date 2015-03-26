@@ -1,34 +1,12 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
@@ -36,25 +14,32 @@ import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
-import nl.tudelft.ewi.devhub.server.database.controllers.*;
-import nl.tudelft.ewi.devhub.server.database.entities.*;
-import nl.tudelft.ewi.devhub.server.web.view.models.DiffViewModel;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.models.*;
-import org.hibernate.validator.constraints.NotEmpty;
-
-import lombok.Data;
-import nl.tudelft.ewi.devhub.server.backend.GitBackend;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+import nl.tudelft.ewi.git.client.*;
+import nl.tudelft.ewi.git.models.*;
+import org.hibernate.validator.constraints.NotEmpty;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
+import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.*;
 
 @Slf4j
 @RequestScoped
@@ -65,7 +50,6 @@ public class ProjectResource extends Resource {
 	private static final int PAGE_SIZE = 25;
 
 	private final TemplateEngine templateEngine;
-	private final GitBackend gitBackend;
 	private final User currentUser;
 	private final BuildResults buildResults;
 	private final Group group;
@@ -74,10 +58,10 @@ public class ProjectResource extends Resource {
     private final GitServerClient client;
     private final BuildsBackend buildBackend;
     private final Config config;
+	private final GitServerClient gitClient;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
-			final GitBackend gitBackend,
 			final @Named("current.user") User currentUser,
 			final @Named("current.group") Group group,
 			final CommentBackend commentBackend,
@@ -85,82 +69,55 @@ public class ProjectResource extends Resource {
 			final PullRequests pullRequests,
             final GitServerClient client,
             final BuildsBackend buildBackend,
+			final GitServerClient gitClient,
             final Config config) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
-		this.gitBackend = gitBackend;
 		this.currentUser = currentUser;
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
         this.client = client;
         this.buildBackend = buildBackend;
+		this.gitClient = gitClient;
         this.config = config;
 	}
 
 	@GET
 	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request,
-			@PathParam("courseCode") String courseCode, @PathParam("groupNumber") long groupNumber,
-			@QueryParam("fatal") String fatal) throws IOException, ApiError {
+										@QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
 
-
-		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		DetailedBranchModel branch;
-
-		try {
-			branch = gitBackend.retrieveBranch(repository, "master", 0, PAGE_SIZE);
-		}
-		catch (Throwable e) {
-			if(!repository.getBranches().isEmpty()) {
-				String branchName = repository.getBranches().iterator().next().getName();
-				branch = gitBackend.fetchBranch(repository, branchName, 1, PAGE_SIZE);
-			}
-			else {
-				branch = null; // no commits
-			}
-		}
-
-		return showBranchOverview(request, group, repository, branch, 1);
+		return showBranchOverview(request, "master", 1, fatal);
 	}
 
 	@GET
 	@Path("/branch/{branchName}")
 	@Transactional
 	public Response showBranchOverview(@Context HttpServletRequest request,
-			@PathParam("courseCode") String courseCode,
-			@PathParam("groupNumber") String groupNumber,
-			@PathParam("branchName") String branchName,
-			@QueryParam("page") @DefaultValue("1") int page,
-			@QueryParam("fatal") String fatal) throws IOException, ApiError {
+									   @PathParam("branchName") String branchName,
+									   @QueryParam("page") @DefaultValue("1") int page,
+									   @QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
 
-		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		DetailedBranchModel branch = gitBackend.fetchBranch(repository, branchName, page, PAGE_SIZE);
-		
-		return showBranchOverview(request, group, repository, branch, page);
-	}
-	
-	private Response showBranchOverview(@Context HttpServletRequest request,
-			Group group, DetailedRepositoryModel repository,
-			DetailedBranchModel branch, int page) throws IOException {
-		
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Branch branch = repository.retrieveBranch(branchName);
+		CommitSubList commits = branch.retrieveCommits((page - 1) * PAGE_SIZE, PAGE_SIZE);
+
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("repository", repository);
-		
-		if(branch != null) {
-			parameters.put("branch", branch);
-			parameters.put("pagination", new Pagination(page, branch.getAmountOfCommits()));
-			
-			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
-			if(pullRequest != null) {
-				parameters.put("pullRequest", pullRequest);
-			}
+		parameters.put("commits", commits);
+		parameters.put("branch", branch);
+		parameters.put("pagination", new Pagination(page, commits.getTotal()));
+
+		PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
+		if(pullRequest != null) {
+			parameters.put("pullRequest", pullRequest);
 		}
-		
+
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
 	}
@@ -199,30 +156,24 @@ public class ProjectResource extends Resource {
 	@Transactional
 	@Path("/pull/{pullId}")
 	public Response getPullRequest(@Context HttpServletRequest request,
-			@PathParam("pullId") long pullId) throws ApiError, IOException {
+								   @PathParam("pullId") long pullId) throws ApiError, IOException, GitClientException {
 
-        PullRequest pullRequest = pullRequests.findById(pullId);
-		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
-		CommitModel commitModel = gitBackend.fetchCommitView(repository, branchModel.getCommit().getCommit());
-        CommitModel masterCommit = repository.getBranch("master").getCommit();
-        CommitModel mergeBase = gitBackend.mergeBase(repository, masterCommit.getCommit(), commitModel.getCommit());
+		PullRequest pullRequest = pullRequests.findById(pullId);
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
+		DiffBlameModel diffBlameModel = branch.diffBlame();
+		List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
 
-        DiffViewModel diffViewModel = DiffViewModel.builder(gitBackend, commentBackend)
-            .setNewCommit(commitModel)
-            .setOldCommit(mergeBase)
-            .setRepository(repository)
-            .build();
-
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
-		parameters.put("commit", commitModel);
-        parameters.put("branch", branchModel);
+		parameters.put("commit", branch.getCommit());
+		parameters.put("commentChecker", commentBackend.getCommentChecker(commitIds));
+		parameters.put("branch", branch);
 		parameters.put("pullRequest", pullRequest);
 		parameters.put("repository", repository);
-        parameters.put("diffViewModel", diffViewModel);
-        parameters.put("states", new CommitChecker(group, buildResults));
+		parameters.put("diffViewModel", diffBlameModel);
+		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-pull.ftl", locales, parameters));
@@ -235,33 +186,27 @@ public class ProjectResource extends Resource {
     @Path("/pull/{pullId}/diff")
     public Response getPullRequestDiff(@Context HttpServletRequest request,
                                        @PathParam("pullId") long pullId)
-                                       throws ApiError, IOException {
+                                       throws ApiError, IOException, GitClientException {
 
-        PullRequest pullRequest = pullRequests.findById(pullId);
-        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-        BranchModel branchModel = repository.getBranch(pullRequest.getBranchName());
-        CommitModel commitModel = gitBackend.fetchCommitView(repository, branchModel.getCommit().getCommit());
-        CommitModel masterCommit = repository.getBranch("master").getCommit();
-        CommitModel mergeBase = gitBackend.mergeBase(repository, masterCommit.getCommit(), commitModel.getCommit());
+		PullRequest pullRequest = pullRequests.findById(pullId);
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
+		DiffBlameModel diffBlameModel = branch.diffBlame();
+		List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
 
-        DiffViewModel diffViewModel = DiffViewModel.builder(gitBackend, commentBackend)
-                .setNewCommit(commitModel)
-                .setOldCommit(mergeBase)
-                .setRepository(repository)
-                .build();
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("group", group);
+		parameters.put("commit", branch.getCommit());
+		parameters.put("commentChecker", commentBackend.getCommentChecker(commitIds));
+		parameters.put("branch", branch);
+		parameters.put("pullRequest", pullRequest);
+		parameters.put("repository", repository);
+		parameters.put("diffViewModel", diffBlameModel);
+		parameters.put("states", new CommitChecker(group, buildResults));
 
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
-        parameters.put("commit", commitModel);
-        parameters.put("branch", branchModel);
-        parameters.put("pullRequest", pullRequest);
-        parameters.put("repository", repository);
-        parameters.put("diffViewModel", diffViewModel);
-        parameters.put("states", new CommitChecker(group, buildResults));
-
-        List<Locale> locales = Collections.list(request.getLocales());
-        return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-pull.ftl", locales, parameters));
     }
 
     @POST
@@ -269,13 +214,13 @@ public class ProjectResource extends Resource {
     @Path("/comment")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response commentOnPull(@Context HttpServletRequest request,
-                            @NotEmpty @FormParam("link-commit") String linkCommitId,
-                            @NotEmpty @FormParam("source-commit") String sourceCommitId,
-                            @FormParam("source-line-number") Integer sourceLineNumber,
-                            @NotEmpty @FormParam("source-file-name") String sourceFileName,
-                            @NotEmpty @FormParam("content") String message,
-                            @NotEmpty @FormParam("redirect") String redirect)
-                            throws IOException, ApiError {
+								  @NotEmpty @FormParam("link-commit") String linkCommitId,
+								  @NotEmpty @FormParam("source-commit") String sourceCommitId,
+								  @FormParam("source-line-number") Integer sourceLineNumber,
+								  @NotEmpty @FormParam("source-file-name") String sourceFileName,
+								  @NotEmpty @FormParam("content") String message,
+								  @NotEmpty @FormParam("redirect") String redirect)
+			throws IOException, ApiError {
 
         commentBackend.commentBuilder()
                 .setCommitId(linkCommitId)
@@ -297,12 +242,14 @@ public class ProjectResource extends Resource {
 	@GET
 	@Path("/commits/{commitId}/build")
 	@Transactional
-	public Response showCommitBuild(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
-			@PathParam("groupNumber") String groupNumber, @PathParam("commitId") String commitId,
-			@QueryParam("fatal") String fatal) throws IOException, ApiError {
+	public Response showCommitBuild(@Context HttpServletRequest request,
+									@PathParam("courseCode") String courseCode,
+									@PathParam("groupNumber") String groupNumber,
+									@PathParam("commitId") String commitId,
+									@QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
 
-		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		DetailedCommitModel commit = gitBackend.fetchCommitView(repository, commitId);
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Commit commit = repository.retrieveCommit(commitId);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
@@ -321,7 +268,8 @@ public class ProjectResource extends Resource {
     public Response rebuildCommit(@Context HttpServletRequest request,
                                   @PathParam("courseCode") String courseCode,
                                   @PathParam("groupNumber") String groupNumber,
-                                  @PathParam("commitId") String commitId) throws URISyntaxException, UnsupportedEncodingException {
+                                  @PathParam("commitId") String commitId)
+			throws URISyntaxException, UnsupportedEncodingException, GitClientException {
 
         BuildResult buildResult;
 
@@ -349,7 +297,7 @@ public class ProjectResource extends Resource {
         instruction.setPhases(new String[] { "package" });
 
         Repositories repositories = client.repositories();
-        DetailedRepositoryModel repository = repositories.retrieve(group.getRepositoryName());
+		Repository repository = repositories.retrieve(group.getRepositoryName());
 
         StringBuilder callbackBuilder = new StringBuilder();
         callbackBuilder.append(config.getHttpUrl());
@@ -377,72 +325,32 @@ public class ProjectResource extends Resource {
 	@Transactional
 	public Response showCommitChanges(@Context HttpServletRequest request,
 			@PathParam("commitId") String commitId)
-			throws IOException, ApiError {
-	
-		return showDiff(request, commitId, null);
-	}
+			throws IOException, ApiError, GitClientException {
 
-	@GET
-	@Path("/commits/{newId}/diff/{oldId}")
-	@Transactional
-	public Response showDiff(@Context HttpServletRequest request,
-                             @PathParam("newId") String newId,
-                             @PathParam("oldId") String oldId)
-                             throws ApiError, IOException {
-		
-        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		CommitModel commitModel = gitBackend.fetchCommitView(repository, newId);
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		nl.tudelft.ewi.git.client.Commit commit = repository.retrieveCommit(commitId);
+		DiffBlameModel diffBlameModel = commit.diffBlame();
+		List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
 
-        if(commitModel.getParents().length != 0 && oldId == null) {
-            oldId = commitModel.getParents()[0];
-        }
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("group", group);
+		parameters.put("commit", commit);
+		parameters.put("repository", repository);
+		parameters.put("diffViewModel", diffBlameModel);
+		parameters.put("commentChecker", commentBackend.getCommentChecker(commitIds));
+		parameters.put("states", new CommitChecker(group, buildResults));
 
-        CommitModel oldCommitModel = oldId == null ? null : gitBackend.fetchCommitView(repository, oldId);
-        DiffViewModel diffViewModel = DiffViewModel.builder(gitBackend, commentBackend)
-                .setNewCommit(commitModel)
-                .setOldCommit(oldCommitModel)
-                .setRepository(repository)
-                .build();
-
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
-        parameters.put("commit", commitModel);
-        parameters.put("repository", repository);
-        parameters.put("diffViewModel", diffViewModel);
-        parameters.put("states", new CommitChecker(group, buildResults));
-		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));
 	}
-
-    private Map<DiffModel, BlameModel> getBlameModelsForDiff(DetailedRepositoryModel repository,
-                                                             CommitModel commit,
-                                                             CommitModel oldCommit,
-                                                             DiffResponse diffResponse) throws ApiError {
-        Map<DiffModel, BlameModel> blames = Maps.<DiffModel, BlameModel> newHashMap();
-        for(DiffModel diffModel : diffResponse.getDiffs()) {
-            if(diffModel.isDeleted()) {
-                // If the file was added in this commit, there are no possible changes in previous commits
-            }
-            if(diffModel.isDeleted()) {
-                // If the file was deleted, we should fetch the blame of the old path in the old commit
-                blames.put(diffModel, gitBackend.blame(repository, oldCommit, diffModel.getOldPath()));
-            }
-            else {
-                // Else, fetch the blame of the new path in the current commit
-                blames.put(diffModel, gitBackend.blame(repository, commit, diffModel.getNewPath()));
-            }
-        }
-        return blames;
-    }
 
     @GET
 	@Path("/commits/{commitId}/tree")
 	@Transactional
 	public Response getTree(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId)
-					throws ApiError, IOException {
+					throws ApiError, IOException, GitClientException {
 		return getTree(request, courseCode, groupNumber, commitId, "");
 	}
 	
@@ -451,9 +359,10 @@ public class ProjectResource extends Resource {
 	@Transactional
 	public Response getTree(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
-			@PathParam("path") String path) throws ApiError, IOException {
-		
-		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+			@PathParam("path") String path) throws ApiError, IOException, GitClientException {
+
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Commit commit = repository.retrieveCommit(commitId);
 		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
 
 			@Override
@@ -471,12 +380,12 @@ public class ProjectResource extends Resource {
 			}
 			
 		});
-		
-		entries.putAll(gitBackend.listDirectoryEntries(repository, commitId, path));
+
+		entries.putAll(repository.listDirectoryEntries(commitId, path));
 		
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
-		parameters.put("commit", gitBackend.fetchCommitView(repository, commitId));
+		parameters.put("commit", repository.retrieveCommit(commitId));
 		parameters.put("path", path);
 		parameters.put("group", group);
 		parameters.put("repository", repository);
@@ -494,7 +403,7 @@ public class ProjectResource extends Resource {
                             @PathParam("courseCode") String courseCode,
                             @PathParam("groupNumber") long groupNumber,
                             @PathParam("commitId") String commitId,
-                            @PathParam("path") String path) throws ApiError, IOException {
+                            @PathParam("path") String path) throws ApiError, IOException, GitClientException {
 
 		String folderPath = "";
 		String fileName = path;
@@ -502,21 +411,21 @@ public class ProjectResource extends Resource {
 			folderPath = path.substring(0, path.lastIndexOf('/'));
 			fileName = path.substring(path.lastIndexOf('/') + 1);
 		}
-		
-		DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
-		Map<String, EntryType> entries = gitBackend.listDirectoryEntries(repository, commitId, folderPath);
-		
+
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Commit commit = repository.retrieveCommit(commitId);
+		Map<String, EntryType> entries = repository.listDirectoryEntries(commitId, folderPath);
+
 		EntryType type = entries.get(fileName);
-		
+
 		if (type == EntryType.BINARY) {
-			return Response.ok(gitBackend.showBinFile(repository, commitId, path))
+			return Response.ok(repository.showBinFile(commitId, path))
 					.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
 					.build();
 		}
-		
-		String[] contents = gitBackend.showFile(repository, commitId, path).split("\\r?\\n");
-        CommitModel commit = gitBackend.fetchCommitView(repository, commitId);
-        BlameModel blame = gitBackend.blame(repository, commit, path);
+
+		String[] contents = repository.showFile(commitId, path).split("\\r?\\n");
+        BlameModel blame = commit.blame(path);
         CommentBackend.CommentChecker commentChecker = commentBackend.getCommentChecker(Lists.newArrayList(commitId));
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();

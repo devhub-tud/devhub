@@ -8,7 +8,6 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
-import nl.tudelft.ewi.devhub.server.backend.GitBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
@@ -17,7 +16,9 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
+import nl.tudelft.ewi.git.client.GitClientException;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.Repository;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.util.GenericType;
@@ -47,7 +48,6 @@ public class ProjectAssignmentsResource extends Resource {
     private static final int PAGE_SIZE = 25;
 
     private final TemplateEngine templateEngine;
-    private final GitBackend gitBackend;
     private final User currentUser;
     private final BuildResults buildResults;
     private final Group group;
@@ -55,13 +55,13 @@ public class ProjectAssignmentsResource extends Resource {
     private final CommitComments commitComments;
     private final PullRequests pullRequests;
     private final CommentBackend commentBackend;
+    private final GitServerClient gitClient;
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
     private final Assignments assignments;
 
     @Inject
     public ProjectAssignmentsResource(final TemplateEngine templateEngine,
-                                      final GitBackend gitBackend,
                                       final @Named("current.user") User currentUser,
                                       final @Named("current.group") Group group,
                                       final Commits commits,
@@ -70,12 +70,12 @@ public class ProjectAssignmentsResource extends Resource {
                                       final BuildResults buildResults,
                                       final PullRequests pullRequests,
                                       final Deliveries deliveries,
+                                      final GitServerClient gitClient,
                                       final DeliveriesBackend deliveriesBackend,
                                       final Assignments assignments) {
 
         this.templateEngine = templateEngine;
         this.group = group;
-        this.gitBackend = gitBackend;
         this.currentUser = currentUser;
         this.commits = commits;
         this.commitComments = commitComments;
@@ -83,6 +83,7 @@ public class ProjectAssignmentsResource extends Resource {
         this.buildResults = buildResults;
         this.pullRequests = pullRequests;
         this.deliveries = deliveries;
+        this.gitClient = gitClient;
         this.deliveriesBackend = deliveriesBackend;
         this.assignments = assignments;
     }
@@ -95,8 +96,8 @@ public class ProjectAssignmentsResource extends Resource {
      */
     @GET
     @Transactional
-    public Response getAssignmentsOverview(@Context HttpServletRequest request) throws IOException, ApiError {
-        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+    public Response getAssignmentsOverview(@Context HttpServletRequest request) throws IOException, ApiError, GitClientException {
+        Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
         parameters.put("group", group);
@@ -120,10 +121,11 @@ public class ProjectAssignmentsResource extends Resource {
     @Transactional
     @Path("{assignmentId : \\d+}")
     public Response getAssignmentView(@Context HttpServletRequest request,
-                                      @PathParam("assignmentId") Long assignmentId) throws IOException, ApiError {
+                                      @PathParam("assignmentId") Long assignmentId)
+            throws IOException, ApiError, GitClientException {
 
         Assignment assignment = assignments.find(group.getCourse(), assignmentId);
-        DetailedRepositoryModel repository = gitBackend.fetchRepositoryView(group);
+        Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
@@ -132,10 +134,8 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("repository", repository);
         parameters.put("assignment", assignment);
         parameters.put("deliveries", deliveries);
-        parameters.put("gitBackend", gitBackend);
-        parameters.put("repository", gitBackend.fetchRepositoryView(group));
         parameters.put("states", new ProjectResource.CommitChecker(group, buildResults));
-        parameters.put("recentCommits", gitBackend.fetchBranch(repository, "master", 1, PAGE_SIZE).getCommits());
+        parameters.put("recentCommits", repository.retrieveBranch("master").retrieveCommits(0, 25).getCommits());
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-assignment-view.ftl", locales, parameters));
@@ -232,7 +232,8 @@ public class ProjectAssignmentsResource extends Resource {
     @Transactional
     @Path("deliveries/{deliveryId}/review")
     public Response getReviewView(@Context HttpServletRequest request,
-                                  @PathParam("deliveryId") Long deliveryId) throws ApiError, IOException {
+                                  @PathParam("deliveryId") Long deliveryId)
+            throws ApiError, IOException, GitClientException {
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()))) {
             throw new UnauthorizedException();
@@ -248,7 +249,7 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("assignment", delivery.getAssignment());
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("states", new ProjectResource.CommitChecker(group, buildResults));
-        parameters.put("repository", gitBackend.fetchRepositoryView(group));
+        parameters.put("repository", gitClient.repositories().retrieve(group.getRepositoryName()));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-delivery-review.ftl", locales, parameters));

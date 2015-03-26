@@ -21,7 +21,7 @@
             [/#if]
         [/#if]
     </div>
-    [#if  diffModel.diffContexts?has_content]
+    [#if  diffModel.contexts?has_content]
         <div class="overflow-hidden">
             [@difftable.diffTable diffViewModel diffModel index commit/]
         </div>

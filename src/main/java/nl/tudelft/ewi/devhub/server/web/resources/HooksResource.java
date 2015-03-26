@@ -30,10 +30,11 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
+import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
+import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BranchModel;
-import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -73,11 +74,11 @@ public class HooksResource extends Resource {
 
 	@POST
 	@Path("git-push")
-	public void onGitPush(@Context HttpServletRequest request, GitPush push) throws UnsupportedEncodingException {
+	public void onGitPush(@Context HttpServletRequest request, GitPush push) throws UnsupportedEncodingException, GitClientException {
 		log.info("Received git-push event: {}", push);
 
 		Repositories repositories = client.repositories();
-		DetailedRepositoryModel repository = repositories.retrieve(push.getRepository());
+		Repository repository = repositories.retrieve(push.getRepository());
 
 		MavenBuildInstruction instruction = new MavenBuildInstruction();
 		instruction.setWithDisplay(true);
@@ -86,7 +87,7 @@ public class HooksResource extends Resource {
 		Group group = groups.findByRepoName(push.getRepository());
 		for (BranchModel branch : repository.getBranches()) {
 			String commitId = branch.getCommit().getCommit();
-			
+
 			if ("HEAD".equals(branch.getSimpleName())) {
 				continue;
 			}

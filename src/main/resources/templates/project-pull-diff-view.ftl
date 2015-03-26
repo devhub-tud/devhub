@@ -34,6 +34,7 @@
     <span class="view-picker">
         <div class="btn-group">
             <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}" class="btn btn-default">Overview</a>
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/diff" class="btn btn-default active">View diff</a>
         </div>
     </span>
 

@@ -180,8 +180,6 @@ public class ProjectResource extends Resource {
 		return display(templateEngine.process("project-pull.ftl", locales, parameters));
 	}
 
-
-
     @GET
     @Transactional
     @Path("/pull/{pullId}/diff")
@@ -209,6 +207,27 @@ public class ProjectResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
     }
+
+	@POST
+	@Path("/pull/{pullId}/merge")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MergeResponse mergePullRequest(@Context HttpServletRequest request,
+										  @PathParam("pullId") long pullId) throws GitClientException {
+
+		PullRequest pullRequest = pullRequests.findById(pullId);
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
+
+		String message = String.format("Merge pull request #%s from %s", pullRequest.getIssueId(), pullRequest.getBranchName());
+		MergeResponse response = branch.merge(message);
+
+		if(response.isSuccess()) {
+			pullRequest.setOpen(false);
+			pullRequests.merge(pullRequest);
+		}
+
+		return response;
+	}
 
     @POST
     @Transactional

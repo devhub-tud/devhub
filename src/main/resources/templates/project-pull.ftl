@@ -34,6 +34,7 @@
 
     <span class="view-picker">
         <div class="btn-group">
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}" class="btn btn-default active">Overview</a>
             <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/diff" class="btn btn-default">View diff</a>
         </div>
     </span>
@@ -84,9 +85,55 @@
 [/#if]
 --]
 
+
+    <div class="panel panel-default">
+
+        <div class="panel-body">
+            <div class="pull-right">
+                <button id="btn-merge" class="btn btn-primary"><i class="octicon octicon-git-merge"></i> <span>Merge pull request</span></button>
+            </div>
+            Hey! You can merge the pull request by clicking the button to the right.
+[#--        Or merge the pull request with the command line:
+            <div>
+                <code>git fetch origin/${pullRequest.branchName}</code><br/>
+                <code>git checkout master</code><br/>
+                <code>git merge origin/${pullRequest.branchName}</code><br/>
+                <code>git push origin master</code>
+            </div>
+--]
+        </div>
+
+    </div>
+
 </div>
 
 [@macros.renderScripts /]
 [@diffbox.renderScripts/]
 [@difftable.renderScripts/]
+<script type="text/javascript">
+$(function() {
+    $('#btn-merge').on('click', function mergeClickHandler() {
+        var btn = $(this).attr('disabled', true);
+        var label = $('span', btn).html('Merging...');
+
+        $.post("/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/merge")
+            .done(function(res) {
+                console.log(res);
+                if(res.success) {
+                    label.html('Merged');
+                    btn.removeClass('btn-primary').addClass('btn-success');
+                }
+                else {
+                    label.html('Failed to merge');
+                    btn.removeClass('btn-primary').addClass('btn-danger');
+                }
+            })
+            .fail(function() {
+                label.html('Failed to merge');
+                btn.removeClass('btn-primary').addClass('btn-danger');
+            })
+    })
+})
+</script>
 [@macros.renderFooter /]
+

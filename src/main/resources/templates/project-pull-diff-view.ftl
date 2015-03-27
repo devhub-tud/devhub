@@ -9,7 +9,7 @@
     <ol class="breadcrumb">
         <li><a href="/courses">Projects</a></li>
         <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
-        <li><a href="#">Pull Requests</a></li>
+        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/pulls">Pull Requests</a></li>
         <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
     </ol>
 

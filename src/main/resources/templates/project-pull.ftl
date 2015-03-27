@@ -10,7 +10,7 @@
     <ol class="breadcrumb">
         <li><a href="/courses">Projects</a></li>
         <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
-        <li><a href="#">Pull Requests</a></li>
+        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/pulls">Pull Requests</a></li>
         <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
     </ol>
 
@@ -51,7 +51,6 @@
 [#if events?? && events?has_content]
     [#list events as event]
         [#if event.isCommitEvent()]
-            [#-- <div>${event.date?datetime}</div> --]
             <ul class="list-unstyled">
                 <li style="line-height:30px;">
                     <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${event.commit.commit}/diff">
@@ -74,17 +73,6 @@
         [/#if]
     [/#list]
 [/#if]
-
-[#--
-[#if diffViewModel.diffs?has_content]
-    [#list diffViewModel.diffs as diffModel]
-        [@diffbox.diffbox diffViewModel diffModel diffModel_index][/@diffbox.diffbox]
-    [/#list]
-[#else]
-    <div>${i18n.translate("diff.changes.nothing")}</div>
-[/#if]
---]
-
 
     <div class="panel panel-default">
 

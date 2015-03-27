@@ -7,8 +7,8 @@
 [/#macro]
 
 [#import "macros.ftl" as macros]
-[#import "../../components/project-frameset.ftl" as projectFrameset]
-[#import "../../components/commit-row.ftl" as commitRow]
+[#import "components/project-frameset.ftl" as projectFrameset]
+[#import "components/commit-row.ftl" as commitRow]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]

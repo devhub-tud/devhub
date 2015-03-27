@@ -12,19 +12,16 @@
             <li role="presentation" [#if currentTab == "commits"]class="active"[/#if]>
                 <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}">
                     Commits
-                    <span class="badge pull-right">1234</span>
                 </a>
             </li>
             <li role="presentation" [#if currentTab == "pull-requests"]class="active"[/#if]>
                 <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/pulls">
                     Pull requests
-                    <span class="badge pull-right">14</span>
                 </a>
             </li>
             <li role="presentation" [#if currentTab == "assignments"]class="active"[/#if]>
                 <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments">
                     Assignments
-                    <span class="badge pull-right">5</span>
                 </a>
             </li>
         </ul>

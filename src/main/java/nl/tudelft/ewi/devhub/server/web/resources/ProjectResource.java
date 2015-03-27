@@ -6,7 +6,9 @@ import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
@@ -149,11 +151,35 @@ public class ProjectResource extends Resource {
 		return Response.seeOther(URI.create(uri)).build();
 	}
 
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Pull {
+		private PullRequest pullRequest;
+		private Branch branchModel;
+	}
+
     @GET
     @Transactional
     @Path("/pulls")
-    public Response getPullRequests(@Context HttpServletRequest request) throws IOException {
-        throw new javax.ws.rs.NotFoundException();
+    public Response getPullRequests(@Context HttpServletRequest request) throws IOException, GitClientException {
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+
+		List<PullRequest> openPullRequests = pullRequests.findOpenPullRequests(group);
+		List<Pull> pulls = Lists.newArrayListWithCapacity(openPullRequests.size());
+		for(PullRequest pull : openPullRequests)
+			pulls.add(new Pull(pull, repository.retrieveBranch(pull.getBranchName())));
+
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("group", group);
+		parameters.put("course", group.getCourse());
+		parameters.put("repository", repository);
+		parameters.put("pulls", pulls);
+		parameters.put("commitChecker", new CommitChecker(group, buildResults));
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("courses/assignments/group-pulls.ftl", locales, parameters));
     }
 	
 	@GET

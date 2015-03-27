@@ -19,6 +19,9 @@ import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
+import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.models.TagModel;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.util.GenericType;
@@ -155,7 +158,7 @@ public class ProjectAssignmentsResource extends Resource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postAssignment(@Context HttpServletRequest request,
                                    @PathParam("assignmentId") Long assignmentId,
-                                   MultipartFormDataInput formData) throws IOException, ApiError {
+                                   MultipartFormDataInput formData) throws IOException, ApiError, GitClientException {
 
         Map<String, List<InputPart>> formDataMap = formData.getFormDataMap();
         String commitId = extractString(formDataMap, "commit-id");
@@ -169,6 +172,12 @@ public class ProjectAssignmentsResource extends Resource {
         delivery.setGroup(group);
         deliveriesBackend.deliver(delivery);
 
+        addAttachments(formDataMap, delivery);
+        tagAssignmentDelivery(commitId, assignment, delivery);
+        return redirect(request.getRequestURI());
+    }
+
+    private void addAttachments(Map<String, List<InputPart>> formDataMap, Delivery delivery) throws IOException, ApiError {
         List<InputPart> attachments = formDataMap.get("file-attachment");
         for(InputPart attachment : attachments) {
             String fileName = extractFilename(attachment);
@@ -176,8 +185,16 @@ public class ProjectAssignmentsResource extends Resource {
             InputStream in = attachment.getBody(new GenericType<InputStream>() {});
             deliveriesBackend.attach(delivery, fileName, in);
         }
+    }
 
-        return redirect(request.getRequestURI());
+    private void tagAssignmentDelivery(String commitId, Assignment assignment, Delivery delivery) throws GitClientException {
+        Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+        CommitModel commitModel = new CommitModel();
+        commitModel.setCommit(commitId);
+        TagModel tagModel = new TagModel();
+        tagModel.setName(String.format("Assignment-%d.%d", assignment.getAssignmentId(), delivery.getDeliveryId()));
+        tagModel.setCommit(commitModel);
+        repository.tag(tagModel);
     }
 
     private static String extractString(Map<String, List<InputPart>> data, String key) throws IOException {

@@ -443,6 +443,21 @@ public class ProjectResource extends Resource {
 	}
 
 	@GET
+	@Path("/commits/{commitId}/raw/{path:.+}")
+	@Transactional
+	public Response getRawFile(@Context HttpServletRequest request,
+							@PathParam("courseCode") String courseCode,
+							@PathParam("groupNumber") long groupNumber,
+							@PathParam("commitId") String commitId,
+							@PathParam("path") String path) throws ApiError, IOException, GitClientException {
+
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		return Response.ok(repository.showBinFile(commitId, path))
+				.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
+				.build();
+	}
+
+	@GET
 	@Path("/commits/{commitId}/blob/{path:.+}")
 	@Transactional
 	public Response getBlob(@Context HttpServletRequest request,

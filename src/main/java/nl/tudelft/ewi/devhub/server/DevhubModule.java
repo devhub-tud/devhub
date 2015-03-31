@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackendImpl;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationProvider;
-import nl.tudelft.ewi.devhub.server.backend.GitResourceProxy;
 import nl.tudelft.ewi.devhub.server.backend.LdapAuthenticationProvider;
 import nl.tudelft.ewi.devhub.server.backend.LdapBackend.LdapUserProcessor;
 import nl.tudelft.ewi.devhub.server.backend.LdapBackend.PersistingLdapUserProcessor;
@@ -68,7 +67,6 @@ public class DevhubModule extends ServletModule {
 		filter("/*").through(PersistFilter.class);
 		filter("/accounts*", "/build-servers*", "/projects*", "/validation*", "/courses*").through(UserAuthorizeFilter.class);
 		filterRegex("^/courses/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
-		serveRegex("/courses/[^/]+/groups/\\d+/\\w+/raw/.*").with(GitResourceProxy.class);
 
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);

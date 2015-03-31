@@ -9,7 +9,7 @@
         [#if diffModel.isDeleted()]
             <h5><span class="label label-danger">Deleted</span> ${diffModel.oldPath}</h5>
         [#else]
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/${commit.commit}/raw/${diffModel.newPath?url('UTF8')}" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${diffModel.newPath?url('UTF8')}" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
             [#if diffModel.isMoved()]
                 <h5><span class="label label-warn">Moved</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
             [#elseif diffModel.isCopied()]

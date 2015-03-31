@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -172,7 +173,11 @@ public class ProjectAssignmentsResource extends Resource {
         deliveriesBackend.deliver(delivery);
 
         addAttachments(formDataMap, delivery);
-        tagAssignmentDelivery(commitId, assignment, delivery);
+
+        if(!Strings.isNullOrEmpty(commitId)) {
+            tagAssignmentDelivery(commitId, assignment, delivery);
+        }
+
         return redirect(request.getRequestURI());
     }
 

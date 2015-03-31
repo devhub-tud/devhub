@@ -67,6 +67,7 @@ public class Delivery implements Comparable<Delivery> {
     @Embedded
     private Review review;
 
+    @Lob
     @Basic(fetch=FetchType.LAZY)
     @Column(name = "notes")
     private String notes;
@@ -97,6 +98,7 @@ public class Delivery implements Comparable<Delivery> {
         @ManyToOne(fetch = FetchType.LAZY)
         private User reviewUser;
 
+        @Lob
         @Basic(fetch=FetchType.LAZY)
         @Column(name = "commentary")
         private String commentary;

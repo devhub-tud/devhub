@@ -34,6 +34,7 @@ public class Assignment implements Serializable {
     @Column(name = "name")
     private String name;
 
+    @Lob
     @Nullable
     @Column(name = "summary")
     private String summary;

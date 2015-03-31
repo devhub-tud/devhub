@@ -66,7 +66,8 @@ public class CommitComment implements Comparable<CommitComment> {
         private String sourceFilePath;
 
     }
-	
+
+	@Lob
 	@NotEmpty
 	@Basic(fetch=FetchType.LAZY)
 	@Column(name = "content")

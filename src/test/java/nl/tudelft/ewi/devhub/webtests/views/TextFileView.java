@@ -26,7 +26,7 @@ public class TextFileView extends View {
 	}
 	
 	private void assertInvariant() {
-		assertTrue(currentPathStartsWith("/projects"));
+		assertTrue(currentPathStartsWith("/courses"));
 		WebElement headers = getDriver().findElement(HEADERS);
 		
 		assertNotNull(headers);

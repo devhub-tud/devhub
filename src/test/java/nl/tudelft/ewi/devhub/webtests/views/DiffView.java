@@ -4,13 +4,14 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import com.google.common.base.Strings;
 import lombok.Data;
-import nl.tudelft.ewi.git.models.DiffContext;
-import nl.tudelft.ewi.git.models.DiffLine;
-import nl.tudelft.ewi.git.models.DiffModel;
-import nl.tudelft.ewi.git.models.DiffModel.Type;
 
-import org.apache.directory.api.util.Strings;
+import nl.tudelft.ewi.git.models.ChangeType;
+import nl.tudelft.ewi.git.models.DiffBlameModel;
+import nl.tudelft.ewi.git.models.DiffModel;
+import nl.tudelft.ewi.git.models.DiffModel.DiffContext;
+import nl.tudelft.ewi.git.models.DiffModel.DiffLine;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -35,23 +36,23 @@ public class DiffView extends View {
 	}
 
 	private void assertInvariant() {
-		assertTrue(currentPathStartsWith("/projects"));
+		assertTrue(currentPathStartsWith("/courses"));
 		assertNotNull(headers);
 		assertNotNull(getDriver().findElement(DROPDOWN_CARET));
 	}
 	
 	public FolderView viewFiles() {
 		assertInvariant();
-		
+
 		WebElement container = getDriver().findElement(By.className("container"));
 		WebElement dropdownCaret = container.findElement(DROPDOWN_CARET);
 		dropdownCaret.click();
 		WebElement viewFilesButton = container.findElement(VIEW_FILES_BUTTON);
 		viewFilesButton.click();
-		
+
 		return new FolderView(getDriver());
 	}
-	
+
 	/**
 	 * @return the {@link DiffElement DiffElements} in this {@code DiffView}
 	 */
@@ -60,44 +61,44 @@ public class DiffView extends View {
 		WebElement container = getDriver().findElement(By.className("container"));
 		return listDiffs(container);
 	}
-	
+
 	private List<DiffElement> listDiffs(WebElement container) {
 		List<WebElement> elements = container.findElements(By.xpath("//div[@class='diff box']"));
-		
+
 		return Lists.transform(elements, new Function<WebElement, DiffElement>() {
 
 			@Override
 			public DiffElement apply(WebElement element) {
 				return DiffElement.build(element);
 			}
-			
+
 		});
 	}
-	
+
 	/**
 	 * @return the text content of the author header
 	 */
 	public String getAuthorHeader() {
 		return headers.findElement(AUTHOR_SUB_HEADER).getText();
 	}
-	
+
 	/**
 	 * @return the text content of the message header
 	 */
 	public String getMessageHeader() {
 		return headers.findElement(MESSAGE_HEADER).getText();
 	}
-	
+
 	@Data
 	public static class DiffElement {
-		
+
 		private final WebElement element;
-		
-		private final DiffModel diffModel;
-		
-		public void assertEqualTo(DiffModel expected) {
+
+		private final DiffBlameModel.DiffBlameFile diffModel;
+
+		public void assertEqualTo(DiffBlameModel.DiffBlameFile expected) {
 			assertEquals(expected.getType(), diffModel.getType());
-			
+
 			switch(diffModel.getType()){
 			case DELETE:
 				assertEquals(expected.getOldPath(), diffModel.getOldPath());
@@ -110,29 +111,29 @@ public class DiffView extends View {
 				assertEquals(expected.getOldPath(), diffModel.getOldPath());
 				assertEquals(expected.getNewPath(), diffModel.getNewPath());
 				break;
-			
+
 			}
-			
-			assertEquals(expected.getDiffContexts(), diffModel.getDiffContexts());
+
+			assertEquals(expected.getContexts(), diffModel.getContexts());
 		}
-		
+
 		/**
 		 * Build a {@link DiffElement} from a {@link WebElement} in the {@link DiffView}
 		 * @param element the {@link WebElement} to be converted into a {@link DiffElement}
 		 * @return the created {@link DiffElement}
 		 */
 		public static DiffElement build(WebElement element) {
-			final DiffModel model = new DiffModel();
-			
-			
+			final DiffBlameModel.DiffBlameFile model = new DiffBlameModel.DiffBlameFile();
+
+
 			WebElement header = element.findElement(By.tagName("h5"));
 			String typeStr = header.findElement(By.tagName("span")).getText();
-			Type type = getTypeFor(typeStr);
+			ChangeType type = getTypeFor(typeStr);
 			model.setType(type);
-			
+
 			String headerText = header.getText();
 			headerText = headerText.substring(headerText.indexOf(" ") + 1);
-			
+
 			switch (type) {
 				case ADD:
 				case MODIFY:
@@ -147,84 +148,69 @@ public class DiffView extends View {
 					model.setNewPath(split[1]);
 					break;
 			}
-			
-			model.setDiffContexts(getDiffContextsFor(element.findElements(By.tagName("tbody"))));
+
+			model.setContexts(getDiffContextsFor(element.findElements(By.tagName("tbody"))));
 			return new DiffElement(element, model);
 		}
-		
-		private static List<DiffContext> getDiffContextsFor(List<WebElement> tableBodies) {
-			List<DiffContext> result = Lists.<DiffContext> newArrayList();
+
+		private static List<DiffBlameModel.DiffBlameContext> getDiffContextsFor(List<WebElement> tableBodies) {
+			List<DiffBlameModel.DiffBlameContext> result = Lists.<DiffBlameModel.DiffBlameContext> newArrayList();
 
 			for(WebElement tbody : tableBodies) {
-				DiffContext context = new DiffContext();
+				DiffBlameModel.DiffBlameContext context = new DiffBlameModel.DiffBlameContext();
 				List<WebElement> rows = tbody.findElements(By.tagName("tr"));
 				assertTrue("Rows should not be empty", !rows.isEmpty());
-				List<DiffLine> diffLines = Lists.<DiffLine> newArrayList();
-				context.setDiffLines(diffLines);
+				List<DiffBlameModel.DiffBlameLine> diffLines = Lists.<DiffBlameModel.DiffBlameLine> newArrayList();
+				context.setLines(diffLines);
 
 				for(WebElement tr : rows) {
 					List<WebElement> columns = tr.findElements(By.tagName("td"));
 					assertEquals("Expected three columns per row", 3, columns.size());
 
-					String oldLineNumber = columns.get(0).getText();
-					String newLineNumber = columns.get(1).getText();
-					String content = columns.get(2).getText();
-					DiffLine.Type type = getModifierFor(columns.get(0));
-					diffLines.add(new DiffLine(type, content));
+					String oldLineNumberStr = columns.get(0).getText();
+					String newLineNumberStr = columns.get(1).getText();
+					Integer oldLineNumber = Strings.isNullOrEmpty(oldLineNumberStr) ? null : Integer.parseInt(oldLineNumberStr);
+					Integer newLineNumber = Strings.isNullOrEmpty(newLineNumberStr) ? null : Integer.parseInt(newLineNumberStr);
 
-					if(Strings.isNotEmpty(oldLineNumber)) {
-						int value = Integer.parseInt(oldLineNumber);
-						if(context.getOldStart() == null)
-							context.setOldStart(value);
-						context.setOldEnd(value);
-					}
-					
-					if(Strings.isNotEmpty(newLineNumber)) {
-						int value = Integer.parseInt(newLineNumber);
-						if(context.getNewStart() == null)
-							context.setNewStart(Integer.parseInt(newLineNumber));
-						context.setNewEnd(value);
-					}
+					String sourceCommitId = tr.getAttribute("data-source-commit");
+					Integer sourceLineNumber = Integer.parseInt(tr.getAttribute("data-source-line-number"));
+					String sourcePath = tr.getAttribute("data-source-file-name");
+					String content = columns.get(2).getText();
+					DiffBlameModel.DiffBlameLine line = new DiffBlameModel.DiffBlameLine();
+
+					line.setSourceCommitId(sourceCommitId);
+					line.setSourceFilePath(sourcePath);
+					line.setSourceLineNumber(sourceLineNumber);
+					line.setOldLineNumber(oldLineNumber);
+					line.setNewLineNumber(newLineNumber);
+					line.setContent(content);
+					diffLines.add(line);
 				}
 
 				result.add(context);
 			}
 			return result;
 		}
-		
-		private static DiffLine.Type getModifierFor(final WebElement column) {
-			String styles = column.getAttribute("class");
-			
-			if(styles.contains("add")) {
-				return DiffLine.Type.ADDED;
-			}
-			else if (styles.contains("delete")) {
-				return DiffLine.Type.REMOVED;
-			}
-			else {
-				return DiffLine.Type.CONTEXT;
-			}
-		}
-		
-		private static DiffModel.Type getTypeFor(final String value) {
+
+		private static ChangeType getTypeFor(final String value) {
 			if(value.equalsIgnoreCase("Created")) {
-				return DiffModel.Type.ADD;
+				return ChangeType.ADD;
 			}
 			else if (value.equalsIgnoreCase("Copied")) {
-				return DiffModel.Type.COPY;
+				return ChangeType.COPY;
 			}
 			else if (value.equalsIgnoreCase("Deleted")) {
-				return DiffModel.Type.DELETE;
+				return ChangeType.DELETE;
 			}
 			else if (value.equalsIgnoreCase("Modified")) {
-				return DiffModel.Type.MODIFY;
+				return ChangeType.MODIFY;
 			}
 			else if (value.equalsIgnoreCase("Moved")) {
-				return DiffModel.Type.RENAME;
+				return ChangeType.RENAME;
 			}
-			throw new IllegalArgumentException("Unkown type " + value);
+			throw new IllegalArgumentException("Unknown type " + value);
 		}
-		
+
 	}
 	
 }

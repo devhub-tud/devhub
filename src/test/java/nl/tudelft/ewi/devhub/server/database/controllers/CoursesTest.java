@@ -132,6 +132,7 @@ public class CoursesTest {
 		course.setStart(new Date());
 		course.setMinGroupSize(2);
 		course.setMaxGroupSize(2);
+		course.setBuildTimeout(600);
 		return course;
 	}
 	

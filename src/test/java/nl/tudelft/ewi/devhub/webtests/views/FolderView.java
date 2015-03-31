@@ -33,7 +33,7 @@ public class FolderView extends View {
 	}
 	
 	private void assertInvariant() {
-		assertTrue(currentPathStartsWith("/projects"));		
+		assertTrue(currentPathStartsWith("/courses"));
 		assertNotNull(headers);
 		assertNotNull(getDriver().findElement(DROPDOWN_CARET));
 	}

@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 import java.math.BigInteger;
 import java.util.Random;
 
+import nl.tudelft.ewi.git.client.GitClientException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,17 +35,17 @@ public class SshKeyBackendTest {
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testCreateInvalidKeyName() throws ApiError {
+	public void testCreateInvalidKeyName() throws ApiError, GitClientException {
 		backend.createNewSshKey(user, "keyna me", "ssh-rsa AAAA1242342 ");
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testCreateInvalidKey() throws ApiError {
+	public void testCreateInvalidKey() throws ApiError, GitClientException {
 		backend.createNewSshKey(user, "keyname", "ss-rsa AAAA1242342 ");
 	}
 	
 	@Test
-	public void testCreate() throws ApiError {
+	public void testCreate() throws ApiError, GitClientException {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
@@ -56,7 +57,7 @@ public class SshKeyBackendTest {
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testCreateDuplicateName() throws ApiError {
+	public void testCreateDuplicateName() throws ApiError, GitClientException {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
@@ -65,7 +66,7 @@ public class SshKeyBackendTest {
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testCreateDuplicateKey() throws ApiError {
+	public void testCreateDuplicateKey() throws ApiError, GitClientException {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
@@ -74,7 +75,7 @@ public class SshKeyBackendTest {
 	}
 	
 	@Test
-	public void testDeleteSshKey() throws ApiError {
+	public void testDeleteSshKey() throws ApiError, GitClientException {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
@@ -85,7 +86,7 @@ public class SshKeyBackendTest {
 	}
 	
 	@Test
-	public void testListEmptyKeys() throws ApiError {
+	public void testListEmptyKeys() throws ApiError, GitClientException {
 		assertTrue(backend.listKeys(user).isEmpty());
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
@@ -95,7 +96,7 @@ public class SshKeyBackendTest {
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testDeleteNonExistingSshKey() throws ApiError {
+	public void testDeleteNonExistingSshKey() throws ApiError, GitClientException {
 		backend.deleteSshKey(user, "abcd");
 	}
 	

@@ -5,15 +5,15 @@ import org.openqa.selenium.WebDriver;
 
 public class AuthenticatedView extends View {
 
-	private static final By PROJECTS_VIEW = By.xpath("//div[@class='container']//a[text()='Projects']"); 
+	private static final By COURSES_VIEW = By.xpath("//div[@class='container']//a[text()='Courses']");
 	
 	public AuthenticatedView(WebDriver driver) {
 		super(driver);
 	}
 	
-	public ProjectsView toProjectsView() {
-		getDriver().findElement(PROJECTS_VIEW).click();
-		return new ProjectsView(getDriver());
+	public CoursesView toCoursesView() {
+		getDriver().findElement(COURSES_VIEW).click();
+		return new CoursesView(getDriver());
 	}
 	
 }

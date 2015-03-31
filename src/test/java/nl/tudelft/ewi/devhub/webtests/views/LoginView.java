@@ -39,11 +39,11 @@ public class LoginView extends View {
 	 *            The username to use when logging in.
 	 * @param password
 	 *            The password to use when logging in.
-	 * @return The {@link ProjectsView} to which the user will be redirected upon a
+	 * @return The {@link CoursesView} to which the user will be redirected upon a
 	 *         successful login. In case of an unsuccessful login, a
 	 *         {@link AssertionError} will be thrown.
 	 */
-	public ProjectsView login(String username, String password) {
+	public CoursesView login(String username, String password) {
 		assertInvariant();
 		String url = getDriver().getCurrentUrl();
 
@@ -52,7 +52,7 @@ public class LoginView extends View {
 		clickLoginButton();
 
 		waitUntilCurrentUrlDiffersFrom(url);
-		return new ProjectsView(getDriver());
+		return new CoursesView(getDriver());
 	}
 
 	/**

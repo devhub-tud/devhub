@@ -28,7 +28,7 @@
 		<liquibase.slf4j.version>1.7.7</liquibase.slf4j.version>
 		<querydsl.version>3.6.0</querydsl.version>
 		<logback.version>1.0.13</logback.version>
-		<selenium.version>2.44.0</selenium.version>
+		<selenium.version>2.45.0</selenium.version>
 	</properties>
 
     <description>DevHub is a Continuous Integration system designed to give students a simple practical introduction into modern software development</description>
@@ -55,32 +55,6 @@
             <email>j.gmeligmeyling@student.tudelft.nl</email>
         </developer>
     </developers>
-
-    <repositories>
-        <repository>
-            <id>jpacman-release-repository</id>
-            <url>https://github.com/devhub-tud/devhub-mvn-repo/raw/master/releases</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>jpacman-snapshot-repository</id>
-            <url>https://github.com/devhub-tud/devhub-mvn-repo/raw/master/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
 
 	<dependencies>
 		<!-- Web -->

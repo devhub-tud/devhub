@@ -15,21 +15,19 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-public class ProjectsView extends AuthenticatedView {
+public class CoursesView extends AuthenticatedView {
 
 	private static final By MY_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'My projects')]");
-	private static final By CREATE_GROUP_BUTTON = By.xpath("//a[contains(normalize-space(.), 'Create new group')]");
 	private static final By ASSISTING_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Assisting projects')]");
 
-	ProjectsView(WebDriver driver) {
+	CoursesView(WebDriver driver) {
 		super(driver);
 		assertInvariant();
 	}
 
 	private void assertInvariant() {
-		assertTrue(currentPathEquals("/projects"));
+		assertTrue(currentPathEquals("/courses"));
 		assertNotNull(getDriver().findElement(MY_PROJECTS_HEADER));
-		assertNotNull(getDriver().findElement(CREATE_GROUP_BUTTON));
 	}
 
 	/**

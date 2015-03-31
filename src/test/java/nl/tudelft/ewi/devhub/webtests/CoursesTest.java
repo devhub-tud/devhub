@@ -1,17 +1,16 @@
 package nl.tudelft.ewi.devhub.webtests;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.AuthenticatedView;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
-import nl.tudelft.ewi.devhub.webtests.views.ProjectView.Commit;
+
+import static org.junit.Assert.assertTrue;
+
+import nl.tudelft.ewi.git.client.GitClientException;
 
 import org.junit.Test;
 
-public class ProjectsTest extends WebTest {
+public class CoursesTest extends WebTest {
 	
 	/**
 	 * <h1>Opening the projects page.</h1>
@@ -33,9 +32,7 @@ public class ProjectsTest extends WebTest {
 	public void testThatICanOpenTheProjectsPage() {
 		AuthenticatedView view = openLoginScreen()
 				.login(NET_ID, PASSWORD)
-				.toProjectsView();
-		
-		assertTrue(view.currentPathEquals("/projects"));
+				.toCoursesView();
 	}
 	
 	/**
@@ -57,15 +54,14 @@ public class ProjectsTest extends WebTest {
 	 * </ol>
 	 */
 	@Test
-	public void testThatICanOpenProject() {		
+	public void testThatICanOpenProject() throws GitClientException {
 		ProjectView view = openLoginScreen()
 				.login(NET_ID, PASSWORD)
-				.toProjectsView()
+				.toCoursesView()
 				.listMyProjects()
 				.get(0).click();
-		
-		List<Commit> commits = view.listCommits();
-		assertTrue("Expected an empty list of commits", commits.isEmpty());
+
+		assertTrue("Expected an empty list of commits", view.listCommits().isEmpty());
 	}
 	
 }

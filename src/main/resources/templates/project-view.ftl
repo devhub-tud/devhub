@@ -76,7 +76,7 @@
         </div>
         <div class="col-md-10">
 
-            <table class="table table-bordered">
+            <table class="table table-bordered" id="table-commits">
                 <tbody>
                 [#if repository?? && repository?has_content]
                     [#if commits?? && commits?has_content]

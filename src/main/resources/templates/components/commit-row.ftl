@@ -5,16 +5,16 @@
             [#if states.hasFinished(commitId)]
                 [#if states.hasSucceeded(commitId)]
                 <td class="commit succeeded" id="${commitId}">
-                    [#if href?? && href?has_content]<a href="${href}">[/#if]
                     <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
                         <span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
                     </a>
+                    [#if href?? && href?has_content]<a href="${href}">[/#if]
                 [#else]
                 <td class="commit failed" id="${commitId}">
-                    [#if href?? && href?has_content]<a href="${href}">[/#if]
                     <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
                         <span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
                     </a>
+                    [#if href?? && href?has_content]<a href="${href}">[/#if]
                 [/#if]
             [#else]
             <td class="commit running" id="${commitId}">

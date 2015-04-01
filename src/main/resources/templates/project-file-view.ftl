@@ -107,8 +107,8 @@
             $('<div class="panel panel-default" id="comment-form">' +
             '<div class="panel-heading">Add a comment</div>' +
             '<div class="panel-body">' +
-            '<form class="form-horizontal" action="/courses/${group.course.getCode()}/groups/${group.getGroupId()}/comment" method="POST">' +
-            '<input type="hidden" name="link-commit" value="${ commit.commit }"/>' +
+            '<form class="form-horizontal" action="/courses/${group.course.code}/groups/${group.groupNumber}/comment" method="POST">' +
+            '<input type="hidden" name="link-commit" value="${commit.commit}"/>' +
             '<input type="hidden" name="source-commit" value="' + lineData.sourceCommit + '"/>' +
             '<input type="hidden" name="source-line-number" value="' + lineData.sourceLineNumber + '"/>' +
             '<input type="hidden" name="source-file-name" value="' + lineData.sourceFileName + '"/>' +

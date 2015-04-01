@@ -104,7 +104,7 @@ public class SshKeyBackend {
 			return users.ensureExists(netId);
 		}
 		catch (Throwable e) {
-			throw new ApiError(COULD_NOT_CONNECT);
+			throw new ApiError(COULD_NOT_CONNECT, e);
 		}
 	}
 

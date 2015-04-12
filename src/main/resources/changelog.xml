@@ -357,4 +357,8 @@
 		<renameColumn tableName="courses" oldColumnName="end" newColumnName="end_date"/>
 	</changeSet>
 
+	<changeSet id="change_grade_type" author="Jan-Willem Gmelig Meyling">
+		<modifyDataType tableName="assignment_deliveries" columnName="grade" newDataType="FLOAT"/>
+	</changeSet>
+
 </databaseChangeLog>

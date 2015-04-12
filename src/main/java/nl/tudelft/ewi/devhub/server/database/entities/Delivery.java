@@ -82,7 +82,7 @@ public class Delivery implements Comparable<Delivery> {
 
         @Column(name = "grade")
         @Basic(fetch=FetchType.LAZY)
-        private Integer grade;
+        private Double grade;
 
         @Column(name="review_time")
         @Basic(fetch=FetchType.LAZY)

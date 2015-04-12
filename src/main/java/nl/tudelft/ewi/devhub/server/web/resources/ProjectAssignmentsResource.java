@@ -26,7 +26,6 @@ import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.util.GenericType;
 
-import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -288,15 +287,16 @@ public class ProjectAssignmentsResource extends Resource {
                                   @FormParam("grade") String grade,
                                   @FormParam("commentary") String commentary,
                                   @FormParam("state") Delivery.State state) throws UnauthorizedException, ApiError {
+
         if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()))) {
             throw new UnauthorizedException();
         }
 
-        Integer gradeInt = grade.isEmpty() ? null : Integer.valueOf(grade);
+        Double gradeValue = grade.isEmpty() ? null : Double.valueOf(grade);
         Delivery delivery = deliveries.find(group, deliveryId);
         Delivery.Review review = new Delivery.Review();
         review.setState(state);
-        review.setGrade(gradeInt);
+        review.setGrade(gradeValue);
         review.setCommentary(commentary);
 
         try {

@@ -94,7 +94,7 @@
 
                                 <div class="form-group col-md-6">
                                     <label for="grade">Grade</label>
-                                    <input type="number" class="form-control" name="grade" id="grade" min="1" max="10" [#if review?? && review?has_content ]value="${review.getGrade()!}"[/#if]>
+                                    <input type="number" class="form-control" name="grade" id="grade" min="1" max="10" step="0.1" [#if review?? && review?has_content ]value="${review.getGrade()!}"[/#if]>
                                 </div>
                             </div>
 

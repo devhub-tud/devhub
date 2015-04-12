@@ -69,8 +69,7 @@
             [/#if]
 
             <table class="table table-bordered">
-            [#assign myDeliveries = deliveries.getDeliveries(assignment, group)!]
-            [#if myDeliveries?has_content]
+            [#if myDeliveries?? && myDeliveries?has_content]
                 [#list myDeliveries as delivery]
                     [#assign commitId = delivery.getCommitId()!]
                     [@commitRow.render group states commitId! ""]

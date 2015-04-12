@@ -17,9 +17,10 @@ public class PullRequests extends Controller<PullRequest> {
 		super(entityManager);
 	}
 	
-	public PullRequest findById(final long id) {
+	public PullRequest findById(final Group group, final long id) {
 		return ensureNotNull(query().from(QPullRequest.pullRequest)
-			.where(QPullRequest.pullRequest.issueId.eq(id))
+			.where(QPullRequest.pullRequest.issueId.eq(id)
+			.and(QPullRequest.pullRequest.group.eq(group)))
 			.singleResult(QPullRequest.pullRequest), "No pull request exists for id " + id);
 	}
 	

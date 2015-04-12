@@ -74,9 +74,10 @@ public class Deliveries extends Controller<Delivery> {
      * @return Delivery for id
      */
     @Transactional
-    public Delivery find(Long deliveryId) {
+    public Delivery find(Group group, long deliveryId) {
         return ensureNotNull(query().from(QDelivery.delivery)
-                .where(QDelivery.delivery.deliveryId.eq(deliveryId))
+                .where(QDelivery.delivery.deliveryId.eq(deliveryId)
+                .and(QDelivery.delivery.group.eq(group)))
                 .singleResult(QDelivery.delivery),
             "No delivery found for id " + deliveryId);
     }

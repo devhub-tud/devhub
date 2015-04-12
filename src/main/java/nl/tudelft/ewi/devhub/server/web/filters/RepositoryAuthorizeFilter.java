@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -18,6 +19,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.NotFoundException;
 
 import org.eclipse.jetty.http.HttpStatus;
 
@@ -84,6 +86,8 @@ public class RepositoryAuthorizeFilter implements Filter {
 			chain.doFilter(request, response);
 		} catch (UnauthorizedException e) {
 			notAuthorized(request, response, e, user);
+		} catch (NotFoundException | EntityNotFoundException e) {
+			notFound(request, response, e, user);
 		} catch (Throwable t) {
 			onException(request, response, t, user);
 		}
@@ -96,7 +100,6 @@ public class RepositoryAuthorizeFilter implements Filter {
 		if(matcher.matches()) {
 			Course course = coursesProvider.get().find(matcher.group(1));
 			Group group = groupsProvider.get().find(course, Long.parseLong(matcher.group(2)));
-
 			if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 				throw new UnauthorizedException();
 			}
@@ -112,8 +115,26 @@ public class RepositoryAuthorizeFilter implements Filter {
 		request.setAttribute(Key.get(klass, annotation).toString(), object);
 	}
 
+	private void notFound(HttpServletRequest request, HttpServletResponse response, Exception exception, User user) throws IOException {
+		UUID id = UUID.randomUUID();
+		log.error(exception.getMessage() + " (" + id + ")", exception);
+
+		List<Locale> locales = Collections.list(request.getLocales());
+
+		Map<String, Object> params = Maps.newHashMap();
+		params.put("user", user);
+		params.put("error_id", id);
+
+		String template = templateEngine.process("error.not-found.ftl", locales, params);
+		response.setStatus(HttpStatus.NOT_FOUND_404);
+		response.addHeader("Content-Type", "text/html");
+		response.addHeader("Content-Length", Integer.toString(template.length()));
+		response.getWriter().write(template);
+	}
+
 	private void notAuthorized(HttpServletRequest request, HttpServletResponse response, UnauthorizedException exception, User user) throws IOException {
 		UUID id = UUID.randomUUID();
+		log.error(exception.getMessage() + " (" + id + ")", exception);
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		

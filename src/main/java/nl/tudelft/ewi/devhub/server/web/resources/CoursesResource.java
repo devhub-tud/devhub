@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -14,7 +15,12 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+import nl.tudelft.ewi.git.client.GitClientException;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.models.GroupModel;
+import nl.tudelft.ewi.git.models.UserModel;
 import org.jboss.resteasy.annotations.Form;
 
 import javax.persistence.PersistenceException;
@@ -47,6 +53,9 @@ public class CoursesResource extends Resource {
 
     @Inject @Named("current.user")
     private User currentUser;
+
+    @Inject
+    private GitServerClient gitClient;
 
     @Inject
     private TemplateEngine templateEngine;
@@ -110,6 +119,11 @@ public class CoursesResource extends Resource {
     public Response getEditPage(@Context HttpServletRequest request,
                                 @PathParam("courseCode") String courseCode,
                                 @QueryParam("error") String error) throws IOException {
+
+        if(!currentUser.isAdmin()) {
+            throw new UnauthorizedException();
+        }
+
         Course course = courses.find(courseCode);
 
         Map<String, Object> parameters = Maps.newHashMap();
@@ -143,6 +157,10 @@ public class CoursesResource extends Resource {
                                @FormParam("min") Integer minGroupSize,
                                @FormParam("max") Integer maxGroupSize,
                                @FormParam("timeout") Integer buildTimeout) {
+
+        if(!currentUser.isAdmin()) {
+            throw new UnauthorizedException();
+        }
 
         Course course = courses.find(id);
         course.setName(courseName);
@@ -179,6 +197,11 @@ public class CoursesResource extends Resource {
     @Path("setup")
     public Response getSetupPage(@Context HttpServletRequest request,
                                  @QueryParam("error") String error) throws IOException {
+
+        if(!currentUser.isAdmin()) {
+            throw new UnauthorizedException();
+        }
+
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
         parameters.put("courses", courses);
@@ -209,7 +232,11 @@ public class CoursesResource extends Resource {
                                 @FormParam("template") String templateRepository,
                                 @FormParam("min") Integer minGroupSize,
                                 @FormParam("max") Integer maxGroupSize,
-                                @FormParam("timeout") Integer buildTimeout) {
+                                @FormParam("timeout") Integer buildTimeout) throws GitClientException {
+
+        if(!currentUser.isAdmin()) {
+            throw new UnauthorizedException();
+        }
 
         Course course = new Course();
         course.setCode(courseCode);
@@ -219,6 +246,15 @@ public class CoursesResource extends Resource {
         course.setMaxGroupSize(maxGroupSize);
         course.setBuildTimeout(buildTimeout);
         course.setStart(new Date());
+
+        UserModel userModel = gitClient.users()
+            .ensureExists(currentUser.getNetId());
+
+        GroupModel groupModel = new GroupModel();
+        groupModel.setName("@" + courseCode.toLowerCase());
+        groupModel.setMembers(Lists.newArrayList(userModel));
+        gitClient.groups()
+            .create(groupModel);
 
         try {
             courses.persist(course);

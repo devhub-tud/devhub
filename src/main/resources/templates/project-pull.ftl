@@ -74,13 +74,18 @@
     [/#list]
 [/#if]
 
+
     <div class="panel panel-default">
 
         <div class="panel-body">
+[#if branch?? && branch.getAhead() > 0]
             <div class="pull-right">
                 <button id="btn-merge" class="btn btn-primary"><i class="octicon octicon-git-merge"></i> <span>Merge pull request</span></button>
             </div>
             Hey! You can merge the pull request by clicking the button to the right.
+[#else]
+            It seems the branch is already merged into the master!
+[/#if]
 [#--        Or merge the pull request with the command line:
             <div>
                 <code>git fetch origin/${pullRequest.branchName}</code><br/>
@@ -94,6 +99,7 @@
     </div>
 
 </div>
+
 
 [@macros.renderScripts /]
 [@diffbox.renderScripts/]

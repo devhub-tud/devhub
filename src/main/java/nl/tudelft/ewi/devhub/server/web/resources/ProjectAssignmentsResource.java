@@ -26,6 +26,7 @@ import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.util.GenericType;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -47,8 +48,6 @@ import java.util.Map;
 @Path("courses/{courseCode}/groups/{groupNumber : \\d+}/assignments")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class ProjectAssignmentsResource extends Resource {
-
-    private static final int PAGE_SIZE = 25;
 
     private final TemplateEngine templateEngine;
     private final User currentUser;
@@ -136,7 +135,7 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("course", group.getCourse());
         parameters.put("repository", repository);
         parameters.put("assignment", assignment);
-        parameters.put("deliveries", deliveries);
+        parameters.put("myDeliveries", deliveries.getDeliveries(assignment, group));
         parameters.put("states", new ProjectResource.CommitChecker(group, buildResults));
         parameters.put("recentCommits", repository.retrieveBranch("master").retrieveCommits(0, 25).getCommits());
 
@@ -260,7 +259,7 @@ public class ProjectAssignmentsResource extends Resource {
             throw new UnauthorizedException();
         }
 
-        Delivery delivery = deliveries.find(deliveryId);
+        Delivery delivery = deliveries.find(group, deliveryId);
 
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
@@ -294,7 +293,7 @@ public class ProjectAssignmentsResource extends Resource {
         }
 
         Integer gradeInt = grade.isEmpty() ? null : Integer.valueOf(grade);
-        Delivery delivery = deliveries.find(deliveryId);
+        Delivery delivery = deliveries.find(group, deliveryId);
         Delivery.Review review = new Delivery.Review();
         review.setState(state);
         review.setGrade(gradeInt);

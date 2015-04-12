@@ -195,11 +195,11 @@ public class AssignmentsResource extends Resource {
     @POST
     @Path("{assignmentId : \\d+}/edit")
     public Response editAssignment(@Context HttpServletRequest request,
-                               @PathParam("courseCode") String courseCode,
-                               @FormParam("id") Long assignmentId,
-                               @FormParam("name") String name,
-                               @FormParam("summary") String summary,
-                               @FormParam("due-date") String dueDate) {
+                                   @PathParam("courseCode") String courseCode,
+                                   @FormParam("id") long assignmentId,
+                                   @FormParam("name") String name,
+                                   @FormParam("summary") String summary,
+                                   @FormParam("due-date") String dueDate) {
 
         Course course = courses.find(courseCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);

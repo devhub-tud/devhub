@@ -198,7 +198,7 @@ public class ProjectResource extends Resource {
 	public Response getPullRequest(@Context HttpServletRequest request,
 								   @PathParam("pullId") long pullId) throws ApiError, IOException, GitClientException {
 
-		PullRequest pullRequest = pullRequests.findById(pullId);
+		PullRequest pullRequest = pullRequests.findById(group, pullId);
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
 
@@ -228,7 +228,7 @@ public class ProjectResource extends Resource {
                                        @PathParam("pullId") long pullId)
                                        throws ApiError, IOException, GitClientException {
 
-		PullRequest pullRequest = pullRequests.findById(pullId);
+		PullRequest pullRequest = pullRequests.findById(group, pullId);
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
 		DiffBlameModel diffBlameModel = branch.diffBlame();
@@ -255,7 +255,7 @@ public class ProjectResource extends Resource {
 	public MergeResponse mergePullRequest(@Context HttpServletRequest request,
 										  @PathParam("pullId") long pullId) throws GitClientException {
 
-		PullRequest pullRequest = pullRequests.findById(pullId);
+		PullRequest pullRequest = pullRequests.findById(group, pullId);
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
 

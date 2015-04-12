@@ -105,6 +105,10 @@ public class AssignmentsResource extends Resource {
                                @FormParam("summary") String summary,
                                @FormParam("due-date") String dueDate) {
 
+        if(!(currentUser.isAdmin())) {
+            throw new UnauthorizedException();
+        }
+
         Course course = courses.find(courseCode);
         Assignment assignment = new Assignment();
         assignment.setCourse(course);
@@ -177,6 +181,11 @@ public class AssignmentsResource extends Resource {
                                           @PathParam("courseCode") String courseCode,
                                           @PathParam("assignmentId") Long assignmentId,
                                           @QueryParam("error") String error) throws IOException {
+
+        if(!(currentUser.isAdmin())) {
+            throw new UnauthorizedException();
+        }
+
         Course course = courses.find(courseCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
@@ -202,6 +211,11 @@ public class AssignmentsResource extends Resource {
                                    @FormParam("due-date") String dueDate) {
 
         Course course = courses.find(courseCode);
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
+
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
         assignment.setDueDate(dueDate);
         assignment.setName(name);

@@ -25,10 +25,10 @@ public class CommitComments extends Controller<CommitComment> {
     }
 
     @Transactional
-    public boolean hasComments(String commitId) {
+    public long amountOfComments(String commitId) {
         return query().from(QCommitComment.commitComment)
             .where(QCommitComment.commitComment.commit.commitId.eq(commitId))
-            .exists();
+            .count();
     }
 
 }

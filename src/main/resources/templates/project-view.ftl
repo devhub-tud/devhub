@@ -82,8 +82,11 @@
                     [#if commits?? && commits?has_content]
                         [#list commits.commits as commit]
                             [@commitRow.render group states commit.commit "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff"]
-                                [#if comments?? && comments?has_content && comments.hasComments(commit.commit)]
-                                    <i class="glyphicon glyphicon-comment pull-right"></i>
+                                [#if comments?? && comments?has_content]
+                                    [#assign numComments = comments.amountOfCommits(commit.commit)]
+                                    [#if numComments > 0]
+                                        <span class="pull-right"><i class="glyphicon glyphicon-comment"></i> ${numComments}</span>
+                                    [/#if]
                                 [/#if]
                                 <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
                                 <div class="committer">${commit.getAuthor()}</div>

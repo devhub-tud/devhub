@@ -569,8 +569,8 @@ public class ProjectResource extends Resource {
 
 		private final CommitComments comments;
 
-		public boolean hasComments(String commitId) {
-			return comments.hasComments(commitId);
+		public long amountOfCommits(String commitId) {
+			return comments.amountOfComments(commitId);
 		}
 
 	}

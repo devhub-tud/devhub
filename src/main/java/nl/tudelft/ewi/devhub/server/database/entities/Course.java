@@ -43,10 +43,10 @@ public class Course {
 	private String code;
 
 	@NotNull
-	@Column(name = "start")
+	@Column(name = "start_date")
 	private Date start;
 
-	@Column(name = "end")
+	@Column(name = "end_date")
 	private Date end;
 
 	@NotNull(message = "error.course-min-group-empty")

@@ -167,8 +167,18 @@ public class ProjectResource extends Resource {
 
 		List<PullRequest> openPullRequests = pullRequests.findOpenPullRequests(group);
 		List<Pull> pulls = Lists.newArrayListWithCapacity(openPullRequests.size());
-		for(PullRequest pull : openPullRequests)
-			pulls.add(new Pull(pull, repository.retrieveBranch(pull.getBranchName())));
+
+		for(PullRequest pull : openPullRequests) {
+			Branch branch = repository.retrieveBranch(pull.getBranchName());
+
+			if(branch.getAhead() == 0) {
+				pull.setOpen(false);
+				pullRequests.merge(pull);
+			}
+			else {
+				pulls.add(new Pull(pull, branch));
+			}
+		}
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
@@ -191,6 +201,11 @@ public class ProjectResource extends Resource {
 		PullRequest pullRequest = pullRequests.findById(pullId);
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
+
+		if(branch.getAhead() == 0) {
+			pullRequest.setOpen(false);
+			pullRequests.merge(pullRequest);
+		}
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
@@ -245,7 +260,7 @@ public class ProjectResource extends Resource {
 		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
 
 		String message = String.format("Merge pull request #%s from %s", pullRequest.getIssueId(), pullRequest.getBranchName());
-		MergeResponse response = branch.merge(message);
+		MergeResponse response = branch.merge(message, currentUser.getName(), currentUser.getEmail());
 
 		if(response.isSuccess()) {
 			pullRequest.setOpen(false);

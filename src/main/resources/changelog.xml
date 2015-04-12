@@ -352,4 +352,9 @@
              referencedTableName="commit" referencedColumnNames="repository_name, commit_id"/>
     </changeSet>
 
+	<changeSet id="change_courses_column_names" author="Jan-Willem Gmelig Meyling">
+		<renameColumn tableName="courses" oldColumnName="start" newColumnName="start_date"/>
+		<renameColumn tableName="courses" oldColumnName="end" newColumnName="end_date"/>
+	</changeSet>
+
 </databaseChangeLog>

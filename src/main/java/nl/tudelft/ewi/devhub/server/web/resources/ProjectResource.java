@@ -16,18 +16,17 @@ import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
+import nl.tudelft.ewi.devhub.server.backend.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.*;
+import nl.tudelft.ewi.git.client.Commit;
 import nl.tudelft.ewi.git.models.*;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -65,7 +64,7 @@ public class ProjectResource extends Resource {
     private final Config config;
 	private final GitServerClient gitClient;
 	private final CommitComments comments;
-
+	private final CommentMailer commentMailer;
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
 			final @Named("current.user") User currentUser,
@@ -78,6 +77,7 @@ public class ProjectResource extends Resource {
 			final PullRequestBackend pullRequestBackend,
 			final GitServerClient gitClient,
 			final CommitComments comments,
+			final CommentMailer commentMailer,
             final Config config) {
 
 		this.templateEngine = templateEngine;
@@ -91,6 +91,7 @@ public class ProjectResource extends Resource {
 		this.pullRequestBackend = pullRequestBackend;
 		this.gitClient = gitClient;
 		this.comments = comments;
+		this.commentMailer = commentMailer;
         this.config = config;
 	}
 
@@ -288,7 +289,7 @@ public class ProjectResource extends Resource {
 								  @NotEmpty @FormParam("redirect") String redirect)
 			throws IOException, ApiError {
 
-        commentBackend.commentBuilder()
+		CommitComment comment = commentBackend.commentBuilder()
                 .setCommitId(linkCommitId)
                 .setMessage(message)
                 .setSourceFilePath(sourceFileName)
@@ -296,6 +297,8 @@ public class ProjectResource extends Resource {
                 .setSourceCommitId(sourceCommitId)
                 .persist();
 
+		List<Locale> locales = Collections.list(request.getLocales());
+		commentMailer.sendCommentMail(locales, group, comment, redirect);
         return Response.seeOther(URI.create(redirect)).build();
     }
 

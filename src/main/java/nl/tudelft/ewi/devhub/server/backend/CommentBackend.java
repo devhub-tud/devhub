@@ -58,8 +58,8 @@ public class CommentBackend {
          * @throws ApiError if the comment could not be persisted
          * @throws UnauthorizedException if the user may not post to this group
          */
-        public void persist() throws ApiError, UnauthorizedException {
-            comment(commitId, sourceCommitId, sourceFilePath, sourceLineNumber, message);
+        public CommitComment persist() throws ApiError, UnauthorizedException {
+            return comment(commitId, sourceCommitId, sourceFilePath, sourceLineNumber, message);
         }
     }
 
@@ -80,7 +80,7 @@ public class CommentBackend {
      * @throws UnauthorizedException if the user may not post to this group
      * @throws ApiError if the comment could not be persisted
      */
-    public void comment(String commitId, String sourceCommitId, String sourceFilePath,
+    public CommitComment comment(String commitId, String sourceCommitId, String sourceFilePath,
                         Integer sourceLineNumber, String message) throws UnauthorizedException, ApiError {
         Preconditions.checkNotNull(commitId);
         Preconditions.checkNotNull(sourceCommitId);
@@ -112,6 +112,7 @@ public class CommentBackend {
         try {
             commentsDAO.persist(comment);
             log.info("Persisted comment: {}", comment);
+            return comment;
         }
         catch (Exception e) {
             throw new ApiError("error.could-not-comment", e);

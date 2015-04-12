@@ -81,7 +81,10 @@
                 [#if repository?? && repository?has_content]
                     [#if commits?? && commits?has_content]
                         [#list commits.commits as commit]
-                            [@commitRow.render group states commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.getCommit()}/diff"]
+                            [@commitRow.render group states commit.commit "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff"]
+                                [#if comments?? && comments?has_content && comments.hasComments(commit.commit)]
+                                    <i class="glyphicon glyphicon-comment pull-right"></i>
+                                [/#if]
                                 <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
                                 <div class="committer">${commit.getAuthor()}</div>
                                 <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>

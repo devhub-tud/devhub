@@ -24,4 +24,11 @@ public class CommitComments extends Controller<CommitComment> {
             .list(QCommitComment.commitComment);
     }
 
+    @Transactional
+    public boolean hasComments(String commitId) {
+        return query().from(QCommitComment.commitComment)
+            .where(QCommitComment.commitComment.commit.commitId.eq(commitId))
+            .exists();
+    }
+
 }

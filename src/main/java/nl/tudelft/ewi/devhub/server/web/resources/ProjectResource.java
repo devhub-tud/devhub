@@ -18,6 +18,7 @@ import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -63,6 +64,7 @@ public class ProjectResource extends Resource {
 	private final PullRequestBackend pullRequestBackend;
     private final Config config;
 	private final GitServerClient gitClient;
+	private final CommitComments comments;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
@@ -75,6 +77,7 @@ public class ProjectResource extends Resource {
             final BuildsBackend buildBackend,
 			final PullRequestBackend pullRequestBackend,
 			final GitServerClient gitClient,
+			final CommitComments comments,
             final Config config) {
 
 		this.templateEngine = templateEngine;
@@ -87,6 +90,7 @@ public class ProjectResource extends Resource {
         this.buildBackend = buildBackend;
 		this.pullRequestBackend = pullRequestBackend;
 		this.gitClient = gitClient;
+		this.comments = comments;
         this.config = config;
 	}
 
@@ -114,6 +118,7 @@ public class ProjectResource extends Resource {
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("states", new CommitChecker(group, buildResults));
+		parameters.put("comments", new HasCommentsChecker(comments));
 		parameters.put("repository", repository);
 		parameters.put("commits", commits);
 		parameters.put("branch", branch);
@@ -554,6 +559,17 @@ public class ProjectResource extends Resource {
 			BuildResult buildResult = buildResults.find(group, commitId);
 			return buildResult.getLog();
 		}
+	}
+
+	@Data
+	public static class HasCommentsChecker {
+
+		private final CommitComments comments;
+
+		public boolean hasComments(String commitId) {
+			return comments.hasComments(commitId);
+		}
+
 	}
 	
 	@Data

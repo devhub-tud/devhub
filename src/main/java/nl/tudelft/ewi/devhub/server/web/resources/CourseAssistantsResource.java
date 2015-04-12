@@ -7,17 +7,14 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
-import nl.tudelft.ewi.devhub.server.backend.ProjectsBackend;
-import nl.tudelft.ewi.devhub.server.database.controllers.CourseAssistants;
+import nl.tudelft.ewi.devhub.server.backend.CoursesBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseAssistant;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import org.eclipse.jetty.util.UrlEncoded;
+import nl.tudelft.ewi.git.client.GitClientException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -38,26 +35,23 @@ import java.util.stream.Collectors;
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class CourseAssistantsResource extends Resource {
 
-    private final ProjectsBackend projectsBackend;
     private final TemplateEngine templateEngine;
     private final Courses courses;
-    private final CourseAssistants courseAssistantsDAO;
     private final User currentUser;
     private final Users users;
+    private final CoursesBackend coursesBackend;
 
     @Inject
-    public CourseAssistantsResource(ProjectsBackend projectsBackend,
-                                    TemplateEngine templateEngine,
+    public CourseAssistantsResource(TemplateEngine templateEngine,
                                     Courses courses,
-                                    CourseAssistants courseAssistantsDAO,
                                     Users users,
-                                    @Named("current.user") User currentUser) {
-        this.projectsBackend = projectsBackend;
+                                    @Named("current.user") User currentUser,
+                                    final CoursesBackend coursesBackend) {
         this.templateEngine = templateEngine;
         this.courses = courses;
-        this.courseAssistantsDAO = courseAssistantsDAO;
         this.currentUser = currentUser;
         this.users = users;
+        this.coursesBackend = coursesBackend;
     }
 
     @GET
@@ -140,7 +134,7 @@ public class CourseAssistantsResource extends Resource {
     public Response processProjectSetup(@Context HttpServletRequest request,
                                         @PathParam("courseCode") String courseCode,
                                         @QueryParam("step") int step)
-            throws IOException {
+            throws IOException, GitClientException {
 
         if(!currentUser.isAdmin()) {
             throw new UnauthorizedException();
@@ -150,35 +144,19 @@ public class CourseAssistantsResource extends Resource {
         Course course = courses.find(courseCode);
 
         if (step == 1) {
-            List<User> groupMembers = getGroupMembers(request);
-            session.setAttribute("courses.course.assistants", groupMembers);
+            List<User> courseAssistants = getCourseAssistants(request);
+            session.setAttribute("courses.course.assistants", courseAssistants);
             return redirect("/courses/" + courseCode + "/assistants?step=2");
         }
 
-        List<User> members = (List<User>) session.getAttribute("courses.course.assistants");
-        List<CourseAssistant> assistants = course.getCourseAssistants();
-
-        assistants.stream()
-            // Filters the existing assistants that should not be
-            // removed, but remove them from the list to be added.
-            // Remove returns true if the assistant was in the list,
-            // so the lambda returns true if the assistant should be
-            // removed.
-            .filter((assistant) -> !members.remove(assistant.getUser()))
-            .forEach((assistant) -> courseAssistantsDAO.delete(assistant));
-
-        members.forEach((member) -> {
-            CourseAssistant courseAssistant = new CourseAssistant();
-            courseAssistant.setCourse(course);
-            courseAssistant.setUser(member);
-            courseAssistantsDAO.persist(courseAssistant);
-        });
+        List<User> courseAssistants = (List<User>) session.getAttribute("courses.course.assistants");
+        coursesBackend.setAssistants(course, courseAssistants);
 
         session.removeAttribute("courses.course.assistants");
         return redirect("/courses/" + courseCode);
     }
 
-    private List<User> getGroupMembers(HttpServletRequest request) {
+    private List<User> getCourseAssistants(HttpServletRequest request) {
         String netId;
         int memberId = 1;
         Set<String> netIds = Sets.newHashSet();
@@ -188,8 +166,8 @@ public class CourseAssistantsResource extends Resource {
         }
 
         Map<String, User> members = users.mapByNetIds(netIds);
-        return netIds.stream().map((memberNetId) ->
-                members.get(memberNetId))
+        return netIds.stream()
+            .map(members::get)
             .collect(Collectors.toList());
     }
 

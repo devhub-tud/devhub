@@ -9,6 +9,7 @@ import com.google.inject.servlet.RequestScoped;
 
 import lombok.extern.slf4j.Slf4j;
 
+import nl.tudelft.ewi.devhub.server.backend.CoursesBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
@@ -55,7 +56,7 @@ public class CoursesResource extends Resource {
     private User currentUser;
 
     @Inject
-    private GitServerClient gitClient;
+    private CoursesBackend coursesBackend;
 
     @Inject
     private TemplateEngine templateEngine;
@@ -170,7 +171,7 @@ public class CoursesResource extends Resource {
         course.setBuildTimeout(buildTimeout);
 
         try {
-            courses.merge(course);
+            coursesBackend.mergeCourse(course);
         }
         catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
@@ -247,17 +248,8 @@ public class CoursesResource extends Resource {
         course.setBuildTimeout(buildTimeout);
         course.setStart(new Date());
 
-        UserModel userModel = gitClient.users()
-            .ensureExists(currentUser.getNetId());
-
-        GroupModel groupModel = new GroupModel();
-        groupModel.setName("@" + courseCode.toLowerCase());
-        groupModel.setMembers(Lists.newArrayList(userModel));
-        gitClient.groups()
-            .create(groupModel);
-
         try {
-            courses.persist(course);
+            coursesBackend.createCourse(course);
         }
         catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();

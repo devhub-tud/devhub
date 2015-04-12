@@ -64,7 +64,7 @@ public class Deliveries extends Controller<Delivery> {
             .transform(groupBy(QDelivery.delivery.group).as(list(QDelivery.delivery)));
 
         return deliveriesMap.values().stream().map((deliveries) ->
-                deliveries.stream().min(Comparator.<Delivery> naturalOrder()).get())
+                deliveries.stream().max(Comparator.<Delivery> naturalOrder()).get())
             .collect(Collectors.toList());
     }
 

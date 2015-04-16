@@ -27,10 +27,10 @@
                 [#elseif delivery.isApproved()]
                     [#assign approved = true]
                     <span class="label label-success pull-right">Approved</span>
-                [#elseif delivery.isDisapproved()]
-                    <span class="label label-warning pull-right">Disapproved</span>
                 [#elseif delivery.isRejected()]
-                    <span class="label label-danger pull-right">Rejected</span>
+                    <span class="label label-warning pull-right">Rejected</span>
+                [#elseif delivery.isDisapproved()]
+                    <span class="label label-danger pull-right">Disapproved</span>
                 [/#if]
 
                 <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>

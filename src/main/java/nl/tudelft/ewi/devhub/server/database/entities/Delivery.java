@@ -20,9 +20,9 @@ public class Delivery implements Comparable<Delivery> {
 
     public enum State {
         SUBMITTED("delivery.state.submitted"),
-        DISAPPROVED("delivery.state.disapproved"),
         REJECTED("delivery.state.rejected"),
-        APPROVED("delivery.state.approved");
+        APPROVED("delivery.state.approved"),
+        DISAPPROVED("delivery.state.disapproved");
 
         private final String translationKey;
 
@@ -105,24 +105,25 @@ public class Delivery implements Comparable<Delivery> {
 
     }
 
-    public boolean hasState(State state) {
-        return review == null ? State.SUBMITTED.equals(state) : review.getState().equals(state);
+    public State getState() {
+        Review review = getReview();
+        return review == null ? State.SUBMITTED : review.getState() == null ? State.SUBMITTED : review.getState();
     }
 
     public boolean isSubmitted() {
-        return hasState(State.SUBMITTED);
+        return getState().equals(State.SUBMITTED);
     }
 
     public boolean isApproved() {
-        return hasState(State.APPROVED);
+        return getState().equals(State.APPROVED);
     }
 
     public boolean isDisapproved() {
-        return hasState(State.DISAPPROVED);
+        return getState().equals(State.DISAPPROVED);
     }
 
     public boolean isRejected() {
-        return hasState(State.REJECTED);
+        return getState().equals(State.REJECTED);
     }
 
     @Override

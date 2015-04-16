@@ -1,5 +1,5 @@
 [#import "../../macros.ftl" as macros]
-[@macros.renderHeader i18n.translate("form.build-server-setup.title") /]
+[@macros.renderHeader i18n.translate("assignments.title") /]
 [@macros.renderMenu i18n user /]
 <div class="container">
 <h2>Create assignment</h2>

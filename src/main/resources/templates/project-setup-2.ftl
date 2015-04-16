@@ -36,7 +36,7 @@
 					</button>
 		[/#if]
 					<div class="pull-right">
-						<a class="btn btn-xl btn-default" href="/courses/setup?step=1">
+						<a class="btn btn-xl btn-default" href="/courses">
 							<span class="glyphicon glyphicon-chevron-left"></span> ${i18n.translate("form.project-setup.buttons.previous.caption")}
 						</a>
 						<button type="submit" class="btn btn-xl btn-success" name="next">

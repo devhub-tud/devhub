@@ -84,6 +84,9 @@
             </div>
             Hey! You can merge the pull request by clicking the button to the right.
 [#else]
+            <div class="pull-right">
+                <button class="btn btn-success" disabled><i class="octicon octicon-git-merge"></i> <span>Merged</span></button>
+            </div>
             It seems the branch is already merged into the master!
 [/#if]
 [#--        Or merge the pull request with the command line:

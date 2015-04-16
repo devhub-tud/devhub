@@ -91,6 +91,7 @@ public class ProjectResource extends Resource {
 	private final GitServerClient gitClient;
 	private final CommitComments comments;
 	private final CommentMailer commentMailer;
+
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
 			final @Named("current.user") User currentUser,
@@ -165,20 +166,22 @@ public class ProjectResource extends Resource {
 	@Transactional
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response createPullRequest(@Context HttpServletRequest request,
-			@FormParam("branchName") String branchName) {
+									  @FormParam("branchName") String branchName)
+			throws ApiError, IOException, GitClientException {
 		
 		Preconditions.checkNotNull(branchName);
 		
 		if(pullRequests.findOpenPullRequest(group, branchName) != null) {
 			throw new IllegalArgumentException("There already is an open pull request for " + branchName);
 		}
-		
+
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 		PullRequest pullRequest = new PullRequest();
 		pullRequest.setBranchName(branchName);
 		pullRequest.setGroup(group);
 		pullRequest.setOpen(true);
-		pullRequests.persist(pullRequest);
-		
+		pullRequestBackend.createPullRequest(repository, pullRequest);
+
 		String uri = request.getRequestURI() + "/" + pullRequest.getIssueId();
 		return Response.seeOther(URI.create(uri)).build();
 	}
@@ -203,11 +206,7 @@ public class ProjectResource extends Resource {
 		for(PullRequest pull : openPullRequests) {
 			Branch branch = repository.retrieveBranch(pull.getBranchName());
 
-			if(branch.getAhead() == 0) {
-				pull.setOpen(false);
-				pullRequests.merge(pull);
-			}
-			else {
+			if(branch.isAhead()) {
 				pulls.add(new Pull(pull, branch));
 			}
 		}
@@ -228,16 +227,13 @@ public class ProjectResource extends Resource {
 	@Transactional
 	@Path("/pull/{pullId}")
 	public Response getPullRequest(@Context HttpServletRequest request,
-								   @PathParam("pullId") long pullId) throws ApiError, IOException, GitClientException {
+								   @PathParam("pullId") long pullId)
+			throws ApiError, IOException, GitClientException {
 
 		PullRequest pullRequest = pullRequests.findById(group, pullId);
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
-
-		if(branch.getAhead() == 0) {
-			pullRequest.setOpen(false);
-			pullRequests.merge(pullRequest);
-		}
+		pullRequestBackend.updatePullRequest(repository, pullRequest);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
@@ -262,8 +258,10 @@ public class ProjectResource extends Resource {
 
 		PullRequest pullRequest = pullRequests.findById(group, pullId);
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		pullRequestBackend.updatePullRequest(repository, pullRequest);
+		DiffBlameModel diffBlameModel = getDiffBlameModelForPull(pullRequest, repository);
+
 		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
-		DiffBlameModel diffBlameModel = branch.diffBlame();
 		List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
@@ -281,6 +279,12 @@ public class ProjectResource extends Resource {
 		return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
     }
 
+	private static DiffBlameModel getDiffBlameModelForPull(PullRequest pullRequest, Repository repository) throws GitClientException {
+		String destinationId = pullRequest.getDestination();
+		String mergeBaseId = pullRequest.getMergeBase();
+		return repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
+	}
+
 	@POST
 	@Path("/pull/{pullId}/merge")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -289,9 +293,10 @@ public class ProjectResource extends Resource {
 
 		PullRequest pullRequest = pullRequests.findById(group, pullId);
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
+		pullRequestBackend.updatePullRequest(repository, pullRequest);
 
-		String message = String.format("Merge pull request #%s from %s", pullRequest.getIssueId(), pullRequest.getBranchName());
+		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
+		String message = String.format("Merge pull request #%s from %s", pullRequest.getIssueId(), branch.getSimpleName());
 		MergeResponse response = branch.merge(message, currentUser.getName(), currentUser.getEmail());
 
 		if(response.isSuccess()) {

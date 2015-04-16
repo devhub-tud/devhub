@@ -21,19 +21,40 @@ import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
-import nl.tudelft.ewi.devhub.server.database.entities.*;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.*;
+import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
-import nl.tudelft.ewi.git.models.*;
+import nl.tudelft.ewi.git.client.GitClientException;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.Repositories;
+import nl.tudelft.ewi.git.client.Repository;
+import nl.tudelft.ewi.git.models.BlameModel;
+import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.CommitSubList;
+import nl.tudelft.ewi.git.models.DiffBlameModel;
+import nl.tudelft.ewi.git.models.EntryType;
+import nl.tudelft.ewi.git.models.MergeResponse;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -42,7 +63,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Slf4j
 @RequestScoped
@@ -393,13 +419,12 @@ public class ProjectResource extends Resource {
 	@Path("/commits/{commitId}/diff")
 	@Transactional
 	public Response showCommitChanges(@Context HttpServletRequest request,
-			@PathParam("commitId") String commitId)
+									  @PathParam("commitId") String commitId)
 			throws IOException, ApiError, GitClientException {
 
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 		nl.tudelft.ewi.git.client.Commit commit = repository.retrieveCommit(commitId);
 		DiffBlameModel diffBlameModel = commit.diffBlame();
-		List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
@@ -407,7 +432,7 @@ public class ProjectResource extends Resource {
 		parameters.put("commit", commit);
 		parameters.put("repository", repository);
 		parameters.put("diffViewModel", diffBlameModel);
-		parameters.put("commentChecker", commentBackend.getCommentChecker(commitIds));
+		parameters.put("commentChecker", commentBackend.getCommentChecker(Lists.newArrayList(commitId)));
 		parameters.put("states", new CommitChecker(group, buildResults));
 
 		List<Locale> locales = Collections.list(request.getLocales());
@@ -431,7 +456,6 @@ public class ProjectResource extends Resource {
 			@PathParam("path") String path) throws ApiError, IOException, GitClientException {
 
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-		Commit commit = repository.retrieveCommit(commitId);
 		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
 
 			@Override

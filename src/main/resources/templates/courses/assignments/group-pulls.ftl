@@ -20,7 +20,6 @@
         </div>
         <div class="col-md-10">
             <table class="table table-bordered">
-
                 <tbody>
                 [#if pulls?? && pulls?has_content]
                     [#list pulls as pull]
@@ -42,7 +41,7 @@
                 [#else]
                 <tr>
                     <td class="muted">
-                        There are no pull requests in this repository yet!
+                        No unmerged pull requests in this repository.
                     </td>
                 </tr>
                 [/#if]

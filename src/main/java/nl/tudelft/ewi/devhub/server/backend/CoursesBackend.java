@@ -145,7 +145,7 @@ public class CoursesBackend {
     @SneakyThrows
     private void removeAssistantFromGroup(GroupMembers groupMembersApi, Collection<IdentifiableModel> groupMembers, User user) {
         UserModel userModel = retrieveUser(user);
-        if(contains(groupMembers, userModel)) {
+        if(groupMembers.contains(userModel)) {
             groupMembersApi.removeMember(retrieveUser(user));
         }
     }
@@ -153,14 +153,9 @@ public class CoursesBackend {
     @SneakyThrows
     private void addAssistantToGroup(GroupMembers groupMembersApi, Collection<IdentifiableModel> groupMembers, User user) {
         UserModel userModel = retrieveUser(user);
-        if(!contains(groupMembers, userModel)) {
+        if(!groupMembers.contains(userModel)) {
             groupMembersApi.addMember(retrieveUser(user));
         }
-    }
-
-    private boolean contains(Collection<IdentifiableModel> groupMembers, IdentifiableModel model) {
-        return groupMembers.stream().anyMatch((member) ->
-            member.getName().equals(model.getName()));
     }
 
 }

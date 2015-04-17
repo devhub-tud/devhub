@@ -385,4 +385,36 @@
 		</addColumn>
 	</changeSet>
 
+	<changeSet id="pk_for_pull_requests" author="Jan-Willem Gmelig Meyling">
+		<dropPrimaryKey tableName="pull_requests"></dropPrimaryKey>
+		<addPrimaryKey tableName="pull_requests" columnNames="id,repository_name"></addPrimaryKey>
+	</changeSet>
+
+	<changeSet id="pull_request_comments" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="pull_request_comments">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="content" type="text" />
+			<column name="user_id" type="bigint">
+				<constraints  nullable="false" />
+			</column>
+			<column name="time" type="datetime" />
+		</createTable>
+
+		<addForeignKeyConstraint constraintName="pr_commit_pr_in_prs"
+			 baseTableName="pull_request_comments" baseColumnNames="repository_name,issue_id"
+			 referencedTableName="pull_requests" referencedColumnNames="repository_name,id"/>
+
+		<addForeignKeyConstraint constraintName="pr_commit_user_in_users"
+			 baseTableName="pull_request_comments" baseColumnNames="user_id"
+			 referencedTableName="users" referencedColumnNames="id"></addForeignKeyConstraint>
+	</changeSet>
+
 </databaseChangeLog>

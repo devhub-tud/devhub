@@ -722,3 +722,43 @@ code {
   margin-top: -10px !important;
   margin-bottom: 10px !important;
 }
+
+.pull-feed {
+  position: relative;
+  padding: 10px 0;
+  margin-bottom: 10px;
+
+  .timeline {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 1px;
+	background: #3699d2;
+	left: 15px;
+  }
+
+  ul {
+	margin-left: 9px;
+
+	li {
+	  line-height: 30px;
+
+	  .octicon {
+		position: relative;
+		background-color: #f9f9f9;
+	  }
+	}
+  }
+
+  .panel-comment {
+	position: relative;
+	z-index: 1;
+  }
+
+  .indent {
+	& .panel-comment, & .diff.box {
+	  margin-left: 30px;
+	}
+  }
+
+}

@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -21,8 +22,16 @@ import lombok.ToString;
 @Entity
 @Table(name="commit")
 @ToString(exclude="comments")
+@IdClass(Commit.CommitId.class)
 @EqualsAndHashCode(of={"repository", "commitId"})
-public class Commit implements Serializable {
+public class Commit {
+
+	@Data
+	@EqualsAndHashCode
+	public static class CommitId implements Serializable {
+		private Group repository;
+		private String commitId;
+	}
 
 	@Id
 	@ManyToOne

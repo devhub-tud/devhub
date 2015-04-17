@@ -16,8 +16,16 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name= "assignments")
+@IdClass(Assignment.AssignmentId.class)
 @EqualsAndHashCode(of={"course", "assignmentId"})
-public class Assignment implements Serializable {
+public class Assignment {
+
+    @Data
+    @EqualsAndHashCode
+    public static class AssignmentId implements Serializable {
+        private Course course;
+        private Long assignmentId;
+    }
 
     @Id
     @NotNull

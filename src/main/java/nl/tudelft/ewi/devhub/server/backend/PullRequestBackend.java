@@ -3,11 +3,13 @@ package nl.tudelft.ewi.devhub.server.backend;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.GitClientException;
@@ -15,7 +17,6 @@ import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 
-import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.NotFoundException;
 import java.util.Collection;
 import java.util.Date;
@@ -32,12 +33,15 @@ public class PullRequestBackend {
 
     private final PullRequests pullRequests;
     private final CommitComments commentsDAO;
+    private final Group group;
 
     @Inject
     public PullRequestBackend(final CommitComments commentsDAO,
-                              final PullRequests pullRequests) {
+                              final PullRequests pullRequests,
+                              final @Named("current.group") Group group) {
         this.commentsDAO = commentsDAO;
         this.pullRequests = pullRequests;
+        this.group = group;
     }
 
     /**
@@ -235,7 +239,7 @@ public class PullRequestBackend {
         public EventResolver(DiffBlameModel diffModel) {
             this.diffModel = diffModel;
             List<String> commitIds = Lists.transform(diffModel.getCommits(), CommitModel::getCommit);
-            this.comments = commentsDAO.getCommentsFor(commitIds);
+            this.comments = commentsDAO.getCommentsFor(group, commitIds);
         }
 
         public SortedSet<Event> getEvents() {

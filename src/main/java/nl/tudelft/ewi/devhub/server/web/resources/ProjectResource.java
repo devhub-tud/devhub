@@ -150,7 +150,7 @@ public class ProjectResource extends Resource {
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("states", new CommitChecker(group, buildResults));
-		parameters.put("comments", new HasCommentsChecker(comments));
+		parameters.put("comments", new HasCommentsChecker());
 		parameters.put("repository", repository);
 		parameters.put("commits", commits);
 		parameters.put("branch", branch);
@@ -638,12 +638,15 @@ public class ProjectResource extends Resource {
 	}
 
 	@Data
-	public static class HasCommentsChecker {
+	public class HasCommentsChecker {
 
-		private final CommitComments comments;
-
+		/**
+		 * Check how many comments there are for a commitId
+		 * @param commitId the commitId
+		 * @return the amount of commits
+		 */
 		public long amountOfCommits(String commitId) {
-			return comments.amountOfComments(commitId);
+			return comments.amountOfComments(group, commitId);
 		}
 
 	}

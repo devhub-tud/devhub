@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 
 import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.QCommitComment;
 
 import java.util.List;
@@ -18,16 +19,18 @@ public class CommitComments extends Controller<CommitComment> {
 	}
 
     @Transactional
-    public List<CommitComment> getCommentsFor(List<String> commitIds) {
+    public List<CommitComment> getCommentsFor(Group group, List<String> commitIds) {
         return query().from(QCommitComment.commitComment)
-            .where(QCommitComment.commitComment.commit.commitId.in(commitIds))
+            .where(QCommitComment.commitComment.commit.repository.eq(group)
+                    .and(QCommitComment.commitComment.commit.commitId.in(commitIds)))
             .list(QCommitComment.commitComment);
     }
 
     @Transactional
-    public long amountOfComments(String commitId) {
+    public long amountOfComments(Group group, String commitId) {
         return query().from(QCommitComment.commitComment)
-            .where(QCommitComment.commitComment.commit.commitId.eq(commitId))
+            .where(QCommitComment.commitComment.commit.repository.eq(group)
+            .and(QCommitComment.commitComment.commit.commitId.eq(commitId)))
             .count();
     }
 

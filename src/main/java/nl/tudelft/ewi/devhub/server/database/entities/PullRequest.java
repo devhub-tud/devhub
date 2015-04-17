@@ -13,17 +13,19 @@ import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
+
 @Data
 @Entity
 @Table(name="pull_requests")
 @EqualsAndHashCode(of="issueId")
-public class PullRequest {
+public class PullRequest implements Serializable {
 
 	@Id
 	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long issueId;
 
+	@Id
 	@NotNull
 	@ManyToOne
 	@JoinColumn(name = "repository_name", referencedColumnName = "repository_name")

@@ -385,4 +385,9 @@
 		</addColumn>
 	</changeSet>
 
+	<changeSet id="pk_for_pull_requests" author="Jan-Willem Gmelig Meyling">
+		<dropPrimaryKey tableName="pull_requests"></dropPrimaryKey>
+		<addPrimaryKey tableName="pull_requests" columnNames="id,repository_name"></addPrimaryKey>
+	</changeSet>
+
 </databaseChangeLog>

@@ -85,7 +85,11 @@ public class AssignmentsResource extends Resource {
     public Response getCreatePage(@Context HttpServletRequest request,
                                   @PathParam("courseCode") String courseCode,
                                   @QueryParam("error") String error) throws IOException {
+
         Course course = courses.find(courseCode);
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
@@ -116,11 +120,11 @@ public class AssignmentsResource extends Resource {
                                @FormParam("summary") String summary,
                                @FormParam("due-date") String dueDate) {
 
-        if(!(currentUser.isAdmin())) {
+        Course course = courses.find(courseCode);
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
-        Course course = courses.find(courseCode);
 
         if(assignmentsDAO.exists(course, assignmentId)) {
             return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-number-exists");
@@ -163,8 +167,8 @@ public class AssignmentsResource extends Resource {
     public Response getAssignmentPage(@Context HttpServletRequest request,
                                       @PathParam("courseCode") String courseCode,
                                       @PathParam("assignmentId") Long assignmentId) throws IOException {
-        Course course = courses.find(courseCode);
 
+        Course course = courses.find(courseCode);
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
@@ -198,12 +202,13 @@ public class AssignmentsResource extends Resource {
                                           @PathParam("assignmentId") long assignmentId,
                                           @QueryParam("error") String error) throws IOException {
 
-        if(!(currentUser.isAdmin())) {
-            throw new UnauthorizedException();
-        }
 
         Course course = courses.find(courseCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);

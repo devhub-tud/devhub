@@ -75,13 +75,13 @@
                                     <a class="label label-success" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
                                         Approved
                                     </a>
-                                [#elseif delivery.isDisapproved()]
-                                    <a class="label label-warning" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                                        Disapproved
-                                    </a>
                                 [#elseif delivery.isRejected()]
-                                    <a class="label label-danger" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                                    <a class="label label-warning" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
                                         Rejected
+                                    </a>
+                                [#elseif delivery.isDisapproved()]
+                                    <a class="label label-danger" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                                        Disapproved
                                     </a>
                                 [/#if]
                             [#else]

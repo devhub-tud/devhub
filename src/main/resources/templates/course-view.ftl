@@ -141,9 +141,11 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     ${i18n.translate("course.control.details")}
+    [#if user.isAdmin()]
                     <a href="/courses/${course.getCode()}/edit" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
+    [/#if]
                 </div>
                 <table class="table">
                     <tbody>

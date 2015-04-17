@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.common.collect.ComparisonChain;
 import com.google.inject.Inject;
 import static com.mysema.query.group.GroupBy.*;
 import com.google.inject.persist.Transactional;
@@ -63,8 +64,12 @@ public class Deliveries extends Controller<Delivery> {
             .orderBy(QDelivery.delivery.created.desc())
             .transform(groupBy(QDelivery.delivery.group).as(list(QDelivery.delivery)));
 
+        Comparator<Delivery> byState = Comparator.comparing(Delivery::getState);
+        Comparator<Delivery> bySubmissionDate = Comparator.<Delivery> naturalOrder();
+
         return deliveriesMap.values().stream().map((deliveries) ->
-                deliveries.stream().max(Comparator.<Delivery> naturalOrder()).get())
+                deliveries.stream().max(bySubmissionDate).get())
+            .sorted(byState.thenComparing(bySubmissionDate))
             .collect(Collectors.toList());
     }
 

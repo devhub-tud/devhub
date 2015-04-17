@@ -39,4 +39,11 @@ public class PullRequests extends Controller<PullRequest> {
 			.list(QPullRequest.pullRequest);
 	}
 
+	public List<PullRequest> findClosedPullRequests(final Group group) {
+		return query().from(QPullRequest.pullRequest)
+			.where(QPullRequest.pullRequest.group.eq(group))
+			.where(QPullRequest.pullRequest.open.isFalse())
+			.list(QPullRequest.pullRequest);
+	}
+
 }

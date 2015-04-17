@@ -12,7 +12,7 @@
 				<label for="course">${i18n.translate("form.project-setup.course-selected.label")}</label>
 				<div class="form-group">
 					<div class="well well-sm" id="course">
-						<code>${course.getCode()} - ${course.getName()}</code>
+						<code>${course.code} - ${course.name}</code>
 					</div>
 				</div>
 				<div class="form-group">
@@ -31,7 +31,7 @@
 			</table>
 				</div>
 				<div class="form-group pull-right">
-					<a class="btn btn-xl btn-default" name="back" href="/courses/setup?step=2">
+					<a class="btn btn-xl btn-default" name="back" href="/courses/${course.code}/enroll?step=1">
 						<span class="glyphicon glyphicon-chevron-left"></span> ${i18n.translate("form.project-setup.buttons.previous.caption")}
 					</a>
 					<button type="submit" class="btn btn-xl btn-success" name="finish">

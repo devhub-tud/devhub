@@ -76,26 +76,36 @@
 
 
     <div class="panel panel-default">
-
         <div class="panel-body">
-[#if branch?? && branch.getAhead() > 0]
-            <div class="pull-right">
-                <button id="btn-merge" class="btn btn-primary"><i class="octicon octicon-git-merge"></i> <span>Merge pull request</span></button>
-            </div>
-            Hey! You can merge the pull request by clicking the button to the right.
-[#else]
-            It seems the branch is already merged into the master!
-[/#if]
-[#--        Or merge the pull request with the command line:
-            <div>
-                <code>git fetch origin/${pullRequest.branchName}</code><br/>
-                <code>git checkout master</code><br/>
-                <code>git merge origin/${pullRequest.branchName}</code><br/>
-                <code>git push origin master</code>
-            </div>
---]
-        </div>
 
+[#if pullRequest.isOpen()]
+    [#if !pullRequest.isMerged()]
+            <div class="pull-right">
+                <button id="btn-close" class="btn btn-default"><span>Close pull request</span></button>
+        [#if branch?? && branch?has_content]
+                <button id="btn-merge" class="btn btn-primary"><i class="octicon octicon-git-merge"></i> <span>Merge pull request</span></button>
+        [/#if]
+            </div>
+            <span id="merge-message">Hey! You can merge the pull request by clicking the button to the right.</span>
+    [#-- else case should not happen --]
+    [/#if]
+[#else]
+            <div class="pull-right">
+    [#if branch?? && branch?has_content]
+                <button id="btn-remove-branch" class="btn btn-default"><i class="octicon octicon-trashcan"></i> <span>Remove branch</span></button>
+    [/#if]
+    [#if pullRequest.isMerged()]
+                <button class="btn btn-success" disabled><i class="octicon octicon-git-merge"></i> <span>Merged</span></button>
+            </div>
+            <span id="merge-message">It seems the branch is already merged into the master!</span>
+    [#else]
+                <button class="btn btn-danger" disabled><i class="octicon octicon-issue-closed"></i> <span>Closed</span></button>
+            </div>
+            <span id="merge-message">The pull request is closed and not merged into the master.</span>
+    [/#if]
+[/#if]
+
+        </div>
     </div>
 
 </div>
@@ -106,13 +116,12 @@
 [@difftable.renderScripts/]
 <script type="text/javascript">
 $(function() {
-    $('#btn-merge').on('click', function mergeClickHandler() {
+    $('#btn-merge').click(function() {
         var btn = $(this).attr('disabled', true);
         var label = $('span', btn).html('Merging...');
 
         $.post("/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/merge")
             .done(function(res) {
-                console.log(res);
                 if(res.success) {
                     label.html('Merged');
                     btn.removeClass('btn-primary').addClass('btn-success');
@@ -126,7 +135,33 @@ $(function() {
                 label.html('Failed to merge');
                 btn.removeClass('btn-primary').addClass('btn-danger');
             })
-    })
+    });
+
+    $('#btn-close').click(function() {
+        $.post('/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/close')
+            .done(function(res) {
+                $('#btn-close')
+                    .html('<i class="octicon octicon-issue-closed"></i> <span>Closed</span>')
+                    .attr('disabled', true)
+                    .removeClass('btn-default').addClass('btn-danger');
+                $('#btn-merge').remove();
+                $('#merge-message').html('The pull request is closed and not merged into the master.');
+                $('<button id="btn-remove-branch" class="btn btn-default"><i class="octicon octicon-trashcan"></i> <span>Remove branch</span></button>')
+                    .insertBefore('#btn-close');
+                bindDeleteHandler();
+            });
+    });
+
+    function bindDeleteHandler() {
+        $('#btn-remove-branch').click(function() {
+            $.post('/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/delete-branch')
+                .done(function(res) {
+                    $('#btn-remove-branch').remove();
+                });
+        });
+    }
+
+    bindDeleteHandler();
 })
 </script>
 [@macros.renderFooter /]

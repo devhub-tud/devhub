@@ -16,7 +16,7 @@
 
 [@projectFrameset.renderBreadcrumb i18n group/]
 
-[#if branch?? && branch.ahead?? && branch.ahead > 0 ]
+[#if branch?? && branch.isAhead() ]
     <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
         [#if pullRequest??]
             <span>Hey! There is an open pull request for this branch. Want to go to the pull request?</span>
@@ -39,7 +39,7 @@
                     <span class="octicon octicon-git-branch"></span>
                     <span class="text-muted">${i18n.translate("branch.current")}:</span>
                 ${branch.getSimpleName()}
-                    [#if branch.behind?? && branch.ahead?? && branch.behind > 0 || branch.ahead > 0 ]
+                    [#if branch.isAhead() || branch.isBehind() ]
                         <span class="text-success octicon octicon-arrow-up"></span>
                         <span class="text-muted">${branch.getAhead()}</span>
                         <span class="text-danger octicon octicon-arrow-down"></span>

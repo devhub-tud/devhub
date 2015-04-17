@@ -20,9 +20,16 @@ public class Assignments extends Controller<Assignment> {
     public Assignment find(Course course, Long assignmentId) {
         return ensureNotNull(query().from(QAssignment.assignment)
             .where(QAssignment.assignment.course.eq(course)
-                    .and(QAssignment.assignment.assignmentId.eq(assignmentId)))
+            .and(QAssignment.assignment.assignmentId.eq(assignmentId)))
             .singleResult(QAssignment.assignment),
             "Could not find assignment " + assignmentId + " for " + course.getCode());
+    }
+
+    public boolean exists(Course course, Long assignmentId) {
+        return query().from(QAssignment.assignment)
+            .where(QAssignment.assignment.course.eq(course)
+            .and(QAssignment.assignment.assignmentId.eq(assignmentId)))
+            .exists();
     }
 
 }

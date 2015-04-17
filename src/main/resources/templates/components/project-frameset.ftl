@@ -32,7 +32,5 @@
         [#else]
             <input class="well well-sm" style="width: 100%;" value="Could not connect to the Git server!" readonly></input>
         [/#if]
-        <a class="btn btn-link btn-xs" href="http://git-scm.com/downloads" target="_blank">Install Git</a>
-        <a class="btn btn-link btn-xs" href="https://help.github.com/articles/generating-ssh-keys/" target="_blank">Generate SSH keys</a>
     </div>
 [/#macro]

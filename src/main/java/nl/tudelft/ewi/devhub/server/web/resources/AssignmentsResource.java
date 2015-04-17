@@ -15,6 +15,7 @@ import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import org.jboss.resteasy.spi.NotImplementedYetException;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -110,6 +111,11 @@ public class AssignmentsResource extends Resource {
         }
 
         Course course = courses.find(courseCode);
+
+        if(assignmentsDAO.exists(course, assignmentId)) {
+            return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-number-exists");
+        }
+
         Assignment assignment = new Assignment();
         assignment.setCourse(course);
         assignment.setAssignmentId(assignmentId);

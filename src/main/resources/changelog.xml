@@ -361,4 +361,28 @@
 		<modifyDataType tableName="assignment_deliveries" columnName="grade" newDataType="FLOAT"/>
 	</changeSet>
 
+	<changeSet id="add_commits_for_pr" author="Jan-Willem Gmelig Meyling">
+		<addColumn tableName="pull_requests">
+			<column name="merge_commit_id" type="varchar(40)"></column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="destination_commit_id" type="varchar(40)"></column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="merged" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="ahead" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="behind" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
+
 </databaseChangeLog>

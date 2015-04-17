@@ -48,6 +48,12 @@
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
+        [#if user.isAdmin() || user.isAssisting(course)]
+            <a href="/courses/${course.code}/assignments/${assignment.assignmentId}" class="btn btn-default pull-right">
+                <span class="glyphicon glyphicon-chevron-left"></span>
+                Go back to assignment
+            </a>
+        [/#if]
             <h4 style="line-height:34px; margin-top:0;">${assignment.getAssignmentId()}. ${assignment.getName()}</h4>
         </div>
     </div>

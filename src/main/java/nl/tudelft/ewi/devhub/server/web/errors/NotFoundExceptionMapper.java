@@ -29,7 +29,7 @@ public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundExceptio
 
 	@Inject
 	public NotFoundExceptionMapper(TemplateEngine templateEngine,
-										 @Named("current.user") com.google.inject.Provider<User> currentUserProvider) {
+								   @Named("current.user") com.google.inject.Provider<User> currentUserProvider) {
 		this.templateEngine = templateEngine;
 		this.currentUserProvider = currentUserProvider;
 	}
@@ -37,7 +37,7 @@ public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundExceptio
 	@Override
 	public Response toResponse(NotFoundException exception) {
 		UUID id = UUID.randomUUID();
-		log.error(exception.getMessage() + " (" + id + ")", exception);
+		log.warn(exception.getMessage() + " (" + id + ")");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 

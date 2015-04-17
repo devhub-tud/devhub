@@ -117,7 +117,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 
 	private void notFound(HttpServletRequest request, HttpServletResponse response, Exception exception, User user) throws IOException {
 		UUID id = UUID.randomUUID();
-		log.error(exception.getMessage() + " (" + id + ")", exception);
+		log.warn(exception.getMessage() + " (" + id + ")");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 

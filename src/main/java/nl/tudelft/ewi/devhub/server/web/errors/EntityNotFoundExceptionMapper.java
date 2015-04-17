@@ -36,7 +36,7 @@ public class EntityNotFoundExceptionMapper implements ExceptionMapper<EntityNotF
 	@Override
 	public Response toResponse(EntityNotFoundException exception) {
 		UUID id = UUID.randomUUID();
-		log.error(exception.getMessage() + " (" + id + ")", exception);
+		log.warn(exception.getMessage() + " (" + id + ")");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 

@@ -11,6 +11,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.PullRequestComment;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.Repository;
@@ -22,7 +23,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -133,7 +133,7 @@ public class PullRequestBackend {
      */
     public SortedSet<Event> getEventsForPullRequest(Repository repository, PullRequest pullRequest) throws GitClientException {
         DiffBlameModel diffBlameModel = getDiffBlameModelForPull(pullRequest, repository);
-        return new EventResolver(diffBlameModel).getEvents();
+        return new EventResolver(pullRequest, diffBlameModel).getEvents();
     }
 
     private static DiffBlameModel getDiffBlameModelForPull(PullRequest pullRequest, Repository repository) throws GitClientException {
@@ -171,6 +171,9 @@ public class PullRequestBackend {
         public boolean isCommentContextEvent() {
             return eventType.equals(EventType.COMMENT_CONTEXT);
         }
+
+        public boolean isCommentEvent() { return eventType.equals(EventType.COMMENT); }
+
     }
 
     @Data
@@ -187,17 +190,14 @@ public class PullRequestBackend {
             return new Date(commit.getTime() * 1000);
         }
 
-        public static Function<CommitModel, CommitEvent> transformer =
-                (commitModel) -> new CommitEvent(commitModel);
-
     }
 
     @Data
     public static class CommentEvent extends Event {
 
-        private final CommitComment comment;
+        private final PullRequestComment comment;
 
-        public CommentEvent(CommitComment comment) {
+        public CommentEvent(PullRequestComment comment) {
             super(EventType.COMMENT);
             this.comment = comment;
         }
@@ -206,9 +206,6 @@ public class PullRequestBackend {
         public Date getDate() {
             return comment.getTime();
         }
-
-        public static Function<CommitComment, CommentEvent> transformer =
-                (comment) -> new CommentEvent(comment);
 
     }
 
@@ -234,19 +231,29 @@ public class PullRequestBackend {
     public class EventResolver {
 
         private final DiffBlameModel diffModel;
-        private final List<CommitComment> comments;
+        private final List<CommitComment> inlineComments;
+        private final PullRequest pullRequest;
 
-        public EventResolver(DiffBlameModel diffModel) {
+        public EventResolver(PullRequest pullRequest, DiffBlameModel diffModel) {
             this.diffModel = diffModel;
+            this.pullRequest = pullRequest;
             List<String> commitIds = Lists.transform(diffModel.getCommits(), CommitModel::getCommit);
-            this.comments = commentsDAO.getCommentsFor(group, commitIds);
+            this.inlineComments = commentsDAO.getCommentsFor(group, commitIds);
         }
 
         public SortedSet<Event> getEvents() {
             SortedSet<Event> result = Sets.newTreeSet();
             result.addAll(getCommitEvents());
             result.addAll(getCommentEvents());
+            result.addAll(getInlineCommentEvents());
             return result;
+        }
+
+        private Collection<CommentEvent> getCommentEvents() {
+            return pullRequest.getComments()
+                    .stream()
+                    .map(CommentEvent::new)
+                    .collect(Collectors.toList());
         }
 
         private Collection<CommitEvent> getCommitEvents() {
@@ -255,10 +262,10 @@ public class PullRequestBackend {
                 .collect(Collectors.toList());
         }
 
-        private Collection<CommentContextEvent> getCommentEvents() {
+        private Collection<CommentContextEvent> getInlineCommentEvents() {
             // Do not use parallel streams as the source objects can only be accessed
             // through the current (thread local) transaction!
-            return comments.stream()
+            return inlineComments.stream()
                 .collect(Collectors.groupingBy(CommitComment::getSource))
                 .entrySet().stream().map(entry -> {
                     CommitComment.Source source = entry.getKey();

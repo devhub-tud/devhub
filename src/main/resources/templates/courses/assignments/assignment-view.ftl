@@ -57,16 +57,24 @@
         [#list lastDeliveries as delivery]
             [#assign group = delivery.getGroup()]
             [@commitRow.render group states![] commitId![] "/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}"]
+                <div class="pull-right">
+
+                [#assign review = delivery.getReview()![]]
+                [#if review?has_content && review.grade?? && review.grade?has_content]
+                    <span class="label label-default">${review.grade}</span>
+                [/#if]
+
                 [#if delivery.isSubmitted()]
-                    <span class="label label-info pull-right">Submitted</span>
+                    <span class="label label-info">Submitted</span>
                 [#elseif delivery.isApproved()]
                     [#assign approved = true]
-                    <span class="label label-success pull-right">Approved</span>
+                    <span class="label label-success">Approved</span>
                 [#elseif delivery.isRejected()]
-                    <span class="label label-warning pull-right">Rejected</span>
+                    <span class="label label-warning">Rejected</span>
                 [#elseif delivery.isDisapproved()]
-                    <span class="label label-danger pull-right">Disapproved</span>
+                    <span class="label label-danger">Disapproved</span>
                 [/#if]
+                </div>
                 <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
                 <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
             [/@commitRow.render]

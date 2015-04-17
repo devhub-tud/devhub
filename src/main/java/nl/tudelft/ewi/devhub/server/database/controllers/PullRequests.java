@@ -46,4 +46,12 @@ public class PullRequests extends Controller<PullRequest> {
 			.list(QPullRequest.pullRequest);
 	}
 
+	public boolean openPullRequestExists(final Group group, final String branchName) {
+		return query().from(QPullRequest.pullRequest)
+			.where(QPullRequest.pullRequest.group.eq(group))
+			.where(QPullRequest.pullRequest.branchName.eq(branchName))
+			.where(QPullRequest.pullRequest.open.isTrue())
+			.exists();
+	}
+
 }

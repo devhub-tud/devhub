@@ -1,16 +1,21 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.common.collect.ComparisonChain;
 import com.google.inject.Inject;
-import static com.mysema.query.group.GroupBy.*;
 import com.google.inject.persist.Transactional;
-import nl.tudelft.ewi.devhub.server.database.entities.*;
+import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.QDelivery;
 
 import javax.persistence.EntityManager;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.mysema.query.group.GroupBy.groupBy;
+import static com.mysema.query.group.GroupBy.list;
+import static nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -35,6 +40,23 @@ public class Deliveries extends Controller<Delivery> {
             .where(QDelivery.delivery.group.eq(group))
             .orderBy(QDelivery.delivery.created.desc())
             .singleResult(QDelivery.delivery);
+    }
+
+    /**
+     * Check if an approved or disapproved submission exists.
+     * No further submissions should be made if true.
+     * @param assignment Assignment to check for
+     * @param group Group to check for
+     * @return True if an approved or disapproved submission exists
+     */
+    @Transactional
+    public boolean lastDeliveryIsApprovedOrDisapproved(Assignment assignment, Group group) {
+        QDelivery Delivery = QDelivery.delivery;
+        return query().from(Delivery)
+            .where(Delivery.assignment.eq(assignment)
+            .and(Delivery.group.eq(group))
+            .and(Delivery.review.state.in(State.APPROVED, State.DISAPPROVED)))
+            .exists();
     }
 
     /**

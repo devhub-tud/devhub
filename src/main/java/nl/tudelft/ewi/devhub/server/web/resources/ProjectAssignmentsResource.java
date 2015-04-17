@@ -135,6 +135,7 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("repository", repository);
         parameters.put("assignment", assignment);
         parameters.put("myDeliveries", deliveries.getDeliveries(assignment, group));
+        parameters.put("canSubmit", !deliveries.lastDeliveryIsApprovedOrDisapproved(assignment, group));
         parameters.put("states", new ProjectResource.CommitChecker(group, buildResults));
         parameters.put("recentCommits", repository.retrieveBranch("master").retrieveCommits(0, 25).getCommits());
 

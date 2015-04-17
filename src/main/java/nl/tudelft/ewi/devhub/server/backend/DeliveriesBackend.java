@@ -48,7 +48,12 @@ public class DeliveriesBackend {
     @Transactional
     public void deliver(Delivery delivery) throws ApiError, UnauthorizedException {
         Group group = delivery.getGroup();
+        Assignment assignment = delivery.getAssignment();
         checkUserAuthorized(group);
+
+        if(deliveriesDAO.lastDeliveryIsApprovedOrDisapproved(assignment, group)) {
+            throw new IllegalStateException("Cannot submit because there is a (dis)approved submission");
+        }
 
         try {
             delivery.setCreatedUser(currentUser);

@@ -7,17 +7,17 @@
         <div class="btn-group pull-right">
         [#if delivery.isSubmitted()]
             <button type="button" class="btn btn-info">Submitted</button>
-        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
         [#elseif delivery.isApproved()]
             [#assign approved = true]
             <button type="button" class="btn btn-success">Approved</button>
-        <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
         [#elseif delivery.isDisapproved()]
-            <button type="button" class="btn btn-warning">Disapproved</button>
-        <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="btn btn-danger">Disapproved</button>
+            <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
         [#elseif delivery.isRejected()]
-            <button type="button" class="btn btn-danger">Rejected</button>
-        <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="btn btn-warning">Rejected</button>
+            <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
         [/#if]
                 <span class="caret"></span>
                 <span class="sr-only">Options</span>
@@ -30,12 +30,11 @@
         [#if delivery.isSubmitted()]
         <span class="label label-info pull-right">Submitted</span>
         [#elseif delivery.isApproved()]
-            [#assign approved = true]
         <span class="label label-success pull-right">Approved</span>
-        [#elseif delivery.isDisapproved()]
-        <span class="label label-warning pull-right">Disapproved</span>
         [#elseif delivery.isRejected()]
-        <span class="label label-danger pull-right">Rejected</span>
+        <span class="label label-warning pull-right">Rejected</span>
+        [#elseif delivery.isDisapproved()]
+        <span class="label label-danger pull-right">Disapproved</span>
         [/#if]
     [/#if]
 [/#macro]
@@ -122,15 +121,17 @@
             [#else]
                 <tr>
                     <td>
-                        No documents have been uploaded yet.
+                [#if user.isAdmin() || user.isAssisting(course)]
+                        This group has not made a submission for this assignment yet.
+                [#else]
+                        You have not made a submission for this assignment yet.
+                [/#if]
                     </td>
                 </tr>
             [/#if]
             </table>
 
-            [#if approved??]
-                <!-- APPROVED, hide submit panel -->
-            [#elseif group.getMembers()?seq_contains(user)]
+            [#if canSubmit?? && canSubmit && group.getMembers()?seq_contains(user)]
             <div class="panel panel-default">
                 <div class="panel-heading">Submit assignment</div>
                 <div class="panel-body">
@@ -145,9 +146,9 @@
                             <select class="form-control" name="commit-id" id="commit-id">
                                 <option value="">No commit</option>
                     [#if recentCommits?? && recentCommits?has_content]
-                    [#list recentCommits as commit]
+                        [#list recentCommits as commit]
                                 <option value="${commit.getCommit()}">${commit.getMessage()} (${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]})</option>
-                    [/#list]
+                        [/#list]
                     [/#if]
                             </select>
                         </div>

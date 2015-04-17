@@ -21,21 +21,48 @@
         <div class="col-md-10">
             <table class="table table-bordered">
                 <tbody>
-                [#if pulls?? && pulls?has_content]
-                    [#list pulls as pull]
-                        [#assign pullRequest = pull.pullRequest]
-                        [#assign branchModel = pull.branchModel]
-                        [#assign commit = branchModel.commit]
+                [#if openPullRequests?? && openPullRequests?has_content]
+                    [#list openPullRequests as pullRequest]
+                        [#assign commit = repository.retrieveCommit(pullRequest.destination)]
                         [@commitRow.render group commitChecker commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
                             <span class="pull-right">
                                 <span class="text-success octicon octicon-arrow-up"></span>
-                                <span class="text-muted">${branchModel.getAhead()}</span>
+                                <span class="text-muted">${pullRequest.ahead}</span>
                                 <span class="text-danger octicon octicon-arrow-down"></span>
-                                <span class="text-muted">${branchModel.getBehind()}</span>
+                                <span class="text-muted">${pullRequest.behind}</span>
                             </span>
-                            <div class="comment">Pull Request #${pullRequest.issueId}: ${branchModel.getSimpleName()}</div>
+                            <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
                             <div class="committer">${commit.getMessage()}</div>
                             <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                        [/@commitRow.render]
+                    [/#list]
+                [#else]
+                <tr>
+                    <td class="muted">
+                        No unmerged pull requests in this repository.
+                    </td>
+                </tr>
+                [/#if]
+                </tbody>
+            </table>
+
+            <h4>Closed pull requests</h4>
+            <table class="table table-bordered">
+                <tbody>
+                [#if closedPullRequests?? && closedPullRequests?has_content]
+                    [#list closedPullRequests as pullRequest]
+                        [#assign commit = repository.retrieveCommit(pullRequest.destination)]
+                        [@commitRow.render group commitChecker commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
+                        <span class="pull-right">
+                            [#if pullRequest.merged]
+                                <span class="label label-success"><i class="octicon octicon-git-merge"></i> Merged</span>
+                            [#else]
+                                <span class="label label-danger"><i class="octicon octicon-issue-closed"></i> Closed</span>
+                            [/#if]
+                        </span>
+                        <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
+                        <div class="committer">${commit.getMessage()}</div>
+                        <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
                         [/@commitRow.render]
                     [/#list]
                 [#else]

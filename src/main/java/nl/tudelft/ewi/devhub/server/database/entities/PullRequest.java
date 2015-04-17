@@ -38,14 +38,22 @@ public class PullRequest {
 	@Column(name="open")
 	private boolean open;
 
+	@Column(name="merged")
+	private boolean merged;
+
 	@NotNull
 	@Column(name="merge_commit_id")
 	private String mergeBase;
 
-
 	@NotNull
 	@Column(name="destination_commit_id")
 	private String destination;
+
+	@Column(name="ahead")
+	private Integer ahead;
+
+	@Column(name="behind")
+	private Integer behind;
 
 	/**
 	 * @return true if the pull request is closed

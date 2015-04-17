@@ -7,7 +7,6 @@ import com.google.inject.persist.Transactional;
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.git.client.Branch;
@@ -16,6 +15,8 @@ import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 
+import javax.persistence.EntityNotFoundException;
+import javax.ws.rs.NotFoundException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -75,11 +76,24 @@ public class PullRequestBackend {
     }
 
     private void updateCommitPointers(Repository repository, PullRequest pullRequest) throws GitClientException {
-        Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
+        Branch branch;
+
+        try {
+            branch = repository.retrieveBranch(pullRequest.getBranchName());
+        }
+        catch (NotFoundException e) {
+            pullRequest.setOpen(false);
+            return;
+        }
+
+        pullRequest.setAhead(branch.getAhead());
+        pullRequest.setBehind(branch.getBehind());
         updateDestinationCommit(pullRequest, branch);
 
         if(!branch.isAhead()) {
+            // If the branch is not ahead of the master, it's merged.
             pullRequest.setOpen(false);
+            pullRequest.setMerged(true);
         }
         else {
             /**

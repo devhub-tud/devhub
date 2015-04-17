@@ -14,6 +14,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -136,7 +137,7 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("assignment", assignment);
         parameters.put("myDeliveries", deliveries.getDeliveries(assignment, group));
         parameters.put("canSubmit", !deliveries.lastDeliveryIsApprovedOrDisapproved(assignment, group));
-        parameters.put("states", new ProjectResource.CommitChecker(group, buildResults));
+        parameters.put("states", new CommitChecker(group, buildResults));
         parameters.put("recentCommits", repository.retrieveBranch("master").retrieveCommits(0, 25).getCommits());
 
         List<Locale> locales = Collections.list(request.getLocales());
@@ -268,7 +269,7 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("delivery", delivery);
         parameters.put("assignment", delivery.getAssignment());
         parameters.put("deliveryStates", Delivery.State.values());
-        parameters.put("states", new ProjectResource.CommitChecker(group, buildResults));
+        parameters.put("states", new CommitChecker(group, buildResults));
         parameters.put("repository", gitClient.repositories().retrieve(group.getRepositoryName()));
 
         List<Locale> locales = Collections.list(request.getLocales());

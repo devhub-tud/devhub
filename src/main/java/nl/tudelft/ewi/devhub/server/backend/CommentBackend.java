@@ -3,18 +3,16 @@ package nl.tudelft.ewi.devhub.server.backend;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import lombok.Data;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 
+import javax.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,84 +33,31 @@ public class CommentBackend {
     private Group group;
 
     @Inject
-    private Commits commits;
-
-    @Inject
     private CommitComments commentsDAO;
 
-    /**
-     * Helper for posting comments
-     */
-    @Data
-    @Accessors(chain = true)
-    public class CommentBuilder {
-
-        private String commitId;
-        private String sourceCommitId;
-        private String sourceFilePath;
-        private Integer sourceLineNumber;
-        private String message;
-
-        /**
-         * Persist a comment
-         * @throws ApiError if the comment could not be persisted
-         * @throws UnauthorizedException if the user may not post to this group
-         */
-        public CommitComment persist() throws ApiError, UnauthorizedException {
-            return comment(commitId, sourceCommitId, sourceFilePath, sourceLineNumber, message);
-        }
-    }
+    @Inject
+    private EntityManager entityManager;
 
     /**
-     * @return a new CommentBuilder
+     * Post a new comment
+     * @param comment Comment to post
+     * @throws UnauthorizedException If the user is not authorized to post a comment into this repository
+     * @throws ApiError
      */
-    public CommentBuilder commentBuilder() {
-        return new CommentBuilder();
-    }
-
-    /**
-     * Post a comment
-     * @param commitId commit to attach
-     * @param sourceCommitId commit source
-     * @param sourceFilePath source path
-     * @param sourceLineNumber source number
-     * @param message message
-     * @throws UnauthorizedException if the user may not post to this group
-     * @throws ApiError if the comment could not be persisted
-     */
-    public CommitComment comment(String commitId, String sourceCommitId, String sourceFilePath,
-                        Integer sourceLineNumber, String message) throws UnauthorizedException, ApiError {
-        Preconditions.checkNotNull(commitId);
-        Preconditions.checkNotNull(sourceCommitId);
-        Preconditions.checkNotNull(sourceFilePath);
-        Preconditions.checkNotNull(sourceLineNumber);
-        Preconditions.checkNotNull(message);
+    public void post(Comment comment) throws UnauthorizedException, ApiError {
+        Preconditions.checkNotNull(comment);
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()) ||
                 group.getMembers().contains(currentUser))) {
             throw new UnauthorizedException();
         }
 
-        Commit link = commits.ensureExists(group, commitId);
-        Commit sourceCommit = commits.ensureExists(group, sourceCommitId);
-
-        CommitComment comment = new CommitComment();
-
-        CommitComment.Source source = new CommitComment.Source();
-        source.setSourceCommit(sourceCommit);
-        source.setSourceFilePath(sourceFilePath);
-        source.setSourceLineNumber(sourceLineNumber);
-        comment.setSource(source);
-
-        comment.setCommit(link);
-        comment.setContent(message);
         comment.setTime(new Date());
         comment.setUser(currentUser);
 
         try {
-            commentsDAO.persist(comment);
+            entityManager.persist(comment);
             log.info("Persisted comment: {}", comment);
-            return comment;
         }
         catch (Exception e) {
             throw new ApiError("error.could-not-comment", e);

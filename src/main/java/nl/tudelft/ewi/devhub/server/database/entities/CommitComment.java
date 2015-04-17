@@ -1,27 +1,26 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import java.util.Date;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
-import org.hibernate.validator.constraints.NotEmpty;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 @Data
 @Entity
 @ToString(exclude="commit")
 @Table(name = "commit_comment")
 @EqualsAndHashCode(of="commentId")
-public class CommitComment implements Comparable<CommitComment> {
-	
-	@Id
-	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long commentId;
+public class CommitComment extends Comment {
 
     /**
      * The commit to which this comment is attached.
@@ -66,26 +65,5 @@ public class CommitComment implements Comparable<CommitComment> {
         private String sourceFilePath;
 
     }
-
-	@Lob
-	@NotEmpty
-	@Basic(fetch=FetchType.LAZY)
-	@Column(name = "content")
-	private String content;
-	
-	@NotNull
-	@ManyToOne
-	@JoinColumn(name = "user_id")
-	private User user;
-	
-	@NotNull
-	@Column(name="time")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date time;
-
-	@Override
-	public int compareTo(CommitComment o) {
-		return time.compareTo(o.time);
-	}
 	
 }

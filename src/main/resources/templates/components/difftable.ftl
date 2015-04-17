@@ -21,6 +21,7 @@
                                         </div>
                                     </div>
                                 [/#list]
+                                    <button class="btn btn-default btn-add-line-comment">Add comment</button>
                             </td>
                         </tr>
                         [/#if]
@@ -72,6 +73,7 @@
         }
 
         function createCommentForm(commentBlock, diffData, lineData) {
+            $('.btn-add-line-comment', commentBlock).remove();
             $('<div class="panel panel-default" id="comment-form">' +
             '<div class="panel-heading">Add a comment</div>' +
             '<div class="panel-body">' +
@@ -95,6 +97,7 @@
                         }
                         else {
                             row.find("#comment-form").remove();
+                            addBtnAddLineComment(row);
                         }
                     });
         }
@@ -115,6 +118,25 @@
         $(".btn-comment").click(function() {
             var currentRow = $(this).closest("tr");
             getCommentBlockWithInput(currentRow);
+        });
+
+        function addBtnAddLineComment(commentBlock) {
+            var td = commentBlock.find('td');
+            $('<button class="btn btn-default btn-add-line-comment">Add comment</button>')
+                .appendTo(td)
+                .click(function() {
+                    var $this = $(this);
+                    var currentRow = $this.closest("tr").prev("tr");
+                    getCommentBlockWithInput(currentRow);
+                    $this.remove();
+                });
+        }
+
+        $('.btn-add-line-comment').click(function() {
+            var $this = $(this);
+            var currentRow = $this.closest("tr").prev("tr");
+            getCommentBlockWithInput(currentRow);
+            $this.remove();
         });
 
     });

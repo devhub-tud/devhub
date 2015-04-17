@@ -40,7 +40,7 @@
     </span>
 
     <div class="headers" style="display: inline-block;">
-        <h2 class="header">${commit.getMessage()}</h2>
+        <h2 class="header">${commit.getTitle()}</h2>
         <h5 class="subheader">${commit.getAuthor()}</h5>
     [#if commit.getMessage()?has_content]
         <div class="description">${commit.getMessage()}</div>
@@ -48,6 +48,8 @@
     </div>
 </div>
 
+    <div class="pull-feed">
+        <div class="timeline"></div>
 [#if events?? && events?has_content]
     [#list events as event]
         [#if event.isCommitEvent()]
@@ -61,19 +63,34 @@
                 </li>
             </ul>
         [#elseif event.isCommentContextEvent()]
+            <div class="indent">
             [#if event.comments?? && event.comments?has_content && event.diffBlameFile?? && event.diffBlameFile?has_content]
                 [#-- [@difftable.diffTable event.diffBlameFile event.diffBlameFile 0 commit/] --]
                 [@diffbox.diffbox event.diffBlameFile 0][/@diffbox.diffbox]
-
                 [#list event.comments as comment]
+                    [#assign a = comment]
                     [@commentElement.renderComment comment][/@commentElement.renderComment]
                 [/#list]
             [/#if]
-
+            </div>
+        [#elseif event.isCommentEvent()]
+            [@commentElement.renderComment event.comment][/@commentElement.renderComment]
         [/#if]
     [/#list]
 [/#if]
 
+    </div>
+
+    <div class="panel panel-default" style="position: relative">
+        <div class="panel-heading">Add a comment</div>
+        <div class="panel-body">
+            <form class="form-horizontal" id="pull-comment-form" >
+                <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="button" class="btn btn-default" id="btn-cancel">Cancel</button>
+            </form>
+        </div>
+    </div>
 
     <div class="panel panel-default">
         <div class="panel-body">
@@ -114,6 +131,27 @@
 [@macros.renderScripts /]
 [@diffbox.renderScripts/]
 [@difftable.renderScripts/]
+
+<script>
+    $(function() {
+        $('#pull-comment-form').submit(function(event) {
+            $.post('/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/comment',
+            $('[name="content"]', '#pull-comment-form').val()).done(function(res) {
+                // Add comment block
+                $('<div class="panel panel-default panel-comment">' +
+                '<div class="panel-heading"><strong>' + res.name + '</strong> on ' + res.date + '</div>'+
+                    '<div class="panel-body">'+
+                        '<p>' + res.content + '</p>'+
+                    '</div>'+
+                '</div>').appendTo('.pull-feed');
+                // Clear input
+                $('[name="content"]', '#pull-comment-form').val('');
+            });
+            event.preventDefault();
+        });
+    });
+</script>
+
 <script type="text/javascript">
 $(function() {
     $('#btn-merge').click(function() {

@@ -20,14 +20,17 @@ import nl.tudelft.ewi.devhub.server.backend.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
+import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
 import nl.tudelft.ewi.devhub.server.web.models.PullCloseResponse;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -68,6 +71,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -95,6 +99,7 @@ public class ProjectResource extends Resource {
 	private final GitServerClient gitClient;
 	private final CommitComments comments;
 	private final CommentMailer commentMailer;
+	private final PullRequestComments pullRequestComments;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
@@ -109,7 +114,8 @@ public class ProjectResource extends Resource {
 			final GitServerClient gitClient,
 			final CommitComments comments,
 			final CommentMailer commentMailer,
-            final Config config) {
+            final Config config,
+			final PullRequestComments pullRequestComments) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
@@ -124,6 +130,7 @@ public class ProjectResource extends Resource {
 		this.comments = comments;
 		this.commentMailer = commentMailer;
         this.config = config;
+		this.pullRequestComments = pullRequestComments;
 	}
 
 	@GET
@@ -248,6 +255,30 @@ public class ProjectResource extends Resource {
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-pull.ftl", locales, parameters));
+	}
+
+	@POST
+	@Transactional
+	@Path("/pull/{pullId}/comment")
+	@Produces(MediaType.APPLICATION_JSON)
+	public CommentResponse commentOnPullRequest(@Context HttpServletRequest request,
+												@PathParam("pullId") long pullId,
+												String content) {
+
+		PullRequest pullRequest = pullRequests.findById(group, pullId);
+		PullRequestComment comment = new PullRequestComment();
+
+		comment.setContent(content);
+		comment.setPullRequest(pullRequest);
+		comment.setUser(currentUser);
+		comment.setTime(new Date());
+		pullRequestComments.persist(comment);
+
+		CommentResponse response = new CommentResponse();
+		response.setContent(content);
+		response.setName(currentUser.getName());
+		response.setDate(comment.getTime().toString());
+		return response;
 	}
 
     @GET

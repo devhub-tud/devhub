@@ -314,12 +314,16 @@ public class ProjectResource extends Resource {
 			throw new IllegalStateException("Cannot remove branch if pull request is still open");
 		}
 
-		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
-		branch.delete();
-		log.debug("Deleted branch {}", pullRequest.getBranchName());
-
 		DeleteBranchResponse response = new DeleteBranchResponse();
-		response.setClosed(true);
+		String branchName = pullRequest.getBranchName();
+
+		if(!pullRequests.openPullRequestExists(group, branchName)) {
+			nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(branchName);
+			branch.delete();
+			log.debug("Deleted branch {}", pullRequest.getBranchName());
+			response.setClosed(true);
+		}
+
 		return response;
 	}
 

@@ -2,6 +2,7 @@
 [#import "components/difftable.ftl" as difftable]
 [#import "components/diffbox.ftl" as diffbox]
 [#import "components/comment.ftl" as commentElement]
+[#import "components/inline-comments.ftl" as inlineComments]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -66,10 +67,12 @@
             <div class="indent">
             [#if event.comments?? && event.comments?has_content && event.diffBlameFile?? && event.diffBlameFile?has_content]
                 [@diffbox.diffbox event.diffBlameFile 0][/@diffbox.diffbox]
+                <div class="comment-block">
                 [#list event.comments as comment]
                     [#assign a = comment]
                     [@commentElement.renderComment comment][/@commentElement.renderComment]
                 [/#list]
+                </div>
             [/#if]
             </div>
         [#elseif event.isCommentEvent()]
@@ -80,13 +83,12 @@
 
     </div>
 
-    <div class="panel panel-default" style="position: relative">
+    <div class="panel panel-default panel-comment-form" style="position: relative">
         <div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
         <div class="panel-body">
             <form class="form-horizontal" id="pull-comment-form" >
                 <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
                 <button type="submit" class="btn btn-primary">${i18n.translate("button.label.submit")}</button>
-                <button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>
             </form>
         </div>
     </div>
@@ -129,7 +131,7 @@
 
 [@macros.renderScripts /]
 [@diffbox.renderScripts/]
-[@difftable.renderScripts/]
+[@inlineComments.renderScripts group i18n commit/]
 
 <script>
     $(function() {

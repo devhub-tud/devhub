@@ -717,8 +717,11 @@ code {
   text-align: center;
 }
 
-.btn-add-line-comment {
-  margin-left:20px !important;
+.diffs .panel-comment + button {
+  margin-left: 20px !important;
+}
+
+.panel-comment + button {
   margin-top: -10px !important;
   margin-bottom: 10px !important;
 }
@@ -727,6 +730,13 @@ code {
   p {
 	white-space: pre;
 	margin: 0;
+  }
+}
+
+.panel-comment-form {
+  button {
+	margin-top: 10px;
+	margin-right: 10px;
   }
 }
 
@@ -763,7 +773,7 @@ code {
   }
 
   .indent {
-	& .panel-comment, & .diff.box {
+	& .diff.box, & .comment-block > * {
 	  margin-left: 30px;
 	}
   }

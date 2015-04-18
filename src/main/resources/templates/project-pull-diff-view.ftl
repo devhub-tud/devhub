@@ -2,6 +2,7 @@
 [#import "components/difftable.ftl" as difftable]
 [#import "components/diffbox.ftl" as diffbox]
 [#import "components/comment.ftl" as commentElement]
+[#import "components/inline-comments.ftl" as inlineComments]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -115,5 +116,5 @@
     </script>
 
 [@diffbox.renderScripts/]
-[@difftable.renderScripts/]
+[@inlineComments.renderScripts group i18n commit/]
 [@macros.renderFooter /]

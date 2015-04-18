@@ -2,6 +2,7 @@
 [#import "components/difftable.ftl" as difftable]
 [#import "components/diffbox.ftl" as diffbox]
 [#import "components/comment.ftl" as commentElement]
+[#import "components/inline-comments.ftl" as inlineComments]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -25,7 +26,7 @@
     [/#if]
         </div>
 
-        <div class="panel panel-default">
+        <div class="panel panel-default panel-comment-form">
             <div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
             <div class="panel-body">
                 <form class="form-horizontal" id="pull-comment-form" >
@@ -39,7 +40,7 @@
 		</div>
 
 [@macros.renderScripts /]
-
+[@inlineComments.renderScripts group i18n commit/]
 
 <script>
     $(function() {
@@ -66,5 +67,4 @@
 </script>
 
 [@diffbox.renderScripts/]
-[@difftable.renderScripts/]
 [@macros.renderFooter /]

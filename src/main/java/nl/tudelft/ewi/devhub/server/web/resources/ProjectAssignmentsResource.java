@@ -7,7 +7,6 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
-import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
@@ -54,10 +53,6 @@ public class ProjectAssignmentsResource extends Resource {
     private final User currentUser;
     private final BuildResults buildResults;
     private final Group group;
-    private final Commits commits;
-    private final CommitComments commitComments;
-    private final PullRequests pullRequests;
-    private final CommentBackend commentBackend;
     private final GitServerClient gitClient;
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
@@ -68,11 +63,7 @@ public class ProjectAssignmentsResource extends Resource {
     public ProjectAssignmentsResource(final TemplateEngine templateEngine,
                                       final @Named("current.user") User currentUser,
                                       final @Named("current.group") Group group,
-                                      final Commits commits,
-                                      final CommentBackend commentBackend,
-                                      final CommitComments commitComments,
                                       final BuildResults buildResults,
-                                      final PullRequests pullRequests,
                                       final Deliveries deliveries,
                                       final GitServerClient gitClient,
                                       final DeliveriesBackend deliveriesBackend,
@@ -82,11 +73,7 @@ public class ProjectAssignmentsResource extends Resource {
         this.templateEngine = templateEngine;
         this.group = group;
         this.currentUser = currentUser;
-        this.commits = commits;
-        this.commitComments = commitComments;
-        this.commentBackend = commentBackend;
         this.buildResults = buildResults;
-        this.pullRequests = pullRequests;
         this.deliveries = deliveries;
         this.gitClient = gitClient;
         this.deliveriesBackend = deliveriesBackend;

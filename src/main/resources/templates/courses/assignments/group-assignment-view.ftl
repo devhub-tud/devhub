@@ -144,11 +144,12 @@
                         <div class="form-group">
                             <label for="commit-id">Commit</label>
                             <select class="form-control" name="commit-id" id="commit-id">
-                                <option value="">No commit</option>
                     [#if recentCommits?? && recentCommits?has_content]
                         [#list recentCommits as commit]
                                 <option value="${commit.getCommit()}">${commit.getMessage()} (${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]})</option>
                         [/#list]
+                    [#else]
+                                <option value="">No commit</option>
                     [/#if]
                             </select>
                         </div>

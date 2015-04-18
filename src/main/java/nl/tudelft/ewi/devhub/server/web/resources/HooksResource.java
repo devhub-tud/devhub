@@ -25,10 +25,13 @@ import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
+import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
@@ -59,10 +62,12 @@ public class HooksResource extends Resource {
 	private final BuildResults buildResults;
 	private final Groups groups;
 	private final BuildResultMailer mailer;
+	private final PullRequests pullRequests;
+	private final PullRequestBackend pullRequestBackend;
 
 	@Inject
 	HooksResource(Config config, BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
-			Groups groups, BuildResultMailer mailer) {
+			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend) {
 
 		this.config = config;
 		this.buildBackend = buildBackend;
@@ -70,6 +75,8 @@ public class HooksResource extends Resource {
 		this.buildResults = buildResults;
 		this.groups = groups;
 		this.mailer = mailer;
+		this.pullRequests = pullRequests;
+		this.pullRequestBackend = pullRequestBackend;
 	}
 
 	@POST
@@ -116,6 +123,11 @@ public class HooksResource extends Resource {
 
 			buildBackend.offerBuild(buildRequest);
 			buildResults.persist(BuildResult.newBuildResult(group, commitId));
+
+			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
+			if(pullRequest != null) {
+				pullRequestBackend.updatePullRequest(repository, pullRequest);
+			}
 		}
 	}
 

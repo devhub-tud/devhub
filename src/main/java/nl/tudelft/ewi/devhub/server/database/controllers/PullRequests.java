@@ -4,6 +4,7 @@ import javax.persistence.EntityManager;
 
 import com.google.inject.Inject;
 
+import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.QPullRequest;
@@ -98,6 +99,7 @@ public class PullRequests extends Controller<PullRequest> {
 	}
 
 	@Override
+	@Transactional
 	public PullRequest persist(PullRequest entity) {
 		Group group = entity.getGroup();
 		entity.setIssueId(getNextPullRequestNumber(group));

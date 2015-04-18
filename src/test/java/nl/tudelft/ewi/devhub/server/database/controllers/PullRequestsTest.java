@@ -1,20 +1,18 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import java.util.Random;
-
+import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.inject.Inject;
+import java.util.Random;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
@@ -34,7 +32,10 @@ public class PullRequestsTest {
 	
 	@Inject
 	private PullRequests pullRequests;
-	
+
+	private final static String COMMIT_A = "65191cfaca61fe538612122151a7297e34f01178";
+	private final static String COMMIT_B = "55c4656b98bf694c288918a82c8193eb83a33353";
+
 	@Test
 	public void testCreatePullRequest() {
 		Group group = createGroup();
@@ -42,6 +43,9 @@ public class PullRequestsTest {
 		pr.setGroup(group);
 		pr.setBranchName("super-branch");
 		pr.setOpen(true);
+		pr.setDestination(COMMIT_A);
+		pr.setMergeBase(COMMIT_B);
+
 		pullRequests.persist(pr);
 		pullRequestEquals(pr, pullRequests.findOpenPullRequest(group, "super-branch"));
 	}

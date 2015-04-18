@@ -8,6 +8,7 @@ import com.google.inject.persist.Transactional;
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.entities.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
@@ -195,9 +196,9 @@ public class PullRequestBackend {
     @Data
     public static class CommentEvent extends Event {
 
-        private final PullRequestComment comment;
+        private final Comment comment;
 
-        public CommentEvent(PullRequestComment comment) {
+        public CommentEvent(Comment comment) {
             super(EventType.COMMENT);
             this.comment = comment;
         }
@@ -233,20 +234,29 @@ public class PullRequestBackend {
         private final DiffBlameModel diffModel;
         private final List<CommitComment> inlineComments;
         private final PullRequest pullRequest;
+        private final List<String> commitIds;
 
         public EventResolver(PullRequest pullRequest, DiffBlameModel diffModel) {
             this.diffModel = diffModel;
             this.pullRequest = pullRequest;
-            List<String> commitIds = Lists.transform(diffModel.getCommits(), CommitModel::getCommit);
-            this.inlineComments = commentsDAO.getCommentsFor(group, commitIds);
+            this.commitIds = Lists.transform(diffModel.getCommits(), CommitModel::getCommit);
+            this.inlineComments = commentsDAO.getInlineCommentsFor(group, commitIds);
         }
 
         public SortedSet<Event> getEvents() {
             SortedSet<Event> result = Sets.newTreeSet();
             result.addAll(getCommitEvents());
             result.addAll(getCommentEvents());
+            result.addAll(getCommentsForCommits());
             result.addAll(getInlineCommentEvents());
             return result;
+        }
+
+        private Collection<CommentEvent> getCommentsForCommits() {
+            return commentsDAO.getCommentsFor(group, commitIds)
+                    .stream()
+                    .map(CommentEvent::new)
+                    .collect(Collectors.toList());
         }
 
         private Collection<CommentEvent> getCommentEvents() {

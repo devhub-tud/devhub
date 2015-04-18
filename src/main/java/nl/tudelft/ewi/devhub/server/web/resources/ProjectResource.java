@@ -26,6 +26,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
@@ -162,14 +163,15 @@ public class ProjectResource extends Resource {
     @Transactional
     @Path("/comment")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response commentOnPull(@Context HttpServletRequest request,
-								  @NotEmpty @FormParam("link-commit") String linkCommitId,
-								  @NotEmpty @FormParam("source-commit") String sourceCommitId,
-								  @FormParam("source-line-number") Integer sourceLineNumber,
-								  @NotEmpty @FormParam("source-file-name") String sourceFileName,
-								  @NotEmpty @FormParam("content") String message,
-								  @NotEmpty @FormParam("redirect") String redirect)
-			throws IOException, ApiError {
+	@Produces(MediaType.APPLICATION_JSON)
+    public CommentResponse commentOnPull(@Context HttpServletRequest request,
+										 @NotEmpty @FormParam("link-commit") String linkCommitId,
+										 @NotEmpty @FormParam("content") String message,
+										 @NotEmpty @FormParam("redirect") String redirect,
+										 @FormParam("source-commit") String sourceCommitId,
+										 @FormParam("source-line-number") Integer sourceLineNumber,
+										 @FormParam("source-file-name") String sourceFileName)
+		throws IOException, ApiError {
 
 		CommitComment comment = new CommitComment();
 		comment.setContent(message);
@@ -177,16 +179,25 @@ public class ProjectResource extends Resource {
 		comment.setTime(new Date());
 		comment.setUser(currentUser);
 
-		CommitComment.Source source = new CommitComment.Source();
-		source.setSourceCommit(commits.ensureExists(group, sourceCommitId));
-		source.setSourceFilePath(sourceFileName);
-		source.setSourceLineNumber(sourceLineNumber);
-		comment.setSource(source);
+		if(sourceCommitId != null) {
+			// In-line comment
+			CommitComment.Source source = new CommitComment.Source();
+			source.setSourceCommit(commits.ensureExists(group, sourceCommitId));
+			source.setSourceFilePath(sourceFileName);
+			source.setSourceLineNumber(sourceLineNumber);
+			comment.setSource(source);
+		}
 
 		comments.persist(comment);
 		commentMailer.sendCommentMail(comment, redirect);
 
-        return Response.seeOther(URI.create(redirect)).build();
+		CommentResponse response = new CommentResponse();
+		response.setContent(message);
+		response.setDate(comment.getTime().toString());
+		response.setName(currentUser.getName());
+		response.setCommentId(comment.getCommentId());
+
+		return response;
     }
 
 	@GET
@@ -293,6 +304,7 @@ public class ProjectResource extends Resource {
 		parameters.put("commit", commit);
 		parameters.put("repository", repository);
 		parameters.put("diffViewModel", diffBlameModel);
+		parameters.put("comments", comments.getCommentsFor(group, commitId));
 		parameters.put("commentChecker", commentBackend.getCommentChecker(Lists.newArrayList(commitId)));
 		parameters.put("states", new CommitChecker(group, buildResults));
 

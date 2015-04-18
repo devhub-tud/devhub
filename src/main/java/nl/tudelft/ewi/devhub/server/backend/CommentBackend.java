@@ -83,7 +83,7 @@ public class CommentBackend {
         public final List<CommitComment> comments;
 
         public CommentChecker(List<String> commitIds) {
-            comments = commentsDAO.getCommentsFor(group, commitIds);
+            comments = commentsDAO.getInlineCommentsFor(group, commitIds);
         }
 
         /**

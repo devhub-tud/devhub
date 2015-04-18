@@ -194,6 +194,7 @@ public class ProjectPullResource extends Resource {
         response.setContent(content);
         response.setName(currentUser.getName());
         response.setDate(comment.getTime().toString());
+        response.setCommentId(comment.getCommentId());
 
         String redirect = String.format("/courses/%s/groups/%d/pull/%d",
                 group.getCourse().getCode(),

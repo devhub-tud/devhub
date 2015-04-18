@@ -157,7 +157,7 @@ public class ProjectPullResource extends Resource {
         parameters.put("group", group);
         parameters.put("commit", commit);
         parameters.put("pullRequest", pullRequest);
-        parameters.put("events", pullRequestBackend.getEventsForPullRequest(repository, pullRequest));
+        parameters.put("events", pullRequestBackend.getEventsForPullRequest(group, repository, pullRequest));
         parameters.put("repository", repository);
         parameters.put("states", new CommitChecker(group, buildResults));
 

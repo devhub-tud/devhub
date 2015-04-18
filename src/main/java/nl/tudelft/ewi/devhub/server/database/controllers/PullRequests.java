@@ -98,11 +98,4 @@ public class PullRequests extends Controller<PullRequest> {
 		return val == null ? 1l : val.longValue() + 1;
 	}
 
-	@Override
-	@Transactional
-	public PullRequest persist(PullRequest entity) {
-		Group group = entity.getGroup();
-		entity.setIssueId(getNextPullRequestNumber(group));
-		return super.persist(entity);
-	}
 }

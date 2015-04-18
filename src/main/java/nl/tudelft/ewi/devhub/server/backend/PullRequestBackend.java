@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.Comment;
@@ -34,15 +35,12 @@ public class PullRequestBackend {
 
     private final PullRequests pullRequests;
     private final CommitComments commentsDAO;
-    private final Group group;
 
     @Inject
     public PullRequestBackend(final CommitComments commentsDAO,
-                              final PullRequests pullRequests,
-                              final @Named("current.group") Group group) {
+                              final PullRequests pullRequests) {
         this.commentsDAO = commentsDAO;
         this.pullRequests = pullRequests;
-        this.group = group;
     }
 
     /**
@@ -54,6 +52,7 @@ public class PullRequestBackend {
     @Transactional
     public void createPullRequest(Repository repository, PullRequest pullRequest) throws GitClientException {
         updateCommitPointers(repository, pullRequest);
+        pullRequest.setIssueId(pullRequests.getNextPullRequestNumber(pullRequest.getGroup()));
         pullRequests.persist(pullRequest);
     }
 
@@ -132,9 +131,9 @@ public class PullRequestBackend {
      * @return a List of events
      * @throws GitClientException if a GitClientException occurs
      */
-    public SortedSet<Event> getEventsForPullRequest(Repository repository, PullRequest pullRequest) throws GitClientException {
+    public SortedSet<Event> getEventsForPullRequest(Group group, Repository repository, PullRequest pullRequest) throws GitClientException {
         DiffBlameModel diffBlameModel = getDiffBlameModelForPull(pullRequest, repository);
-        return new EventResolver(pullRequest, diffBlameModel).getEvents();
+        return new EventResolver(pullRequest, diffBlameModel, group).getEvents();
     }
 
     private static DiffBlameModel getDiffBlameModelForPull(PullRequest pullRequest, Repository repository) throws GitClientException {
@@ -178,6 +177,7 @@ public class PullRequestBackend {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper = true)
     public static class CommitEvent extends Event {
 
         private final CommitModel commit;
@@ -194,6 +194,7 @@ public class PullRequestBackend {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper = true)
     public static class CommentEvent extends Event {
 
         private final Comment comment;
@@ -211,6 +212,7 @@ public class PullRequestBackend {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper = true)
     public static class CommentContextEvent extends Event {
 
         private final SortedSet<CommitComment> comments;
@@ -235,12 +237,14 @@ public class PullRequestBackend {
         private final List<CommitComment> inlineComments;
         private final PullRequest pullRequest;
         private final List<String> commitIds;
+        private final Group group;
 
-        public EventResolver(PullRequest pullRequest, DiffBlameModel diffModel) {
+        public EventResolver(PullRequest pullRequest, DiffBlameModel diffModel, Group group) {
             this.diffModel = diffModel;
             this.pullRequest = pullRequest;
             this.commitIds = Lists.transform(diffModel.getCommits(), CommitModel::getCommit);
             this.inlineComments = commentsDAO.getInlineCommentsFor(group, commitIds);
+            this.group = group;
         }
 
         public SortedSet<Event> getEvents() {

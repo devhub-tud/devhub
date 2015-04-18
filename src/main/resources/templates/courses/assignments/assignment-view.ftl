@@ -85,6 +85,10 @@
         </tr>
     [/#if]
     </table>
+    
+    <div>
+        <a href="/courses/${group.course.code}/assignments/${assignment.getAssignmentId()}/deliveries/download" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
+    </div>
 
 </div>
 [@macros.renderScripts /]

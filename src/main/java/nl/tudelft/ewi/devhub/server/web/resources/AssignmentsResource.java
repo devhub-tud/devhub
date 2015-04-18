@@ -25,6 +25,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -187,6 +188,57 @@ public class AssignmentsResource extends Resource {
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/assignment-view.ftl", locales, parameters));
     }
+
+    private final static String TEXT_CSV = "text/csv";
+
+    /**
+     * Download the grades for this assignment
+     * @param request the current HttpServletRequest
+     * @param courseCode the course to create an assignment for
+     * @param assignmentId the assignment id
+     * @return a CSV file with the most recent deliveries
+     */
+    @GET
+    @Transactional
+    @Produces(TEXT_CSV)
+    @Path("{assignmentId : \\d+}/deliveries/download")
+    public String downloadAssignmentResults(@Context HttpServletRequest request,
+                                            @PathParam("courseCode") String courseCode,
+                                            @PathParam("assignmentId") Long assignmentId) throws IOException {
+
+        Course course = courses.find(courseCode);
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("AssignmentNo;NetId;Name;State;Grade;Commentary;").append('\n');
+
+        deliveriesDAO.getLastDeliveries(assignment).forEach(delivery -> {
+            User user = delivery.getCreatedUser();
+            Delivery.Review review = delivery.getReview();
+
+            sb.append(assignment.getAssignmentId()).append(';');
+            sb.append(user.getNetId()).append(';');
+            sb.append(user.getName()).append(';');
+            //TODO Student number
+
+            if(review != null) {
+                sb.append(review.getState()).append(';');
+                sb.append(review.getGrade()).append(';');
+                sb.append(review.getCommentary()).append(';');
+            }
+            else {
+                sb.append("SUBMITTED;").append(';').append(';');
+            }
+
+            sb.append('\n');
+        });
+
+        return sb.toString();
+    }
+
 
     /**
      * An edit page page for an assignment

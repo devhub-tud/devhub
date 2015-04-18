@@ -11,17 +11,17 @@
         <ul class="nav nav-pills nav-stacked">
             <li role="presentation" [#if currentTab == "commits"]class="active"[/#if]>
                 <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}">
-                    Commits
+                    ${i18n.translate("section.commits")}
                 </a>
             </li>
             <li role="presentation" [#if currentTab == "pull-requests"]class="active"[/#if]>
                 <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/pulls">
-                    Pull requests
+                    ${i18n.translate("section.pull-requests")}
                 </a>
             </li>
             <li role="presentation" [#if currentTab == "assignments"]class="active"[/#if]>
                 <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments">
-                    Assignments
+                    ${i18n.translate("section.assignments")}
                 </a>
             </li>
         </ul>
@@ -30,7 +30,7 @@
         [#if repository?? && repository?has_content]
             <input class="well well-sm" style="width: 100%;" value="git clone ${repository.getUrl()}" readonly></input>
         [#else]
-            <input class="well well-sm" style="width: 100%;" value="Could not connect to the Git server!" readonly></input>
+            <input class="well well-sm" style="width: 100%;" value="${i18n.translate("error.could-not-connect-git-server")}" readonly></input>
         [/#if]
     </div>
 [/#macro]

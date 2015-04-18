@@ -10,7 +10,7 @@
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-            <h4 style="line-height:34px; margin-top:0;">Pull requests</h4>
+            <h4 style="line-height:34px; margin-top:0;">${i18n.translate("pull-request.title")}</h4>
         </div>
     </div>
 
@@ -39,7 +39,7 @@
                 [#else]
                 <tr>
                     <td class="muted">
-                        No unmerged pull requests in this repository.
+                        ${i18n.translate("pull-request.no-open-requests")}
                     </td>
                 </tr>
                 [/#if]
@@ -68,7 +68,7 @@
                 [#else]
                 <tr>
                     <td class="muted">
-                        No unmerged pull requests in this repository.
+                        ${i18n.translate("pull-request.no-closed-requests")}
                     </td>
                 </tr>
                 [/#if]

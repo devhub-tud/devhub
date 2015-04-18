@@ -4,10 +4,10 @@
 <div class="container">
 
 [#if course?exists]
-    <h2>Editing course: ${course.getName()}</h2>
+    <h2>${i18n.translate("course.edit.title", course.name)}</h2>
     <form class="form-horizontal" method="POST" target="_self">
 [#else]
-    <h2>Create a new course</h2>
+    <h2>${i18n.translate("course.create.title")}</h2>
     <form class="form-horizontal" method="POST" target="_self">
 [/#if]
         [#if error?? && error?has_content]

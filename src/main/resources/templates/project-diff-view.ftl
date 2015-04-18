@@ -7,7 +7,7 @@
 [@macros.renderMenu i18n user /]
 		<div class="container">
 
-    [@macros.renderCommitHeader i18n group commit "View diff" /]
+    [@macros.renderCommitHeader i18n group commit i18n.translate("commit.view-diff")/]
 
     [#if diffViewModel?? && diffViewModel?has_content]
         [#list diffViewModel.diffs as diffModel]
@@ -26,12 +26,12 @@
         </div>
 
         <div class="panel panel-default">
-            <div class="panel-heading">Add a comment</div>
+            <div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
             <div class="panel-body">
                 <form class="form-horizontal" id="pull-comment-form" >
                     <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                    <button type="button" class="btn btn-default" id="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">${i18n.translate("button.label.submit")}</button>
+                    <button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>
                 </form>
             </div>
         </div>

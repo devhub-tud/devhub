@@ -19,13 +19,13 @@
 [#if branch?? && branch.isAhead() ]
     <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
         [#if pullRequest??]
-            <span>Hey! There is an open pull request for this branch. Want to go to the pull request?</span>
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.getIssueId()}" class="btn btn-default pull-right">Go to Pull Request</a>
+            <span>${i18n.translate("group.branch.pull-request-message")}</span>
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.getIssueId()}" class="btn btn-default pull-right">${i18n.translate("group.branch.go-to-pull-request")}</a>
         [#else]
             <form method="POST" action="/courses/${group.course.code}/groups/${group.groupNumber}/pull" target="_self">
-                <span>Hey! It seems you're branch is ahead of the master. Want to merge?</span>
+                <span>${i18n.translate("group.branch.ahead-message")}</span>
                 <input type="hidden" name="branchName" value="${branch.getName()}"/>
-                <button type="submit" class="btn btn-default pull-right">Create Pull Request</button>
+                <button type="submit" class="btn btn-default pull-right">${i18n.translate("group.branch.create-pull-request")}</button>
             </form>
         [/#if]
     </div>
@@ -38,7 +38,7 @@
                 <button type="button" class="btn btn-default">
                     <span class="octicon octicon-git-branch"></span>
                     <span class="text-muted">${i18n.translate("branch.current")}:</span>
-                ${branch.getSimpleName()}
+                    ${branch.getSimpleName()}
                     [#if branch.isAhead() || branch.isBehind() ]
                         <span class="text-success octicon octicon-arrow-up"></span>
                         <span class="text-muted">${branch.getAhead()}</span>
@@ -96,14 +96,14 @@
                     [#else]
                     <tr>
                         <td class="muted">
-                            There are no commits in this repository yet!
+                            ${i18n.translate("group.no-commits")}
                         </td>
                     </tr>
                     [/#if]
                 [#else]
                 <tr>
                     <td class="muted">
-                        Could not connect to the Git server!
+                        ${i18n.translate("error.could-not-connect-git-server")}
                     </td>
                 </tr>
                 [/#if]
@@ -120,7 +120,7 @@
         [/#function]
 
         [#if branch?? && branch?has_content && pagination?? ]
-            [#assign pageCount = pagination.getPageCount() ]
+            [#assign pageCount = max(pagination.getPageCount(), 1)]
             [#assign currentPage = pagination.getPage() ]
             <div class="text-center">
                 <ul class="pagination pagination-lg">

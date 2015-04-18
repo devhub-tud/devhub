@@ -6,20 +6,20 @@
                 [#if states.hasSucceeded(commitId)]
                 <td class="commit succeeded" id="${commitId}">
                     <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
-                        <span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
+                        <span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>
                     </a>
                     [#if href?? && href?has_content]<a href="${href}">[/#if]
                 [#else]
                 <td class="commit failed" id="${commitId}">
                     <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
-                        <span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
+                        <span class="state glyphicon glyphicon-remove-circle" title="${i18n.translate("build.state.failed")}"></span>
                     </a>
                     [#if href?? && href?has_content]<a href="${href}">[/#if]
                 [/#if]
             [#else]
             <td class="commit running" id="${commitId}">
                 [#if href?? && href?has_content]<a href="${href}">[/#if]
-                <span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
+                <span class="state glyphicon glyphicon-align-justify" title="${i18n.translate("build.state.queued")}"></span>
             [/#if]
         [#else]
         <td class="commit ignored" id="${commitId}">

@@ -107,14 +107,14 @@
 		[#if states.hasFinished(commit.getCommit())]
 			[#if states.hasSucceeded(commit.getCommit())]
 			<div class="commit succeeded">
-				<span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
+				<span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>
 			[#else]
 			<div class="commit failed">
-				<span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
+				<span class="state glyphicon glyphicon-remove-circle" title="${i18n.translate("build.state.failed")}"></span>
 			[/#if]
 		[#else]
 			<div class="commit running">
-				<span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
+				<span class="state glyphicon glyphicon-align-justify" title="${i18n.translate("build.state.queued")}"></span>
 		[/#if]
 	[#else]
 			<div class="commit ignored">

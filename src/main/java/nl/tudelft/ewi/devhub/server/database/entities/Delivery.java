@@ -10,7 +10,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by jgmeligmeyling on 04/03/15.
+ * Delivery for an assignment
+ * @author Jan-Willem Gmelig Meyling
  */
 @Data
 @Entity
@@ -18,20 +19,36 @@ import java.util.List;
 @EqualsAndHashCode(of={"assignment", "group"})
 public class Delivery implements Comparable<Delivery> {
 
+    /**
+     * The State for the Delivery
+     * @author Jan-Willem Gmelig Meyling
+     */
     public enum State {
-        SUBMITTED("delivery.state.submitted"),
-        REJECTED("delivery.state.rejected"),
-        APPROVED("delivery.state.approved"),
-        DISAPPROVED("delivery.state.disapproved");
+        SUBMITTED("delivery.state.submitted", "info"),
+        REJECTED("delivery.state.rejected", "warning"),
+        APPROVED("delivery.state.approved", "success"),
+        DISAPPROVED("delivery.state.disapproved", "danger");
 
         private final String translationKey;
+        private final String style;
 
-        private State(String translationKey) {
+        State(String translationKey, String style) {
             this.translationKey = translationKey;
+            this.style = style;
         }
 
+        /**
+         * @return the translation key for the state
+         */
         public String getTranslationKey() {
-            return this.translationKey;
+            return translationKey;
+        }
+
+        /**
+         * @return the style for this state
+         */
+        public String getStyle() {
+            return style;
         }
     }
 

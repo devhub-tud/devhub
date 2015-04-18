@@ -2,9 +2,9 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n group commit "View build log" /]
+[@macros.renderCommitHeader i18n group commit i18n.translate("commit.view-build-log")/]
 [#if states.hasFinished(commit.getCommit())]
-			<h4>Build log</h4>
+			<h4>${i18n.translate("commit.build-log.title")}</h4>
 			<div class="well">
 	[#assign log=states.getLog(commit.getCommit())!""]
 	[#if log?has_content]
@@ -22,7 +22,7 @@
 			[/#if]
 		[/#foreach]
 	[#else]
-				<i>No build log found!</i>
+				<i>${i18n.translate("commit.build-log.not-found")}</i>
 	[/#if]
 			</div>
 [/#if]

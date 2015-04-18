@@ -25,59 +25,19 @@ public class AssignmentStats {
     }
 
     /**
-     * @return the count of groups with a non-reviewed submission
+     * @param state
+     * @return the count for the state
      */
-    public int getSubmittedCount() {
-        return getCountFor(Delivery::isSubmitted);
+    public int getCountFor(Delivery.State state) {
+        return getCountFor(delivery -> delivery.getState().equals(state));
     }
 
     /**
-     * @return the count of groups with a rejected submission
+     * @param state
+     * @return the count for the state
      */
-    public int getRejectedCount() {
-        return getCountFor(Delivery::isRejected);
-    }
-
-    /**
-     * @return the count of groups with a disapproved submission
-     */
-    public int getDisapprovedCount() {
-        return getCountFor(Delivery::isDisapproved);
-    }
-
-    /**
-     * @return the count of groups with a approved submission
-     */
-    public int getApprovedCount() {
-        return getCountFor(Delivery::isApproved);
-    }
-
-    /**
-     * @return the count of groups with a non-reviewed submission
-     */
-    public int getSubmittedPercentage() {
-        return getPercentageFor(Delivery::isSubmitted);
-    }
-
-    /**
-     * @return the percentage of groups with a rejected submission
-     */
-    public int getRejectedPercentage() {
-        return getPercentageFor(Delivery::isRejected);
-    }
-
-    /**
-     * @return the percentage of groups with a disapproved submission 
-     */
-    public int getDisapprovedPercentage() {
-        return getPercentageFor(Delivery::isDisapproved);
-    }
-
-    /**
-     * @return the percentage of groups with an approved percentage
-     */
-    public int getApprovedPercentage() {
-        return getPercentageFor(Delivery::isApproved); 
+    public int getPercentageFor(Delivery.State state) {
+        return getPercentageFor(delivery -> delivery.getState().equals(state));
     }
 
     /**

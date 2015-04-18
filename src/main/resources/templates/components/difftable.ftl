@@ -17,7 +17,7 @@
                                 [#list commentsForThisLine as comment]
                                     [@commentElement.renderComment comment][/@commentElement.renderComment]
                                 [/#list]
-                                    <button class="btn btn-default btn-add-line-comment">Add comment</button>
+                                    <button class="btn btn-default btn-add-line-comment">${i18n.translate("button.label.add-line-note")}</button>
                             </td>
                         </tr>
                         [/#if]
@@ -71,12 +71,12 @@
         function createCommentForm(commentBlock, diffData, lineData) {
             $('.btn-add-line-comment', commentBlock).remove();
             var $form = $('<div class="panel panel-default" id="comment-form">' +
-            '<div class="panel-heading">Add a comment</div>' +
+            '<div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>' +
             '<div class="panel-body">' +
             '<form class="form-horizontal" action="/courses/${group.course.code}/groups/${group.groupNumber}/comment" method="POST">' +
             '<textarea rows="5" class="form-control" name="content"></textarea>' +
-            '<button type="submit" class="btn btn-primary">Submit</button>' +
-            '<button type="button" class="btn btn-default" id="btn-cancel">Cancel</button>' +
+            '<button type="submit" class="btn btn-primary">${i18n.translate("button.label.comment")}</button>' +
+            '<button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>' +
             '</form>' +
             '</div>' +
             '</div>').appendTo(commentBlock)

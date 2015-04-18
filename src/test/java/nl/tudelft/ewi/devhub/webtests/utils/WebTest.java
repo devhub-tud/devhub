@@ -12,7 +12,7 @@ import nl.tudelft.ewi.build.client.MockedBuildServerBackend;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.Bootstrapper;
-import nl.tudelft.ewi.devhub.server.backend.MailBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.MailBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedMailBackend;
 import nl.tudelft.ewi.devhub.webtests.views.LoginView;
@@ -26,12 +26,9 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-import org.mockito.Mockito;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
-
-import static org.mockito.Mockito.*;
 
 public abstract class WebTest {
 

@@ -1,10 +1,9 @@
-package nl.tudelft.ewi.devhub.server.backend;
+package nl.tudelft.ewi.devhub.server.backend.mail;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import nl.tudelft.ewi.devhub.server.backend.MailBackend.Mail;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -50,7 +49,7 @@ public class BuildResultMailer {
 
 			String subject = translator.translate(FAILED_SUBJECT, groupName);
 			String content = translator.translate(FAILED_CONTENT, parameters);
-			backend.sendMail(new Mail(addressee.getEmail(), subject, content));
+			backend.sendMail(new MailBackend.Mail(addressee.getEmail(), subject, content));
 		}
 	}
 

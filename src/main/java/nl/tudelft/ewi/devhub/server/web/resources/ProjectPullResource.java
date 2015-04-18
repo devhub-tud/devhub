@@ -8,8 +8,9 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
-import nl.tudelft.ewi.devhub.server.backend.CommentMailer;
+import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
@@ -71,6 +72,7 @@ public class ProjectPullResource extends Resource {
     private final GitServerClient gitClient;
     private final CommentMailer commentMailer;
     private final PullRequestComments pullRequestComments;
+    private final PullRequestMailer pullRequestMailer;
 
     @Inject
     ProjectPullResource(final TemplateEngine templateEngine,
@@ -82,6 +84,7 @@ public class ProjectPullResource extends Resource {
                     final PullRequestBackend pullRequestBackend,
                     final GitServerClient gitClient,
                     final CommentMailer commentMailer,
+                    final PullRequestMailer pullRequestMailer,
                     final PullRequestComments pullRequestComments) {
 
         this.templateEngine = templateEngine;
@@ -94,6 +97,7 @@ public class ProjectPullResource extends Resource {
         this.gitClient = gitClient;
         this.commentMailer = commentMailer;
         this.pullRequestComments = pullRequestComments;
+        this.pullRequestMailer = pullRequestMailer;
     }
 
     @POST
@@ -116,6 +120,7 @@ public class ProjectPullResource extends Resource {
         pullRequest.setGroup(group);
         pullRequest.setOpen(true);
         pullRequestBackend.createPullRequest(repository, pullRequest);
+        pullRequestMailer.sendReviewMail(pullRequest);
 
         String uri = request.getRequestURI() + "/" + pullRequest.getIssueId();
         return Response.seeOther(URI.create(uri)).build();

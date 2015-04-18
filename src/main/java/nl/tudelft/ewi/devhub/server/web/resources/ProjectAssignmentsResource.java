@@ -9,6 +9,7 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
@@ -61,6 +62,7 @@ public class ProjectAssignmentsResource extends Resource {
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
     private final Assignments assignments;
+    private final ReviewMailer reviewMailer;
 
     @Inject
     public ProjectAssignmentsResource(final TemplateEngine templateEngine,
@@ -74,7 +76,8 @@ public class ProjectAssignmentsResource extends Resource {
                                       final Deliveries deliveries,
                                       final GitServerClient gitClient,
                                       final DeliveriesBackend deliveriesBackend,
-                                      final Assignments assignments) {
+                                      final Assignments assignments,
+                                      final ReviewMailer reviewMailer) {
 
         this.templateEngine = templateEngine;
         this.group = group;
@@ -88,6 +91,7 @@ public class ProjectAssignmentsResource extends Resource {
         this.gitClient = gitClient;
         this.deliveriesBackend = deliveriesBackend;
         this.assignments = assignments;
+        this.reviewMailer = reviewMailer;
     }
 
     /**
@@ -303,6 +307,7 @@ public class ProjectAssignmentsResource extends Resource {
 
         try {
             deliveriesBackend.review(delivery, review);
+            reviewMailer.sendReviewMail(delivery);
         }
         catch (Exception e){
             throw new ApiError("error.could-not-review", e);

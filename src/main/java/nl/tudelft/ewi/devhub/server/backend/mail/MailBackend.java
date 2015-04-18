@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.server.backend;
+package nl.tudelft.ewi.devhub.server.backend.mail;
 
 import lombok.Data;
 import lombok.ToString;

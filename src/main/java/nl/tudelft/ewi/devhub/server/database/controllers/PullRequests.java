@@ -27,11 +27,12 @@ public class PullRequests extends Controller<PullRequest> {
 	 * @param id Issue id
 	 * @return the PullRequest
 	 */
+	@Transactional
 	public PullRequest findById(final Group group, final long id) {
 		return ensureNotNull(query().from(QPullRequest.pullRequest)
-			.where(QPullRequest.pullRequest.issueId.eq(id)
-			.and(QPullRequest.pullRequest.group.eq(group)))
-			.singleResult(QPullRequest.pullRequest), "No pull request exists for id " + id);
+				.where(QPullRequest.pullRequest.issueId.eq(id)
+						.and(QPullRequest.pullRequest.group.eq(group)))
+				.singleResult(QPullRequest.pullRequest), "No pull request exists for id " + id);
 	}
 
 	/**
@@ -40,6 +41,7 @@ public class PullRequests extends Controller<PullRequest> {
 	 * @param branchName the branch name
 	 * @return the PullRequest or null
 	 */
+	@Transactional
 	public PullRequest findOpenPullRequest(final Group group, final String branchName) {
 		return query().from(QPullRequest.pullRequest)
 			.where(QPullRequest.pullRequest.group.eq(group))
@@ -53,6 +55,7 @@ public class PullRequests extends Controller<PullRequest> {
 	 * @param group group
 	 * @return List of all open pull requests
 	 */
+	@Transactional
 	public List<PullRequest> findOpenPullRequests(final Group group) {
 		return query().from(QPullRequest.pullRequest)
 			.where(QPullRequest.pullRequest.group.eq(group))
@@ -65,6 +68,7 @@ public class PullRequests extends Controller<PullRequest> {
 	 * @param group group
 	 * @return List of all closed pull requests
 	 */
+	@Transactional
 	public List<PullRequest> findClosedPullRequests(final Group group) {
 		return query().from(QPullRequest.pullRequest)
 			.where(QPullRequest.pullRequest.group.eq(group))
@@ -78,6 +82,7 @@ public class PullRequests extends Controller<PullRequest> {
 	 * @param branchName the branch name
 	 * @return true if exists
 	 */
+	@Transactional
 	public boolean openPullRequestExists(final Group group, final String branchName) {
 		return query().from(QPullRequest.pullRequest)
 			.where(QPullRequest.pullRequest.group.eq(group))
@@ -90,6 +95,7 @@ public class PullRequests extends Controller<PullRequest> {
 	 * @param group Group
 	 * @return the next pull request number
 	 */
+	@Transactional
 	public long getNextPullRequestNumber(final Group group) {
 		Long val = query().from(QPullRequest.pullRequest)
 			.where(QPullRequest.pullRequest.group.eq(group))

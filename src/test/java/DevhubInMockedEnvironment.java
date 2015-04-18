@@ -1,7 +1,7 @@
 import nl.tudelft.ewi.devhub.server.DevhubServer;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.Bootstrapper;
-import nl.tudelft.ewi.devhub.server.backend.MailBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.MailBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedMailBackend;
 

@@ -1,10 +1,9 @@
-package nl.tudelft.ewi.devhub.server.backend;
+package nl.tudelft.ewi.devhub.server.backend.mail;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.backend.MailBackend.Mail;
 import nl.tudelft.ewi.devhub.server.database.entities.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -71,7 +70,7 @@ public class CommentMailer {
 				Object[] parameters = new Object[]{userName, commenterName, groupName, message, url};
 				String subject = translator.translate(COMMENT_SUBJECT, groupName);
 				String content = translator.translate(COMMENT_CONTENT, parameters);
-				backend.sendMail(new Mail(addressee.getEmail(), subject, content));
+				backend.sendMail(new MailBackend.Mail(addressee.getEmail(), subject, content));
 			});
 	}
 

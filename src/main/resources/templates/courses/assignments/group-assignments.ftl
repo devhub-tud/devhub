@@ -30,10 +30,10 @@
                 <thead>
                 <tr>
                     <th>#</th>
-                    <th>Assignment</th>
-                    <th>Due date</th>
-                    <th>Grade</th>
-                    <th>Status</th>
+                    <th>${i18n.translate("course.control.assignment")}</th>
+                    <th>${i18n.translate("course.control.due-date")}</th>
+                    <th>${i18n.translate("delivery.grade")}</th>
+                    <th>${i18n.translate("delivery.status")}</th>
                 </tr>
                 </thead>
             [/#if]
@@ -67,26 +67,13 @@
                         </td>
                         <td>
                             [#if delivery?has_content]
-                                [#if delivery.isSubmitted()]
-                                    <a class="label label-info" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                                        Submitted
-                                    </a>
-                                [#elseif delivery.isApproved()]
-                                    <a class="label label-success" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                                        Approved
-                                    </a>
-                                [#elseif delivery.isRejected()]
-                                    <a class="label label-warning" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                                        Rejected
-                                    </a>
-                                [#elseif delivery.isDisapproved()]
-                                    <a class="label label-danger" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                                        Disapproved
-                                    </a>
-                                [/#if]
+                                [#assign state = delivery.getState()]
+                                <a class="label label-${state.style}" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                                    ${i18n.translate(state.translationKey)}
+                                </a>
                             [#else]
                                 <a class="label label-default" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                                    Not submitted
+                                    ${i18n.translate("assignment.not-submitted")}
                                 </a>
                             [/#if]
                         </td>
@@ -94,9 +81,7 @@
                     [/#list]
                 [#else]
                 <tr>
-                    <td class="muted" colspan="5">
-                        There are no assignments for this course.
-                    </td>
+                    <td class="muted" colspan="5">${i18n.translate("course.no-assignments")}</td>
                 </tr>
                 [/#if]
                 </tbody>

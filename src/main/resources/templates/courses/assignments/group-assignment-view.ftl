@@ -3,40 +3,23 @@
 [#import "../../components/commit-row.ftl" as commitRow]
 
 [#macro deliveryStateButton user course delivery]
+    <div class="pull-right">
+    [#assign state = delivery.getState()]
     [#if user.isAdmin() || user.isAssisting(course)]
-        <div class="btn-group pull-right">
-        [#if delivery.isSubmitted()]
-            <button type="button" class="btn btn-info">Submitted</button>
-            <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-        [#elseif delivery.isApproved()]
-            [#assign approved = true]
-            <button type="button" class="btn btn-success">Approved</button>
-            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-        [#elseif delivery.isDisapproved()]
-            <button type="button" class="btn btn-danger">Disapproved</button>
-            <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-        [#elseif delivery.isRejected()]
-            <button type="button" class="btn btn-warning">Rejected</button>
-            <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-        [/#if]
+        <div class="btn-group">
+            <button type="button" class="btn btn-${state.style}">${i18n.translate(state.translationKey)}</button>
+            <button type="button" class="btn btn-${state.style} dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                 <span class="caret"></span>
-                <span class="sr-only">Options</span>
+                <span class="sr-only">${i18n.translate("button.label.options")}</span>
             </button>
             <ul class="dropdown-menu" role="menu">
-                <li><a href="deliveries/${delivery.getDeliveryId()}/review">Review</a></li>
+                <li><a href="deliveries/${delivery.getDeliveryId()}/review">${i18n.translate("button.label.review")}</a></li>
             </ul>
         </div>
     [#else]
-        [#if delivery.isSubmitted()]
-        <span class="label label-info pull-right">Submitted</span>
-        [#elseif delivery.isApproved()]
-        <span class="label label-success pull-right">Approved</span>
-        [#elseif delivery.isRejected()]
-        <span class="label label-warning pull-right">Rejected</span>
-        [#elseif delivery.isDisapproved()]
-        <span class="label label-danger pull-right">Disapproved</span>
-        [/#if]
+        <span class="label label-${state.style}">${i18n.translate(state.translationKey)}</span>
     [/#if]
+    </div>
 [/#macro]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
@@ -50,7 +33,7 @@
         [#if user.isAdmin() || user.isAssisting(course)]
             <a href="/courses/${course.code}/assignments/${assignment.assignmentId}" class="btn btn-default pull-right">
                 <span class="glyphicon glyphicon-chevron-left"></span>
-                Go back to assignment
+            ${i18n.translate("assignment.go-back-to-assignment")}
             </a>
         [/#if]
             <h4 style="line-height:34px; margin-top:0;">${assignment.getAssignmentId()}. ${assignment.getName()}</h4>
@@ -105,11 +88,11 @@
                             <blockquote>
                                 <dl>
                                     [#if review.getGrade()??]
-                                        <dt>Grade</dt>
+                                        <dt>${i18n.translate("delivery.grade")}</dt>
                                         <dd>${review.getGrade()}</dd>
                                     [/#if]
                                     [#if review.getCommentary()??]
-                                        <dt>Remarks</dt>
+                                        <dt>${i18n.translate("delivery.remarks")}</dt>
                                         <dd>${review.getCommentary()}</dd>
                                     [/#if]
                                 </dl>
@@ -122,9 +105,9 @@
                 <tr>
                     <td>
                 [#if user.isAdmin() || user.isAssisting(course)]
-                        This group has not made a submission for this assignment yet.
+                    ${i18n.translate("assignment.no-submission.assistant")}
                 [#else]
-                        You have not made a submission for this assignment yet.
+                    ${i18n.translate("assignment.no-submission.member")}
                 [/#if]
                     </td>
                 </tr>
@@ -133,38 +116,38 @@
 
             [#if canSubmit?? && canSubmit && group.getMembers()?seq_contains(user)]
             <div class="panel panel-default">
-                <div class="panel-heading">Submit assignment</div>
+                <div class="panel-heading">${i18n.translate("assignment.submit.title")}</div>
                 <div class="panel-body">
                     <form action="" method="post" target="_self" enctype="multipart/form-data">
                         <div class="form-group">
-                            <label>Assignment</label>
+                            <label>${i18n.translate("course.control.assignment")}</label>
                             <input type="text" class="form-control" value="${assignment.getName()}" disabled>
                         </div>
 
                         <div class="form-group">
-                            <label for="commit-id">Commit</label>
+                            <label for="commit-id">${i18n.translate("assignment.commit")}</label>
                             <select class="form-control" name="commit-id" id="commit-id">
                     [#if recentCommits?? && recentCommits?has_content]
                         [#list recentCommits as commit]
                                 <option value="${commit.getCommit()}">${commit.getMessage()} (${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]})</option>
                         [/#list]
                     [#else]
-                                <option value="">No commit</option>
+                                <option value="">${i18n.translate("assignment.no-commit")}</option>
                     [/#if]
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="notes">Notes</label>
+                            <label for="notes">${i18n.translate("delivery.notes")}</label>
                             <textarea class="form-control" name="notes" id="notes" rows="3"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label for="file-attachment">File attachment</label>
+                            <label for="file-attachment">${i18n.translate("delivery.file-attachment")}</label>
                             <input type="file" id="file-attachment" name="file-attachment">
                         </div>
 
-                        <button type="submit" class="btn btn-primary pull-right">Submit</button>
+                        <button type="submit" class="btn btn-primary pull-right">${i18n.translate("button.label.submit")}</button>
                     </form>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 [@macros.renderHeader i18n.translate("section.courses") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-            <h2>Manage student assistants</h2>
+            <h2>${i18n.translate("course.control.assistants.title")}</h2>
 [#if error?? && error?has_content]
 			<div class="alert alert-danger">
 				${i18n.translate(error)}
@@ -43,7 +43,7 @@
 						<span class="glyphicon glyphicon-chevron-left"></span> ${i18n.translate("form.project-setup.buttons.previous.caption")}
 					</a>
 					<button type="submit" class="btn btn-xl btn-success" name="finish">
-						<span class="glyphicon glyphicon-ok"></span> Confirm
+						<span class="glyphicon glyphicon-ok"></span> ${i18n.translate("button.label.confirm")}
 					</button>
 				</div>
 			</form>

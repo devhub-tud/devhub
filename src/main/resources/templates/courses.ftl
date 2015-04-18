@@ -22,9 +22,7 @@
         [/#list]
     [#else]
         <tr>
-            <td class="muted">
-                There are no courses yet!
-            </td>
+            <td class="muted">${i18n.translate("course.no-courses")}</td>
         </tr>
     [/#if]
         </tbody>

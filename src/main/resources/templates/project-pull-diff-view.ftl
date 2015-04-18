@@ -8,9 +8,9 @@
 <div class="container">
 
     <ol class="breadcrumb">
-        <li><a href="/courses">Projects</a></li>
+        <li><a href="/courses">${i18n.translate("section.projects")}</a></li>
         <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
-        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/pulls">Pull Requests</a></li>
+        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/pulls">${i18n.translate("section.pull-requests")}</a></li>
         <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
     </ol>
 
@@ -18,14 +18,14 @@
     [#if states.hasFinished(commit.getCommit())]
         [#if states.hasSucceeded(commit.getCommit())]
         <div class="commit succeeded">
-            <span class="state glyphicon glyphicon-ok-circle" title="Build succeeded!"></span>
+            <span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>
         [#else]
         <div class="commit failed">
-            <span class="state glyphicon glyphicon-remove-circle" title="Build failed!"></span>
+            <span class="state glyphicon glyphicon-remove-circle" title="${i18n.translate("build.state.failed")}"></span>
         [/#if]
     [#else]
     <div class="commit running">
-        <span class="state glyphicon glyphicon-align-justify" title="Build queued..."></span>
+        <span class="state glyphicon glyphicon-align-justify" title="${i18n.translate("build.state.queued")}"></span>
     [/#if]
 [#else]
 <div class="commit ignored">
@@ -34,8 +34,8 @@
 
     <span class="view-picker">
         <div class="btn-group">
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}" class="btn btn-default">Overview</a>
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/diff" class="btn btn-default active">View diff</a>
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}" class="btn btn-default">${i18n.translate("pull-request.overview")}</a>
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/diff" class="btn btn-default active">${i18n.translate("pull-request.view-diff")}</a>
         </div>
     </span>
 
@@ -79,12 +79,12 @@
     </div>
 
     <div class="panel panel-default" style="position: relative">
-        <div class="panel-heading">Add a comment</div>
+        <div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
         <div class="panel-body">
             <form class="form-horizontal" id="pull-comment-form" >
                 <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
-                <button type="submit" class="btn btn-primary">Submit</button>
-                <button type="button" class="btn btn-default" id="btn-cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">${i18n.translate("button.label.submit")}</button>
+                <button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>
             </form>
         </div>
     </div>

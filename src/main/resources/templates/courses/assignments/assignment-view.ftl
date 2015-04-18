@@ -9,48 +9,33 @@
     <ol class="breadcrumb">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
         <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li>
-        <li>Assignment ${assignment.getAssignmentId()}: ${assignment.getName()}</li>
+        <li>${i18n.translate("assignment.assignment-title", assignment.getAssignmentId(), assignment.getName())}</li>
     </ol>
 
-    [#if assignmentStats??]
+[#if assignmentStats??]
+    <div class="well well-sm">
+        <h5><strong>Progress</strong></h5>
 
-        <div class="well well-sm">
-            <h5><strong>Progress</strong></h5>
-
-            <div class="progress">
-                <div class="progress-bar progress-bar-info" style="width: ${assignmentStats.getSubmittedPercentage()}%">
-                    Submitted
+        <div class="progress">
+            [#list deliveryStates as state]
+                <div class="progress-bar progress-bar-${state.style}" style="width: ${assignmentStats.getPercentageFor(state)}%">
+                    ${i18n.translate(state.translationKey)}
                 </div>
-                <div class="progress-bar progress-bar-success" style="width: ${assignmentStats.getApprovedPercentage()}%">
-                    Approved
-                </div>
-                <div class="progress-bar progress-bar-warning" style="width: ${assignmentStats.getRejectedPercentage()}%">
-                    Rejected
-                </div>
-                <div class="progress-bar progress-bar-danger" style="width: ${assignmentStats.getDisapprovedPercentage()}%">
-                    Disapproved
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-2 progress-info">
-                    Submitted: ${assignmentStats.getSubmittedCount()} (${assignmentStats.getSubmittedPercentage()}%)
-                </div>
-                <div class="col-md-2 progress-info">
-                    Approved: ${assignmentStats.getApprovedCount()} (${assignmentStats.getApprovedPercentage()}%)
-                </div>
-                <div class="col-md-2 progress-info">
-                    Rejected: ${assignmentStats.getRejectedCount()} (${assignmentStats.getRejectedPercentage()}%)
-                </div>
-                <div class="col-md-2 progress-info">
-                    Disapproved: ${assignmentStats.getDisapprovedCount()} (${assignmentStats.getDisapprovedPercentage()}%)
-                </div>
-                <div class="col-md-2 progress-info">Submissions: ${assignmentStats.amountOfSubmissions()}</div>
-                <div class="col-md-2 progress-info">Groups: ${assignmentStats.amountOfGroups()}</div>
-            </div>
-
+            [/#list]
         </div>
-    [/#if]
+
+        <div class="row">
+            [#list deliveryStates as state]
+                <div class="col-md-2 progress-info">
+                    <span class="text-${state.style} glyphicon glyphicon-stop"></span>
+                    ${i18n.translate(state.translationKey)}: ${assignmentStats.getCountFor(state)} (${assignmentStats.getPercentageFor(state)}%)
+                </div>
+            [/#list]
+            <div class="col-md-2 progress-info">${i18n.translate("assignment.submissions")}: ${assignmentStats.amountOfSubmissions()}</div>
+            <div class="col-md-2 progress-info">${i18n.translate("assignment.groups")}: ${assignmentStats.amountOfGroups()}</div>
+        </div>
+    </div>
+[/#if]
 
     <table class="table table-bordered">
     [#if lastDeliveries?? && lastDeliveries?has_content]
@@ -64,16 +49,8 @@
                     <span class="label label-default">${review.grade}</span>
                 [/#if]
 
-                [#if delivery.isSubmitted()]
-                    <span class="label label-info">Submitted</span>
-                [#elseif delivery.isApproved()]
-                    [#assign approved = true]
-                    <span class="label label-success">Approved</span>
-                [#elseif delivery.isRejected()]
-                    <span class="label label-warning">Rejected</span>
-                [#elseif delivery.isDisapproved()]
-                    <span class="label label-danger">Disapproved</span>
-                [/#if]
+                [#assign state = delivery.getState()]
+                    <span class="label label-${state.style}">${i18n.translate(state.translationKey)}</span>
                 </div>
                 <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
                 <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
@@ -81,13 +58,13 @@
         [/#list]
     [#else]
         <tr>
-            <td class="muted">No deliveries for assignment yet</td>
+            <td class="muted">${i18n.translate("assignment.no-deliveries")}</td>
         </tr>
     [/#if]
     </table>
     
     <div>
-        <a href="/courses/${group.course.code}/assignments/${assignment.getAssignmentId()}/deliveries/download" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
+        <a href="/courses/${course.code}/assignments/${assignment.getAssignmentId()}/deliveries/download" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
     </div>
 
 </div>

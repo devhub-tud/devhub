@@ -183,6 +183,7 @@ public class AssignmentsResource extends Resource {
         parameters.put("course", course);
         parameters.put("assignment", assignment);
         parameters.put("assignmentStats", assignmentStats);
+        parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("lastDeliveries", lastDeliveries);
 
         List<Locale> locales = Collections.list(request.getLocales());

@@ -13,7 +13,6 @@
 					<table class="table diffs">
 						<tbody>
 				[#list contents as line]
-                            [#-- <tr data-source-line-number="${line_index}"> --]
                     [#assign blameBlock = blame.getBlameBlock(line_index + 1)]
                     [#assign sourceLineNumber = blameBlock.getFromLineNumber(line_index + 1)]
                     [#assign commentsForThisLine = comments.getCommentsForLine(blameBlock.fromCommitId, blameBlock.fromFilePath, sourceLineNumber)]
@@ -105,7 +104,7 @@
 
         function createCommentForm(commentBlock, diffData, lineData) {
             $('<div class="panel panel-default" id="comment-form">' +
-            '<div class="panel-heading">Add a comment</div>' +
+            '<div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>' +
             '<div class="panel-body">' +
             '<form class="form-horizontal" action="/courses/${group.course.code}/groups/${group.groupNumber}/comment" method="POST">' +
             '<input type="hidden" name="link-commit" value="${commit.commit}"/>' +
@@ -114,8 +113,8 @@
             '<input type="hidden" name="source-file-name" value="' + lineData.sourceFileName + '"/>' +
             '<input type="hidden" name="redirect" value="' + location.pathname + '"/>' +
             '<textarea rows="5" class="form-control" name="content"></textarea>' +
-            '<button type="submit" class="btn btn-primary">Submit</button>' +
-            '<button type="button" class="btn btn-default" id="btn-cancel">Cancel</button>' +
+            '<button type="submit" class="btn btn-primary">${i18n.translate("button.label.submit")}</button>' +
+            '<button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>' +
             '</form>' +
             '</div>' +
             '</div>')

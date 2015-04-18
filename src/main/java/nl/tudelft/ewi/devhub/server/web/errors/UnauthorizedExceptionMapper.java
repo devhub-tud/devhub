@@ -41,13 +41,15 @@ public class UnauthorizedExceptionMapper implements ExceptionMapper<Unauthorized
 	@Override
 	public Response toResponse(UnauthorizedException exception) {
 		UUID id = UUID.randomUUID();
-		log.error(exception.getMessage() + " (" + id + ")", exception);
+		log.error(exception.getMessage() + " (" + id + ")");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 
 		try {
 			Map<String, Object> params = Maps.newHashMap();
-			params.put("user", determineUser());
+			User user = determineUser();
+			if(user != null)
+				params.put("user", determineUser());
 			params.put("error_id", id);
 
 			return Response.ok()

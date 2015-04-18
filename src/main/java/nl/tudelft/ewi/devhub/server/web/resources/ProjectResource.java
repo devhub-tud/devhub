@@ -1,14 +1,11 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
@@ -17,22 +14,19 @@ import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentMailer;
-import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
-import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
-import nl.tudelft.ewi.devhub.server.web.models.PullCloseResponse;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
@@ -41,11 +35,9 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
-import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.CommitSubList;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 import nl.tudelft.ewi.git.models.EntryType;
-import nl.tudelft.ewi.git.models.MergeResponse;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.inject.Inject;
@@ -55,7 +47,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -76,7 +67,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Function;
 
 @Slf4j
 @RequestScoped
@@ -94,12 +84,11 @@ public class ProjectResource extends Resource {
 	private final CommentBackend commentBackend;
     private final GitServerClient client;
     private final BuildsBackend buildBackend;
-	private final PullRequestBackend pullRequestBackend;
     private final Config config;
 	private final GitServerClient gitClient;
 	private final CommitComments comments;
 	private final CommentMailer commentMailer;
-	private final PullRequestComments pullRequestComments;
+	private final Commits commits;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
@@ -110,12 +99,11 @@ public class ProjectResource extends Resource {
 			final PullRequests pullRequests,
             final GitServerClient client,
             final BuildsBackend buildBackend,
-			final PullRequestBackend pullRequestBackend,
 			final GitServerClient gitClient,
 			final CommitComments comments,
 			final CommentMailer commentMailer,
-            final Config config,
-			final PullRequestComments pullRequestComments) {
+			final Commits commits,
+            final Config config) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
@@ -125,12 +113,11 @@ public class ProjectResource extends Resource {
 		this.pullRequests = pullRequests;
         this.client = client;
         this.buildBackend = buildBackend;
-		this.pullRequestBackend = pullRequestBackend;
 		this.gitClient = gitClient;
 		this.comments = comments;
 		this.commentMailer = commentMailer;
+		this.commits = commits;
         this.config = config;
-		this.pullRequestComments = pullRequestComments;
 	}
 
 	@GET
@@ -171,241 +158,46 @@ public class ProjectResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
 	}
-	
-	@POST
-	@Path("/pull")
-	@Transactional
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response createPullRequest(@Context HttpServletRequest request,
-									  @FormParam("branchName") String branchName)
-			throws ApiError, IOException, GitClientException {
-		
-		Preconditions.checkNotNull(branchName);
-		
-		if(pullRequests.findOpenPullRequest(group, branchName) != null) {
-			throw new IllegalArgumentException("There already is an open pull request for " + branchName);
-		}
-
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-		PullRequest pullRequest = new PullRequest();
-		pullRequest.setBranchName(branchName);
-		pullRequest.setGroup(group);
-		pullRequest.setOpen(true);
-		pullRequestBackend.createPullRequest(repository, pullRequest);
-
-		String uri = request.getRequestURI() + "/" + pullRequest.getIssueId();
-		return Response.seeOther(URI.create(uri)).build();
-	}
-
-	@Data
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class Pull {
-		private PullRequest pullRequest;
-		private Commit commitModel;
-	}
-
-    @GET
-    @Transactional
-    @Path("/pulls")
-    public Response getPullRequests(@Context HttpServletRequest request) throws IOException, GitClientException {
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
-		parameters.put("course", group.getCourse());
-		parameters.put("repository", repository);
-		parameters.put("openPullRequests", pullRequests.findOpenPullRequests(group));
-		parameters.put("closedPullRequests", pullRequests.findClosedPullRequests(group));
-		parameters.put("commitChecker", new CommitChecker(group, buildResults));
-
-		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("courses/assignments/group-pulls.ftl", locales, parameters));
-    }
-	
-	@GET
-	@Transactional
-	@Path("/pull/{pullId}")
-	public Response getPullRequest(@Context HttpServletRequest request,
-								   @PathParam("pullId") long pullId)
-			throws ApiError, IOException, GitClientException {
-
-		PullRequest pullRequest = pullRequests.findById(group, pullId);
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-		pullRequestBackend.updatePullRequest(repository, pullRequest);
-		Commit commit = repository.retrieveCommit(pullRequest.getDestination());
-
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
-		parameters.put("commit", commit);
-		parameters.put("pullRequest", pullRequest);
-		parameters.put("events", pullRequestBackend.getEventsForPullRequest(repository, pullRequest));
-		parameters.put("repository", repository);
-		parameters.put("states", new CommitChecker(group, buildResults));
-
-		try {
-			nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
-			parameters.put("branch", branch);
-		}
-		catch (NotFoundException e) {
-			// Branch has been removed.
-		}
-
-		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("project-pull.ftl", locales, parameters));
-	}
-
-	@POST
-	@Transactional
-	@Path("/pull/{pullId}/comment")
-	@Produces(MediaType.APPLICATION_JSON)
-	public CommentResponse commentOnPullRequest(@Context HttpServletRequest request,
-												@PathParam("pullId") long pullId,
-												String content) {
-
-		PullRequest pullRequest = pullRequests.findById(group, pullId);
-		PullRequestComment comment = new PullRequestComment();
-
-		comment.setContent(content);
-		comment.setPullRequest(pullRequest);
-		comment.setUser(currentUser);
-		comment.setTime(new Date());
-		pullRequestComments.persist(comment);
-
-		CommentResponse response = new CommentResponse();
-		response.setContent(content);
-		response.setName(currentUser.getName());
-		response.setDate(comment.getTime().toString());
-		return response;
-	}
-
-    @GET
-    @Transactional
-    @Path("/pull/{pullId}/diff")
-    public Response getPullRequestDiff(@Context HttpServletRequest request,
-                                       @PathParam("pullId") long pullId)
-                                       throws ApiError, IOException, GitClientException {
-
-		PullRequest pullRequest = pullRequests.findById(group, pullId);
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-		pullRequestBackend.updatePullRequest(repository, pullRequest);
-		DiffBlameModel diffBlameModel = getDiffBlameModelForPull(pullRequest, repository);
-		Commit commit = repository.retrieveCommit(pullRequest.getDestination());
-		List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
-
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
-		parameters.put("commit", commit);
-		parameters.put("commentChecker", commentBackend.getCommentChecker(commitIds));
-		parameters.put("pullRequest", pullRequest);
-		parameters.put("repository", repository);
-		parameters.put("diffViewModel", diffBlameModel);
-		parameters.put("states", new CommitChecker(group, buildResults));
-
-		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));
-    }
-
-	private static DiffBlameModel getDiffBlameModelForPull(PullRequest pullRequest, Repository repository) throws GitClientException {
-		String destinationId = pullRequest.getDestination();
-		String mergeBaseId = pullRequest.getMergeBase();
-		return repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
-	}
-
-	@POST
-	@Path("/pull/{pullId}/close")
-	@Produces(MediaType.APPLICATION_JSON)
-	public PullCloseResponse closePullRequest(@Context HttpServletRequest request,
-											  @PathParam("pullId") long pullId) {
-
-		PullRequest pullRequest = pullRequests.findById(group, pullId);
-		pullRequest.setOpen(false);
-		log.debug("Closing pull request {}", pullRequest);
-		pullRequests.merge(pullRequest);
-
-		PullCloseResponse response = new PullCloseResponse();
-		response.setClosed(true);
-		return response;
-	}
-
-	@POST
-	@Path("/pull/{pullId}/delete-branch")
-	@Produces(MediaType.APPLICATION_JSON)
-	public DeleteBranchResponse deleteBranch(@Context HttpServletRequest request,
-											 @PathParam("pullId") long pullId)
-			throws GitClientException {
-
-		PullRequest pullRequest = pullRequests.findById(group, pullId);
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-
-		if(pullRequest.isOpen()) {
-			throw new IllegalStateException("Cannot remove branch if pull request is still open");
-		}
-
-		DeleteBranchResponse response = new DeleteBranchResponse();
-		String branchName = pullRequest.getBranchName();
-
-		if(!pullRequests.openPullRequestExists(group, branchName)) {
-			nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(branchName);
-			branch.delete();
-			log.debug("Deleted branch {}", pullRequest.getBranchName());
-			response.setClosed(true);
-		}
-
-		return response;
-	}
-
-	@POST
-	@Path("/pull/{pullId}/merge")
-	@Produces(MediaType.APPLICATION_JSON)
-	public MergeResponse mergePullRequest(@Context HttpServletRequest request,
-										  @PathParam("pullId") long pullId) throws GitClientException {
-
-		PullRequest pullRequest = pullRequests.findById(group, pullId);
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-		pullRequestBackend.updatePullRequest(repository, pullRequest);
-
-		nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
-		String message = String.format("Merge pull request #%s from %s", pullRequest.getIssueId(), branch.getSimpleName());
-		MergeResponse response = branch.merge(message, currentUser.getName(), currentUser.getEmail());
-		log.debug("Merged pull request {}", pullRequest);
-
-		if(response.isSuccess()) {
-			pullRequest.setOpen(false);
-			pullRequest.setMerged(true);
-			pullRequests.merge(pullRequest);
-		}
-
-		return response;
-	}
 
     @POST
     @Transactional
     @Path("/comment")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response commentOnPull(@Context HttpServletRequest request,
-								  @NotEmpty @FormParam("link-commit") String linkCommitId,
-								  @NotEmpty @FormParam("source-commit") String sourceCommitId,
-								  @FormParam("source-line-number") Integer sourceLineNumber,
-								  @NotEmpty @FormParam("source-file-name") String sourceFileName,
-								  @NotEmpty @FormParam("content") String message,
-								  @NotEmpty @FormParam("redirect") String redirect)
-			throws IOException, ApiError {
+	@Produces(MediaType.APPLICATION_JSON)
+    public CommentResponse commentOnPull(@Context HttpServletRequest request,
+										 @NotEmpty @FormParam("link-commit") String linkCommitId,
+										 @NotEmpty @FormParam("content") String message,
+										 @NotEmpty @FormParam("redirect") String redirect,
+										 @FormParam("source-commit") String sourceCommitId,
+										 @FormParam("source-line-number") Integer sourceLineNumber,
+										 @FormParam("source-file-name") String sourceFileName)
+		throws IOException, ApiError {
 
-		CommitComment comment = commentBackend.commentBuilder()
-                .setCommitId(linkCommitId)
-                .setMessage(message)
-                .setSourceFilePath(sourceFileName)
-                .setSourceLineNumber(sourceLineNumber)
-                .setSourceCommitId(sourceCommitId)
-                .persist();
+		CommitComment comment = new CommitComment();
+		comment.setContent(message);
+		comment.setCommit(commits.ensureExists(group, linkCommitId));
+		comment.setTime(new Date());
+		comment.setUser(currentUser);
 
-		List<Locale> locales = Collections.list(request.getLocales());
-		commentMailer.sendCommentMail(locales, group, comment, redirect);
-        return Response.seeOther(URI.create(redirect)).build();
+		if(sourceCommitId != null) {
+			// In-line comment
+			CommitComment.Source source = new CommitComment.Source();
+			source.setSourceCommit(commits.ensureExists(group, sourceCommitId));
+			source.setSourceFilePath(sourceFileName);
+			source.setSourceLineNumber(sourceLineNumber);
+			comment.setSource(source);
+		}
+
+		comments.persist(comment);
+		commentMailer.sendCommentMail(comment, redirect);
+
+		CommentResponse response = new CommentResponse();
+		response.setContent(message);
+		response.setDate(comment.getTime().toString());
+		response.setName(currentUser.getName());
+		response.setCommentId(comment.getCommentId());
+
+		return response;
     }
 
 	@GET
@@ -512,6 +304,7 @@ public class ProjectResource extends Resource {
 		parameters.put("commit", commit);
 		parameters.put("repository", repository);
 		parameters.put("diffViewModel", diffBlameModel);
+		parameters.put("comments", comments.getCommentsFor(group, commitId));
 		parameters.put("commentChecker", commentBackend.getCommentChecker(Lists.newArrayList(commitId)));
 		parameters.put("states", new CommitChecker(group, buildResults));
 
@@ -630,42 +423,6 @@ public class ProjectResource extends Resource {
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
-	}
-
-	@Data
-	public static class CommitChecker {
-		private final Group group;
-		private final BuildResults buildResults;
-
-		public boolean hasFinished(String commitId) {
-			try {
-				BuildResult buildResult = buildResults.find(group, commitId);
-				return buildResult.getSuccess() != null;
-			}
-			catch (EntityNotFoundException e) {
-				return false;
-			}
-		}
-
-		public boolean hasStarted(String commitId) {
-			try {
-				buildResults.find(group, commitId);
-				return true;
-			}
-			catch (EntityNotFoundException e) {
-				return false;
-			}
-		}
-
-		public boolean hasSucceeded(String commitId) {
-			BuildResult buildResult = buildResults.find(group, commitId);
-			return buildResult.getSuccess();
-		}
-
-		public String getLog(String commitId) {
-			BuildResult buildResult = buildResults.find(group, commitId);
-			return buildResult.getLog();
-		}
 	}
 
 	@Data

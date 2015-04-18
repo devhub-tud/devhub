@@ -139,7 +139,8 @@
             $('[name="content"]', '#pull-comment-form').val()).done(function(res) {
                 // Add comment block
                 $('<div class="panel panel-default panel-comment">' +
-                '<div class="panel-heading"><strong>' + res.name + '</strong> on ' + res.date + '</div>'+
+                '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
+                '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
                     '<div class="panel-body">'+
                         '<p>' + res.content + '</p>'+
                     '</div>'+

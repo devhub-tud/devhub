@@ -1,6 +1,7 @@
 [#import "macros.ftl" as macros]
 [#import "components/difftable.ftl" as difftable]
 [#import "components/diffbox.ftl" as diffbox]
+[#import "components/comment.ftl" as commentElement]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -16,9 +17,54 @@
         <div>${i18n.translate("diff.changes.nothing")}</div>
     [/#if]
 
+        <div id="comment-list">
+    [#if comments?? && comments?has_content]
+        [#list comments as comment]
+            [@commentElement.renderComment comment][/@commentElement.renderComment]
+        [/#list]
+    [/#if]
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">Add a comment</div>
+            <div class="panel-body">
+                <form class="form-horizontal" id="pull-comment-form" >
+                    <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-default" id="btn-cancel">Cancel</button>
+                </form>
+            </div>
+        </div>
+
 		</div>
 
 [@macros.renderScripts /]
+
+
+<script>
+    $(function() {
+        $('#pull-comment-form').submit(function(event) {
+            $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
+                "link-commit": "${commit.commit}",
+                "content": $('[name="content"]', '#pull-comment-form').val(),
+                "redirect": window.location.pathname
+            }).done(function(res) {
+                // Add comment block
+                $('<div class="panel panel-default panel-comment">' +
+                '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
+                    '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
+                '<div class="panel-body">'+
+                '<p>' + res.content + '</p>'+
+                '</div>'+
+                '</div>').appendTo('#comment-list');
+                // Clear input
+                $('[name="content"]', '#pull-comment-form').val('');
+            });
+            event.preventDefault();
+        });
+    });
+</script>
+
 [@diffbox.renderScripts/]
 [@difftable.renderScripts/]
 [@macros.renderFooter /]

@@ -43,7 +43,9 @@ public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundExceptio
 
 		try {
 			Map<String, Object> params = Maps.newHashMap();
-			params.put("user", determineUser());
+			User user = determineUser();
+			if(user != null)
+				params.put("user", determineUser());
 			params.put("error_id", id);
 
 			return Response

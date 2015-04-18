@@ -1,4 +1,5 @@
 [#import "diffline.ftl" as diffline]
+[#import "comment.ftl" as commentElement]
 
 [#macro diffTable diffModel index commit]
 
@@ -14,12 +15,7 @@
                         <tr class="comment-block">
                             <td colspan="3">
                                 [#list commentsForThisLine as comment]
-                                    <div class="panel panel-default panel-comment">
-                                        <div class="panel-heading"><strong>${comment.user.name}</strong> on ${comment.time}</div>
-                                        <div class="panel-body">
-                                            <p>${comment.content}</p>
-                                        </div>
-                                    </div>
+                                    [@commentElement.renderComment comment][/@commentElement.renderComment]
                                 [/#list]
                                     <button class="btn btn-default btn-add-line-comment">Add comment</button>
                             </td>
@@ -74,45 +70,52 @@
 
         function createCommentForm(commentBlock, diffData, lineData) {
             $('.btn-add-line-comment', commentBlock).remove();
-            $('<div class="panel panel-default" id="comment-form">' +
+            var $form = $('<div class="panel panel-default" id="comment-form">' +
             '<div class="panel-heading">Add a comment</div>' +
             '<div class="panel-body">' +
             '<form class="form-horizontal" action="/courses/${group.course.code}/groups/${group.groupNumber}/comment" method="POST">' +
-            '<input type="hidden" name="link-commit" value="${ commit.commit }"/>' +
-            '<input type="hidden" name="source-commit" value="' + lineData.sourceCommit + '"/>' +
-            '<input type="hidden" name="source-line-number" value="' + lineData.sourceLineNumber + '"/>' +
-            '<input type="hidden" name="source-file-name" value="' + lineData.sourceFileName + '"/>' +
-            '<input type="hidden" name="redirect" value="' + location.pathname + '"/>' +
             '<textarea rows="5" class="form-control" name="content"></textarea>' +
             '<button type="submit" class="btn btn-primary">Submit</button>' +
             '<button type="button" class="btn btn-default" id="btn-cancel">Cancel</button>' +
             '</form>' +
             '</div>' +
-            '</div>')
-                    .appendTo(commentBlock)
-                    .find("#btn-cancel").click(function() {
-                        var row = $(this).closest("tr");
-                        if(row.find(".panel-comment").length === 0) {
-                            row.remove();
-                        }
-                        else {
-                            row.find("#comment-form").remove();
-                            addBtnAddLineComment(row);
-                        }
-                    });
-        }
+            '</div>').appendTo(commentBlock)
 
-        function appendComment(commentBlock) {
-            $(
-                    '<div class="panel panel-default panel-comment">' +
-                    '<div class="panel-heading"><strong>Jan-Willem Gmelig Meyling</strong> on Monday, 28 february</div>' +
-                    '<div class="panel-body">' +
-                    '<p>' +
-                    'I think it would be really great if we do this!' +
-                    '</p>' +
-                    '</div>' +
-                    '</div>')
-                    .appendTo(commentBlock);
+            $form.submit(function(event) {
+                $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
+                    "link-commit": "${commit.commit}",
+                    "content": $('[name="content"]', this).val(),
+                    "source-commit": lineData.sourceCommit,
+                    "source-line-number": lineData.sourceLineNumber,
+                    "source-file-name": lineData.sourceFileName,
+                    "redirect": window.location.pathname
+                }).done(function(res) {
+                    // Add comment block
+                    $('<div class="panel panel-default panel-comment">' +
+                        '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
+                            '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
+                        '<div class="panel-body">'+
+                        '<p>' + res.content + '</p>'+
+                        '</div>'+
+                        '</div>').appendTo(commentBlock);
+
+                    addBtnAddLineComment($form.closest("tr"));
+                    $form.remove();
+                });
+                event.preventDefault();
+            });
+
+            $form.find("#btn-cancel").click(function() {
+                var row = $(this).closest("tr");
+                if(row.find(".panel-comment").length === 0) {
+                    row.remove();
+                }
+                else {
+                    row.find("#comment-form").remove();
+                    addBtnAddLineComment(row);
+                }
+            });
+
         }
 
         $(".btn-comment").click(function() {

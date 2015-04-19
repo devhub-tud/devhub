@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.annotation.Nullable;
@@ -42,9 +43,9 @@ public class Assignment {
     @Column(name = "name")
     private String name;
 
-    @Lob
     @Nullable
     @Column(name = "summary")
+    @Type(type = "org.hibernate.type.TextType")
     private String summary;
 
     @Nullable

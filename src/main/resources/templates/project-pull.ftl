@@ -170,6 +170,13 @@ $(function() {
                     label.html('${i18n.translate("pull-request.failed-to-merge")}');
                     btn.removeClass('btn-primary').addClass('btn-danger');
                 }
+
+                $('#btn-close').remove();
+                $('<button id="btn-remove-branch" class="btn btn-default">' +
+                    '<i class="octicon octicon-trashcan"></i> '+
+                    '<span>${i18n.translate("pull-request.remove-branch")}</span></button>')
+                        .insertBefore('#btn-merge');
+                bindDeleteHandler();
             })
             .fail(function() {
                 label.html('${i18n.translate("pull-request.failed-to-merge")}');
@@ -184,8 +191,8 @@ $(function() {
                     .html('<i class="octicon octicon-issue-closed"></i> <span>${i18n.translate("pull-request.closed")}</span>')
                     .attr('disabled', true)
                     .removeClass('btn-default').addClass('btn-danger');
-                $('#btn-merge').remove();
                 $('#merge-message').html('${i18n.translate("pull-request.closed.message")}');
+                $('#btn-merge').remove();
                 $('<button id="btn-remove-branch" class="btn btn-default">' +
                     '<i class="octicon octicon-trashcan"></i> '+
                         '<span>${i18n.translate("pull-request.remove-branch")}</span></button>')

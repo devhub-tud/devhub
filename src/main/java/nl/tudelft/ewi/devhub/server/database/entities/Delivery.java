@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -84,9 +85,8 @@ public class Delivery implements Comparable<Delivery> {
     @Embedded
     private Review review;
 
-    @Lob
-    @Basic(fetch=FetchType.LAZY)
     @Column(name = "notes")
+    @Type(type = "org.hibernate.type.TextType")
     private String notes;
 
     @JoinColumn(name = "delivery_id")
@@ -115,9 +115,8 @@ public class Delivery implements Comparable<Delivery> {
         @ManyToOne(fetch = FetchType.LAZY)
         private User reviewUser;
 
-        @Lob
-        @Basic(fetch=FetchType.LAZY)
         @Column(name = "commentary")
+        @Type(type = "org.hibernate.type.TextType")
         private String commentary;
 
     }

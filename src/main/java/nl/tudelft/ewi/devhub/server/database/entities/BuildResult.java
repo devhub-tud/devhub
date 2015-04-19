@@ -12,7 +12,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import lombok.Data;
-
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
 @Data
@@ -46,7 +46,7 @@ public class BuildResult {
 	@Column(name = "success")
 	private Boolean success;
 
-	@Lob
+	@Type(type = "org.hibernate.type.TextType")
 	@Column(name = "log")
 	private String log;
 

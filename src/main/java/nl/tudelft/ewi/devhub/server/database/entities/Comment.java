@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.Basic;
@@ -36,10 +37,8 @@ public abstract class Comment implements Comparable<Comment> {
     @GenericGenerator(name="increment", strategy = "increment")
     private long commentId;
 
-    @Lob
-    @NotEmpty
-    @Basic(fetch= FetchType.LAZY)
     @Column(name = "content")
+    @Type(type = "org.hibernate.type.TextType")
     private String content;
 
     @NotNull

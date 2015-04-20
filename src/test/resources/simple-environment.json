@@ -13,6 +13,18 @@
 			"password": "student2"
 		},
 		{
+			"name": "Student Three",
+			"email": "student-3@student.tudelft.nl",
+			"netId": "student3",
+			"password": "student3"
+		},
+		{
+			"name": "Student Four",
+			"email": "student-4@student.tudelft.nl",
+			"netId": "student4",
+			"password": "student4"
+		},
+		{
 			"name": "Assistant One",
 			"email": "assistant-1@student.tudelft.nl",
 			"netId": "assistant1",
@@ -36,6 +48,13 @@
 			"minGroupSize": 2,
 			"maxGroupSize": 2,
 			"buildTimeout": 180,
+
+            "assignments": [
+              {
+                "id" : 1,
+                "name" : "Requirements Analysis"
+              }
+            ],
 			
 			"assistants": [
 				"assistant1"
@@ -47,6 +66,13 @@
 					"members": [
 						"student1",
 						"student2"
+					]
+				},
+				{
+					"groupNumber": 2,
+					"members": [
+						"student3",
+						"student4"
 					]
 				}
 			]

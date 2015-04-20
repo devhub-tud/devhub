@@ -14,19 +14,13 @@ import com.google.inject.persist.Transactional;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.CourseAssistants;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
-import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseAssistant;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.controllers.*;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.GroupModel;
+import nl.tudelft.ewi.git.models.IdentifiableModel;
 import nl.tudelft.ewi.git.models.UserModel;
 
 @Slf4j
@@ -59,7 +53,14 @@ public class Bootstrapper {
 		private Integer buildTimeout;
 		private List<String> assistants;
 		private List<BGroup> groups;
+        private List<BAssignment> assignments;
 	}
+
+    @Data
+    static class BAssignment {
+        private Long id;
+        private String name;
+    }
 	
 	@Data
 	static class BGroup {
@@ -78,11 +79,12 @@ public class Bootstrapper {
 	private final ObjectMapper mapper;
 	private final GitServerClient gitClient;
 	private final ProjectsBackend projects;
+    private final Assignments assignments;
 
 	@Inject
 	Bootstrapper(Users users, Courses courses, CourseAssistants assistants, Groups groups, 
 			GroupMemberships memberships, MockedAuthenticationBackend authBackend, ObjectMapper mapper,
-			GitServerClient gitClient, ProjectsBackend projects) {
+			GitServerClient gitClient, ProjectsBackend projects, Assignments assignments) {
 		
 		this.users = users;
 		this.courses = courses;
@@ -93,10 +95,11 @@ public class Bootstrapper {
 		this.mapper = mapper;
 		this.gitClient = gitClient;
 		this.projects = projects;
+        this.assignments = assignments;
 	}
 	
 	@Transactional
-	public void prepare(String path) throws IOException, ApiError {
+	public void prepare(String path) throws IOException, ApiError, GitClientException {
 		InputStream inputStream = Bootstrapper.class.getResourceAsStream(path);
 		BState state = mapper.readValue(inputStream, BState.class);
 		
@@ -115,7 +118,6 @@ public class Bootstrapper {
 		}
 		
 		for (BCourse course : state.getCourses()) {
-
 			Course entity;
 
 			try {
@@ -137,9 +139,19 @@ public class Bootstrapper {
 				log.debug("Persisted course: " + entity.getCode());
 			}
 
+            for(BAssignment assignment : course.getAssignments()) {
+                Assignment assignmentEntity = new Assignment();
+                assignmentEntity.setCourse(entity);
+                assignmentEntity.setName(assignment.getName());
+                assignmentEntity.setAssignmentId(assignment.getId());
+                assignments.persist(assignmentEntity);
+                log.debug("Persistted assignment {} in {}", assignmentEntity.getName(), course.getCode());
+            }
+
 			GroupModel courseGroupModel = new GroupModel();
-			courseGroupModel.setName("@" + entity.getCode());
-			courseGroupModel = gitClient.groups().ensureExists(courseGroupModel);
+			courseGroupModel.setName("@" + entity.getCode().toLowerCase());
+			courseGroupModel.setMembers(Lists.<IdentifiableModel> newArrayList());
+			
 			
 			for (String assistantNetId : course.getAssistants()) {
 				User assistantUser = userMapping.get(assistantNetId);
@@ -152,13 +164,12 @@ public class Bootstrapper {
 				UserModel userModel = gitClient.users()
 						.ensureExists(assistantNetId);
 				
-				try {
-					gitClient.groups().groupMembers(courseGroupModel).addMember(userModel);
-				}
-				catch (Exception e) {}
+				courseGroupModel.getMembers().add(userModel);
 				
 				log.debug("    Persisted assistant: " + assistantUser.getNetId());
 			}
+			
+			courseGroupModel = gitClient.groups().ensureExists(courseGroupModel);
 			
 			for (BGroup group : course.getGroups()) {
 				Group groupEntity = new Group();

@@ -4,12 +4,14 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import com.google.common.base.Strings;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import nl.tudelft.ewi.devhub.server.util.DiffLine;
-import nl.tudelft.ewi.git.models.DiffModel;
 
+import nl.tudelft.ewi.git.models.ChangeType;
+import nl.tudelft.ewi.git.models.DiffBlameModel;
+import nl.tudelft.ewi.git.models.DiffModel;
+import nl.tudelft.ewi.git.models.DiffModel.DiffContext;
+import nl.tudelft.ewi.git.models.DiffModel.DiffLine;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -34,23 +36,23 @@ public class DiffView extends View {
 	}
 
 	private void assertInvariant() {
-		assertTrue(currentPathStartsWith("/projects"));
+		assertTrue(currentPathStartsWith("/courses"));
 		assertNotNull(headers);
 		assertNotNull(getDriver().findElement(DROPDOWN_CARET));
 	}
 	
 	public FolderView viewFiles() {
 		assertInvariant();
-		
+
 		WebElement container = getDriver().findElement(By.className("container"));
 		WebElement dropdownCaret = container.findElement(DROPDOWN_CARET);
 		dropdownCaret.click();
 		WebElement viewFilesButton = container.findElement(VIEW_FILES_BUTTON);
 		viewFilesButton.click();
-		
+
 		return new FolderView(getDriver());
 	}
-	
+
 	/**
 	 * @return the {@link DiffElement DiffElements} in this {@code DiffView}
 	 */
@@ -59,127 +61,156 @@ public class DiffView extends View {
 		WebElement container = getDriver().findElement(By.className("container"));
 		return listDiffs(container);
 	}
-	
+
 	private List<DiffElement> listDiffs(WebElement container) {
 		List<WebElement> elements = container.findElements(By.xpath("//div[@class='diff box']"));
-		
+
 		return Lists.transform(elements, new Function<WebElement, DiffElement>() {
 
 			@Override
 			public DiffElement apply(WebElement element) {
 				return DiffElement.build(element);
 			}
-			
+
 		});
 	}
-	
+
 	/**
 	 * @return the text content of the author header
 	 */
 	public String getAuthorHeader() {
 		return headers.findElement(AUTHOR_SUB_HEADER).getText();
 	}
-	
+
 	/**
 	 * @return the text content of the message header
 	 */
 	public String getMessageHeader() {
 		return headers.findElement(MESSAGE_HEADER).getText();
 	}
-	
+
 	@Data
-	@ToString(callSuper=true)
-	@EqualsAndHashCode(callSuper=true)
-	public static class DiffElement extends DiffModel {
-		
+	public static class DiffElement {
+
 		private final WebElement element;
-		
-		private List<DiffLine> diffLines;
-				
+
+		private final DiffBlameModel.DiffBlameFile diffModel;
+
+		public void assertEqualTo(DiffBlameModel.DiffBlameFile expected) {
+			assertEquals(expected.getType(), diffModel.getType());
+
+			switch(diffModel.getType()){
+			case DELETE:
+				assertEquals(expected.getOldPath(), diffModel.getOldPath());
+				break;
+			case ADD:
+			case MODIFY:
+				assertEquals(expected.getNewPath(), diffModel.getNewPath());
+				break;
+			default:
+				assertEquals(expected.getOldPath(), diffModel.getOldPath());
+				assertEquals(expected.getNewPath(), diffModel.getNewPath());
+				break;
+
+			}
+
+			assertEquals(expected.getContexts(), diffModel.getContexts());
+		}
+
 		/**
 		 * Build a {@link DiffElement} from a {@link WebElement} in the {@link DiffView}
 		 * @param element the {@link WebElement} to be converted into a {@link DiffElement}
 		 * @return the created {@link DiffElement}
 		 */
 		public static DiffElement build(WebElement element) {
-			DiffElement result = new DiffElement(element);
-			
+			final DiffBlameModel.DiffBlameFile model = new DiffBlameModel.DiffBlameFile();
+
+
 			WebElement header = element.findElement(By.tagName("h5"));
 			String typeStr = header.findElement(By.tagName("span")).getText();
-			Type type = getTypeFor(typeStr);
-			result.setType(type);
-			
+			ChangeType type = getTypeFor(typeStr);
+			model.setType(type);
+
 			String headerText = header.getText();
 			headerText = headerText.substring(headerText.indexOf(" ") + 1);
-			
+
 			switch (type) {
 				case ADD:
 				case MODIFY:
-					result.setNewPath(headerText);
+					model.setNewPath(headerText);
 					break;
 				case DELETE:
-					result.setOldPath(headerText);
+					model.setOldPath(headerText);
 					break;
 				default:
 					String[] split = headerText.split(" -> ");
-					result.setOldPath(split[0]);
-					result.setNewPath(split[1]);
+					model.setOldPath(split[0]);
+					model.setNewPath(split[1]);
 					break;
 			}
-			
-			result.setDiffLines(getDiffLinesFor(element.findElements(By.tagName("tr"))));
+
+			model.setContexts(getDiffContextsFor(element.findElements(By.tagName("tbody"))));
+			return new DiffElement(element, model);
+		}
+
+		private static List<DiffBlameModel.DiffBlameContext> getDiffContextsFor(List<WebElement> tableBodies) {
+			List<DiffBlameModel.DiffBlameContext> result = Lists.<DiffBlameModel.DiffBlameContext> newArrayList();
+
+			for(WebElement tbody : tableBodies) {
+				DiffBlameModel.DiffBlameContext context = new DiffBlameModel.DiffBlameContext();
+				List<WebElement> rows = tbody.findElements(By.tagName("tr"));
+				assertTrue("Rows should not be empty", !rows.isEmpty());
+				List<DiffBlameModel.DiffBlameLine> diffLines = Lists.<DiffBlameModel.DiffBlameLine> newArrayList();
+				context.setLines(diffLines);
+
+				for(WebElement tr : rows) {
+					List<WebElement> columns = tr.findElements(By.tagName("td"));
+					assertEquals("Expected three columns per row", 3, columns.size());
+
+					String oldLineNumberStr = columns.get(0).getText();
+					String newLineNumberStr = columns.get(1).getText();
+					Integer oldLineNumber = Strings.isNullOrEmpty(oldLineNumberStr) ? null : Integer.parseInt(oldLineNumberStr);
+					Integer newLineNumber = Strings.isNullOrEmpty(newLineNumberStr) ? null : Integer.parseInt(newLineNumberStr);
+
+					String sourceCommitId = tr.getAttribute("data-source-commit");
+					Integer sourceLineNumber = Integer.parseInt(tr.getAttribute("data-source-line-number"));
+					String sourcePath = tr.getAttribute("data-source-file-name");
+					String content = columns.get(2).getText();
+					DiffBlameModel.DiffBlameLine line = new DiffBlameModel.DiffBlameLine();
+
+					line.setSourceCommitId(sourceCommitId);
+					line.setSourceFilePath(sourcePath);
+					line.setSourceLineNumber(sourceLineNumber);
+					line.setOldLineNumber(oldLineNumber);
+					line.setNewLineNumber(newLineNumber);
+					line.setContent(content);
+					diffLines.add(line);
+				}
+
+				result.add(context);
+			}
 			return result;
 		}
-		
-		private static List<DiffLine> getDiffLinesFor(List<WebElement> rows) {
-			List<DiffLine> diffLines = Lists.newArrayList();
-			
-			for(WebElement codeRow : rows) {
-				List<WebElement> parts = codeRow.findElements(By.tagName("td"));
-				assert parts.size() == 3 : "Each diff line should have a column for old and new line number; and line contents.";
-				String oldLineNumber = parts.get(0).getText();
-				String newLineNumber = parts.get(1).getText();
-				char modifier = getModifierFor(parts.get(2));
-				String lineContents = parts.get(2).getText();
-				diffLines.add(new DiffLine(oldLineNumber, newLineNumber, modifier, lineContents));
-			}
-			
-			return diffLines;
-		}
-		
-		private static char getModifierFor(WebElement column) {
-			String styles = column.getAttribute("class");
-			
-			if(styles.contains("add")) {
-				return DiffLine.MODIFIER_ADDED;
-			}
-			else if (styles.contains("delete")) {
-				return DiffLine.MODIFIER_REMOVED;
-			}
-			else {
-				return DiffLine.MODIFIER_UNCHANGED;
-			}
-		}
-		
-		private static Type getTypeFor(String value) {
+
+		private static ChangeType getTypeFor(final String value) {
 			if(value.equalsIgnoreCase("Created")) {
-				return Type.ADD;
+				return ChangeType.ADD;
 			}
 			else if (value.equalsIgnoreCase("Copied")) {
-				return Type.COPY;
+				return ChangeType.COPY;
 			}
 			else if (value.equalsIgnoreCase("Deleted")) {
-				return Type.DELETE;
+				return ChangeType.DELETE;
 			}
 			else if (value.equalsIgnoreCase("Modified")) {
-				return Type.MODIFY;
+				return ChangeType.MODIFY;
 			}
 			else if (value.equalsIgnoreCase("Moved")) {
-				return Type.RENAME;
+				return ChangeType.RENAME;
 			}
-			return null;
+			throw new IllegalArgumentException("Unknown type " + value);
 		}
-		
+
 	}
 	
 }

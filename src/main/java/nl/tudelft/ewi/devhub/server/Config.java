@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
@@ -125,5 +126,12 @@ public class Config {
 	public String getLDAPPrimaryDomain() {
 		return properties.getProperty("ldap.primarydomain");
 	}
+
+    /**
+     * @return the storage folder used for storing files
+     */
+    public File getStorageFolder() {
+        return new File(properties.getProperty("storage.folder"));
+    }
 
 }

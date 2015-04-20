@@ -17,7 +17,7 @@ public class ApiError extends Exception {
 	}
 	
 	public ApiError(String resourceKey, Throwable t) {
-		super(t);
+		super(t.getMessage(), t);
 		this.resourceKey = resourceKey;
 	}
 

@@ -178,5 +178,243 @@
 	<changeSet id="add_unique_constraint_course" author="Jan-Willem Gmelig Meyling">
 		<addUniqueConstraint columnNames="code" tableName="courses" />
 	</changeSet>
+	
+	<changeSet id="add_comment_tables" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="commit">
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="commit_repository_name_in_groups"
+			baseTableName="commit" baseColumnNames="repository_name"
+			referencedTableName="groups" referencedColumnNames="repository_name" />
+		
+		<createTable tableName="commit_comment">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			
+			<column name="old_line_number" type="int"/>
+			<column name="old_file_path" type="varchar(255)"/>
+			<column name="new_line_number" type="int"/>
+			<column name="new_file_path" type="varchar(255)" />
+			
+			<column name="content" type="text" />
+			<column name="user_id" type="bigint">
+				<constraints  nullable="false" />
+			</column>
+			<column name="time" type="datetime" />
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="commit_comment_commit_in_commits"
+			baseTableName="commit_comment" baseColumnNames="repository_name, commit_id"
+			referencedTableName="commit" referencedColumnNames="repository_name, commit_id" />
+	</changeSet>
+	
+	<changeSet id="added_pull_request_table" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="pull_requests">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="branch_name" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			<column name="open" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="pr_repository_name_in_groups"
+			baseTableName="pull_requests" baseColumnNames="repository_name"
+			referencedTableName="groups" referencedColumnNames="repository_name" />
+	</changeSet>
+
+    <changeSet id="added_assignments_table" author="Jan-Willem Gmelig Meyling">
+        <createTable tableName="assignments">
+            <column name="course_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="assignment_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="varchar(40)">
+                <constraints nullable="false" />
+            </column>
+            <column name="summary" type="text"/>
+            <column name="due_date" type="varchar(40)" />
+        </createTable>
+
+        <addPrimaryKey tableName="assignments" columnNames="course_id, assignment_id"></addPrimaryKey>
+
+        <addForeignKeyConstraint baseTableName="assignments" baseColumnNames="course_id"
+             constraintName="assignment_course_id"
+             referencedTableName="courses"
+             referencedColumnNames="id"></addForeignKeyConstraint>
+
+    </changeSet>
+
+    <changeSet id="added_deliveries_table" author="Jan-Willem Gmelig Meyling">
+        <createTable tableName="assignment_deliveries">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+
+            <column name="course_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="assignment_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="group_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="commit_id" type="varchar(40)"/>
+            <column name="notes" type="text"/>
+            <column name="created" type="datetime">
+                <constraints  nullable="false" />
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints  nullable="false" />
+            </column>
+
+            <!-- Review -->
+            <column name="grade" type="int"/>
+            <column name="state" type="varchar(20)"/>
+            <column name="review_time" type="timestamp"/>
+            <column name="review_user" type="bigint"/>
+            <column name="commentary" type="text"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="assignment_deliveries" baseColumnNames="course_id, assignment_id"
+             constraintName="assignment_deliveries_assignment"
+             referencedTableName="assignments"
+             referencedColumnNames="course_id, assignment_id"></addForeignKeyConstraint>
+
+        <addForeignKeyConstraint constraintName="assignment_deliveries_group"
+             baseTableName="assignment_deliveries" baseColumnNames="group_id"
+             referencedTableName="groups" referencedColumnNames="id" />
+
+        <addForeignKeyConstraint constraintName="assignment_deliveries_user"
+             baseTableName="assignment_deliveries" baseColumnNames="user_id"
+             referencedTableName="users" referencedColumnNames="id" />
+
+
+        <addForeignKeyConstraint constraintName="assignment_deliveries_review_user"
+             baseTableName="assignment_deliveries" baseColumnNames="review_user"
+             referencedTableName="users" referencedColumnNames="id" />
+
+    </changeSet>
+
+    <changeSet id="added_delivery_attachments" author="Jan-Willem Gmelig Meyling">
+        <createTable tableName="assignment_delivery_attachments">
+            <column name="path" type="varchar(255)">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="delivery_id" type="bigint">
+                <constraints  nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="assignment_delivery_attachments" baseColumnNames="delivery_id"
+             constraintName="assignment_delivery_attachments_delivery_id"
+             referencedTableName="assignment_deliveries" referencedColumnNames="id"/>
+    </changeSet>
+    
+    <changeSet id="change_messages_table" author="Jan-Willem Gmelig Meyling">
+        <dropColumn tableName="commit_comment" columnName="old_line_number"/>
+        <dropColumn tableName="commit_comment" columnName="old_file_path"/>
+        <renameColumn tableName="commit_comment" oldColumnName="new_line_number" newColumnName="source_line_number"/>
+        <renameColumn tableName="commit_comment" oldColumnName="new_file_path" newColumnName="source_file_path"/>
+        <addColumn tableName="commit_comment">
+            <column name="source_repository_name" type="varchar(255)"></column>
+        </addColumn>
+        <addColumn tableName="commit_comment">
+            <column name="source_commit_id" type="varchar(40)"></column>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="commit_comment" baseColumnNames="repository_name, source_commit_id"
+             constraintName="source_commit_comments_in_commits"
+             referencedTableName="commit" referencedColumnNames="repository_name, commit_id"/>
+    </changeSet>
+
+	<changeSet id="change_courses_column_names" author="Jan-Willem Gmelig Meyling">
+		<renameColumn tableName="courses" oldColumnName="start" newColumnName="start_date"/>
+		<renameColumn tableName="courses" oldColumnName="end" newColumnName="end_date"/>
+	</changeSet>
+
+	<changeSet id="change_grade_type" author="Jan-Willem Gmelig Meyling">
+		<modifyDataType tableName="assignment_deliveries" columnName="grade" newDataType="FLOAT"/>
+	</changeSet>
+
+	<changeSet id="add_commits_for_pr" author="Jan-Willem Gmelig Meyling">
+		<addColumn tableName="pull_requests">
+			<column name="merge_commit_id" type="varchar(40)"></column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="destination_commit_id" type="varchar(40)"></column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="merged" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="ahead" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="behind" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="pk_for_pull_requests" author="Jan-Willem Gmelig Meyling">
+		<dropPrimaryKey tableName="pull_requests"></dropPrimaryKey>
+		<addPrimaryKey tableName="pull_requests" columnNames="id,repository_name"></addPrimaryKey>
+	</changeSet>
+
+	<changeSet id="pull_request_comments" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="pull_request_comments">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="content" type="text" />
+			<column name="user_id" type="bigint">
+				<constraints  nullable="false" />
+			</column>
+			<column name="time" type="datetime" />
+		</createTable>
+
+		<addForeignKeyConstraint constraintName="pr_commit_pr_in_prs"
+			 baseTableName="pull_request_comments" baseColumnNames="repository_name,issue_id"
+			 referencedTableName="pull_requests" referencedColumnNames="repository_name,id"/>
+
+		<addForeignKeyConstraint constraintName="pr_commit_user_in_users"
+			 baseTableName="pull_request_comments" baseColumnNames="user_id"
+			 referencedTableName="users" referencedColumnNames="id"></addForeignKeyConstraint>
+	</changeSet>
 
 </databaseChangeLog>

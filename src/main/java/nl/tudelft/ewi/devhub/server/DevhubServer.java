@@ -11,9 +11,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistFilter;
+import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.util.Modules;
+
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -91,18 +94,7 @@ public class DevhubServer {
 	 */
 	public void startServer() throws Exception {
 		server.start();
-
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				try {
-					stopServer();
-				}
-				catch (Exception e) {
-					log.error(e.getMessage(), e);
-				}
-			}
-		});
+		Runtime.getRuntime().addShutdownHook(new Thread(this::stopServer));
 	}
 	
 	public void joinThread() throws InterruptedException {
@@ -111,11 +103,9 @@ public class DevhubServer {
 
 	/**
 	 * Stops the {@link DevhubServer} object.
-	 * 
-	 * @throws Exception
-	 *             In case the server could not be stopped.
 	 */
-	public void stopServer() throws Exception {
+	@SneakyThrows
+	public void stopServer() {
 		server.stop();
 	}
 
@@ -132,7 +122,7 @@ public class DevhubServer {
 				@Override
 				protected void withInjector(Injector injector) {
 					DevhubServer.this.injector.set(injector);
-					FilterHolder persistFilterHolder = new FilterHolder(injector.getInstance(PersistFilter.class));
+					FilterHolder persistFilterHolder = new FilterHolder(injector.getInstance(GuiceFilter.class));
 					addFilter(persistFilterHolder, "/*", EnumSet.allOf(DispatcherType.class));
 				}
 			});

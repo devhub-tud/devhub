@@ -45,8 +45,7 @@ public class BuildResult {
 
 	@Column(name = "success")
 	private Boolean success;
-	
-	@Lob
+
 	@Type(type = "org.hibernate.type.TextType")
 	@Column(name = "log")
 	private String log;

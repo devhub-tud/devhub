@@ -28,7 +28,7 @@ public class ProjectView extends AuthenticatedView {
 	}
 
 	private void assertInvariant() {
-		assertTrue(currentPathStartsWith("/projects"));
+		assertTrue(currentPathStartsWith("/courses"));
 		assertNotNull(getDriver().findElement(GIT_CLONE_URL));
 	}
 	
@@ -38,7 +38,7 @@ public class ProjectView extends AuthenticatedView {
 	public List<Commit> listCommits() {
 		assertInvariant();
 		WebElement recentCommitsHeader = getDriver().findElement(RECENT_COMMITS_HEADER);
-		WebElement table = Dom.nextSibling(recentCommitsHeader, "table");
+		WebElement table = getDriver().findElement(By.id("table-commits"));
 		return listCommits(table);
 	}
 	

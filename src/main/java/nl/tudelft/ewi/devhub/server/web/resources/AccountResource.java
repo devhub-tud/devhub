@@ -26,39 +26,37 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
-import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
+import nl.tudelft.ewi.git.client.GitClientException;
 import org.eclipse.jetty.util.UrlEncoded;
-import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.google.inject.name.Named;
+import com.google.inject.servlet.RequestScoped;
 
 @RequestScoped
 @Path("accounts")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-@RequireAuthenticatedUser
 public class AccountResource extends Resource {
 
 	private final TemplateEngine templateEngine;
 	private final SshKeyBackend backend;
-	private final RequestScope scope;
+	private final User currentUser;
 	private final Users users;
 
 	@Inject
-	AccountResource(TemplateEngine templateEngine, SshKeyBackend backend, RequestScope scope, Users users) {
+	AccountResource(TemplateEngine templateEngine, SshKeyBackend backend, @Named("current.user") User currentUser, Users users) {
 		this.templateEngine = templateEngine;
 		this.backend = backend;
-		this.scope = scope;
+		this.currentUser = currentUser;
 		this.users = users;
 	}
 
 	@GET
 	public Response showPersonalUserPage() throws URISyntaxException {
-		return Response.seeOther(new URI("/accounts/" + scope.getUser()
-			.getNetId()))
+		return Response.seeOther(new URI("/accounts/" + currentUser.getNetId()))
 			.build();
 	}
 
@@ -67,15 +65,14 @@ public class AccountResource extends Resource {
 	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId)
 			throws IOException, ApiError {
 
-		User requester = scope.getUser();
 		User account = users.findByNetId(netId);
 
-		if (!requester.isAdmin() && !requester.equals(account)) {
+		if (!currentUser.isAdmin() && !currentUser.equals(account)) {
 			throw new UnauthorizedException();
 		}
 
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", requester);
+		parameters.put("user", currentUser);
 		parameters.put("path", request.getRequestURI());
 		parameters.put("keys", backend.listKeys(account));
 
@@ -91,7 +88,7 @@ public class AccountResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 
 		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", scope.getUser());
+		parameters.put("user", currentUser);
 		if (!Strings.isNullOrEmpty(error)) {
 			parameters.put("error", error);
 		}
@@ -102,12 +99,11 @@ public class AccountResource extends Resource {
 	@POST
 	@Path("{netId}/setup")
 	public Response addNewKey(@PathParam("netId") String netId, @FormParam("name") String name,
-			@FormParam("contents") String contents) throws URISyntaxException {
+			@FormParam("contents") String contents) throws URISyntaxException, GitClientException {
 
-		User requester = scope.getUser();
 		User account = users.findByNetId(netId);
 
-		if (!requester.isAdmin() && !requester.equals(account)) {
+		if (!currentUser.isAdmin() && !currentUser.equals(account)) {
 			throw new UnauthorizedException();
 		}
 
@@ -126,12 +122,11 @@ public class AccountResource extends Resource {
 	@POST
 	@Path("{netId}/delete")
 	public Response deleteExistingKey(@PathParam("netId") String netId, @FormParam("name") String name)
-			throws URISyntaxException {
+			throws URISyntaxException, GitClientException  {
 
-		User requester = scope.getUser();
 		User account = users.findByNetId(netId);
 
-		if (!requester.isAdmin() && !requester.equals(account)) {
+		if (!currentUser.isAdmin() && !currentUser.equals(account)) {
 			throw new UnauthorizedException();
 		}
 

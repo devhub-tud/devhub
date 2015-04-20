@@ -14,12 +14,12 @@ import javax.ws.rs.ext.ExceptionMapper;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.filters.RequestScope;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.name.Named;
 
 @Slf4j
 @javax.ws.rs.ext.Provider
@@ -29,12 +29,13 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
 	private HttpServletRequest request;
 
 	private final TemplateEngine templateEngine;
-	private final Provider<RequestScope> scopeProvider;
+	private final Provider<User> currentUserProvider;
 
 	@Inject
-	public ThrowableMapper(TemplateEngine templateEngine, Provider<RequestScope> scopeProvider) {
+	public ThrowableMapper(TemplateEngine templateEngine,
+			@Named("current.user") Provider<User> currentUserProvider) {
 		this.templateEngine = templateEngine;
-		this.scopeProvider = scopeProvider;
+		this.currentUserProvider = currentUserProvider;
 	}
 
 	@Override
@@ -46,7 +47,9 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
 
 		try {
 			Map<String, Object> params = Maps.newHashMap();
-			params.put("user", determineUser());
+			User user = determineUser();
+			if(user != null)
+				params.put("user", determineUser());
 			params.put("error_id", id);
 
 			return Response.ok()
@@ -62,15 +65,11 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
 
 	private User determineUser() {
 		try {
-			RequestScope requestScope = scopeProvider.get();
-			if (requestScope != null) {
-				return requestScope.getUser();
-			}
+			return currentUserProvider.get();
 		}
 		catch (Throwable e) {
-			// Do nothing.
+			return null;
 		}
-		return null;
 	}
 
 }

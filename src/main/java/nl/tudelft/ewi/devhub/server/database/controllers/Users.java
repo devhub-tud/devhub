@@ -52,6 +52,13 @@ public class Users extends Controller<User> {
 	}
 
 	@Transactional
+	public List<User> listAdministrators() {
+		return query().from(QUser.user)
+			.where(QUser.user.admin.isTrue())
+			.list(QUser.user);
+	}
+
+	@Transactional
 	public Map<String, User> mapByNetIds(Set<String> netIds) {
 		Preconditions.checkNotNull(netIds);
 		
@@ -72,4 +79,5 @@ public class Users extends Controller<User> {
 		}
 		return mapping;
 	}
+
 }

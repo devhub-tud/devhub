@@ -1,86 +1,70 @@
 [#import "macros.ftl" as macros]
+[#import "components/difftable.ftl" as difftable]
+[#import "components/diffbox.ftl" as diffbox]
+[#import "components/comment.ftl" as commentElement]
+[#import "components/inline-comments.ftl" as inlineComments]
+
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n group commit "View diff" /]
-	[#if diffs?has_content]
-		[#list diffs as diff]
-			<div class="diff box">
-				<div class="header">
-					<button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> Fold</button>
-					<button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> Unfold</button>
-			[#if diff.isMoved()]
-					<h5><span class="label label-warn">Moved</span> ${diff.diffModel.oldPath} -&gt; ${diff.diffModel.newPath}</h5>
-			[#elseif diff.isCopied()]
-					<h5><span class="label label-warn">Copied</span> ${diff.diffModel.oldPath} -&gt; ${diff.diffModel.newPath}</h5>
-			[#elseif diff.isDeleted()]
-					<h5><span class="label label-danger">Deleted</span> ${diff.diffModel.oldPath}</h5>
-			[#elseif diff.isAdded()]
-					<h5><span class="label label-success">Created</span> </i> ${diff.diffModel.newPath}</h5>
-			[#elseif diff.isModified()]
-					<h5><span class="label label-primary">Modified</span> ${diff.diffModel.newPath}</h5>
-			[/#if]
-				</div>
-			[#if  diff.lines?has_content]
-				<div class="scrollable">
-					<table class="table diffs">
-						<tbody>
-				[#list diff.lines as line]
-					[#if line.contents??]
-							<tr>
-						[#if line.isRemoved()]
-								<td class="ln delete">${line.oldLineNumber}</td>
-								<td class="ln delete">${line.newLineNumber}</td>
-								<td class="code delete"><pre>${line.contents}</pre></td>
-						[#elseif line.isAdded()]
-								<td class="ln add">${line.oldLineNumber}</td>
-								<td class="ln add">${line.newLineNumber}</td>
-								<td class="code add"><pre>${line.contents}</pre></td>
-						[#else]
-								<td class="ln">${line.oldLineNumber}</td>
-								<td class="ln">${line.newLineNumber}</td>
-								<td class="code"><pre>${line.contents}</pre></td>
-						[/#if]
-							</tr>
-					[/#if]
-				[/#list]
-						</tbody>
-					</table>
-				</div>
-			[/#if]
-			</div>
-		[/#list]
-	[#else]
-			<div>${i18n.translate("diff.changes.nothing")}</div>
-	[/#if]
-		</div>
-[@macros.renderScripts /]
-		<script>
-			$(document).ready(function() {
-				$(".diff").each(function() {
-					var diffBody = $(this).find(".diffs");
-					if (diffBody.length == 0) {
-						var folder = $(this).find(".folder");
-						folder.css("display", "none");
-					}
-				});
-				
-				$(".folder").click(function(e) {
-					var body = $(this).parentsUntil(".box").parent();
-					var unfolder = $(this).parent().find(".unfolder");
-					
-					body.addClass("folded");
-					$(this).css("display", "none").blur();
-					unfolder.css("display", "block"); 
-				});
-				$(".unfolder").click(function(e) {
-					var body = $(this).parentsUntil(".box").parent();
-					var folder = $(this).parent().find(".folder");
 
-					body.removeClass("folded");
-					$(this).css("display", "none").blur();
-					folder.css("display", "block"); 
-				});
-			});
-		</script>
+    [@macros.renderCommitHeader i18n group commit i18n.translate("commit.view-diff")/]
+
+    [#if diffViewModel?? && diffViewModel?has_content]
+        [#list diffViewModel.diffs as diffModel]
+            [@diffbox.diffbox diffModel diffModel_index][/@diffbox.diffbox]
+        [/#list]
+    [#else]
+        <div>${i18n.translate("diff.changes.nothing")}</div>
+    [/#if]
+
+        <div id="comment-list">
+    [#if comments?? && comments?has_content]
+        [#list comments as comment]
+            [@commentElement.renderComment comment][/@commentElement.renderComment]
+        [/#list]
+    [/#if]
+        </div>
+
+        <div class="panel panel-default panel-comment-form">
+            <div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
+            <div class="panel-body">
+                <form class="form-horizontal" id="pull-comment-form" >
+                    <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
+                    <button type="submit" class="btn btn-primary">${i18n.translate("button.label.submit")}</button>
+                    <button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>
+                </form>
+            </div>
+        </div>
+
+		</div>
+
+[@macros.renderScripts /]
+[@inlineComments.renderScripts group i18n commit/]
+
+<script>
+    $(function() {
+        $('#pull-comment-form').submit(function(event) {
+            $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
+                "link-commit": "${commit.commit}",
+                "content": $('[name="content"]', '#pull-comment-form').val(),
+                "redirect": window.location.pathname
+            }).done(function(res) {
+                // Add comment block
+                $('<div class="panel panel-default panel-comment">' +
+                '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
+                    '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
+                '<div class="panel-body">'+
+                '<p>' + res.content + '</p>'+
+                '</div>'+
+                '</div>').appendTo('#comment-list');
+                // Clear input
+                $('[name="content"]', '#pull-comment-form').val('');
+            });
+            event.preventDefault();
+        });
+    });
+</script>
+
+[@diffbox.renderScripts/]
 [@macros.renderFooter /]

@@ -15,11 +15,11 @@
 							<form role="form" id="login-form" method="POST" action="">
 								<div class="form-group">
 									<label for="netID">${i18n.translate("form.login.net-id.label")}</label>
-									<input type="text" id="netID" name="netID" class="form-control" autofocus="autofocus" placeholder="${i18n.translate("form.login.net-id.label")}">
+									<input type="text" value="" id="netID" name="netID" class="form-control" autofocus="autofocus" placeholder="${i18n.translate("form.login.net-id.label")}">
 								</div>
 								<div class="form-group">
 									<label for="password">${i18n.translate("form.login.password.label")}</label>
-									<input type="password" id="password" name="password" class="form-control" placeholder="${i18n.translate("form.login.password.label")}">
+									<input type="password" value="" id="password" name="password" class="form-control" placeholder="${i18n.translate("form.login.password.label")}">
 								</div>
 								<div class="form-group">
 									<input type="submit" class="btn btn-xl btn-primary pull-right" name="login" value="${i18n.translate("form.login.buttons.login.caption")}">

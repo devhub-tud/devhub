@@ -34,41 +34,46 @@ public class Course {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	@NotEmpty
+	@NotEmpty(message = "error.course-name-empty")
 	@Column(name = "name")
 	private String name;
 
-	@NotEmpty
+	@NotEmpty(message = "course-code-empty")
 	@Column(name = "code", unique=true)
 	private String code;
 
 	@NotNull
-	@Column(name = "start")
+	@Column(name = "start_date")
 	private Date start;
 
-	@Column(name = "end")
+	@Column(name = "end_date")
 	private Date end;
 
-	@NotNull
+	@NotNull(message = "error.course-min-group-empty")
 	@Column(name = "min_group_size")
 	private Integer minGroupSize;
 
-	@NotNull
+	@NotNull(message = "error.course-max-group-empty")
 	@Column(name = "max_group_size")
 	private Integer maxGroupSize;
 
 	@Column(name = "template_repository_url")
 	private String templateRepositoryUrl;
-	
+
+    @NotNull(message = "error.course-timeout")
 	@Column(name = "build_timeout")
 	private Integer buildTimeout;
 
 	@OrderBy("groupNumber ASC")
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
 	private List<Group> groups;
-	
+
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
 	private List<CourseAssistant> courseAssistants;
+
+    @OrderBy("assignmentId ASC")
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+    private List<Assignment> assignments;
 
 	public void setCode(String code) {
 		this.code = code.toUpperCase();

@@ -12,12 +12,11 @@ import nl.tudelft.ewi.build.client.MockedBuildServerBackend;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.Bootstrapper;
-import nl.tudelft.ewi.devhub.server.backend.MailBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.MailBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedMailBackend;
 import nl.tudelft.ewi.devhub.webtests.views.LoginView;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.GitServerClientMock;
+import nl.tudelft.ewi.git.client.*;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -36,16 +35,18 @@ public abstract class WebTest {
 	public static final String NET_ID = "student1";
 	public static final String PASSWORD = "student1";
 
-	private static DevhubServer server;
-	
+	protected static DevhubServer server;
+	protected static GitServerClientMock gitServerClientMock;
+
 	@BeforeClass
 	public static void beforeClass() throws Exception {
+		gitServerClientMock = new GitServerClientMock();
+
 		server = new DevhubServer(new AbstractModule() {
 			@Override
 			protected void configure() {
 				bind(AuthenticationBackend.class).to(MockedAuthenticationBackend.class);
-				bind(GitServerClient.class).to(GitServerClientMock.class);
-				bind(GitServerClientMock.class).toInstance(new GitServerClientMock());
+				bind(GitServerClient.class).toInstance(gitServerClientMock);
 				bind(BuildServerBackend.class).to(MockedBuildServerBackend.class);
 				bind(MockedBuildServerBackend.class).toInstance(new MockedBuildServerBackend(null, null));
 				bind(MailBackend.class).to(MockedMailBackend.class);
@@ -55,7 +56,7 @@ public abstract class WebTest {
 
 		server.getInstance(Bootstrapper.class).prepare("/simple-environment.json");
 	}
-	
+
 	private WebDriver driver;
 	
 	@Before
@@ -73,7 +74,7 @@ public abstract class WebTest {
 	}
 	
 	protected static GitServerClientMock getGitServerClient() {
-		return server.getInstance(GitServerClientMock.class);
+		return gitServerClientMock;
 	}
 	
 	@After

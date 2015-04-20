@@ -10,15 +10,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedUser;
-
-import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
 
 @Path("validation")
 @RequestScoped
-@RequireAuthenticatedUser
 public class ValidationResource {
 
 	private final Users users;

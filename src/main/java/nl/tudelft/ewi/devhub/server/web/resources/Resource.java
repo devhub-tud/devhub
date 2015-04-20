@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.net.URI;
+import java.net.URLEncoder;
 
 import javax.ws.rs.core.Response;
 
@@ -21,4 +22,9 @@ public class Resource {
 			.build();
 	}
 
+	@SneakyThrows
+	String encode(String value) {
+		return URLEncoder.encode(value, "UTF-8");
+	}
+	
 }

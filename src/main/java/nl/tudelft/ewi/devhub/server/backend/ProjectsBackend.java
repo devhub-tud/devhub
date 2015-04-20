@@ -13,10 +13,11 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
+import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
-import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 
 import org.hibernate.exception.ConstraintViolationException;
@@ -68,8 +69,8 @@ public class ProjectsBackend {
 			log.info("Deleting repository from Git server: {}", repositoryName);
 
 			Repositories repositories = client.repositories();
-			DetailedRepositoryModel repo = repositories.retrieve(repositoryName);
-			repositories.delete(repo);
+			Repository repo = repositories.retrieve(repositoryName);
+			repo.delete();
 		}
 		catch (Throwable e) {
 			log.warn(e.getMessage());
@@ -165,7 +166,7 @@ public class ProjectsBackend {
 		}
 	}
 
-	private void provisionRepository(String courseCode, String repoName, String templateUrl, Collection<User> members) {
+	private void provisionRepository(String courseCode, String repoName, String templateUrl, Collection<User> members) throws GitClientException {
 		log.info("Provisioning new Git repository: {}", repoName);
 		nl.tudelft.ewi.git.client.Users gitUsers = client.users();
 

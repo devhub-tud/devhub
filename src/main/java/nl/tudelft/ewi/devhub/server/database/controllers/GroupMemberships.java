@@ -7,10 +7,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
-import nl.tudelft.ewi.devhub.server.database.entities.QGroupMembership;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 
 public class GroupMemberships extends Controller<GroupMembership> {
 
@@ -37,5 +34,15 @@ public class GroupMemberships extends Controller<GroupMembership> {
 			.where(QGroupMembership.groupMembership.group.groupId.eq(group.getGroupId()))
 			.list(QGroupMembership.groupMembership);
 	}
+
+    @Transactional
+    public Group forCourseAndUser(User user, Course course) {
+        Preconditions.checkNotNull(user);
+        Preconditions.checkNotNull(course);
+        return query().from(QGroupMembership.groupMembership)
+            .where(QGroupMembership.groupMembership.user.eq(user))
+            .where(QGroupMembership.groupMembership.group.course.eq(course))
+            .singleResult(QGroupMembership.groupMembership.group);
+    }
 
 }

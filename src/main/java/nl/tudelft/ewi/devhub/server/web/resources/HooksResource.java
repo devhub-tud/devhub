@@ -23,23 +23,26 @@ import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
 import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.backend.BuildResultMailer;
+import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
+import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
+import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
+import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BranchModel;
-import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
-
-import org.jboss.resteasy.plugins.guice.RequestScoped;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
 
 @Slf4j
 @RequestScoped
@@ -59,10 +62,12 @@ public class HooksResource extends Resource {
 	private final BuildResults buildResults;
 	private final Groups groups;
 	private final BuildResultMailer mailer;
+	private final PullRequests pullRequests;
+	private final PullRequestBackend pullRequestBackend;
 
 	@Inject
 	HooksResource(Config config, BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
-			Groups groups, BuildResultMailer mailer) {
+			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend) {
 
 		this.config = config;
 		this.buildBackend = buildBackend;
@@ -70,15 +75,17 @@ public class HooksResource extends Resource {
 		this.buildResults = buildResults;
 		this.groups = groups;
 		this.mailer = mailer;
+		this.pullRequests = pullRequests;
+		this.pullRequestBackend = pullRequestBackend;
 	}
 
 	@POST
 	@Path("git-push")
-	public void onGitPush(@Context HttpServletRequest request, GitPush push) throws UnsupportedEncodingException {
+	public void onGitPush(@Context HttpServletRequest request, GitPush push) throws UnsupportedEncodingException, GitClientException {
 		log.info("Received git-push event: {}", push);
 
 		Repositories repositories = client.repositories();
-		DetailedRepositoryModel repository = repositories.retrieve(push.getRepository());
+		Repository repository = repositories.retrieve(push.getRepository());
 
 		MavenBuildInstruction instruction = new MavenBuildInstruction();
 		instruction.setWithDisplay(true);
@@ -86,10 +93,12 @@ public class HooksResource extends Resource {
 
 		Group group = groups.findByRepoName(push.getRepository());
 		for (BranchModel branch : repository.getBranches()) {
+			String commitId = branch.getCommit().getCommit();
+
 			if ("HEAD".equals(branch.getSimpleName())) {
 				continue;
 			}
-			if (buildResults.exists(group, branch.getCommit())) {
+			if (buildResults.exists(group, commitId)) {
 				continue;
 			}
 
@@ -98,13 +107,13 @@ public class HooksResource extends Resource {
 			GitSource source = new GitSource();
 			source.setRepositoryUrl(repository.getUrl());
 			source.setBranchName(branch.getName());
-			source.setCommitId(branch.getCommit());
+			source.setCommitId(commitId);
 
 			StringBuilder callbackBuilder = new StringBuilder();
 			callbackBuilder.append(config.getHttpUrl());
 			callbackBuilder.append("/hooks/build-result");
 			callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
-			callbackBuilder.append("&commit=" + URLEncoder.encode(branch.getCommit(), "UTF-8"));
+			callbackBuilder.append("&commit=" + URLEncoder.encode(commitId, "UTF-8"));
 
 			BuildRequest buildRequest = new BuildRequest();
 			buildRequest.setCallbackUrl(callbackBuilder.toString());
@@ -113,7 +122,12 @@ public class HooksResource extends Resource {
 			buildRequest.setTimeout(group.getBuildTimeout());
 
 			buildBackend.offerBuild(buildRequest);
-			buildResults.persist(BuildResult.newBuildResult(group, branch.getCommit()));
+			buildResults.persist(BuildResult.newBuildResult(group, commitId));
+
+			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
+			if(pullRequest != null) {
+				pullRequestBackend.updatePullRequest(repository, pullRequest);
+			}
 		}
 	}
 

@@ -6,6 +6,7 @@ import java.util.List;
 
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Users;
 import nl.tudelft.ewi.git.models.SshKeyModel;
@@ -31,7 +32,7 @@ public class SshKeyBackend {
 		this.client = client;
 	}
 
-	public void createNewSshKey(User user, String name, String contents) throws ApiError {
+	public void createNewSshKey(User user, String name, String contents) throws ApiError, GitClientException {
 		if (name == null || !name.matches("^[a-zA-Z0-9]+$")) {
 			throw new ApiError(INVALID_KEY_NAME);
 		}
@@ -59,7 +60,7 @@ public class SshKeyBackend {
 			.registerSshKey(model);
 	}
 
-	public void deleteSshKey(User user, String name) throws ApiError {
+	public void deleteSshKey(User user, String name) throws ApiError, GitClientException  {
 		if (name == null || !name.matches("^[a-zA-Z0-9]+$")) {
 			throw new ApiError(INVALID_KEY_NAME);
 		}
@@ -103,7 +104,7 @@ public class SshKeyBackend {
 			return users.ensureExists(netId);
 		}
 		catch (Throwable e) {
-			throw new ApiError(COULD_NOT_CONNECT);
+			throw new ApiError(COULD_NOT_CONNECT, e);
 		}
 	}
 

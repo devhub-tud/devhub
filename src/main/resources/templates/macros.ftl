@@ -61,9 +61,9 @@
 					[/#if]
 				[#else]
 					[#if path?? && path?has_content]
-							<i class="binary glyphicon glyphicon-save"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/file/${path}/${entry}">${entry}</a>
+							<i class="binary glyphicon glyphicon-save"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${path}/${entry}">${entry}</a>
 					[#else]
-							<i class="binary glyphicon glyphicon-save"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/file/${entry}">${entry}</a>
+							<i class="binary glyphicon glyphicon-save"></i> <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${entry}">${entry}</a>
 					[/#if]
 				[/#if]
 							</td>

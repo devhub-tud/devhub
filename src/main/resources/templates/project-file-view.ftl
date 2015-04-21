@@ -5,7 +5,7 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n group commit "List files" /]
+[@macros.renderCommitHeader i18n group commit i18n.translate("commit.view-files") /]
 			<div class="diff box">
 				<div class="header">
 					<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${path?url('UTF8')}" class="pull-right btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>

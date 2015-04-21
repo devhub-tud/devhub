@@ -90,7 +90,7 @@ public class CourseAssistantsResource extends Resource {
             session.removeAttribute("courses.course.assistants");
         }
 
-        List<User> members = (List<User>) session.getAttribute("courses.course.assistants");
+        Collection<User> members = (Collection<User>) session.getAttribute("courses.course.assistants");
         if(members == null)
             members = course.getAssistants();
 
@@ -115,7 +115,7 @@ public class CourseAssistantsResource extends Resource {
 
         HttpSession session = request.getSession();
         Course course = courses.find(courseCode);
-        List<User> members = (List<User>) session.getAttribute("courses.course.assistants");
+        Collection<User> members = (Collection<User>) session.getAttribute("courses.course.assistants");
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
@@ -144,19 +144,19 @@ public class CourseAssistantsResource extends Resource {
         Course course = courses.find(courseCode);
 
         if (step == 1) {
-            List<User> courseAssistants = getCourseAssistants(request);
+            Collection<User> courseAssistants = getCourseAssistants(request);
             session.setAttribute("courses.course.assistants", courseAssistants);
             return redirect("/courses/" + courseCode + "/assistants?step=2");
         }
 
-        List<User> courseAssistants = (List<User>) session.getAttribute("courses.course.assistants");
+        Collection<User> courseAssistants = (Collection<User>) session.getAttribute("courses.course.assistants");
         coursesBackend.setAssistants(course, courseAssistants);
 
         session.removeAttribute("courses.course.assistants");
         return redirect("/courses/" + courseCode);
     }
 
-    private List<User> getCourseAssistants(HttpServletRequest request) {
+    private Collection<User> getCourseAssistants(HttpServletRequest request) {
         String netId;
         int memberId = 1;
         Set<String> netIds = Sets.newHashSet();
@@ -166,9 +166,7 @@ public class CourseAssistantsResource extends Resource {
         }
 
         Map<String, User> members = users.mapByNetIds(netIds);
-        return netIds.stream()
-            .map(members::get)
-            .collect(Collectors.toList());
+        return members.values();
     }
 
 }

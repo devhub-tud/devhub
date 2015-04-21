@@ -66,18 +66,14 @@ public class Users extends Controller<User> {
 			return Maps.newHashMap();
 		}
 
-		List<String> lowerCasedNetIds = netIds.stream().map(String::toLowerCase).collect(Collectors.toList());
+		List<String> lowerCasedNetIds = netIds.stream()
+				.map(String::toLowerCase)
+				.collect(Collectors.toList());
 
-		List<User> result = query().from(QUser.user)
+		return query().from(QUser.user)
 			.where(QUser.user.netId.toLowerCase().in(lowerCasedNetIds))
 			.orderBy(QUser.user.netId.toLowerCase().asc())
-			.list(QUser.user);
-
-		Map<String, User> mapping = Maps.newHashMap();
-		for (User user : result) {
-			mapping.put(user.getNetId(), user);
-		}
-		return mapping;
+			.map(QUser.user.netId, QUser.user);
 	}
 
 }

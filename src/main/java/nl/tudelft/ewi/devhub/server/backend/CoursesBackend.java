@@ -89,7 +89,7 @@ public class CoursesBackend {
      * @param newAssistants List of users assisting this course
      * @throws GitClientException if an GitClientException occurs
      */
-    public void setAssistants(Course course, List<User> newAssistants) throws GitClientException {
+    public void setAssistants(Course course, Collection<User> newAssistants) throws GitClientException {
         Preconditions.checkNotNull(course);
         Preconditions.checkNotNull(newAssistants);
         checkAdmin();

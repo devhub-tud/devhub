@@ -9,7 +9,7 @@
     <ol class="breadcrumb">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
         <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li>
-        <li>${i18n.translate("assignment.assignment-title", assignment.getAssignmentId(), assignment.getName())}</li>
+        <li>${assignment.getName()}</li>
     </ol>
 
 [#if assignmentStats??]
@@ -43,6 +43,10 @@
             [#assign group = delivery.getGroup()]
             [@commitRow.render group states![] commitId![] "/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}"]
                 <div class="pull-right">
+
+                [#if delivery.isLate()]
+                    <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
+                [/#if]
 
                 [#assign review = delivery.getReview()![]]
                 [#if review?has_content && review.grade?? && review.grade?has_content]

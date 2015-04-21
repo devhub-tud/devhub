@@ -1,5 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Ordering;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
@@ -19,7 +21,7 @@ import java.util.Date;
 @Table(name= "assignments")
 @IdClass(Assignment.AssignmentId.class)
 @EqualsAndHashCode(of={"course", "assignmentId"})
-public class Assignment {
+public class Assignment implements Comparable<Assignment> {
 
     @Data
     @EqualsAndHashCode
@@ -50,6 +52,14 @@ public class Assignment {
 
     @Nullable
     @Column(name="due_date")
-    private String dueDate;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dueDate;
 
+    @Override
+    public int compareTo(Assignment o) {
+        return ComparisonChain.start()
+            .compare(getDueDate(), o.getDueDate(), Ordering.natural().nullsFirst())
+            .compare(getName(), o.getName())
+            .result();
+    }
 }

@@ -68,7 +68,7 @@
                     <tr>
                         <td>
                             <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
-                                ${assignment.getAssignmentId()}
+                                ${assignment_index + 1}
                             </a>
                         </td>
                         <td>
@@ -79,7 +79,7 @@
                         <td>
                     [#if assignment.getDueDate()??]
                             <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
-                                ${assignment.getDueDate()}
+                                ${assignment.getDueDate()?string["EEE, d MMM yyyy HH:mm"]}
                             </a>
                     [#else]-
                     [/#if]

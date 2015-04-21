@@ -25,21 +25,18 @@
         [#assign assignmentNumber = course.getAssignments()?size + 1]
     [/#if]
 
-    <div class="form-group">
-        <label for="name" class="col-sm-2 control-label">${i18n.translate("course.control.assignment-number")}</label>
-        <div class="col-sm-10">
-            <input type="number" class="form-control" name="id" id="id" value="${assignmentNumber}" [#if assignment?exists]disabled[/#if]>
-        </div>
-    </div>
+        <input type="hidden" name="id" id="id" value="${assignmentNumber}"/>
 
     <div class="form-group">
         <label for="due-date" class="col-sm-2 control-label">${i18n.translate("course.control.due-date")}</label>
         <div class="col-sm-10">
-        [#if assignment?exists]
-            <input type="text" class="form-control" name="due-date" id="due-date" placeholder="${i18n.translate("course.control.due-date")}" [#if assignment.getDueDate()??]value="${assignment.getDueDate()}"[/#if]>
-        [#else]
-            <input type="text" class="form-control" name="due-date" id="due-date" placeholder="${i18n.translate("course.control.due-date")}">
-        [/#if]
+            <input type="text" class="form-control" name="due-date" id="due-date"
+               [#if assignment?exists && assignment.getDueDate()??]
+                   value="${assignment.getDueDate()?string["dd-MM-yyyy HH:mm"]}"
+               [#else]
+                   value="${.now?string["dd-MM-yyyy HH:mm"]}"
+               [/#if]
+                   placeholder="${i18n.translate("course.control.due-date.format")}">
         </div>
     </div>
 
@@ -47,9 +44,9 @@
         <label for="name" class="col-sm-2 control-label">${i18n.translate("course.control.assignment-name")}</label>
         <div class="col-sm-10">
         [#if assignment?exists]
-            <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.assignment-number", assignmentNumber)}" value="${assignment.getName()}">
+            <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.assignment-name", assignmentNumber)}" value="${assignment.getName()}">
         [#else]
-            <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.assignment-number", assignmentNumber)}">
+            <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.assignment-name", assignmentNumber)}">
         [/#if]
         </div>
     </div>

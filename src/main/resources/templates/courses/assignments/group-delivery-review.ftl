@@ -1,6 +1,6 @@
 [#import "../../macros.ftl" as macros]
 [#import "../../components/project-frameset.ftl" as projectFrameset]
-[#import "../../components/commit-row.ftl" as commitRow]
+[#import "../../components/delivery.ftl" as deliveryElement]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -26,50 +26,9 @@
         </div>
         <div class="col-md-10">
             <table class="table table-bordered">
-            [#assign commitId = delivery.getCommitId()!]
-            [@commitRow.render group states commitId!]
-                <div class="pull-right">
-                    [#assign state = delivery.getState()]
-                    <span class="label label-${state.style}">${i18n.translate(state.translationKey)}</span>
-                </div>
-
-                <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-
-                [#if delivery.getNotes()??]
-                    <p>${delivery.getNotes()}</p>
-                [/#if]
-
-                [#assign attachments = delivery.getAttachments()!]
-                [#if attachments?has_content]
-                    <ul class="list-inline">
-                    [#list attachments as attachment]
-                        <li>
-                        <a class="btn btn-link btn-sm" target="_blank" href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}/attachment/${attachment.getPath()?url('ISO-8859-1')}">
-                            <span class="glyphicon glyphicon-file aria-hidden="true"></span>
-                        ${attachment.getFileName()}
-                        </a>
-                        </li>
-                    [/#list]
-                    </ul>
-                [/#if]
-
-                [#assign review = delivery.getReview()!]
-                [#if review?? && review?has_content && (review.getGrade()?? || review.getCommentary()??)]
-                    <blockquote>
-                        <dl>
-                            [#if review.getGrade()??]
-                                <dt>${i18n.translate("delivery.grade")}</dt>
-                                <dd>${review.getGrade()}</dd>
-                            [/#if]
-                            [#if review.getCommentary()??]
-                                <dt>${i18n.translate("delivery.remarks")}</dt>
-                                <dd>${review.getCommentary()}</dd>
-                            [/#if]
-                        </dl>
-                        <footer class="small">${review.reviewUser.getName()} on ${review.getReviewTime()?string["EEEE dd MMMM yyyy HH:mm"]}</footer>
-                    </blockquote>
-                [/#if]
-            [/@commitRow.render]
+                <tr>
+                    <td>[@deliveryElement.render delivery states/]</td>
+                </tr>
             </table>
 
             [#if user.isAdmin() || user.isAssisting(course)]

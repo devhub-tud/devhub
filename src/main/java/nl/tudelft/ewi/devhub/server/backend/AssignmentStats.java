@@ -21,7 +21,11 @@ public class AssignmentStats {
     }
     
     private int getPercentageFor(Predicate<? super Delivery> predicate) {
-        return getCountFor(predicate) * 100 / amountOfGroups();
+        int amountOfGroups = amountOfGroups();
+        if(amountOfGroups == 0){
+            return 0;
+        }
+        return getCountFor(predicate) * 100 / amountOfGroups;
     }
 
     /**

@@ -417,4 +417,11 @@
 			 referencedTableName="users" referencedColumnNames="id"></addForeignKeyConstraint>
 	</changeSet>
 
+	<changeSet id="due_date" author="Jan-Willem Gmelig Meyling">
+		<dropColumn tableName="assignments" columnName="due_date"></dropColumn>
+		<addColumn tableName="assignments">
+			<column name="due_date" type="datetime"></column>
+		</addColumn>
+	</changeSet>
+
 </databaseChangeLog>

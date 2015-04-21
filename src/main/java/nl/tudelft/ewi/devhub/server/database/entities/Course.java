@@ -71,7 +71,7 @@ public class Course {
 	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
 	private List<CourseAssistant> courseAssistants;
 
-    @OrderBy("assignmentId ASC")
+    @OrderBy("dueDate ASC, name ASC")
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
     private List<Assignment> assignments;
 

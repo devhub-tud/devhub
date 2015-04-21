@@ -1,26 +1,6 @@
 [#import "../../macros.ftl" as macros]
 [#import "../../components/project-frameset.ftl" as projectFrameset]
-[#import "../../components/commit-row.ftl" as commitRow]
-
-[#macro deliveryStateButton user course delivery]
-    <div class="pull-right">
-    [#assign state = delivery.getState()]
-    [#if user.isAdmin() || user.isAssisting(course)]
-        <div class="btn-group">
-            <button type="button" class="btn btn-${state.style}">${i18n.translate(state.translationKey)}</button>
-            <button type="button" class="btn btn-${state.style} dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                <span class="caret"></span>
-                <span class="sr-only">${i18n.translate("button.label.options")}</span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-                <li><a href="deliveries/${delivery.getDeliveryId()}/review">${i18n.translate("button.label.review")}</a></li>
-            </ul>
-        </div>
-    [#else]
-        <span class="label label-${state.style}">${i18n.translate(state.translationKey)}</span>
-    [/#if]
-    </div>
-[/#macro]
+[#import "../../components/delivery.ftl" as deliveryElement]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -36,7 +16,7 @@
             ${i18n.translate("assignment.go-back-to-assignment")}
             </a>
         [/#if]
-            <h4 style="line-height:34px; margin-top:0;">${assignment.getAssignmentId()}. ${assignment.getName()}</h4>
+            <h4 style="line-height:34px; margin-top:0;">${assignment.getName()}</h4>
         </div>
     </div>
 
@@ -59,47 +39,16 @@
             <table class="table table-bordered">
             [#if myDeliveries?? && myDeliveries?has_content]
                 [#list myDeliveries as delivery]
-                    [#assign commitId = delivery.getCommitId()!]
-                    [@commitRow.render group states commitId! ""]
-                        [@deliveryStateButton user course delivery/]
-
-                        <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-
-                        [#if delivery.getNotes()??]
-                            <p>${delivery.getNotes()}</p>
-                        [/#if]
-
-                        [#assign attachments = delivery.getAttachments()!]
-                        [#if attachments?has_content]
-                            <ul class="list-inline">
-                            [#list attachments as attachment]
-                                <li>
-                                <a class="btn btn-link btn-sm" target="_blank" href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}/attachment/${attachment.getPath()?url('ISO-8859-1')}">
-                                    <span class="glyphicon glyphicon-file aria-hidden="true"></span>
-                                ${attachment.getFileName()}
-                                </a>
-                                </li>
-                            [/#list]
-                            </ul>
-                        [/#if]
-
-                        [#assign review = delivery.getReview()!]
-                        [#if review?? && review?has_content && (review.getGrade()?? || review.getCommentary()??)]
-                            <blockquote>
-                                <dl>
-                                    [#if review.getGrade()??]
-                                        <dt>${i18n.translate("delivery.grade")}</dt>
-                                        <dd>${review.getGrade()}</dd>
-                                    [/#if]
-                                    [#if review.getCommentary()??]
-                                        <dt>${i18n.translate("delivery.remarks")}</dt>
-                                        <dd>${review.getCommentary()}</dd>
-                                    [/#if]
-                                </dl>
-                                <footer class="small">${review.reviewUser.getName()} on ${review.getReviewTime()?string["EEEE dd MMMM yyyy HH:mm"]}</footer>
-                            </blockquote>
-                        [/#if]
-                    [/@commitRow.render]
+                <tr>
+                    <td>
+                        [@deliveryElement.render delivery states/]
+                        <div class="pull-right">
+                    [#if user.isAdmin() || user.isAssisting(course)]
+                          <a href="deliveries/${delivery.getDeliveryId()}/review" class="btn btn-default">${i18n.translate("button.label.review")}</a>
+                    [/#if]
+                        </div>
+                    </td>
+                </tr>
                 [/#list]
             [#else]
                 <tr>

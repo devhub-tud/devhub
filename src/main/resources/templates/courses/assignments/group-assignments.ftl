@@ -1,5 +1,6 @@
 [#import "../../macros.ftl" as macros]
 [#import "../../components/project-frameset.ftl" as projectFrameset]
+
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 <div class="container">
@@ -44,7 +45,7 @@
                     <tr>
                         <td>
                             <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                            ${assignment.getAssignmentId()!"-"}
+                            ${assignment_index + 1}
                             </a>
                         </td>
                         <td>
@@ -55,7 +56,7 @@
                         <td>
                             [#if assignment.getDueDate()??]
                                 <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
-                                ${assignment.getDueDate()}
+                                ${assignment.getDueDate()?string["EEE, d MMM yyyy HH:mm"]}
                                 </a>
                             [/#if]
                         </td>
@@ -68,13 +69,16 @@
                         <td>
                             [#if delivery?has_content]
                                 [#assign state = delivery.getState()]
-                                <a class="label label-${state.style}" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                                <span class="label label-${state.style}">
                                     ${i18n.translate(state.translationKey)}
-                                </a>
+                                </span>
+                                [#if delivery.isLate()]
+                                <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
+                                [/#if]
                             [#else]
-                                <a class="label label-default" href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                                <span class="label label-default">
                                     ${i18n.translate("assignment.not-submitted")}
-                                </a>
+                                </span>
                             [/#if]
                         </td>
                     </tr>

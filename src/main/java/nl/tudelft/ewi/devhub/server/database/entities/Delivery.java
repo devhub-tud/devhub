@@ -142,6 +142,11 @@ public class Delivery implements Comparable<Delivery> {
         return getState().equals(State.REJECTED);
     }
 
+    public boolean isLate() {
+        Date dueDate = getAssignment().getDueDate();
+        return dueDate != null && getCreated().after(dueDate);
+    }
+
     @Override
     public int compareTo(Delivery other) {
         return getCreated().compareTo(other.getCreated());

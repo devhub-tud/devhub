@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -30,6 +31,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -42,6 +45,8 @@ import java.util.Set;
  */
 @Path("courses/{courseCode}/assignments")
 public class AssignmentsResource extends Resource {
+
+    public static final String DATE_FORMAT = "dd-MM-yyyy HH:mm";
 
     @Inject
     private TemplateEngine templateEngine;
@@ -126,7 +131,6 @@ public class AssignmentsResource extends Resource {
             throw new UnauthorizedException();
         }
 
-
         if(assignmentsDAO.exists(course, assignmentId)) {
             return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-number-exists");
         }
@@ -134,9 +138,18 @@ public class AssignmentsResource extends Resource {
         Assignment assignment = new Assignment();
         assignment.setCourse(course);
         assignment.setAssignmentId(assignmentId);
-        assignment.setDueDate(dueDate);
         assignment.setName(name);
         assignment.setSummary(summary);
+
+        if(!Strings.isNullOrEmpty(dueDate)) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
+            try {
+                assignment.setDueDate(simpleDateFormat.parse(dueDate));
+            }
+            catch (ParseException e) {
+                return redirect("/courses/" + courseCode + "/assignments/create?error=error.invalid-date-format");
+            }
+        }
 
         try {
             assignmentsDAO.persist(assignment);
@@ -291,9 +304,22 @@ public class AssignmentsResource extends Resource {
         }
 
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
-        assignment.setDueDate(dueDate);
         assignment.setName(name);
         assignment.setSummary(summary);
+
+
+        if(!Strings.isNullOrEmpty(dueDate)) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
+            try {
+                assignment.setDueDate(simpleDateFormat.parse(dueDate));
+            }
+            catch (ParseException e) {
+                return redirect("/courses/" + courseCode + "/assignments/create?error=error.invalid-date-format");
+            }
+        }
+        else {
+            assignment.setDueDate(null);
+        }
 
         try {
             assignmentsDAO.merge(assignment);

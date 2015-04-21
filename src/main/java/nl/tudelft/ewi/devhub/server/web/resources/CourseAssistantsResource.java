@@ -90,7 +90,7 @@ public class CourseAssistantsResource extends Resource {
             session.removeAttribute("courses.course.assistants");
         }
 
-        List<User> members = (List<User>) session.getAttribute("courses.course.assistants");
+        Collection<User> members = (Collection<User>) session.getAttribute("courses.course.assistants");
         if(members == null)
             members = course.getAssistants();
 

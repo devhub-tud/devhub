@@ -84,7 +84,7 @@ public class CourseEnrollResource extends Resource {
             session.removeAttribute("projects.setup.members");
         }
 
-        List<User> members = (List<User>) session.getAttribute("projects.setup.members");
+        Collection<User> members = (Collection<User>) session.getAttribute("projects.setup.members");
 
         int maxGroupSize = getMaxGroupSize(course);
         int minGroupSize = getMinGroupSize(course);
@@ -112,7 +112,7 @@ public class CourseEnrollResource extends Resource {
 
         HttpSession session = request.getSession();
         Course course = courses.find(courseCode);
-        List<User> members = (List<User>) session.getAttribute("projects.setup.members");
+        Collection<User> members = (Collection<User>) session.getAttribute("projects.setup.members");
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
@@ -137,7 +137,7 @@ public class CourseEnrollResource extends Resource {
         Course course = courses.find(courseCode);
 
         if (step == 1) {
-            List<User> groupMembers = getGroupMembers(request);
+            Collection<User> groupMembers = getGroupMembers(request);
             int maxGroupSize = getMaxGroupSize(course);
             int minGroupSize = getMinGroupSize(course);
 
@@ -159,7 +159,7 @@ public class CourseEnrollResource extends Resource {
         }
 
         try {
-            List<User> members = (List<User>) session.getAttribute("projects.setup.members");
+            Collection<User> members = (Collection<User>) session.getAttribute("projects.setup.members");
             projectsBackend.setupProject(course, members);
 
             session.removeAttribute("projects.setup.course");
@@ -172,7 +172,7 @@ public class CourseEnrollResource extends Resource {
         }
     }
 
-    private List<User> getGroupMembers(HttpServletRequest request) {
+    private Collection<User> getGroupMembers(HttpServletRequest request) {
         String netId;
         int memberId = 1;
         Set<String> netIds = Sets.newHashSet();
@@ -182,11 +182,7 @@ public class CourseEnrollResource extends Resource {
         }
 
         Map<String, User> members = users.mapByNetIds(netIds);
-        List<User> sortedMembers = Lists.newArrayList();
-        for (String memberNetId : netIds) {
-            sortedMembers.add(members.get(memberNetId));
-        }
-        return sortedMembers;
+        return members.values();
     }
 
     public int getMinGroupSize(Course course) {

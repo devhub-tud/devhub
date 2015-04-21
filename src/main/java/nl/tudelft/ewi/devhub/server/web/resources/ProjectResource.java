@@ -159,6 +159,22 @@ public class ProjectResource extends Resource {
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
 	}
 
+	@GET
+	@Path("/contributors")
+	@Transactional
+	public Response showContributors(@Context HttpServletRequest request) throws IOException, GitClientException {
+
+		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("group", group);
+		parameters.put("repository", repository);
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-contributors.ftl", locales, parameters));
+	}
+
     @POST
     @Transactional
     @Path("/comment")

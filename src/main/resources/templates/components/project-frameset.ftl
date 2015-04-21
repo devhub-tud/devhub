@@ -24,6 +24,11 @@
                     ${i18n.translate("section.assignments")}
                 </a>
             </li>
+            <li role="presentation" [#if currentTab == "contributors"]class="active"[/#if]>
+                <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/contributors">
+                ${i18n.translate("section.contributors")}
+                </a>
+            </li>
         </ul>
 
         <h4>Git clone URL</h4>

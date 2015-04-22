@@ -24,6 +24,8 @@ public class SshKeyBackend {
 	private static final String INVALID_KEY_NAME = "error.invalid-key-name";
 	private static final String NAME_ALREADY_EXISTS = "error.name-alread-exists";
 	private static final String NO_SUCH_KEY = "error.no-such-key";
+	
+	private static final String REGEX_VALID_KEY_NAME = "^[a-zA-Z0-9]+$";
 
 	private final GitServerClient client;
 
@@ -32,10 +34,14 @@ public class SshKeyBackend {
 		this.client = client;
 	}
 
-	public void createNewSshKey(User user, String name, String contents) throws ApiError, GitClientException {
-		if (name == null || !name.matches("^[a-zA-Z0-9]+$")) {
+	private void verifyKeyName(String keyName) throws ApiError {
+		if (keyName == null || !keyName.matches(REGEX_VALID_KEY_NAME)) {
 			throw new ApiError(INVALID_KEY_NAME);
 		}
+	}
+
+	public void createNewSshKey(User user, String name, String contents) throws ApiError, GitClientException {
+		verifyKeyName(name);
 		if (contents == null || !contents.matches("^ssh-rsa\\s.+\\s*$")) {
 			throw new ApiError(INVALID_KEY_CONTENTS);
 		}
@@ -61,9 +67,7 @@ public class SshKeyBackend {
 	}
 
 	public void deleteSshKey(User user, String name) throws ApiError, GitClientException  {
-		if (name == null || !name.matches("^[a-zA-Z0-9]+$")) {
-			throw new ApiError(INVALID_KEY_NAME);
-		}
+		verifyKeyName(name);
 
 		SshKeyModel keyModel = null;
 		UserModel userModel = fetchUser(user.getNetId());

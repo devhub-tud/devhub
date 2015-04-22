@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
@@ -42,8 +43,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Created by jgmeligmeyling on 05/03/15.
+ * @author Jan-Willem Gmelig Meyling
  */
+@Slf4j
 @RequestScoped
 @Path("courses/{courseCode}/groups/{groupNumber : \\d+}/assignments")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
@@ -182,14 +184,30 @@ public class ProjectAssignmentsResource extends Resource {
         }
     }
 
-    private void tagAssignmentDelivery(String commitId, Assignment assignment, Delivery delivery) throws GitClientException {
-        Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-        CommitModel commitModel = new CommitModel();
-        commitModel.setCommit(commitId);
-        TagModel tagModel = new TagModel();
-        tagModel.setName(String.format("Assignment-%d.%d", assignment.getAssignmentId(), delivery.getDeliveryId()));
-        tagModel.setCommit(commitModel);
-        repository.tag(tagModel);
+    private void tagAssignmentDelivery(String commitId, Assignment assignment, Delivery delivery) {
+        try {
+            Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+            CommitModel commitModel = new CommitModel();
+            commitModel.setCommit(commitId);
+
+            TagModel tagModel = new TagModel();
+            int assignmentNumber = assignmentNumber(assignment);
+            int deliveryNumber = deliveryNumber(assignment);
+            tagModel.setName(String.format("Assignment-%d.%d", assignmentNumber, deliveryNumber));
+            tagModel.setCommit(commitModel);
+            repository.tag(tagModel);
+        }
+        catch (GitClientException e) {
+            log.warn("Failed to tag delivery {}", e, delivery);
+        }
+    }
+
+    private int deliveryNumber(Assignment assignment) {
+        return deliveries.getDeliveries(assignment, group).size();
+    }
+
+    private int assignmentNumber(Assignment assignment) {
+        return group.getCourse().getAssignments().indexOf(assignment) + 1;
     }
 
     private static String extractString(Map<String, List<InputPart>> data, String key) throws IOException {

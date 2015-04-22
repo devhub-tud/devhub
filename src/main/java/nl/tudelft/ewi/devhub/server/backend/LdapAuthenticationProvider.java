@@ -47,11 +47,13 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 	
 	private final Config config;
 	private final Provider<Users> userProvider;
+	private final BasicAuthenticationProvider basicAuthenticationProvider;
 	
 	@Inject
-	public LdapAuthenticationProvider(Config config, Provider<Users> userProvider) {
+	public LdapAuthenticationProvider(Config config, Provider<Users> userProvider, BasicAuthenticationProvider basicAuthenticationProvider) {
 		this.config = config;
 		this.userProvider = userProvider;
+		this.basicAuthenticationProvider = basicAuthenticationProvider;
 	}
 
 	@Override
@@ -60,15 +62,19 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 			InvalidCredentialsException {
 
 		try {
+			// Try to login from cache, on failure login using ldap
+			return basicAuthenticationProvider.authenticate(username, password);
+		}
+		catch (InvalidCredentialsException e) {
 			final LdapConnection connection = connect(username, password);
-		
+
 			return new AuthenticationSession() {
-				
+
 				@Override
 				public void fetch(User user) throws IOException {
 					try {
 						List<LdapEntry> results = search(username, connection);
-						
+
 						if(!results.isEmpty()) {
 							LdapEntry entry = results.get(0);
 							user.setNetId(entry.getNetId());
@@ -80,7 +86,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 						throw new IOException(e);
 					}
 				}
-				
+
 				@Override
 				public boolean synchronize(User user) throws IOException {
 					if(!user.isPasswordMatch(password)) {
@@ -94,47 +100,8 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 				public void close() throws IOException {
 					connection.close();
 				}
-				
+
 			};
-		}
-		catch (AuthenticationProviderUnavailable e) {
-			return loginFromCache(username, password, e);
-		}
-		
-	}
-	
-	/**
-	 * If the {@link LdapConnection} couldn't be established due to a
-	 * {@link AuthenticationProviderUnavailable} exception, try to login from
-	 * cached credentials.
-	 * 
-	 * @param username
-	 *            Username for the user
-	 * @param password
-	 *            Password
-	 * @param cause
-	 *            Original cause (why we entered this second try)
-	 * @return A {@link AuthenticationSession} for the user
-	 * @throws AuthenticationProviderUnavailable
-	 *             Rethrows the original exception when the given credentials
-	 *             couldn't be matched with the cached data
-	 */
-	private AuthenticationSession loginFromCache(String username,
-			String password, AuthenticationProviderUnavailable cause)
-			throws AuthenticationProviderUnavailable {
-		
-		try {
-			User user = userProvider.get().findByNetId(username);
-
-			if (user.isPasswordMatch(password)) {
-				return new AbstractAuthenticationSession();
-			} else {
-				// Might be the correct password, we just couldn't fetch it from LDAP
-				throw cause;
-			}
-
-		} catch (EntityNotFoundException e) {
-			throw cause;
 		}
 	}
 	

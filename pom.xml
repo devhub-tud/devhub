@@ -31,6 +31,28 @@
 		<selenium.version>2.45.0</selenium.version>
 	</properties>
 
+    <repositories>
+        <repository>
+            <id>devhub</id>
+            <url>https://devhub.ewi.tudelft.nl/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+        <distributionManagement>
+                <repository>
+                        <id>devhub</id>
+                        <url>https://devhub.ewi.tudelft.nl/nexus/content/repositories/releases/</url>
+                </repository>
+        </distributionManagement>
+
+
     <description>DevHub is a Continuous Integration system designed to give students a simple practical introduction into modern software development</description>
 
     <organization>
@@ -200,7 +222,7 @@
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
 			<artifactId>git-client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.1</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>
@@ -213,14 +235,14 @@
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
 			<artifactId>git-client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.1</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.ewi.build</groupId>
 			<artifactId>build-client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>guice</artifactId>
@@ -237,7 +259,7 @@
 		<dependency>
 			<groupId>nl.tudelft.ewi.build</groupId>
 			<artifactId>build-client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>

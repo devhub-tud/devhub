@@ -59,8 +59,11 @@ public class ProjectsBackend {
 		Preconditions.checkNotNull(members);
 		
 		log.info("Setting up new project for course: {} and members: {}", course, members);
-		Group group = persistRepository(course, members);
-		provisionRepository(group, members);
+
+		synchronized (groupNumberLock) {
+			Group group = persistRepository(course, members);
+			provisionRepository(group, members);
+		}
 	}
 
 	private void deleteRepositoryFromGit(Group group) {
@@ -95,58 +98,56 @@ public class ProjectsBackend {
 		GroupMemberships groupMemberships = groupMembershipsProvider.get();
 		Groups groups = groupsProvider.get();
 
-		synchronized (groupNumberLock) {
-			List<Group> courseGroups = groups.find(course);
-			Set<Long> groupNumbers = getGroupNumbers(courseGroups);
+		List<Group> courseGroups = groups.find(course);
+		Set<Long> groupNumbers = getGroupNumbers(courseGroups);
 
-			// Ensure that requester has no other projects for same course.
-			for (User member : members) {
-				if (member.isParticipatingInCourse(course)) {
-					throw new ApiError(ALREADY_REGISTERED_FOR_COURSE);
-				}
+		// Ensure that requester has no other projects for same course.
+		for (User member : members) {
+			if (member.isParticipatingInCourse(course)) {
+				throw new ApiError(ALREADY_REGISTERED_FOR_COURSE);
 			}
-
-			// Select first free group number.
-			long newGroupNumber = 1;
-			while (groupNumbers.contains(newGroupNumber)) {
-				newGroupNumber++;
-			}
-
-			Group group = new Group();
-			group.setCourse(course);
-			group.setGroupNumber(newGroupNumber);
-			group.setBuildTimeout(course.getBuildTimeout());
-			group.setRepositoryName("courses/" + course.getCode()
-				.toLowerCase() + "/group-" + group.getGroupNumber());
-
-			boolean worked = false;
-			for (int attempt = 1; attempt <= 3 && !worked; attempt++) {
-				try {
-					groups.persist(group);
-					worked = true;
-				}
-				catch (ConstraintViolationException e) {
-					log.warn("Could not persist group: {}", group);
-					group.setGroupNumber(group.getGroupNumber() + 1);
-					group.setRepositoryName("courses/" + course.getCode()
-						.toLowerCase() + "/group-" + group.getGroupNumber());
-				}
-			}
-
-			if (!worked) {
-				throw new ApiError(COULD_NOT_CREATE_GROUP);
-			}
-
-			for (User member : members) {
-				GroupMembership membership = new GroupMembership();
-				membership.setGroup(group);
-				membership.setUser(member);
-				groupMemberships.persist(membership);
-			}
-
-			log.info("Created new group in database: {}", group);
-			return group;
 		}
+
+		// Select first free group number.
+		long newGroupNumber = 1;
+		while (groupNumbers.contains(newGroupNumber)) {
+			newGroupNumber++;
+		}
+
+		Group group = new Group();
+		group.setCourse(course);
+		group.setGroupNumber(newGroupNumber);
+		group.setBuildTimeout(course.getBuildTimeout());
+		group.setRepositoryName("courses/" + course.getCode()
+			.toLowerCase() + "/group-" + group.getGroupNumber());
+
+		boolean worked = false;
+		for (int attempt = 1; attempt <= 3 && !worked; attempt++) {
+			try {
+				groups.persist(group);
+				worked = true;
+			}
+			catch (ConstraintViolationException e) {
+				log.warn("Could not persist group: {}", group);
+				group.setGroupNumber(group.getGroupNumber() + 1);
+				group.setRepositoryName("courses/" + course.getCode()
+					.toLowerCase() + "/group-" + group.getGroupNumber());
+			}
+		}
+
+		if (!worked) {
+			throw new ApiError(COULD_NOT_CREATE_GROUP);
+		}
+
+		for (User member : members) {
+			GroupMembership membership = new GroupMembership();
+			membership.setGroup(group);
+			membership.setUser(member);
+			groupMemberships.persist(membership);
+		}
+
+		log.info("Created new group in database: {}", group);
+		return group;
 	}
 	
 	public void provisionRepository(Group group, Collection<User> members) throws ApiError {

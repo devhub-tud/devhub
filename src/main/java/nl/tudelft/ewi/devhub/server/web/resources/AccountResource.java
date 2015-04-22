@@ -54,12 +54,14 @@ public class AccountResource extends Resource {
 		this.users = users;
 	}
 	
-	private void verifyCanAccessPage(String netId) throws UnauthorizedException {
+	private User verifyCanAccessPage(String netId) throws UnauthorizedException {
 		User account = users.findByNetId(netId);
 
 		if (!this.currentUser.isAdmin() && !this.currentUser.equals(account)) {
 			throw new UnauthorizedException();
 		}
+		
+		return account;
 	}
 
 	@GET
@@ -73,7 +75,7 @@ public class AccountResource extends Resource {
 	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId)
 			throws IOException, ApiError {
 
-		verifyCanAccessPage(netId);
+		User account = verifyCanAccessPage(netId);
 
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", currentUser);
@@ -107,9 +109,7 @@ public class AccountResource extends Resource {
 	public Response addNewKey(@PathParam("netId") String netId, @FormParam("name") String name,
 			@FormParam("contents") String contents) throws URISyntaxException, GitClientException {
 
-		verifyCanAccessPage(netId);
-
-		User account = users.findByNetId(netId);
+		User account = verifyCanAccessPage(netId);
 
 		try {
 			backend.createNewSshKey(account, name, contents);
@@ -128,9 +128,7 @@ public class AccountResource extends Resource {
 	public Response deleteExistingKey(@PathParam("netId") String netId, @FormParam("name") String name)
 			throws URISyntaxException, GitClientException  {
 
-		verifyCanAccessPage(netId);
-
-		User account = users.findByNetId(netId);
+		User account = verifyCanAccessPage(netId);
 
 		try {
 			backend.deleteSshKey(account, name);

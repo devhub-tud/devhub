@@ -53,6 +53,16 @@ public class AccountResource extends Resource {
 		this.currentUser = currentUser;
 		this.users = users;
 	}
+	
+	private User verifyCanAccessPage(String netId) throws UnauthorizedException {
+		User account = users.findByNetId(netId);
+
+		if (!this.currentUser.isAdmin() && !this.currentUser.equals(account)) {
+			throw new UnauthorizedException();
+		}
+		
+		return account;
+	}
 
 	@GET
 	public Response showPersonalUserPage() throws URISyntaxException {
@@ -65,11 +75,7 @@ public class AccountResource extends Resource {
 	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId)
 			throws IOException, ApiError {
 
-		User account = users.findByNetId(netId);
-
-		if (!currentUser.isAdmin() && !currentUser.equals(account)) {
-			throw new UnauthorizedException();
-		}
+		User account = verifyCanAccessPage(netId);
 
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", currentUser);
@@ -84,6 +90,8 @@ public class AccountResource extends Resource {
 	@Path("{netId}/setup")
 	public String showNewSshKeyPage(@Context HttpServletRequest request, @PathParam("netId") String netId,
 			@QueryParam("error") String error) throws IOException {
+
+		verifyCanAccessPage(netId);
 
 		List<Locale> locales = Collections.list(request.getLocales());
 
@@ -101,11 +109,7 @@ public class AccountResource extends Resource {
 	public Response addNewKey(@PathParam("netId") String netId, @FormParam("name") String name,
 			@FormParam("contents") String contents) throws URISyntaxException, GitClientException {
 
-		User account = users.findByNetId(netId);
-
-		if (!currentUser.isAdmin() && !currentUser.equals(account)) {
-			throw new UnauthorizedException();
-		}
+		User account = verifyCanAccessPage(netId);
 
 		try {
 			backend.createNewSshKey(account, name, contents);
@@ -124,11 +128,7 @@ public class AccountResource extends Resource {
 	public Response deleteExistingKey(@PathParam("netId") String netId, @FormParam("name") String name)
 			throws URISyntaxException, GitClientException  {
 
-		User account = users.findByNetId(netId);
-
-		if (!currentUser.isAdmin() && !currentUser.equals(account)) {
-			throw new UnauthorizedException();
-		}
+		User account = verifyCanAccessPage(netId);
 
 		try {
 			backend.deleteSshKey(account, name);

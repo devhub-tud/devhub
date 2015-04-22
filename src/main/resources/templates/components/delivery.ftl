@@ -4,9 +4,9 @@
     [/#if]
 [/#macro]
 
-[#macro buildLabel group states]
+[#macro buildLabel delivery group states]
     [#assign commitId = delivery.getCommitId()!]
-    [#if states.hasStarted(commitId)]
+    [#if commitId?? && commitId?has_content && states.hasStarted(commitId)]
         [#if states.hasFinished(commitId)]
             [#if states.hasSucceeded(commitId)]
             <span class="label label-success">${i18n.translate("build.state.succeeded")}</span>
@@ -26,8 +26,8 @@
     <div class="pull-right">
         [@deadlineLabel delivery/]
 
-        [#if group?? && states?? && states?has_content && commitId??]
-            [@buildLabel group states][/@buildLabel]
+        [#if group?? && states?? && states?has_content]
+            [@buildLabel delivery group states/]
         [/#if]
 
         [@deliveryStateLabel delivery/]
@@ -40,7 +40,7 @@
         <dd>${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</dd>
         [#if delivery.commitId?? && delivery.commitId?has_content]
             <dt>${i18n.translate("assignment.commit")}</dt>
-            <dd><a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/commits/${delivery.commitId}/diff">${delivery.commitId?substring(0, 8)}</dd>
+            <dd><a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/commits/${delivery.commitId}/diff">${delivery.commitId?substring(0, 8)}</a></dd>
         [/#if]
         [#if delivery.getNotes()?? && delivery.getNotes()?has_content]
             <dt>${i18n.translate("delivery.notes")}</dt>

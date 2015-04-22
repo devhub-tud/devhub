@@ -68,13 +68,25 @@
                         </td>
                         <td>
                             [#if delivery?has_content]
+                                [#assign commitId = delivery.getCommitId()!]
+                                [#if commitId?? && commitId?has_content && states?? && states.hasStarted(commitId)]
+                                    [#if states.hasFinished(commitId)]
+                                        [#if states.hasSucceeded(commitId)]
+                                            <span class="label label-success">${i18n.translate("build.state.succeeded")}</span>
+                                        [#else]
+                                            <span class="label label-success">${i18n.translate("build.state.failed")}</span>
+                                        [/#if]
+                                    [/#if]
+                                [/#if]
+
+                                [#if delivery.isLate()]
+                                    <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
+                                [/#if]
+
                                 [#assign state = delivery.getState()]
                                 <span class="label label-${state.style}">
                                     ${i18n.translate(state.translationKey)}
                                 </span>
-                                [#if delivery.isLate()]
-                                <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
-                                [/#if]
                             [#else]
                                 <span class="label label-default">
                                     ${i18n.translate("assignment.not-submitted")}

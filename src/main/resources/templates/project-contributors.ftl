@@ -46,31 +46,6 @@
                 </tbody>
             </table>
 
-
-        [#function max x y]
-            [#if (x<y)][#return y][#else][#return x][/#if]
-        [/#function]
-
-        [#function min x y]
-            [#if (x<y)][#return x][#else][#return y][/#if]
-        [/#function]
-
-        [#if branch?? && branch?has_content && pagination?? ]
-            [#assign pageCount = max(pagination.getPageCount(), 1)]
-            [#assign currentPage = pagination.getPage() ]
-            <div class="text-center">
-                <ul class="pagination pagination-lg">
-                    [#list max(1, currentPage-4)..min(pageCount, currentPage+4) as pageNumber ]
-                        [#if pageNumber == currentPage ]
-                            <li class="active"><a href="/courses/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
-                        [#else]
-                            <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
-                        [/#if]
-                    [/#list]
-                </ul>
-            </div>
-        [/#if]
-
         </div>
     </div>
 </div>

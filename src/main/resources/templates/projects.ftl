@@ -30,9 +30,7 @@
 			</table>
 [#assign groups=user.listAssistedGroups()]
 [#if groups?has_content]
-			<h2>
-				${i18n.translate("block.assisting-projects.title")}
-			</h2>
+			<h2>${i18n.translate("block.assisting-projects.title")}</h2>
 			<table class="table table-bordered">
 				<tbody>
 	[#list groups as group]

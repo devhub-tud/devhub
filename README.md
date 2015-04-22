@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/devhub-tud/devhub.svg?branch=master)](https://travis-ci.org/devhub-tud/devhub)
 DevHub
 ======
 

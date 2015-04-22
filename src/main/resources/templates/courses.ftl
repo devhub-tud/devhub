@@ -52,9 +52,7 @@
 
     [#assign assistingCourses=courses.listAssistingCourses(user)]
     [#if assistingCourses?has_content]
-        <h2>
-        Assising courses
-        </h2>
+        <h2>${i18n.translate("block.assisting-projects.title")}</h2>
         <table class="table table-bordered">
             <tbody>
                 [#list assistingCourses as course ]

@@ -106,7 +106,6 @@ public class HooksResource extends Resource {
 
 			GitSource source = new GitSource();
 			source.setRepositoryUrl(repository.getUrl());
-			source.setBranchName(branch.getSimpleName());
 			source.setCommitId(commitId);
 
 			StringBuilder callbackBuilder = new StringBuilder();

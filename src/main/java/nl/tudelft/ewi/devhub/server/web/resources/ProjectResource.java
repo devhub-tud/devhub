@@ -47,6 +47,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -134,11 +135,9 @@ public class ProjectResource extends Resource {
 	public Response showBranchOverview(@Context HttpServletRequest request,
 									   @PathParam("branchName") String branchName,
 									   @QueryParam("page") @DefaultValue("1") int page,
-									   @QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
+									   @QueryParam("fatal") String fatboal) throws IOException, ApiError, GitClientException {
 
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
-		Branch branch = repository.retrieveBranch(branchName);
-		CommitSubList commits = branch.retrieveCommits((page - 1) * PAGE_SIZE, PAGE_SIZE);
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
@@ -146,14 +145,20 @@ public class ProjectResource extends Resource {
 		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("comments", new HasCommentsChecker());
 		parameters.put("repository", repository);
-		parameters.put("commits", commits);
-		parameters.put("branch", branch);
-		parameters.put("pagination", new Pagination(page, commits.getTotal()));
 
-		PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
-		if(pullRequest != null) {
-			parameters.put("pullRequest", pullRequest);
+		try {
+			Branch branch = repository.retrieveBranch(branchName);
+			CommitSubList commits = branch.retrieveCommits((page - 1) * PAGE_SIZE, PAGE_SIZE);
+			parameters.put("commits", commits);
+			parameters.put("branch", branch);
+			parameters.put("pagination", new Pagination(page, commits.getTotal()));
+
+			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
+			if(pullRequest != null) {
+				parameters.put("pullRequest", pullRequest);
+			}
 		}
+		catch (NotFoundException e) {}
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));

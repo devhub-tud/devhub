@@ -1,12 +1,37 @@
-
-.project
-.settings
-
+# Compilation files
+*.class
 bin/
-.classpath
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Documentation
 target/
-*.db
-src/main/resources/static/css/devhub.css
-.idea
+doc/
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# IntelliJ files
+.idea/
 *.iml
+
+# Eclipse files
+.classpath
+.project
+.settings/
+
+# Configuration
+.checkstyle
+
+# Database
+*.db
 storage/
+
+# Devhub generated CSS file
+src/main/resources/static/css/devhub.css

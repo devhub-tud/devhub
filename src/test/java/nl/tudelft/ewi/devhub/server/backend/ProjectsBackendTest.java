@@ -1,11 +1,9 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.math.BigInteger;
-import java.util.Date;
 import java.util.Map;
-import java.util.Random;
 
 import com.google.common.collect.ImmutableMap;
+
 import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -17,9 +15,9 @@ import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
-
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,14 +30,12 @@ import com.google.common.collect.Sets;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
-public class ProjectsBackendTest {
+public class ProjectsBackendTest extends BackendTest {
 	
 	private static final GroupMemberships groupMemberships = mock(GroupMemberships.class);
 	private static final Groups groups = mock(Groups.class);
 	private static final Users users = mock(Users.class);
 	private static GitServerClient gitClient;
-	private final static Random random = new Random();
-	
 	private ProjectsBackend projectsBackend;
 
 	private Course course;
@@ -122,27 +118,6 @@ public class ProjectsBackendTest {
 		expected.setUser(user);
 		expected.setGroup(group);
 		verify(groupMemberships).persist(expected);	
-	}
-	
-	protected Course createCourse() {
-		Course course = new Course();
-		course.setCode(randomString().substring(0,4));
-		course.setName(randomString());
-		course.setStart(new Date());
-		course.setMinGroupSize(2);
-		course.setMaxGroupSize(2);
-		return course;
-	}
-	
-	protected User createUser() {
-		User user = new User();
-		user.setMemberOf(Lists.<GroupMembership> newArrayList());
-		user.setNetId(randomString());
-		return user;
-	}
-	
-	protected String randomString() {
-		return new BigInteger(130, random).toString(32);
 	}
 
 }

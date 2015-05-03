@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 import com.google.inject.ImplementedBy;
 
 /**
+ * Authenticates a user.
  * 
  * @author Michael
  *
@@ -11,7 +12,7 @@ import com.google.inject.ImplementedBy;
 public interface AuthenticationBackend {
 	
 	/**
-	 * Authenticate a user
+	 * Authenticate a user.
 	 * 
 	 * @param netId
 	 *            The supplied netId

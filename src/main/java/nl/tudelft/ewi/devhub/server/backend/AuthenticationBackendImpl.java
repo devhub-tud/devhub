@@ -17,11 +17,26 @@ import com.google.common.base.Strings;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+/**
+ * Default implementation of the {@link AuthenticationBackend}.
+ * Authenticates through the {@link #authenticationProvider} and if authentication is succesful
+ * obtains the user from the {@link #usersProvider database}.
+ * 
+ * @author Michael
+ *
+ */
 @Slf4j
 @Singleton
 public class AuthenticationBackendImpl implements AuthenticationBackend {
 	
+	/**
+	 * The database that stores all users.
+	 */
 	private final Provider<Users> usersProvider;
+	
+	/**
+	 * Verifies that the provided credentials are valid.
+	 */
 	private final Provider<AuthenticationProvider> authenticationProvider;
 	
 	@Inject
@@ -30,6 +45,35 @@ public class AuthenticationBackendImpl implements AuthenticationBackend {
 		this.authenticationProvider = authenticationProvider;
 	}
 
+	private void createNewUser(String netId, String password,
+			AuthenticationSession session, Users database) throws IOException {
+		User user = new User();
+		user.setNetId(netId);
+		user.setPassword(password);
+		
+		session.fetch(user);
+		database.persist(user);
+	}
+	
+	private void obtainUser(String netId, String password,
+			AuthenticationSession session) throws IOException {
+		Users database = usersProvider.get();
+		User user;
+		
+		try {
+			user = database.findByNetId(netId);
+			
+			if (session.synchronize(user)) {
+				database.merge(user);
+			}
+		}
+		catch (EntityNotFoundException e) {
+			log.info("Persisting user: {} since he/she is not yet present in the database", netId);
+			
+			createNewUser(netId, password, session, database);
+		}
+	}
+	
 	@Override
 	public boolean authenticate(String netId, String password) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(netId));
@@ -38,26 +82,7 @@ public class AuthenticationBackendImpl implements AuthenticationBackend {
 		try (AuthenticationSession session = authenticationProvider.get()
 				.authenticate(netId, password)) {
 			
-			Users database = usersProvider.get();
-			User user;
-			
-			try {
-				user = database.findByNetId(netId);
-				
-				if(session.synchronize(user)) {
-					database.merge(user);
-				}
-			}
-			catch (EntityNotFoundException e) {
-				log.info("Persisting user: {} since he/she is not yet present in the database", netId);
-				
-				user = new User();
-				user.setNetId(netId);
-				user.setPassword(password);
-				
-				session.fetch(user);
-				database.persist(user);
-			}
+			obtainUser(netId, password, session);
 			
 			return true;
 		}

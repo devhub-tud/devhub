@@ -22,6 +22,9 @@ import com.google.inject.Singleton;
 @Singleton
 public class BasicAuthenticationProvider implements AuthenticationProvider {
 
+	/**
+	 * The database that stores all users.
+	 */
 	private final Provider<Users> usersProvider;
 
 	@Inject

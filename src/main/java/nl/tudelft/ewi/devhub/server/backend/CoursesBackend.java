@@ -102,7 +102,7 @@ public class CoursesBackend {
         checkAdmin();
 
         List<User> assistantsToAdd = Lists.newArrayList(newAssistants);
-        List<CourseAssistant> assistants = course.getCourseAssistants();
+        List<CourseAssistant> assistants = Lists.newArrayList(course.getCourseAssistants());
 
         GroupModel group = getGitoliteGroup(course);
         GroupMembers groupMembersApi = gitServerClient.groups().groupMembers(group);

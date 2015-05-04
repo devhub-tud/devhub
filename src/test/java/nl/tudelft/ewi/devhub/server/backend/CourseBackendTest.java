@@ -25,6 +25,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,10 +67,9 @@ public class CourseBackendTest extends BackendTest {
 	
 	@Before
 	public void setUp() throws GitClientException {
+		course = createCourse();
 		newAssistants = Lists.newArrayList(createUsersArray());
 		oldAssistants = Lists.newArrayList(createAssistantsArray());
-		
-		course = createCourse();
 		course.setCourseAssistants(oldAssistants);
 		
 		when(currentUser.isAdmin()).thenReturn(true);
@@ -77,8 +77,20 @@ public class CourseBackendTest extends BackendTest {
 		when(gitServerClient.groups()).thenReturn(groups);
 		when(gitServerClient.users()).thenReturn(users);
 		when(groups.groupMembers(Matchers.any())).thenReturn(groupMembers);
+
+		when(courseAssistantsDAO.persist(any())).thenAnswer((invocation -> {
+			CourseAssistant courseAssistant = (CourseAssistant) invocation.getArguments()[0];
+			oldAssistants.add(courseAssistant);
+			return courseAssistant;
+		}));
+
+		when(courseAssistantsDAO.delete(any())).thenAnswer((invocation -> {
+			CourseAssistant courseAssistant = (CourseAssistant) invocation.getArguments()[0];
+			oldAssistants.remove(courseAssistant);
+			return courseAssistant;
+		}));
 	}
-	
+
 	private User[] createUsersArray() {
 		int numberOfUsers = 5;
 		User[] assistants = new User[numberOfUsers];
@@ -147,13 +159,11 @@ public class CourseBackendTest extends BackendTest {
 		
 		courseBackend.setAssistants(course, new ArrayList<User>());
 	}
-	
-	// TODO: Add setAssistants tests. They failed earlier due to not DB flushing.
 
-//	@Test
-//	public void assistantsAreAddedToCourse() throws GitClientException {
-//		courseBackend.setAssistants(course, newAssistants);
-//
-//		assertEquals(newAssistants, course.getAssistants());
-//	}
+	@Test
+	public void assistantsAreAddedToCourse() throws GitClientException {
+		courseBackend.setAssistants(course, newAssistants);
+
+		assertEquals(newAssistants, course.getAssistants());
+	}
 }

@@ -39,16 +39,21 @@ public class CommentBackend {
     private EntityManager entityManager;
 
     /**
-     * Post a new comment
-     * @param comment Comment to post
-     * @throws UnauthorizedException If the user is not authorized to post a comment into this repository
+     * Post a new comment. Must be admin or assistant of the course
+     * or a member of the group to comment on.
+     * 
+     * @param comment
+     * 		Comment to post
+     * @throws UnauthorizedException
+     * 		If the user is not authorized to post a comment into this repository
      * @throws ApiError
+     * 		If the comment could not be saved in the database
      */
     public void post(Comment comment) throws UnauthorizedException, ApiError {
         Preconditions.checkNotNull(comment);
 
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()) ||
-                group.getMembers().contains(currentUser))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse())
+        		|| group.getMembers().contains(currentUser))) {
             throw new UnauthorizedException();
         }
 
@@ -66,8 +71,10 @@ public class CommentBackend {
 
     /**
      * A commit checker can be used in a Freemarker template to find the
-     * commits for a line
-     * @param commitIds commits to look for
+     * commits for a line.
+     * 
+     * @param commitIds
+     * 		commits to look for
      * @return a CommitChecker
      */
     public CommentChecker getCommentChecker(List<String> commitIds) {
@@ -76,10 +83,13 @@ public class CommentBackend {
 
     /**
      * A commit checker can be used in a Freemarker template to find the
-     * commits for a line
+     * commits for a line.
      */
     public class CommentChecker {
 
+    	/**
+    	 * All the comments for all commits for the {@link CommentBackend#group}.
+    	 */
         public final List<CommitComment> comments;
 
         public CommentChecker(List<String> commitIds) {
@@ -87,21 +97,30 @@ public class CommentBackend {
         }
 
         /**
-         * Get all the comments for a specific line
-         * @param sourceCommitId the source commit id
-         * @param sourcePath the source path
-         * @param sourceLineNumber the source line number
+         * Get all the comments for a specific line.
+         * 
+         * @param sourceCommitId
+         * 		The source commit id
+         * @param sourcePath
+         * 		The source path
+         * @param sourceLineNumber
+         * 		The source line number
          * @return a list of all commits for this line
          */
         public List<CommitComment> getCommentsForLine(final String sourceCommitId,
                                                       final String sourcePath,
                                                       final Integer sourceLineNumber) {
-            return comments.stream().filter((comment) -> {
-                CommitComment.Source source = comment.getSource();
-                return source.getSourceCommit().getCommitId().equals(sourceCommitId) &&
-                        source.getSourceFilePath().equals(sourcePath) &&
-                        source.getSourceLineNumber().equals(sourceLineNumber);
-            }).sorted().collect(Collectors.toList());
+            return comments.stream()
+            		.filter((comment) ->
+            		{
+		                CommitComment.Source source = comment.getSource();
+		                
+		                return source.getSourceCommit().getCommitId().equals(sourceCommitId)
+		                		&& source.getSourceFilePath().equals(sourcePath)
+		                		&& source.getSourceLineNumber().equals(sourceLineNumber);
+		            })
+		            .sorted()
+		            .collect(Collectors.toList());
         }
 
     }

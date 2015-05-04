@@ -43,19 +43,20 @@ public class CoursesBackend {
     @Inject
     @Named("current.user")
     private User currentUser;
-
+    
     /**
-     * Create a course
-     * @param course Course to create
-     * @throws GitClientException if an GitClientException occurs
+     * Create a course.
+     * 
+     * @param course
+     * 		Course to create
+     * @throws GitClientException
+     * 		If an GitClientException occurs
      */
     public void createCourse(Course course) throws GitClientException {
         Preconditions.checkNotNull(course);
         checkAdmin();
 
-        Collection<IdentifiableModel> admins = users.listAdministrators().stream()
-            .map(this::retrieveUser)
-            .collect(Collectors.toList());
+        Collection<IdentifiableModel> admins = getAdmins();
 
         GroupModel groupModel = new GroupModel();
         groupModel.setName(getGitoliteGroupName(course));
@@ -73,21 +74,27 @@ public class CoursesBackend {
     }
 
     /**
-     * Save changes of an edited course
+     * Save changes of an edited course.
+     * 
      * @param course
+     * 		The course to save
      */
     public void mergeCourse(Course course) {
         Preconditions.checkNotNull(course);
         checkAdmin();
         courses.merge(course);
     }
-
+    
     /**
      * Set the CourseAssistants for a Course, and add them to the course group on the Git Server
-     * to access the repositories
-     * @param course Course
-     * @param newAssistants List of users assisting this course
-     * @throws GitClientException if an GitClientException occurs
+     * to access the repositories.
+     * 
+     * @param course
+     * 		The Course to update
+     * @param newAssistants
+     * 		List of users assisting this course
+     * @throws GitClientException
+     * 		if an GitClientException occurs
      */
     public void setAssistants(Course course, Collection<User> newAssistants) throws GitClientException {
         Preconditions.checkNotNull(course);
@@ -95,13 +102,53 @@ public class CoursesBackend {
         checkAdmin();
 
         List<User> assistantsToAdd = Lists.newArrayList(newAssistants);
-        List<CourseAssistant> assistants = course.getCourseAssistants();
+        List<CourseAssistant> assistants = Lists.newArrayList(course.getCourseAssistants());
 
         GroupModel group = getGitoliteGroup(course);
         GroupMembers groupMembersApi = gitServerClient.groups().groupMembers(group);
         Collection<IdentifiableModel> groupMembers = groupMembersApi.listAll();
 
-        assistants.stream()
+        updateExistingAssistants(assistantsToAdd, assistants, groupMembersApi,
+				groupMembers);
+
+        addAssistantsListToGroup(course, assistantsToAdd, groupMembersApi,
+				groupMembers);
+    }
+    
+    private void checkAdmin() throws UnauthorizedException {
+        if (!currentUser.isAdmin()) {
+            throw new UnauthorizedException();
+        }
+    }
+    
+    private List<IdentifiableModel> getAdmins() {
+		return users.listAdministrators().stream()
+				.map(this::retrieveUser)
+				.collect(Collectors.toList());
+	}
+
+    private void addAssistantsListToGroup(Course course,
+			List<User> assistantsToAdd, GroupMembers groupMembersApi,
+			Collection<IdentifiableModel> groupMembers) {
+    	
+		assistantsToAdd.forEach((member) -> {
+            CourseAssistant courseAssistant = new CourseAssistant();
+            courseAssistant.setCourse(course);
+            courseAssistant.setUser(member);
+            
+            courseAssistantsDAO.persist(courseAssistant);
+            addAssistantToGroup(groupMembersApi, groupMembers, member);
+        });
+	}
+    
+    /*
+     * Takes the list of existing assistants and removes all assistants
+     * that are not in the assistantsToAdd list.
+     */
+    private void updateExistingAssistants(List<User> assistantsToAdd,
+			List<CourseAssistant> assistants, GroupMembers groupMembersApi,
+			Collection<IdentifiableModel> groupMembers) {
+		assistants.stream()
                 // Filters the existing assistants that should not be
                 // removed, but remove them from the list to be added.
                 // Remove returns true if the assistant was in the list,
@@ -112,21 +159,7 @@ public class CoursesBackend {
                     courseAssistantsDAO.delete(assistant);
                     removeAssistantFromGroup(groupMembersApi, groupMembers, assistant.getUser());
                 });
-
-        assistantsToAdd.forEach((member) -> {
-            CourseAssistant courseAssistant = new CourseAssistant();
-            courseAssistant.setCourse(course);
-            courseAssistant.setUser(member);
-            courseAssistantsDAO.persist(courseAssistant);
-            addAssistantToGroup(groupMembersApi, groupMembers, member);
-        });
-    }
-
-    private void checkAdmin() throws UnauthorizedException {
-        if(!currentUser.isAdmin()) {
-            throw new UnauthorizedException();
-        }
-    }
+	}
 
     @SneakyThrows
     private UserModel retrieveUser(User user) {
@@ -143,17 +176,21 @@ public class CoursesBackend {
     }
 
     @SneakyThrows
-    private void removeAssistantFromGroup(GroupMembers groupMembersApi, Collection<IdentifiableModel> groupMembers, User user) {
+    private void removeAssistantFromGroup(GroupMembers groupMembersApi, 
+    		Collection<IdentifiableModel> groupMembers, User user) {
         UserModel userModel = retrieveUser(user);
-        if(groupMembers.contains(userModel)) {
+        
+        if (groupMembers.contains(userModel)) {
             groupMembersApi.removeMember(retrieveUser(user));
         }
     }
 
     @SneakyThrows
-    private void addAssistantToGroup(GroupMembers groupMembersApi, Collection<IdentifiableModel> groupMembers, User user) {
+    private void addAssistantToGroup(GroupMembers groupMembersApi,
+    		Collection<IdentifiableModel> groupMembers, User user) {
         UserModel userModel = retrieveUser(user);
-        if(!groupMembers.contains(userModel)) {
+        
+        if (!groupMembers.contains(userModel)) {
             groupMembersApi.addMember(retrieveUser(user));
         }
     }

@@ -2,6 +2,8 @@ package nl.tudelft.ewi.devhub.server.backend;
 
 import java.io.IOException;
 
+import com.google.inject.ImplementedBy;
+
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 /**
@@ -14,7 +16,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 public interface AuthenticationProvider {
 	
 	/**
-	 * Authenticate a user
+	 * Authenticate a user.
 	 * 
 	 * @param username
 	 *            The supplied username
@@ -29,7 +31,8 @@ public interface AuthenticationProvider {
 	 * @throws InvalidCredentialsException
 	 *             If the supplied credentials are invalid
 	 */
-	AuthenticationSession authenticate(String username, String password) throws AuthenticationProviderUnavailable, InvalidCredentialsException;
+	AuthenticationSession authenticate(String username, String password)
+			throws AuthenticationProviderUnavailable, InvalidCredentialsException;
 	
 	/**
 	 * Allow the {@link AuthenticationProvider} for some further directory
@@ -39,33 +42,39 @@ public interface AuthenticationProvider {
 	 * @author Jan-Willem
 	 *
 	 */
-	static interface AuthenticationSession extends AutoCloseable {
+	@ImplementedBy(AbstractAuthenticationSession.class)
+	interface AuthenticationSession extends AutoCloseable {
 		
 		/**
-		 * Fetch user details for a user that has to be created in the database
-		 * @param user {@link User} object to be synchronized
+		 * Fetch user details for a user that has to be created in the database.
+		 * 
+		 * @param user
+		 * 		{@link User} object to be synchronized
 		 * @throws IOException
+		 * 		When the user couldn't be fetched.
 		 */
 		void fetch(User user) throws IOException;
 		
 		/**
-		 * Synchronize a User with the directory
-		 * @param user {@link User} object to be synchronized
-		 * @return true if the {@link User} object has been updated
+		 * Synchronize a User with the directory.
+		 * 
+		 * @param user
+		 * 		{@link User} object to be synchronized
+		 * @return
+		 * 		true if the {@link User} object has been updated
 		 * @throws IOException
+		 * 		When the synchronization failed.
 		 */
 		boolean synchronize(User user) throws IOException;
 		
-		/**
-		 * {@inheritDoc}
-		 */
+		@Override
 		void close() throws IOException;
 		
 	}
 	
 	/**
 	 * Basic implementation for {@link AuthenticationSession} providing no-op
-	 * behavior for the methods
+	 * behavior for the methods.
 	 * 
 	 * @author Jan-Willem
 	 *
@@ -76,7 +85,9 @@ public interface AuthenticationProvider {
 		public void fetch(User user) throws IOException {}
 
 		@Override
-		public boolean synchronize(User user) throws IOException { return false; }
+		public boolean synchronize(User user) throws IOException {
+			return false;
+		}
 
 		@Override
 		public void close() throws IOException {}
@@ -92,26 +103,32 @@ public interface AuthenticationProvider {
 	 */
 	static class AuthenticationProviderUnavailable extends Exception {
 
+		/**
+		 * Generated UID.
+		 */
 		private static final long serialVersionUID = -1208837406761307088L;
 		
-		public AuthenticationProviderUnavailable(Throwable t) {
-			super(t);
+		public AuthenticationProviderUnavailable(Throwable throwable) {
+			super(throwable);
 		}
 		
-		public AuthenticationProviderUnavailable(String s) {
-			super(s);
+		public AuthenticationProviderUnavailable(String message) {
+			super(message);
 		}
 		
 	}
 	
 	/**
-	 * If the supplied credentials are invalid
+	 * If the supplied credentials are invalid.
 	 * 
 	 * @author Jan-Willem
 	 *
 	 */
 	static class InvalidCredentialsException extends Exception {
 
+		/**
+		 * Generated UID.
+		 */
 		private static final long serialVersionUID = -4010638096567999252L;
 		
 	}

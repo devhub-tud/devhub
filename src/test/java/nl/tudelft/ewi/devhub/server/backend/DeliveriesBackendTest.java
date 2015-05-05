@@ -19,7 +19,6 @@ import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,13 +28,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +42,10 @@ public class DeliveriesBackendTest extends BackendTest {
 
 	private static final String fileName = "myFile.txt";
 
-	private static final String pathName = "my/fancy/path";
+	private static final String pathName = Joiner.on(File.separator)
+			.join("my", "fancy", "path").concat(File.separator);
+
+	private static final String FULL_PATH_NAME = pathName + fileName;
 
 	@Mock
 	private User currentUser;
@@ -105,12 +106,12 @@ public class DeliveriesBackendTest extends BackendTest {
 		when(group.getCourse()).thenReturn(course);
 		when(group.getMembers()).thenReturn(groupMembers);
 		
-		when(storageBackend.store(Matchers.anyString(), Matchers.eq(fileName), Matchers.eq(in))).thenReturn(pathName);
-		when(storageBackend.getFile(Matchers.eq(pathName + fileName))).thenReturn(file);
+		when(storageBackend.store(Matchers.anyString(), Matchers.eq(fileName), Matchers.eq(in))).thenReturn(FULL_PATH_NAME);
+		when(storageBackend.getFile(Matchers.eq(FULL_PATH_NAME))).thenReturn(file);
 		
 		when(deliveriesDAO.getDeliveries(Matchers.eq(assignment), Matchers.eq(group))).thenReturn(deliveries);
 		
-		when(attachment.getPath()).thenReturn(pathName + fileName);
+		when(attachment.getPath()).thenReturn(FULL_PATH_NAME);
 	}
 	
 	@Test
@@ -200,32 +201,18 @@ public class DeliveriesBackendTest extends BackendTest {
 		this.deliveriesBackend.attach(delivery, fileName, in);
 		
 		assertEquals(1, delivery.getAttachments().size());
-		// Because a simple get did not return the correct deliveryAttachment, we had to do it the fancy way.
-		assertEquals(1, delivery.getAttachments().stream()
-				.map((attachment) ->
-					attachment.getFileName().equals(fileName)
-				).count());
+		assertEquals(fileName, delivery.getAttachments().iterator().next().getFileName());
 	}
 	
 	@Test
 	public void attachFileToDeliveryWithAttachments() throws UnauthorizedException, ApiError {
 		delivery.setAttachments(attachments);
 		this.deliveriesBackend.attach(delivery, fileName, in);
-		
-		verify(attachments).add(Matchers.argThat(new BaseMatcher<DeliveryAttachment>() {
 
-			@Override
-			public boolean matches(Object arg0) {
-				return ((DeliveryAttachment) arg0).getDelivery().equals(delivery);
-			}
-
-			@Override
-			public void describeTo(Description arg0) {
-				
-			}
-
-			
-		}));
+		DeliveryAttachment expected = new DeliveryAttachment();
+		expected.setDelivery(delivery);
+		expected.setPath(FULL_PATH_NAME);
+		verify(attachments).add(expected);
 	}
 	
 	@Test
@@ -313,7 +300,7 @@ public class DeliveriesBackendTest extends BackendTest {
 		
 		when(delivery.getAttachments()).thenReturn(attachments);
 		
-		assertEquals(file, this.deliveriesBackend.getAttachment(assignment, group, pathName + fileName));
+		assertEquals(file, this.deliveriesBackend.getAttachment(assignment, group, FULL_PATH_NAME));
 	}
 	
 	@Test
@@ -351,7 +338,7 @@ public class DeliveriesBackendTest extends BackendTest {
 		when(delivery.getAttachments()).thenReturn(attachments);
 		when(attachment.getPath()).thenReturn("bogusPath.txt");
 		
-		this.deliveriesBackend.getAttachment(assignment, group, pathName + fileName);
+		this.deliveriesBackend.getAttachment(assignment, group, FULL_PATH_NAME);
 	}
 	
 	@Test

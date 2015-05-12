@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseAssistants;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -24,8 +25,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by jgmeligmeyling on 12/04/15.
+ * @author Jan-Willem Gmelig Meyling
  */
+@Slf4j
 public class CoursesBackend {
 
     @Inject
@@ -65,6 +67,7 @@ public class CoursesBackend {
 
         try {
             courses.persist(course);
+            log.info("{} created course: {}", currentUser, course);
         }
         catch (Exception e) {
             // On failure, delete the group from the Gitolite config
@@ -83,6 +86,7 @@ public class CoursesBackend {
         Preconditions.checkNotNull(course);
         checkAdmin();
         courses.merge(course);
+        log.info("{} updated course: {}", currentUser, course);
     }
     
     /**
@@ -112,7 +116,10 @@ public class CoursesBackend {
 				groupMembers);
 
         addAssistantsListToGroup(course, assistantsToAdd, groupMembersApi,
-				groupMembers);
+                groupMembers);
+
+
+        log.info("{} set the assistants for {} to {}", currentUser, course, assistants);
     }
     
     private void checkAdmin() throws UnauthorizedException {
@@ -182,6 +189,7 @@ public class CoursesBackend {
         
         if (groupMembers.contains(userModel)) {
             groupMembersApi.removeMember(retrieveUser(user));
+            log.info("Revoked course repository access for {} ", user);
         }
     }
 
@@ -192,6 +200,7 @@ public class CoursesBackend {
         
         if (!groupMembers.contains(userModel)) {
             groupMembersApi.addMember(retrieveUser(user));
+            log.info("Granted course repository access for {} ", user);
         }
     }
 

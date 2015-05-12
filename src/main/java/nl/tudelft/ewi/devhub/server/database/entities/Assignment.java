@@ -4,6 +4,7 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -20,6 +21,7 @@ import java.util.Date;
 @Entity
 @Table(name= "assignments")
 @IdClass(Assignment.AssignmentId.class)
+@ToString(exclude = "summary")
 @EqualsAndHashCode(of={"course", "assignmentId"})
 public class Assignment implements Comparable<Assignment> {
 

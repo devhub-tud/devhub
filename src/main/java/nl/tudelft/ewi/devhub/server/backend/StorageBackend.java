@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created by jgmeligmeyling on 05/03/15.
+ * The {@code StorageBackend} is used for uploading to and downloading from Devhub
+ *
+ * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
 public class StorageBackend {
@@ -36,6 +38,7 @@ public class StorageBackend {
         folder.mkdirs();
         File file = new File(folder, fileName);
         FileUtils.copyInputStreamToFile(in, file);
+        log.info("Created file {}/{}", path, fileName);
         return path.concat(File.separator).concat(fileName);
     }
 
@@ -50,6 +53,7 @@ public class StorageBackend {
         if(folder.exists()) {
             File file = new File(folder, fileName);
             FileUtils.forceDelete(file);
+            log.info("Deleted file {}/{}", path, fileName);
         }
     }
 

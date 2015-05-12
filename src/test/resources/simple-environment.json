@@ -53,6 +53,10 @@
               {
                 "id" : 1,
                 "name" : "Requirements Analysis"
+              },
+			  {
+                "id" : 2,
+                "name" : "Product vision"
               }
             ],
 			
@@ -66,6 +70,21 @@
 					"members": [
 						"student1",
 						"student2"
+					],
+					"deliveries" : [
+						{
+							"assignmentId" : 1,
+							"createdUserName" : "student1",
+							"review" : {
+								"state" : "APPROVED",
+								"grade" : 8.5,
+								"reviewedUserName" : "assistant1"
+							}
+						},
+						{
+							"assignmentId" : 2,
+							"createdUserName" : "student2"
+						}
 					]
 				},
 				{
@@ -73,6 +92,21 @@
 					"members": [
 						"student3",
 						"student4"
+					],
+					"deliveries" : [
+						{
+							"assignmentId" : 2,
+							"createdUserName" : "student3",
+							"review" : {
+								"state" : "REJECTED",
+								"grade" : 4.5,
+								"reviewedUserName" : "assistant1"
+							}
+						},
+						{
+							"assignmentId" : 1,
+							"createdUserName" : "student4"
+						}
 					]
 				}
 			]

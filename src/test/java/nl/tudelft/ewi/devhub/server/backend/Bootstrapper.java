@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
@@ -68,6 +70,21 @@ public class Bootstrapper {
 		private Integer buildTimeout;
 		private String templateRepositoryUrl;
 		private List<String> members;
+		private List<BDelivery> deliveries;
+	}
+	
+	@Data
+	static class BDelivery {
+		private long assignmentId;
+		private String createdUserName;
+		private BReview review;
+	}
+	
+	@Data
+	static class BReview {
+		private String state;
+		private double grade;
+		private String reviewedUserName;
 	}
 	
 	private final Users users;
@@ -79,12 +96,14 @@ public class Bootstrapper {
 	private final ObjectMapper mapper;
 	private final GitServerClient gitClient;
 	private final ProjectsBackend projects;
+	private final Deliveries deliveries;
     private final Assignments assignments;
 
 	@Inject
 	Bootstrapper(Users users, Courses courses, CourseAssistants assistants, Groups groups, 
 			GroupMemberships memberships, MockedAuthenticationBackend authBackend, ObjectMapper mapper,
-			GitServerClient gitClient, ProjectsBackend projects, Assignments assignments) {
+			GitServerClient gitClient, ProjectsBackend projects, Assignments assignments,
+			Deliveries deliveries) {
 		
 		this.users = users;
 		this.courses = courses;
@@ -96,6 +115,7 @@ public class Bootstrapper {
 		this.gitClient = gitClient;
 		this.projects = projects;
         this.assignments = assignments;
+        this.deliveries = deliveries;
 	}
 	
 	@Transactional
@@ -138,6 +158,8 @@ public class Bootstrapper {
 
 				log.debug("Persisted course: " + entity.getCode());
 			}
+			
+			Map<Long, Assignment> assignmentEntities = new HashMap<Long, Assignment>();
 
             for(BAssignment assignment : course.getAssignments()) {
                 Assignment assignmentEntity = new Assignment();
@@ -146,6 +168,9 @@ public class Bootstrapper {
                 assignmentEntity.setAssignmentId(assignment.getId());
                 assignments.persist(assignmentEntity);
                 log.debug("Persistted assignment {} in {}", assignmentEntity.getName(), course.getCode());
+                
+                // Store for later use to insert deliveries
+                assignmentEntities.put(assignmentEntity.getAssignmentId(), assignmentEntity);
             }
 
 			GroupModel courseGroupModel = new GroupModel();
@@ -204,6 +229,30 @@ public class Bootstrapper {
 				}
 				catch (Exception e) {
 					projects.provisionRepository(groupEntity, members);
+				}
+				
+				for (BDelivery delivery : group.getDeliveries()) {
+					Delivery deliveryEntity = new Delivery();
+					deliveryEntity.setAssignment(assignmentEntities.get(delivery.getAssignmentId()));
+					deliveryEntity.setCreated(new Date());
+					deliveryEntity.setGroup(groupEntity);
+					deliveryEntity.setCreatedUser(userMapping.get(delivery.getCreatedUserName()));
+					
+					BReview review;
+					if ((review = delivery.getReview()) != null) {
+						Review reviewEntity = new Review();
+						reviewEntity.setState(Delivery.State.valueOf(review.getState()));
+						reviewEntity.setGrade(review.getGrade());
+						reviewEntity.setReviewUser(userMapping.get(review.getReviewedUserName()));
+						reviewEntity.setReviewTime(new Date(System.currentTimeMillis()));
+						deliveryEntity.setReview(reviewEntity);
+						
+						log.info("                Set review for delivery: " + groupEntity.getGroupId());
+					}
+					
+					deliveries.persist(deliveryEntity);
+					
+					log.debug("        Persisted delivery for group: " + groupEntity.getGroupId());
 				}
 			}
 		}

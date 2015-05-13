@@ -134,7 +134,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 
 	private void notAuthorized(HttpServletRequest request, HttpServletResponse response, UnauthorizedException exception, User user) throws IOException {
 		UUID id = UUID.randomUUID();
-		log.error(exception.getMessage() + " (" + id + ")", exception);
+		log.error(exception.getMessage() + " (" + id + ")");
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		

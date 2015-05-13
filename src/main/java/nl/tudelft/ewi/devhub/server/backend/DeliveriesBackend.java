@@ -6,6 +6,8 @@ import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
@@ -30,6 +32,7 @@ import java.util.List;
  *
  * @author Jan-Willem Gmelig Meyling
  */
+@Slf4j
 @RequestScoped
 public class DeliveriesBackend {
 
@@ -80,6 +83,7 @@ public class DeliveriesBackend {
             delivery.setCreatedUser(currentUser);
             delivery.setCreated(new Date());
             deliveriesDAO.persist(delivery);
+            log.info("{} submitted {}", currentUser, delivery);
         }
         catch (Exception e) {
             throw new ApiError(ERROR_COULD_NOT_DELIVER, e);
@@ -182,6 +186,7 @@ public class DeliveriesBackend {
             review.setReviewTime(new Date());
             delivery.setReview(review);
             deliveriesDAO.merge(delivery);
+            log.info("{} reviewed {}", currentUser, delivery);
         }
         catch (Exception e) {
             throw new ApiError("error.could-not-review", e);

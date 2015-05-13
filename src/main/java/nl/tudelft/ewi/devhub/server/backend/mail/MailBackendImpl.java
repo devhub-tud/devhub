@@ -79,12 +79,16 @@ public class MailBackendImpl implements MailBackend {
 				}
 
 				try {
-					sendMail(mail);
-				}
-				catch (MessagingException e) {
-					log.error(e.getMessage(), e);
-					synchronized (mailQueue) {
-						mailQueue.offer(mail);
+					MimeMessage message = createMail(mail);
+
+					try {
+						sendMail(mail, message);
+					}
+					catch (MessagingException e) {
+						log.error(e.getMessage(), e);
+						synchronized (mailQueue) {
+							mailQueue.offer(mail);
+						}
 					}
 				}
 				catch (Throwable e) {
@@ -93,7 +97,7 @@ public class MailBackendImpl implements MailBackend {
 			}
 		}
 
-		private void sendMail(Mail mail) throws MessagingException, UnsupportedEncodingException {
+		private MimeMessage createMail(Mail mail) throws MessagingException, UnsupportedEncodingException {
 			String user = config.getSmtpUser();
 			String pass = config.getSmtpPass();
 			String host = config.getSmtpHost();
@@ -109,11 +113,15 @@ public class MailBackendImpl implements MailBackend {
 			Session session = Session.getDefaultInstance(properties);
 
 			MimeMessage message = new MimeMessage(session);
-			message.addFrom(new Address[] { new InternetAddress(origin) });
+			message.addFrom(new Address[]{new InternetAddress(origin)});
 			message.setSubject(mail.getSubject());
 			message.setText(mail.getContent());
 			message.setRecipient(RecipientType.TO, new InternetAddress(mail.getAddressee()));
 
+			return message;
+		}
+
+		private void sendMail(Mail mail, MimeMessage message) throws MessagingException {
 			log.info("Sending mail: " + mail);
 			Transport.send(message);
 		}

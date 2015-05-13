@@ -7,6 +7,7 @@ import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.Comment;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
  *
  * @author Jan-Willem Gmelig Meyling
  */
+@Slf4j
 public class PullRequestBackend {
 
     private final PullRequests pullRequests;
@@ -87,6 +89,7 @@ public class PullRequestBackend {
         }
         catch (NotFoundException e) {
             pullRequest.setOpen(false);
+            log.info("Closing pull request {} as the branch has been removed", pullRequest);
             return;
         }
 
@@ -98,6 +101,7 @@ public class PullRequestBackend {
             // If the branch is not ahead of the master, it's merged.
             pullRequest.setOpen(false);
             pullRequest.setMerged(true);
+            log.info("Closing pull request {} as the branch is not ahead of the master", pullRequest);
         }
         else {
             /**
@@ -116,12 +120,20 @@ public class PullRequestBackend {
 
     private void updateMergeBase(PullRequest pullRequest, Branch branch) throws GitClientException {
         CommitModel mergeBase = branch.mergeBase();
-        pullRequest.setMergeBase(mergeBase.getCommit());
+        String mergeBaseId = mergeBase.getCommit();
+        if(!mergeBaseId.equals(pullRequest.getMergeBase())) {
+            pullRequest.setMergeBase(mergeBaseId);
+            log.info("Merge-base set to {} for {}", mergeBaseId, pullRequest);
+        }
     }
 
     private void updateDestinationCommit(PullRequest pullRequest, Branch branch) {
         CommitModel destination = branch.getCommit();
-        pullRequest.setDestination(destination.getCommit());
+        String destinationId = destination.getCommit();
+        if(!destinationId.equals(pullRequest.getMergeBase())) {
+            pullRequest.setMergeBase(destinationId);
+            log.info("Destination set to {} for {}", destinationId, pullRequest);
+        }
     }
 
     /**

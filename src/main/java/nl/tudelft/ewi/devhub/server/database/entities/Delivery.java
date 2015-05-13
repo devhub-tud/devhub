@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -17,6 +18,7 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "assignment_deliveries")
+@ToString(exclude = {"notes", "attachments"})
 @EqualsAndHashCode(of={"assignment", "group"})
 public class Delivery implements Comparable<Delivery> {
 
@@ -95,6 +97,8 @@ public class Delivery implements Comparable<Delivery> {
 
     @Data
     @Embeddable
+    @EqualsAndHashCode
+    @ToString(exclude = {"commentary"})
     public static class Review {
 
         @Column(name = "grade")

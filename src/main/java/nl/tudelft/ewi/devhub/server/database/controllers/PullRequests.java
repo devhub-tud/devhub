@@ -57,10 +57,12 @@ public class PullRequests extends Controller<PullRequest> {
 	 */
 	@Transactional
 	public List<PullRequest> findOpenPullRequests(final Group group) {
-		return query().from(QPullRequest.pullRequest)
-			.where(QPullRequest.pullRequest.group.eq(group))
-			.where(QPullRequest.pullRequest.open.isTrue())
-			.list(QPullRequest.pullRequest);
+		final QPullRequest PullRequest = QPullRequest.pullRequest;
+		return query().from(PullRequest)
+			.where(PullRequest.group.eq(group))
+			.where(PullRequest.open.isTrue())
+			.orderBy(PullRequest.issueId.desc())
+			.list(PullRequest);
 	}
 
 	/**
@@ -70,10 +72,12 @@ public class PullRequests extends Controller<PullRequest> {
 	 */
 	@Transactional
 	public List<PullRequest> findClosedPullRequests(final Group group) {
-		return query().from(QPullRequest.pullRequest)
-			.where(QPullRequest.pullRequest.group.eq(group))
-			.where(QPullRequest.pullRequest.open.isFalse())
-			.list(QPullRequest.pullRequest);
+		final QPullRequest PullRequest = QPullRequest.pullRequest;
+		return query().from(PullRequest)
+			.where(PullRequest.group.eq(group))
+			.where(PullRequest.open.isFalse())
+			.orderBy(PullRequest.issueId.desc())
+			.list(PullRequest);
 	}
 
 	/**
@@ -84,10 +88,11 @@ public class PullRequests extends Controller<PullRequest> {
 	 */
 	@Transactional
 	public boolean openPullRequestExists(final Group group, final String branchName) {
-		return query().from(QPullRequest.pullRequest)
-			.where(QPullRequest.pullRequest.group.eq(group))
-			.where(QPullRequest.pullRequest.branchName.eq(branchName))
-			.where(QPullRequest.pullRequest.open.isTrue())
+		final QPullRequest PullRequest = QPullRequest.pullRequest;
+		return query().from(PullRequest)
+			.where(PullRequest.group.eq(group))
+				.where(PullRequest.branchName.eq(branchName))
+			.where(PullRequest.open.isTrue())
 			.exists();
 	}
 

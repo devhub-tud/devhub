@@ -26,6 +26,7 @@
                     '</div>' +
                     '</div>').appendTo(this.getCommentContainer());
 
+                this.$form.find('textarea').focus();
                 this.$form.submit((function(event) {
                     this.comment();
                     event.preventDefault();

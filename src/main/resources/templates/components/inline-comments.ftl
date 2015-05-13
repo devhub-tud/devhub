@@ -37,7 +37,7 @@
             comment: function() {
                 var lineData = this.line.data();
                 $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
-                    "link-commit": "${commit.commit}",
+                    "link-commit": lineData.linkCommit || "${commit.commit}",
                     "content": $('[name="content"]', this.$form).val(),
                     "source-commit": lineData.sourceCommit,
                     "source-line-number": lineData.sourceLineNumber,

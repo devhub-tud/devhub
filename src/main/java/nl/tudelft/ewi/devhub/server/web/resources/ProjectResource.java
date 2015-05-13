@@ -39,6 +39,7 @@ import nl.tudelft.ewi.git.models.CommitSubList;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 import nl.tudelft.ewi.git.models.EntryType;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -135,7 +136,7 @@ public class ProjectResource extends Resource {
 	public Response showBranchOverview(@Context HttpServletRequest request,
 									   @PathParam("branchName") String branchName,
 									   @QueryParam("page") @DefaultValue("1") int page,
-									   @QueryParam("fatal") String fatboal) throws IOException, ApiError, GitClientException {
+									   @QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
 
 		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 
@@ -183,8 +184,9 @@ public class ProjectResource extends Resource {
     @POST
     @Transactional
     @Path("/comment")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@ValidateRequest
 	@Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public CommentResponse commentOnPull(@Context HttpServletRequest request,
 										 @NotEmpty @FormParam("link-commit") String linkCommitId,
 										 @NotEmpty @FormParam("content") String message,
@@ -226,7 +228,7 @@ public class ProjectResource extends Resource {
 	public Response showCommitOverview(@Context HttpServletRequest request) {
 		return redirect(request.getPathInfo() + "/diff");
 	}
-	
+
 	@GET
 	@Path("/commits/{commitId}/build")
 	@Transactional

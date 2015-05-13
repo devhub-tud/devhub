@@ -25,6 +25,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -165,5 +166,16 @@ public class CourseBackendTest extends BackendTest {
 		courseBackend.setAssistants(course, newAssistants);
 
 		assertEquals(newAssistants, course.getAssistants());
+	}
+	
+	@Test
+	public void assistantsAreRemovedFromCourseWhenNotInNewList() throws GitClientException {
+		courseBackend.setAssistants(course, newAssistants);
+		
+		User removedAssistant = newAssistants.remove(0);
+		
+		courseBackend.setAssistants(course, newAssistants);
+
+		assertFalse(course.getAssistants().contains(removedAssistant));
 	}
 }

@@ -22,7 +22,8 @@
 
                             <tr data-source-commit="${blameBlock.fromCommitId}"
                                 data-source-line-number="${sourceLineNumber}"
-                                data-source-file-name="${blameBlock.fromFilePath}">
+                                data-source-file-name="${blameBlock.fromFilePath}"
+							  	data-link-commit="${blameBlock.fromCommitId}">
                                 <td class="ln">${line_index + 1}</td>
                                 <td class="code"> <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a><pre>${line}</pre></td>
                             </tr>

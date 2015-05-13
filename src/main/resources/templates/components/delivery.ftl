@@ -44,7 +44,7 @@
         [/#if]
         [#if delivery.getNotes()?? && delivery.getNotes()?has_content]
             <dt>${i18n.translate("delivery.notes")}</dt>
-            <dd>${delivery.getNotes()}</dd>
+            <dd>[#list delivery.getNotes()?split("\n") as line]${line}[#if line_has_next]<br/>[/#if][/#list]</dd>
         [/#if]
     </dl>
 
@@ -73,7 +73,7 @@
             [/#if]
             [#if review.getCommentary()??]
                 <dt>${i18n.translate("delivery.remarks")}</dt>
-                <dd>${review.getCommentary()}</dd>
+                <dd>[#list review.getCommentary()?split("\n") as line]${line}[#if line_has_next]<br/>[/#if][/#list]</dd>
             [/#if]
         </dl>
         <footer class="small">${review.reviewUser.getName()} on ${review.getReviewTime()?string["EEEE dd MMMM yyyy HH:mm"]}</footer>

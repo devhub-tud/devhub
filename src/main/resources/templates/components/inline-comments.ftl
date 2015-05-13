@@ -26,6 +26,7 @@
                     '</div>' +
                     '</div>').appendTo(this.getCommentContainer());
 
+                this.$form.find('textarea').focus();
                 this.$form.submit((function(event) {
                     this.comment();
                     event.preventDefault();
@@ -35,18 +36,22 @@
             },
 
             comment: function() {
-                var lineData = this.line.data();
-                $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
-                    "link-commit": "${commit.commit}",
-                    "content": $('[name="content"]', this.$form).val(),
-                    "source-commit": lineData.sourceCommit,
-                    "source-line-number": lineData.sourceLineNumber,
-                    "source-file-name": lineData.sourceFileName,
-                    "redirect": window.location.pathname
-                }).done((function(res) {
-                    this.insertCommentElement(res);
-                    this.dismissForm();
-                }).bind(this));
+                var content = $('[name="content"]', this.$form).val();
+
+                if(content) {
+	                var lineData = this.line.data();
+	                $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
+		                "link-commit": lineData.linkCommit || "${commit.commit}",
+		                "content": content,
+		                "source-commit": lineData.sourceCommit,
+		                "source-line-number": lineData.sourceLineNumber,
+		                "source-file-name": lineData.sourceFileName,
+		                "redirect": window.location.pathname
+	                }).done((function(res) {
+		                this.insertCommentElement(res);
+		                this.dismissForm();
+	                }).bind(this));
+                }
             },
 
             insertCommentElement: function(res) {

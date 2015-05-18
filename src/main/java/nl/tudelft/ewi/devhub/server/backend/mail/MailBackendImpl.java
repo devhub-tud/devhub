@@ -86,9 +86,6 @@ public class MailBackendImpl implements MailBackend {
 					}
 					catch (MessagingException e) {
 						log.error(e.getMessage(), e);
-						synchronized (mailQueue) {
-							mailQueue.offer(mail);
-						}
 					}
 				}
 				catch (Throwable e) {

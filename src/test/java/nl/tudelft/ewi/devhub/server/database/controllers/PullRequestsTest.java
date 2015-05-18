@@ -40,6 +40,7 @@ public class PullRequestsTest {
 	public void testCreatePullRequest() {
 		Group group = createGroup();
 		PullRequest pr = new PullRequest();
+		pr.setIssueId(random.nextLong());
 		pr.setGroup(group);
 		pr.setBranchName("super-branch");
 		pr.setOpen(true);

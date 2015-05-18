@@ -132,7 +132,7 @@ public class PullRequestBackend {
         CommitModel destination = branch.getCommit();
         String destinationId = destination.getCommit();
         if(!destinationId.equals(pullRequest.getMergeBase())) {
-            pullRequest.setMergeBase(destinationId);
+            pullRequest.setDestination(destinationId);
             log.info("Destination set to {} for {}", destinationId, pullRequest);
         }
     }

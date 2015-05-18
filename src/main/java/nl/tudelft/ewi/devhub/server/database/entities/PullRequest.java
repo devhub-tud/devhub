@@ -29,21 +29,21 @@ public class PullRequest {
 	@Data
 	@EqualsAndHashCode
 	public static class PullRequestId implements Serializable {
-		private long issueId;
+		private Long issueId;
 		private Group group;
 	}
-
-	@Id
-	@NotNull
-	@Column(name = "id")
-	private long issueId;
 
 	@Id
 	@NotNull
 	@ManyToOne
 	@JoinColumn(name = "repository_name", referencedColumnName = "repository_name")
 	private Group group;
-	
+
+	@Id
+	@NotNull
+	@Column(name = "id")
+	private Long issueId;
+
 	@NotNull
 	@Column(name="branch_name")
 	private String branchName;

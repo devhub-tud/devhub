@@ -14,8 +14,6 @@ public abstract class ProjectSidebarView extends AuthenticatedView {
 
 	private static final By GIT_CLONE_URL = By.xpath("//h4[starts-with(normalize-space(.), 'Git clone URL')]");
 
-	private static final By RECENT_COMMITS_HEADER = By.xpath("//h4[starts-with(normalize-space(.), 'Recent commits')]");
-
 	private static final By BREADCRUMB = By.xpath("/html/body/div/ol");
 
 	protected ProjectSidebarView(WebDriver driver) {
@@ -26,7 +24,6 @@ public abstract class ProjectSidebarView extends AuthenticatedView {
 	protected void invariant() {
 		assertTrue(currentPathStartsWith("/courses"));
 		assertNotNull(getBreadcrumb());
-		assertNotNull(getDriver().findElement(RECENT_COMMITS_HEADER));
 	}
 
 	protected WebElement getBreadcrumb() {
@@ -37,6 +34,11 @@ public abstract class ProjectSidebarView extends AuthenticatedView {
 	public CoursesView toCoursesView() {
 		getBreadcrumb().findElement(By.xpath("./li[1]/a")).click();
 		return new CoursesView(getDriver());
+	}
+
+	public AssignmentsView toAssignmentView() {
+		getDriver().findElement(By.linkText("Assignments")).click();
+		return new AssignmentsView(getDriver());
 	}
 
 	public String getGroupName() {

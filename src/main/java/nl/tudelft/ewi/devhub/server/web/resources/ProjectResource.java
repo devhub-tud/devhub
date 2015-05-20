@@ -18,11 +18,14 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -69,6 +72,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequestScoped
@@ -91,6 +95,7 @@ public class ProjectResource extends Resource {
 	private final CommitComments comments;
 	private final CommentMailer commentMailer;
 	private final Commits commits;
+	private final Warnings warnings;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
@@ -105,7 +110,8 @@ public class ProjectResource extends Resource {
 			final CommitComments comments,
 			final CommentMailer commentMailer,
 			final Commits commits,
-            final Config config) {
+            final Config config,
+			final Warnings warnings) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
@@ -120,6 +126,7 @@ public class ProjectResource extends Resource {
 		this.commentMailer = commentMailer;
 		this.commits = commits;
         this.config = config;
+		this.warnings = warnings;
 	}
 
 	@GET
@@ -143,6 +150,7 @@ public class ProjectResource extends Resource {
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
+		parameters.put("warnings", warnings.commitsWithWarningsFor(group));
 		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("comments", new HasCommentsChecker());
 		parameters.put("repository", repository);
@@ -204,7 +212,7 @@ public class ProjectResource extends Resource {
 
 		if(sourceCommitId != null) {
 			// In-line comment
-			CommitComment.Source source = new CommitComment.Source();
+			Source source = new Source();
 			source.setSourceCommit(commits.ensureExists(group, sourceCommitId));
 			source.setSourceFilePath(sourceFileName);
 			source.setSourceLineNumber(sourceLineNumber);
@@ -310,6 +318,21 @@ public class ProjectResource extends Resource {
         return Response.seeOther(responseUri).build();
     }
 
+	@Data
+	public static class WarningResolver {
+
+		private final List<LineWarning> warnings;
+
+		public List<LineWarning> retrieveWarnings(final String commitId,
+												  final String fileName,
+												  final Integer lineNumber) {
+			return warnings.stream()
+				.filter(warning -> warning.getSource().equals(commitId, fileName, lineNumber))
+				.collect(Collectors.toList());
+		}
+
+	}
+
     @GET
 	@Path("/commits/{commitId}/diff")
 	@Transactional
@@ -331,7 +354,11 @@ public class ProjectResource extends Resource {
 		parameters.put("commentChecker", commentBackend.getCommentChecker(Lists.newArrayList(commitId)));
 		parameters.put("states", new CommitChecker(group, buildResults));
 
-		List<Locale> locales = Collections.list(request.getLocales());
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitId);
+		parameters.put("warnings", warnings.getWarningsFor(group, commitId));
+		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
+
+    		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));
 	}
 

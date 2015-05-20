@@ -462,6 +462,18 @@ div.commit {
 				color: #bbb;
 			}
 		}
+
+	  	a.warning {
+		  	position: absolute;
+		  	left: 9px;
+		  	top: 1px;
+		  	font-size: 18px;
+		  	color: #B28B49;
+
+		  	i {
+			  cursor: pointer;
+			}
+		}
 	
 		.add {
 			background-color: @green-background-color;
@@ -781,3 +793,23 @@ code {
   }
 
 }
+
+.popover-content {
+	padding: 0;
+
+  table {
+	margin: 0;
+	border: 0;
+
+	tr {
+	  td {
+		border-width: 0 0 1px 0;
+	  }
+
+	  &:last-child td {
+		border-bottom-width: 0;
+	  }
+	}
+  }
+}
+

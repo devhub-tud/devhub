@@ -424,4 +424,33 @@
 		</addColumn>
 	</changeSet>
 
+	<changeSet id="warning_tables" author="Jan-Willem Gmelig Meyling">
+		<dropColumn tableName="commit_comment" columnName="source_repository_name"/>
+
+		<createTable tableName="group_warning">
+			<!-- Common warning attributes -->
+			<column name="warning_type" type="varchar(30)"/>
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false"/>
+			</column>
+			<!-- Commit id for CommitWarnings -->
+			<column name="commit_id" type="varchar(40)"/>
+			<!-- Source embeddable for LineWarnings -->
+			<column name="source_commit_id" type="varchar(40)"/>
+			<column name="source_line_number" type="int"/>
+			<column name="source_file_path" type="varchar(255)"/>
+			<!-- Message for checkstyle, findbugs warnings -->
+			<column name="message" type="varchar(1024)"/>
+			<!-- Priority for findbugs and PMD warnings -->
+			<column name="priority" type="int"/>
+			<!-- Severity for checkstye warnings -->
+			<column name="severity" type="varchar(10)"/>
+			<!-- Rule for PMD warnings -->
+			<column name="rule" type="varchar(30)"/>
+		</createTable>
+	</changeSet>
+
 </databaseChangeLog>

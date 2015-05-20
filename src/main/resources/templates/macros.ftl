@@ -147,6 +147,18 @@
 	[#if commit.getMessage()?has_content]
 					<div class="description">${commit.getMessage()}</div>
 	[/#if]
+					<div>
+  	[#if warnings?? && warnings?has_content]
+						<ul class="list-unstyled">
+  	    [#list warnings as warning]
+							<li class="alert alert-warning alert-dismissible" role="alert">
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<i class="glyphicon glyphicon-warning-sign"></i> ${warning.getMessage(i18n)}
+							</li>
+  	    [/#list]
+						</ul>
+  	[/#if]
+					</div>
 				</span>
 			</div>
 [/#macro]
@@ -155,6 +167,16 @@
 		<script src="/static/js/jquery.min.js"></script>
 		<script src="/static/js/bootstrap.min.js"></script>
 		<script src="/static/js/validation.js"></script>
+		<script type="text/javascript">
+		$(function() {
+		  $("[data-toggle=popover]").each(function(i,e) {
+					  $(e).popover({
+						html: true,
+						content: $(e).find('#' + $(e).data('content-id')).html()
+					  });
+		  });
+		});
+		</script>
 [/#macro]
 
 [#macro renderFooter]

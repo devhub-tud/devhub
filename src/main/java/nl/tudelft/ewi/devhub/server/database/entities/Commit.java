@@ -44,5 +44,5 @@ public class Commit {
 	
 	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade=CascadeType.ALL)
 	private List<CommitComment> comments;
-	
+
 }

@@ -3,18 +3,17 @@ package nl.tudelft.ewi.devhub.server.backend;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequestComment;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.Repository;
@@ -295,7 +294,7 @@ public class PullRequestBackend {
             return inlineComments.stream()
                 .collect(Collectors.groupingBy(CommitComment::getSource))
                 .entrySet().stream().map(entry -> {
-                    CommitComment.Source source = entry.getKey();
+                    Source source = entry.getKey();
                     SortedSet<CommitComment> comments = Sets.newTreeSet(entry.getValue());
                     DiffBlameModel.DiffBlameFile subModel = findSubModel(source);
                     return new CommentContextEvent(comments, subModel);
@@ -303,7 +302,7 @@ public class PullRequestBackend {
                 .collect(Collectors.toList());
         }
 
-        private DiffBlameModel.DiffBlameFile findSubModel(CommitComment.Source source) {
+        private DiffBlameModel.DiffBlameFile findSubModel(Source source) {
             for(DiffBlameModel.DiffBlameFile diffFile : diffModel.getDiffs()) {
                 for(DiffBlameModel.DiffBlameContext diffContext : diffFile.getContexts()) {
                     List<DiffBlameModel.DiffBlameLine> lines = diffContext.getLines();

@@ -84,9 +84,17 @@
                             [@commitRow.render group states commit.commit "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff"]
                                 [#if comments?? && comments?has_content]
                                     [#assign numComments = comments.amountOfCommits(commit.commit)]
+                                        <span class="pull-right">
                                     [#if numComments > 0]
-                                        <span class="pull-right"><i class="glyphicon glyphicon-comment"></i> ${numComments}</span>
+                                            <div><i class="glyphicon glyphicon-comment"></i> ${numComments}</div>
                                     [/#if]
+                                    [#if warnings??]
+                                        [#assign numWarnings = warnings[commit.commit]!0]
+                                        [#if numWarnings > 0]
+	                                        <div class="text-warning"><i class="glyphicon glyphicon-warning-sign"></i> ${numWarnings}</div>
+                                        [/#if]
+                                    [/#if]
+                                        </span>
                                 [/#if]
                                 <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
                                 <div class="committer">${commit.getAuthor()}</div>

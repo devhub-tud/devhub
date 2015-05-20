@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -111,16 +112,9 @@ public class CommentBackend {
                                                       final String sourcePath,
                                                       final Integer sourceLineNumber) {
             return comments.stream()
-            		.filter((comment) ->
-            		{
-		                CommitComment.Source source = comment.getSource();
-		                
-		                return source.getSourceCommit().getCommitId().equals(sourceCommitId)
-		                		&& source.getSourceFilePath().equals(sourcePath)
-		                		&& source.getSourceLineNumber().equals(sourceLineNumber);
-		            })
-		            .sorted()
-		            .collect(Collectors.toList());
+                .filter((comment) -> comment.getSource().equals(sourceCommitId, sourcePath, sourceLineNumber))
+                .sorted()
+                .collect(Collectors.toList());
         }
 
     }

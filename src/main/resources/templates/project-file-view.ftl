@@ -16,15 +16,36 @@
 					<table class="table diffs">
 						<tbody>
 				[#list contents as line]
-                    [#assign blameBlock = blame.getBlameBlock(line_index + 1)]
-                    [#assign sourceLineNumber = blameBlock.getFromLineNumber(line_index + 1)]
+					[#assign line_number = line_index + 1]
+                    [#assign blameBlock = blame.getBlameBlock(line_number)]
+                    [#assign sourceLineNumber = blameBlock.getFromLineNumber(line_number)]
                     [#assign commentsForThisLine = comments.getCommentsForLine(blameBlock.fromCommitId, blameBlock.fromFilePath, sourceLineNumber)]
 
                             <tr data-source-commit="${blameBlock.fromCommitId}"
                                 data-source-line-number="${sourceLineNumber}"
                                 data-source-file-name="${blameBlock.fromFilePath}"
 							  	data-link-commit="${blameBlock.fromCommitId}">
-                                <td class="ln">${line_index + 1}</td>
+                                <td class="ln">
+									[#if lineWarnings??]
+										[#assign warningsForLine = lineWarnings.retrieveWarnings(blameBlock.fromCommitId, blameBlock.fromFilePath, sourceLineNumber)]
+										[#if warningsForLine?? && warningsForLine?has_content]
+					                                <a class="warning"
+					                                   data-container="body" data-toggle="popover" data-placement="right"
+					                                   data-title="Warnings"
+					                                   data-content-id="warnings-R${line_number}">
+						                                <i class="octicon octicon-primitive-dot"></i>
+						                                <div class="hidden" id="warnings-R${line_number}">
+							                                <table class="table table-bordered">
+												  [#list warningsForLine as warning]
+										                                <tr><td>${warning.getMessage(i18n)}</td></tr>
+												  [/#list]
+							                                </table>
+						                                </div>
+					                                </a>
+										[/#if]
+									[/#if]
+	                                <a href="#R${line_number}" id="R${line_number}">${line_number}</a>
+								</td>
                                 <td class="code"> <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a><pre>${line}</pre></td>
                             </tr>
 

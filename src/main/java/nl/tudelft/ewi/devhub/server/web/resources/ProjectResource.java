@@ -73,6 +73,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequestScoped
@@ -442,13 +443,11 @@ public class ProjectResource extends Resource {
 
 		String[] contents = repository.showFile(commitId, path).split("\\r?\\n");
         BlameModel blame = commit.blame(path);
-        CommentBackend.CommentChecker commentChecker = commentBackend.getCommentChecker(Lists.newArrayList(commitId));
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("commit", commit);
         parameters.put("blame", blame);
-        parameters.put("comments", commentChecker);
 		parameters.put("path", path);
 		parameters.put("contents", contents);
 		parameters.put("highlight", Highlight.forFileName(path));
@@ -456,8 +455,20 @@ public class ProjectResource extends Resource {
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));
 
+		List<String> blameCommits = getCommitsForBlame(blame);
+        parameters.put("comments", commentBackend.getCommentChecker(blameCommits));
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitId);
+		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
+
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
+	}
+
+	private List<String> getCommitsForBlame(BlameModel blame) {
+		return blame.getBlames().stream()
+			.map(BlameModel.BlameBlock::getFromCommitId)
+				.distinct()
+				.collect(Collectors.toList());
 	}
 
 	@Data

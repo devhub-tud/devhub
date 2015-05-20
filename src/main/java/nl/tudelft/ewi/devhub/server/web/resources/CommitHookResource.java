@@ -60,7 +60,7 @@ public class CommitHookResource extends Resource {
         PMDWarning anotherWarning = new PMDWarning();
         anotherWarning.setCommit(commit);
         anotherWarning.setRepository(group);
-        anotherWarning.setSource(new Source(commit, 7, "pom.xml"));
+        anotherWarning.setSource(new Source(commit, 11, "README.md"));
         anotherWarning.setMessage("File contains tab characters (this is the first instance)");
         anotherWarning.setPriority(1);
         anotherWarning.setRule("idontknow");

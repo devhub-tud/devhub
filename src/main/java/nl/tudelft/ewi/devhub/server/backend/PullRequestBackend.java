@@ -130,28 +130,21 @@ public class PullRequestBackend {
     private void updateDestinationCommit(PullRequest pullRequest, Branch branch) {
         CommitModel destination = branch.getCommit();
         String destinationId = destination.getCommit();
-        if(!destinationId.equals(pullRequest.getMergeBase())) {
+        if(!destinationId.equals(pullRequest.getDestination())) {
             pullRequest.setDestination(destinationId);
             log.info("Destination set to {} for {}", destinationId, pullRequest);
         }
     }
 
     /**
-     * Get the events for a PullRequest
-     * @param repository Repository that contains the pull request
-     * @param pullRequest PullRequest to update
-     * @return a List of events
-     * @throws GitClientException if a GitClientException occurs
+     *
+     * @param pullRequest  PullRequest to update
+     * @param diffModel DiffBlameModel for the pull request
+     * @param group the current group
+     * @return  a List of events
      */
-    public SortedSet<Event> getEventsForPullRequest(Group group, Repository repository, PullRequest pullRequest) throws GitClientException {
-        DiffBlameModel diffBlameModel = getDiffBlameModelForPull(pullRequest, repository);
-        return new EventResolver(pullRequest, diffBlameModel, group).getEvents();
-    }
-
-    private static DiffBlameModel getDiffBlameModelForPull(PullRequest pullRequest, Repository repository) throws GitClientException {
-        String destinationId = pullRequest.getDestination();
-        String mergeBaseId = pullRequest.getMergeBase();
-        return repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
+    public EventResolver getEventResolver(final PullRequest pullRequest, final DiffBlameModel diffModel, final Group group) {
+        return new EventResolver(pullRequest, diffModel, group);
     }
 
     enum EventType {
@@ -336,6 +329,9 @@ public class PullRequestBackend {
             return fileCopy;
         }
 
+        public DiffBlameModel getDiffModel() {
+            return diffModel;
+        }
     }
 
 }

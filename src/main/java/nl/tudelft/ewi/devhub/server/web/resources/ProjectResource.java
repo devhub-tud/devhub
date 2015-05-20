@@ -30,6 +30,7 @@ import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
+import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
@@ -72,7 +73,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequestScoped
@@ -318,22 +318,7 @@ public class ProjectResource extends Resource {
         return Response.seeOther(responseUri).build();
     }
 
-	@Data
-	public static class WarningResolver {
-
-		private final List<LineWarning> warnings;
-
-		public List<LineWarning> retrieveWarnings(final String commitId,
-												  final String fileName,
-												  final Integer lineNumber) {
-			return warnings.stream()
-				.filter(warning -> warning.getSource().equals(commitId, fileName, lineNumber))
-				.collect(Collectors.toList());
-		}
-
-	}
-
-    @GET
+	@GET
 	@Path("/commits/{commitId}/diff")
 	@Transactional
 	public Response showCommitChanges(@Context HttpServletRequest request,

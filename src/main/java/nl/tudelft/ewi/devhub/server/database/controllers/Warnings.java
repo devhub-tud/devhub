@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import com.mysema.query.jpa.JPASubQuery;
@@ -44,22 +45,51 @@ public class Warnings extends Controller<Warning> {
      * This excludes all the {@link LineWarning LineWarnings}.
      *
      * @param group {@link Group} to check for
+     * @param commitId A commit id ids
+     * @return a {@code List} of {@code CommitWarnings} for the given commits
+     */
+    @Transactional
+    public List<CommitWarning> getWarningsFor(final Group group, final String commitId) {
+        return getWarningsFor(group, ImmutableList.of(commitId));
+    }
+
+
+    /**
+     * Get the {@link CommitWarning CommitWarnings} for the given commit ids.
+     * This excludes all the {@link LineWarning LineWarnings}.
+     *
+     * @param group {@link Group} to check for
      * @param commitIds A collection of commit ids
      * @return a {@code List} of {@code CommitWarnings} for the given commits
      */
     @Transactional
-    public List<CommitWarning> getWarningsFor(Group group, String... commitIds) {
+    public List<CommitWarning> getWarningsFor(final Group group, final List<String> commitIds) {
         return query().from(commitWarning)
-            .where(commitWarning.repository.eq(group)
-            .and(commitWarning.commit.commitId.in(commitIds))
-            .and(commitWarning.notIn(getLineWarningsForQuery(group, commitIds))))
-            .list(commitWarning);
+                .where(commitWarning.repository.eq(group)
+                        .and(commitWarning.commit.commitId.in(commitIds))
+                        .and(commitWarning.notIn(getLineWarningsForQuery(group, commitIds))))
+                .list(commitWarning);
     }
 
-    protected ListSubQuery<LineWarning> getLineWarningsForQuery(Group group, String... commitIds) {
+    protected ListSubQuery<LineWarning> getLineWarningsForQuery(final Group group, final List<String> commitIds) {
         return new JPASubQuery().from(lineWarning)
             .where(lineWarning.repository.eq(group)
-            .and(lineWarning.commit.commitId.in(commitIds)))
+                    .and(lineWarning.commit.commitId.in(commitIds)))
+            .list(lineWarning);
+    }
+
+    /**
+     * Get the {@link LineWarning LineWarnings} for the given commit ids.
+     *
+     * @param group {@link Group} to check for
+     * @param commitId a Commit id
+     * @return a {@code List} of {@code LineWarnings}
+     */
+    @Transactional
+    public List<LineWarning> getLineWarningsFor(final Group group, final String commitId) {
+        return query().from(lineWarning)
+            .where(lineWarning.repository.eq(group)
+            .and(lineWarning.commit.commitId.eq(commitId)))
             .list(lineWarning);
     }
 
@@ -71,11 +101,11 @@ public class Warnings extends Controller<Warning> {
      * @return a {@code List} of {@code LineWarnings}
      */
     @Transactional
-    public List<LineWarning> getLineWarningsFor(Group group, String... commitIds) {
+    public List<LineWarning> getLineWarningsFor(final Group group, final List<String> commitIds) {
         return query().from(lineWarning)
-            .where(lineWarning.repository.eq(group)
-            .and(lineWarning.commit.commitId.in(commitIds)))
-            .list(lineWarning);
+                .where(lineWarning.repository.eq(group)
+                        .and(lineWarning.commit.commitId.in(commitIds)))
+                .list(lineWarning);
     }
 
 }

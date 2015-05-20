@@ -7,6 +7,7 @@ import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
@@ -14,15 +15,18 @@ import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
 import nl.tudelft.ewi.devhub.server.web.models.PullCloseResponse;
+import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.Commit;
 import nl.tudelft.ewi.git.client.GitClientException;
@@ -73,6 +77,7 @@ public class ProjectPullResource extends Resource {
     private final CommentMailer commentMailer;
     private final PullRequestComments pullRequestComments;
     private final PullRequestMailer pullRequestMailer;
+    private final Warnings warnings;
 
     @Inject
     ProjectPullResource(final TemplateEngine templateEngine,
@@ -85,7 +90,8 @@ public class ProjectPullResource extends Resource {
                     final GitServerClient gitClient,
                     final CommentMailer commentMailer,
                     final PullRequestMailer pullRequestMailer,
-                    final PullRequestComments pullRequestComments) {
+                    final PullRequestComments pullRequestComments,
+                    final Warnings warnings) {
 
         this.templateEngine = templateEngine;
         this.group = group;
@@ -98,6 +104,7 @@ public class ProjectPullResource extends Resource {
         this.commentMailer = commentMailer;
         this.pullRequestComments = pullRequestComments;
         this.pullRequestMailer = pullRequestMailer;
+        this.warnings = warnings;
     }
 
     @POST
@@ -157,14 +164,23 @@ public class ProjectPullResource extends Resource {
         pullRequestBackend.updatePullRequest(repository, pullRequest);
         Commit commit = repository.retrieveCommit(pullRequest.getDestination());
 
+        val destinationId = pullRequest.getDestination();
+        val mergeBaseId = pullRequest.getMergeBase();
+        val diffBlameModel = repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
+        val commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
+        val resolver = pullRequestBackend.getEventResolver(pullRequest, diffBlameModel, group);
+
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
         parameters.put("group", group);
         parameters.put("commit", commit);
         parameters.put("pullRequest", pullRequest);
-        parameters.put("events", pullRequestBackend.getEventsForPullRequest(group, repository, pullRequest));
+        parameters.put("events", resolver.getEvents());
         parameters.put("repository", repository);
         parameters.put("states", new CommitChecker(group, buildResults));
+
+        List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitIds);
+        parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
         try {
             nl.tudelft.ewi.git.client.Branch branch = repository.retrieveBranch(pullRequest.getBranchName());
@@ -233,6 +249,9 @@ public class ProjectPullResource extends Resource {
         parameters.put("repository", repository);
         parameters.put("diffViewModel", diffBlameModel);
         parameters.put("states", new CommitChecker(group, buildResults));
+
+        List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitIds);
+        parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("project-pull-diff-view.ftl", locales, parameters));

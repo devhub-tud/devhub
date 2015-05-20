@@ -84,9 +84,9 @@
                                 [/#if]
 
                                 [#assign state = delivery.getState()]
-                                <span class="label label-${state.style}">
+	                            <span class="label label-${state.style}" data-toggle="tooltip" title="${i18n.translate(state.messageTranslationKey)}">
                                     ${i18n.translate(state.translationKey)}
-                                </span>
+	                            </span>
                             [#else]
                                 <span class="label label-default">
                                     ${i18n.translate("assignment.not-submitted")}

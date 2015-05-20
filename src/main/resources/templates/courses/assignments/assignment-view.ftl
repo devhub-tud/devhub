@@ -28,7 +28,8 @@
             [#list deliveryStates as state]
                 <div class="col-md-2 progress-info">
                     <span class="text-${state.style} glyphicon glyphicon-stop"></span>
-                    <button class="btn btn-link delivery-filter" data-filter-class="${state.toString()?lower_case}">
+                    <button class="btn btn-link delivery-filter" data-filter-class="${state.toString()?lower_case}"
+                            data-toggle="tooltip" title="${i18n.translate(state.descriptionTranslionKey)}">
                         <span>${i18n.translate(state.translationKey)}:</span>
                         <span>${assignmentStats.getCountFor(state)}</span>
                         <span>(${assignmentStats.getPercentageFor(state)}%)</span>
@@ -71,7 +72,9 @@
                 [/#if]
 
                 [#assign state = delivery.getState()]
-                    <span class="label label-${state.style}">${i18n.translate(state.translationKey)}</span>
+                    <span class="label label-${state.style}" data-toggle="tooltip" title="${i18n.translate(state.descriptionTranslionKey)}">
+                        ${i18n.translate(state.translationKey)}
+                    </span>
                 </div>
                 <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
                 <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>

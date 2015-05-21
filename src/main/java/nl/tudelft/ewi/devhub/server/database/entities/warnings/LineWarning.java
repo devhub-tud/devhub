@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities.warnings;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 
@@ -20,6 +21,7 @@ import javax.persistence.Entity;
 @EqualsAndHashCode(callSuper = true)
 public abstract class LineWarning extends CommitWarning {
 
+    @Getter
     @Embedded
     private Source source;
 

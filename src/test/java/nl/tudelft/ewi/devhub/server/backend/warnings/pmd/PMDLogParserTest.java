@@ -12,19 +12,15 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
-import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -68,7 +64,10 @@ public class PMDLogParserTest {
         when(gitServerClient.repositories()).thenReturn(repositories);
         when(repositories.retrieve(anyString())).thenReturn(repository);
         when(repository.retrieveCommit(COMMIT_ID)).thenReturn(repoCommit);
+        blameCurrentCommit();
+    }
 
+    public void blameCurrentCommit() throws GitClientException {
         when(repoCommit.blame(EXPECTED_PATH)).thenReturn(blameModel);
         when(blameModel.getBlameBlock(anyInt())).thenReturn(blameBlock);
         when(blameBlock.getFromCommitId()).thenReturn(COMMIT_ID);

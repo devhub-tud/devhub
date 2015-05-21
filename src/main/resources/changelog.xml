@@ -449,7 +449,7 @@
 			<!-- Severity for checkstye warnings -->
 			<column name="severity" type="varchar(10)"/>
 			<!-- Rule for PMD warnings -->
-			<column name="rule" type="varchar(30)"/>
+			<column name="rule" type="varchar(100)"/>
 		</createTable>
 	</changeSet>
 

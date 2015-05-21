@@ -36,7 +36,7 @@ public abstract class AbstractLineWarningGenerator<T extends LineWarning, V> imp
         final Repository repository = retrieveRepository(commit.getRepository());
         return getStream().flatMap(v -> {
             String filePath = filePathFor(v);
-            BlameModel blameModel = retrieveBlameModel(repository, commit, filePath);
+            BlameModel blameModel = retrieveBlameModel(repository, commit.getCommitId(), filePath);
             return map(commit, v).map(a -> blameSource(a, blameModel));
         })
         .filter(warning -> warning.getCommit().equals(commit))
@@ -56,13 +56,13 @@ public abstract class AbstractLineWarningGenerator<T extends LineWarning, V> imp
     /**
      * Retrieve the {@code BlameModel} for a file at a certain commit
      * @param repository repository to use
-     * @param commit commit to use
+     * @param commitId commit to use
      * @param path path of the file
      * @return BlameModel for the file
      */
     @SneakyThrows
-    protected static BlameModel retrieveBlameModel(final Repository repository, final Commit commit, final String path) {
-        return repository.retrieveCommit(commit.getCommitId()).blame(path);
+    protected static BlameModel retrieveBlameModel(final Repository repository, final String commitId, final String path) {
+        return repository.retrieveCommit(commitId).blame(path);
     }
 
     /**

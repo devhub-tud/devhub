@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend.warnings.pmd;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -28,6 +29,7 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDWarning, PMDLo
 
 	@Data
 	@EqualsAndHashCode
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class PMDViolation {
 
 		@JacksonXmlProperty(isAttribute = true, localName = "beginline")
@@ -46,6 +48,7 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDWarning, PMDLo
 
 	@Data
 	@EqualsAndHashCode
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class PMDFile {
 
 		@JacksonXmlProperty(localName = "name", isAttribute = true)
@@ -60,6 +63,7 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDWarning, PMDLo
 	@Data
 	@EqualsAndHashCode
 	@JacksonXmlRootElement(localName="checkstyle")
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class PMDReport {
 
 		@JacksonXmlProperty(localName = "version", isAttribute = true)

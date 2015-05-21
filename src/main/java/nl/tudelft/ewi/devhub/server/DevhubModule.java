@@ -10,6 +10,7 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
 import com.google.inject.Provides;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
@@ -53,8 +54,9 @@ public class DevhubModule extends ServletModule {
 	protected void configureServlets() {
 		install(new DbModule());
 		install(new JaxrsModule());
+		bind(JacksonJaxbXMLProvider.class);
 		requireBinding(ObjectMapper.class);
-		
+
 		bind(File.class).annotatedWith(Names.named("directory.templates")).toInstance(new File(rootFolder, "templates"));
 		bind(TranslatorFactory.class).toInstance(new TranslatorFactory("i18n.devhub"));
 		bind(Config.class).toInstance(config);

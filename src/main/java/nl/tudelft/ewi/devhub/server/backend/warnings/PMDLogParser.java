@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.server.backend.warnings.pmd;
+package nl.tudelft.ewi.devhub.server.backend.warnings;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -12,20 +12,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.google.inject.Inject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 
-import nl.tudelft.ewi.devhub.server.backend.warnings.AbstractLineWarningGenerator;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.git.client.GitServerClient;
 
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDFile;
+
 /**
  * Generator for PMD warnings
  */
-public class PMDLogParser extends AbstractLineWarningGenerator<PMDWarning, PMDLogParser.PMDFile> {
+public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFile, PMDWarning> {
 
 	@Data
 	@EqualsAndHashCode
@@ -80,19 +80,11 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDWarning, PMDLo
 		super(gitServerClient, commits);
 	}
 
-	@Getter
-	@Setter
-	private PMDReport pmdReport;
-
 	@Override
 	protected Stream<PMDWarning> map(final Commit commit, final PMDFile pmdFile) {
 		return pmdFile.getViolations().stream().map(pmdViolation -> {
-			Source source = new Source();
-			source.setSourceCommit(commit);
-			source.setSourceLineNumber(pmdViolation.getBeginLine());
-
 			final PMDWarning warning = new PMDWarning();
-			warning.setSource(source);
+			warning.setSource(new Source(commit, pmdViolation.getBeginLine(), null));
 			warning.setRule(pmdViolation.getRule());
 			warning.setPriority(pmdViolation.getPriority());
 			warning.setMessage(pmdViolation.getMessage());
@@ -101,33 +93,13 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDWarning, PMDLo
 	}
 
 	@Override
-	protected Stream<PMDFile> getStream() {
+	protected Stream<PMDFile> getFiles(final PMDReport pmdReport) {
 		return pmdReport.getFiles().stream();
-	}
-
-	/**
-	 * PMD returns absolute paths, we need them relative to the repository root.
-	 * @param path absolute path
-	 * @return relative path
-	 */
-	protected static String getRelativePath(final String path) {
-		return path.substring(path.indexOf("/src/") + 1);
 	}
 
 	@Override
 	protected String filePathFor(final PMDFile value) {
 		return getRelativePath(value.getName());
-	}
-
-	/**
-	 * Extract warnings
-	 * @param commit Commit to parse
-	 * @param pmdReport Report received from build
-	 * @return A generated list of warnings
-	 */
-	public List<PMDWarning> extractWarnings(final Commit commit, final PMDReport pmdReport) {
-		setPmdReport(pmdReport);
-		return generateWarnings(commit);
 	}
 
 }

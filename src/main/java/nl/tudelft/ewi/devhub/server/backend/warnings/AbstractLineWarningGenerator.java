@@ -21,7 +21,7 @@ import java.util.stream.Stream;
  *
  * @author Jan-Willem Gmelig Meyling
  */
-public abstract class AbstractLineWarningGenerator<T extends LineWarning, V> implements CommitWarningGenerator<T> {
+public abstract class AbstractLineWarningGenerator<A, V, T extends LineWarning> implements CommitWarningGenerator<T, A> {
 
     private final GitServerClient gitServerClient;
     private final Commits commits;
@@ -32,15 +32,24 @@ public abstract class AbstractLineWarningGenerator<T extends LineWarning, V> imp
     }
 
     @Override
-    public List<T> generateWarnings(final Commit commit) {
+    public List<T> generateWarnings(final Commit commit, final A attachment) {
         final Repository repository = retrieveRepository(commit.getRepository());
-        return getStream().flatMap(v -> {
+        return getFiles(attachment).flatMap(v -> {
             String filePath = filePathFor(v);
             BlameModel blameModel = retrieveBlameModel(repository, commit.getCommitId(), filePath);
             return map(commit, v).map(a -> blameSource(a, blameModel));
         })
         .filter(warning -> warning.getCommit().equals(commit))
         .collect(Collectors.toList());
+    }
+
+    /**
+     * Maven tools return absolute paths, we need them relative to the repository root.
+     * @param path absolute path
+     * @return relative path
+     */
+    protected static String getRelativePath(final String path) {
+        return path.substring(path.indexOf("/src/") + 1);
     }
 
     /**
@@ -98,7 +107,7 @@ public abstract class AbstractLineWarningGenerator<T extends LineWarning, V> imp
      *
      * @return stream of files
      */
-    protected abstract Stream<V> getStream();
+    protected abstract Stream<V> getFiles(A attachment);
 
     /**
      * Return the file path for the file in the stream

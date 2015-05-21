@@ -26,8 +26,8 @@ import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
-import nl.tudelft.ewi.devhub.server.backend.warnings.pmd.PMDLogParser;
-import nl.tudelft.ewi.devhub.server.backend.warnings.pmd.PMDLogParser.PMDReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDReport;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
@@ -193,7 +193,7 @@ public class HooksResource extends Resource {
 		String repoName = decode(repository, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);
-		List<PMDWarning> pmdWarnings = pmdLogParser.extractWarnings(commit, report);
+		List<PMDWarning> pmdWarnings = pmdLogParser.generateWarnings(commit, report);
 		pmdWarnings.forEach(warnings::persist);
 	}
 

@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.server.backend.warnings.pmd;
+package nl.tudelft.ewi.devhub.server.backend.warnings;
 
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -90,7 +90,7 @@ public class PMDLogParserTest {
 
         try(InputStreamReader inputStreamReader = new InputStreamReader(PMDLogParserTest.class.getResourceAsStream("/pmd.xml"))) {
             PMDLogParser.PMDReport report = mapper.readValue(inputStreamReader, PMDLogParser.PMDReport.class);
-            List<PMDWarning> warnings = pmdLogParser.extractWarnings(commit, report);
+            List<PMDWarning> warnings = pmdLogParser.generateWarnings(commit, report);
             assertThat(warnings, contains(a, b));
         }
     }

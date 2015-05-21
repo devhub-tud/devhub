@@ -82,6 +82,9 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFil
 
 	@Override
 	protected Stream<PMDWarning> map(final Commit commit, final PMDFile pmdFile) {
+		if(pmdFile.getViolations() == null || pmdFile.getViolations().isEmpty()) {
+			return Stream.empty();
+		}
 		return pmdFile.getViolations().stream().map(pmdViolation -> {
 			final PMDWarning warning = new PMDWarning();
 			warning.setSource(new Source(commit, pmdViolation.getBeginLine(), null));

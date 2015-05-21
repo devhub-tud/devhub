@@ -26,6 +26,8 @@ import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleReport;
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser;
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDReport;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
@@ -37,6 +39,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
 import nl.tudelft.ewi.git.client.GitClientException;
@@ -51,7 +54,7 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import static java.net.URLDecoder.*;
+import static java.net.URLDecoder.decode;
 
 @Slf4j
 @RequestScoped
@@ -76,11 +79,12 @@ public class HooksResource extends Resource {
 	private final Commits commits;
 	private final Warnings warnings;
 	private final PMDLogParser pmdLogParser;
+	private final CheckstyleLogParser checkstyleLogParser;
 
 	@Inject
 	HooksResource(Config config, BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
 			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
-			Commits commits, Warnings warnings, PMDLogParser pmdLogParser) {
+			Commits commits, Warnings warnings, PMDLogParser pmdLogParser, CheckstyleLogParser checkstyleLogParser) {
 
 		this.config = config;
 		this.buildBackend = buildBackend;
@@ -93,6 +97,7 @@ public class HooksResource extends Resource {
 		this.commits = commits;
 		this.warnings = warnings;
 		this.pmdLogParser = pmdLogParser;
+		this.checkstyleLogParser = checkstyleLogParser;
 	}
 
 	@POST
@@ -194,6 +199,22 @@ public class HooksResource extends Resource {
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);
 		List<PMDWarning> pmdWarnings = pmdLogParser.generateWarnings(commit, report);
+		pmdWarnings.forEach(warnings::persist);
+	}
+
+	@POST
+	@Path("checkstyle-result")
+	@RequireAuthenticatedBuildServer
+	@Consumes(MediaType.APPLICATION_XML)
+	@Transactional
+	public void onCheckstyleResult(@QueryParam("repository") String repository,
+								   @NotEmpty @QueryParam("commit") String commitId,
+								   final CheckStyleReport report) throws UnsupportedEncodingException {
+
+		String repoName = decode(repository, "UTF-8");
+		Group group = groups.findByRepoName(repoName);
+		Commit commit = commits.ensureExists(group, commitId);
+		List<CheckstyleWarning> pmdWarnings = checkstyleLogParser.generateWarnings(commit, report);
 		pmdWarnings.forEach(warnings::persist);
 	}
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd version="5.2.3" timestamp="2015-05-21T08:50:17.203">
+<file name="/Users/jgmeligmeyling/git/jpacman-framework/src/test/java/nl/tudelft/jpacman/board/DirectionTest.java">
+<violation beginline="31" endline="31" begincolumn="21" endcolumn="36" rule="JUnitTestContainsTooManyAsserts" ruleset="JUnit" package="nl.tudelft.jpacman.board" class="DirectionTest" method="testAssertTrue" externalInfoUrl="http://pmd.sourceforge.net/pmd-5.2.3/pmd-java/rules/java/junit.html#JUnitTestContainsTooManyAsserts" priority="3">
+JUnit tests should not contain more than 1 assert(s).
+</violation>
+<violation beginline="36" endline="36" begincolumn="25" endcolumn="40" rule="UnnecessaryBooleanAssertion" ruleset="JUnit" package="nl.tudelft.jpacman.board" class="DirectionTest" method="testAssertTrue" externalInfoUrl="http://pmd.sourceforge.net/pmd-5.2.3/pmd-java/rules/java/junit.html#UnnecessaryBooleanAssertion" priority="3">
+assertTrue(true) or similar statements are unnecessary
+</violation>
+</file>
+</pmd>

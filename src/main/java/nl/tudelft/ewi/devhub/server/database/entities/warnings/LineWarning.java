@@ -23,4 +23,8 @@ public abstract class LineWarning extends CommitWarning {
     @Embedded
     private Source source;
 
+    public void setSource(final Source source) {
+        this.source = source;
+        this.setCommit(source.getSourceCommit());
+    }
 }

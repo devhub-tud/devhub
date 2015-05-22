@@ -9,8 +9,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
 import nl.tudelft.ewi.git.client.GitServerClient;
 
@@ -19,13 +17,14 @@ import java.util.stream.Stream;
 
 import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleReport;
 import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleFile;
+import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleError;
 
 /**
  * A {@code LineWarningGenerator} for Checkstyle warnings
- * 
+ *
  * @author Jan-Willem Gmelig Meyling
  */
-public class CheckstyleLogParser extends AbstractLineWarningGenerator<CheckStyleReport, CheckStyleFile, CheckstyleWarning> {
+public class CheckstyleLogParser extends AbstractLineWarningGenerator<CheckStyleReport, CheckStyleFile, CheckStyleError, CheckstyleWarning> {
 
     @Data
     @EqualsAndHashCode
@@ -81,17 +80,21 @@ public class CheckstyleLogParser extends AbstractLineWarningGenerator<CheckStyle
     }
 
     @Override
-    protected Stream<CheckstyleWarning> map(final Commit commit, final CheckStyleFile element) {
-        if(element.getErrors() == null || element.getErrors().isEmpty()) {
-            return Stream.empty();
-        }
-        return element.getErrors().stream().map(checkStyleError -> {
-            CheckstyleWarning warning = new CheckstyleWarning();
-            warning.setSource(new Source(commit, checkStyleError.getLine(), null));
-            warning.setMessage(checkStyleError.getMessage());
-            warning.setSeverity(checkStyleError.getSeverity());
-            return warning;
-        });
+    protected int getLineNumber(final CheckStyleError violation) {
+        return violation.getLine();
+    }
+
+    @Override
+    protected CheckstyleWarning mapToWarning(final CheckStyleError violation) {
+        CheckstyleWarning warning = new CheckstyleWarning();
+        warning.setMessage(violation.getMessage());
+        warning.setSeverity(violation.getSeverity());
+        return warning;
+    }
+
+    @Override
+    protected Stream<CheckStyleError> getViolations(final CheckStyleFile file) {
+        return emptyIfNull(file.getErrors()).stream();
     }
 
     @Override
@@ -100,7 +103,7 @@ public class CheckstyleLogParser extends AbstractLineWarningGenerator<CheckStyle
     }
 
     @Override
-    protected String filePathFor(CheckStyleFile value) {
+    protected String filePathFor(final CheckStyleFile value) {
         return getRelativePath(value.getName());
     }
 

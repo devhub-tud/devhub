@@ -10,6 +10,7 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,7 +22,7 @@ import java.util.stream.Stream;
  *
  * @author Jan-Willem Gmelig Meyling
  */
-public abstract class AbstractLineWarningGenerator<A, V, T extends LineWarning> implements CommitWarningGenerator<T, A> {
+public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarning> implements CommitWarningGenerator<T, A> {
 
     private final GitServerClient gitServerClient;
     private final Commits commits;
@@ -33,11 +34,17 @@ public abstract class AbstractLineWarningGenerator<A, V, T extends LineWarning> 
 
     @Override
     public List<T> generateWarnings(final Commit commit, final A attachment) {
-        final Repository repository = retrieveRepository(commit.getRepository());
+        final Group group = commit.getRepository();
+        final Repository repository = retrieveRepository(group);
         return getFiles(attachment).flatMap(v -> {
             String filePath = filePathFor(v);
             BlameModel blameModel = retrieveBlameModel(repository, commit.getCommitId(), filePath);
-            return map(commit, v).map(a -> blameSource(a, blameModel));
+            return getViolations(v).map(violation -> {
+                T warning = mapToWarning(violation);
+                Source source = blameSource(violation, group, blameModel);
+                warning.setSource(source);
+                return warning;
+            });
         })
         .filter(warning -> warning.getCommit().equals(commit))
         .collect(Collectors.toList());
@@ -76,45 +83,72 @@ public abstract class AbstractLineWarningGenerator<A, V, T extends LineWarning> 
 
     /**
      * Set the correct source for the warning
-     * @param value {@code Warning} to edit
-     * @param blameModel {@code BlameModel} for the current file
-     * @return edited {@code Warning}
+     * @param violation the violation that causes the warning
+     * @param group the {@link Group} that owns the repository
+     * @param blameModel {@link BlameModel} for the current file
+     * @return {@link Source} for the current {@code Warning}
      */
-    protected T blameSource(T value, BlameModel blameModel) {
-        Source source = value.getSource();
-        int sourceLineNumber = source.getSourceLineNumber();
+    protected Source blameSource(V violation, Group group, BlameModel blameModel) {
+        int sourceLineNumber = getLineNumber(violation);
 
         BlameModel.BlameBlock block = blameModel.getBlameBlock(sourceLineNumber);
         String sourceCommitId = block.getFromCommitId();
-        Commit sourceCommit = commits.ensureExists(source.getSourceCommit().getRepository(), sourceCommitId);
+        Commit sourceCommit = commits.ensureExists(group, sourceCommitId);
 
+        Source source = new Source();
         source.setSourceCommit(sourceCommit);
         source.setSourceFilePath(block.getFromFilePath());
         source.setSourceLineNumber(block.getFromLineNumber(sourceLineNumber));
-        return value;
+        return source;
     }
 
     /**
-     * Convert the given element to a stream of warnings
-     * @param commit Current commit
-     * @param element element
-     * @return a {@link Stream} of {@code Warnings}
+     * Get the line number for a violation
+     * @param violation Violation that will be converted to a {@code Warning}
+     * @return the line number for the warning
      */
-    protected abstract Stream<T> map(final Commit commit, V element);
+    protected abstract int getLineNumber(V violation);
+
+    /**
+     * Fill the warning with parameters from the violation
+     * @param violation Violation that will be converted to a {@code Warning}
+     * @return the created {@code Warning}
+     */
+    protected abstract T mapToWarning(V violation);
+
+
+    /**
+     * Get the violations for a file
+     * @param file File from the log
+     * @return a {@code Stream} of violations
+     */
+    protected abstract Stream<V> getViolations(F file);
 
     /**
      * Get the initial stream of files
      *
      * @return stream of files
      */
-    protected abstract Stream<V> getFiles(A attachment);
+    protected abstract Stream<F> getFiles(A attachment);
 
     /**
      * Return the file path for the file in the stream
      * @param value Stream entity
      * @return file path for the entity
      */
-    protected abstract String filePathFor(V value);
+    protected abstract String filePathFor(F value);
 
+    /**
+     * Return an empty list if a stream is null.
+     * @param input input stream
+     * @param <P> Type of the stream
+     * @return the input stream, or an empty stream if the stream was null
+     */
+    protected static <P>  List<P> emptyIfNull(final List<P> input) {
+        if(input == null) {
+            return Collections.emptyList();
+        }
+        return input;
+    }
 
 }

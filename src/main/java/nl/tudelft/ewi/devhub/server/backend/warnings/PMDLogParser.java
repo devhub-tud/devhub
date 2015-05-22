@@ -14,18 +14,17 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.git.client.GitServerClient;
 
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDReport;
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDFile;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDViolation;
 
 /**
  * Generator for PMD warnings
  */
-public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFile, PMDWarning> {
+public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFile, PMDViolation, PMDWarning> {
 
 	@Data
 	@EqualsAndHashCode
@@ -81,21 +80,6 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFil
 	}
 
 	@Override
-	protected Stream<PMDWarning> map(final Commit commit, final PMDFile pmdFile) {
-		if(pmdFile.getViolations() == null || pmdFile.getViolations().isEmpty()) {
-			return Stream.empty();
-		}
-		return pmdFile.getViolations().stream().map(pmdViolation -> {
-			final PMDWarning warning = new PMDWarning();
-			warning.setSource(new Source(commit, pmdViolation.getBeginLine(), null));
-			warning.setRule(pmdViolation.getRule());
-			warning.setPriority(pmdViolation.getPriority());
-			warning.setMessage(pmdViolation.getMessage());
-			return warning;
-		});
-	}
-
-	@Override
 	protected Stream<PMDFile> getFiles(final PMDReport pmdReport) {
 		return pmdReport.getFiles().stream();
 	}
@@ -103,6 +87,26 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFil
 	@Override
 	protected String filePathFor(final PMDFile value) {
 		return getRelativePath(value.getName());
+	}
+
+	@Override
+	protected Stream<PMDViolation> getViolations(final PMDFile file) {
+		List<PMDViolation> violations = file.getViolations();
+		return emptyIfNull(violations).stream();
+	}
+
+	@Override
+	protected PMDWarning mapToWarning(final PMDViolation pmdViolation) {
+		final PMDWarning warning = new PMDWarning();
+		warning.setRule(pmdViolation.getRule());
+		warning.setPriority(pmdViolation.getPriority());
+		warning.setMessage(pmdViolation.getMessage());
+		return warning;
+	}
+
+	@Override
+	protected int getLineNumber(final PMDViolation warning) {
+		return warning.getBeginLine();
 	}
 
 }

@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * @author Jan-Willem Gmelig Meyling
  */
-public interface CommitWarningGenerator<T extends Warning> {
+public interface CommitWarningGenerator<T extends Warning, A> {
 
     /**
      * Generate warnings for a {@link Commit}.
@@ -16,6 +16,6 @@ public interface CommitWarningGenerator<T extends Warning> {
      * @param commit Commit to generate warnings for
      * @return a list of warnings
      */
-    List<T> generateWarnings(Commit commit);
+    List<T> generateWarnings(Commit commit, A attachment);
 
 }

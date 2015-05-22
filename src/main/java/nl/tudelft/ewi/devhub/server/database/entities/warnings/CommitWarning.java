@@ -37,4 +37,9 @@ public abstract class CommitWarning extends Warning {
     })
     private Commit commit;
 
+    public void setCommit(final Commit commit) {
+        this.commit = commit;
+        setRepository(commit.getRepository());
+    }
+
 }

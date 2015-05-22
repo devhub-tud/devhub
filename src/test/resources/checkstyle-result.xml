@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="6.1.1">
+<file name="/Users/jgmeligmeyling/git/jpacman-framework/src/main/java/nl/tudelft/jpacman/groupNUMBER/MyExtension.java">
+</file>
+<file name="/Users/jgmeligmeyling/git/jpacman-framework/src/test/java/nl/tudelft/jpacman/board/DirectionTest.java">
+<error line="27" severity="warning" message="First sentence should end with a period." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+</checkstyle>

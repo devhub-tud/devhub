@@ -1,8 +1,8 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.Locale;
 
 import javax.inject.Inject;
@@ -26,12 +26,24 @@ import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDReport;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
@@ -43,6 +55,9 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
+import org.hibernate.validator.constraints.NotEmpty;
+
+import static java.net.URLDecoder.decode;
 
 @Slf4j
 @RequestScoped
@@ -64,10 +79,17 @@ public class HooksResource extends Resource {
 	private final BuildResultMailer mailer;
 	private final PullRequests pullRequests;
 	private final PullRequestBackend pullRequestBackend;
+	private final Commits commits;
+	private final Warnings warnings;
+	private final PMDLogParser pmdLogParser;
+	private final CheckstyleLogParser checkstyleLogParser;
+	private final FindBugsWarningGenerator findBugsWarningGenerator;
 
 	@Inject
 	HooksResource(Config config, BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
-			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend) {
+			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
+			Commits commits, Warnings warnings, PMDLogParser pmdLogParser, CheckstyleLogParser checkstyleLogParser,
+			FindBugsWarningGenerator findBugsWarningGenerator) {
 
 		this.config = config;
 		this.buildBackend = buildBackend;
@@ -77,6 +99,11 @@ public class HooksResource extends Resource {
 		this.mailer = mailer;
 		this.pullRequests = pullRequests;
 		this.pullRequestBackend = pullRequestBackend;
+		this.commits = commits;
+		this.warnings = warnings;
+		this.pmdLogParser = pmdLogParser;
+		this.checkstyleLogParser = checkstyleLogParser;
+		this.findBugsWarningGenerator = findBugsWarningGenerator;
 	}
 
 	@POST
@@ -137,8 +164,8 @@ public class HooksResource extends Resource {
 	public void onBuildResult(@QueryParam("repository") String repository, @QueryParam("commit") String commit,
 			nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) throws UnsupportedEncodingException {
 
-		String repoName = URLDecoder.decode(repository, "UTF-8");
-		String commitId = URLDecoder.decode(commit, "UTF-8");
+		String repoName = decode(repository, "UTF-8");
+		String commitId = decode(commit, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 
 		BuildResult result;
@@ -162,6 +189,55 @@ public class HooksResource extends Resource {
 		if (!result.getSuccess()) {
 			mailer.sendFailedBuildResult(Lists.newArrayList(Locale.ENGLISH), result);
 		}
+	}
+
+	@POST
+	@Path("pmd-result")
+	@RequireAuthenticatedBuildServer
+	@Consumes(MediaType.APPLICATION_XML)
+	@Transactional
+	public void onPmdResult(@QueryParam("repository") String repository,
+							@NotEmpty @QueryParam("commit") String commitId,
+							final PMDReport report) throws UnsupportedEncodingException {
+
+
+		String repoName = decode(repository, "UTF-8");
+		Group group = groups.findByRepoName(repoName);
+		Commit commit = commits.ensureExists(group, commitId);
+		List<PMDWarning> pmdWarnings = pmdLogParser.generateWarnings(commit, report);
+		pmdWarnings.forEach(warnings::persist);
+	}
+
+	@POST
+	@Path("checkstyle-result")
+	@RequireAuthenticatedBuildServer
+	@Consumes(MediaType.APPLICATION_XML)
+	@Transactional
+	public void onCheckstyleResult(@QueryParam("repository") String repository,
+								   @NotEmpty @QueryParam("commit") String commitId,
+								   final CheckStyleReport report) throws UnsupportedEncodingException {
+
+		String repoName = decode(repository, "UTF-8");
+		Group group = groups.findByRepoName(repoName);
+		Commit commit = commits.ensureExists(group, commitId);
+		List<CheckstyleWarning> checkstyleWarnings = checkstyleLogParser.generateWarnings(commit, report);
+		checkstyleWarnings.forEach(warnings::persist);
+	}
+
+	@POST
+	@Path("findbugs-result")
+	@RequireAuthenticatedBuildServer
+	@Consumes(MediaType.APPLICATION_XML)
+	@Transactional
+	public void onCheckstyleResult(@QueryParam("repository") String repository,
+								   @NotEmpty @QueryParam("commit") String commitId,
+								   final FindBugsReport report) throws UnsupportedEncodingException {
+
+		String repoName = decode(repository, "UTF-8");
+		Group group = groups.findByRepoName(repoName);
+		Commit commit = commits.ensureExists(group, commitId);
+		List<FindbugsWarning> findbugsWarnings = findBugsWarningGenerator.generateWarnings(commit, report);
+		findbugsWarnings.forEach(warnings::persist);
 	}
 
 }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BugCollection sequence="0" release="" analysisTimestamp="1432303924406" version="3.0.0" timestamp="1432303906000">
+   <Project projectName="JPacman Template Solution">
+      <Jar>/Users/jgmeligmeyling/git/jpacman-framework/target/classes</Jar>
+      <Jar>/Users/jgmeligmeyling/git/jpacman-framework/target/test-classes</Jar>
+      <SrcDir>/Users/jgmeligmeyling/git/jpacman-framework/src/main/java</SrcDir>
+      <SrcDir>/Users/jgmeligmeyling/git/jpacman-framework/src/test/java</SrcDir>
+      <WrkDir>/Users/jgmeligmeyling/git/jpacman-framework/target</WrkDir>
+   </Project>
+   <BugInstance instanceOccurrenceNum="0" instanceHash="e8be5893de94bec025b325d7c765f150" cweid="476" rank="5" abbrev="NP" category="CORRECTNESS" priority="1" type="NP_ALWAYS_NULL" instanceOccurrenceMax="0">
+      <ShortMessage>Null pointer dereference</ShortMessage>
+      <LongMessage>Null pointer dereference of nullsy in nl.tudelft.jpacman.board.DirectionTest.testThatNullHasToString()</LongMessage>
+      <Class classname="nl.tudelft.jpacman.board.DirectionTest" primary="true">
+         <SourceLine classname="nl.tudelft.jpacman.board.DirectionTest" start="16" end="48" sourcepath="nl/tudelft/jpacman/board/DirectionTest.java" sourcefile="DirectionTest.java">
+            <Message>At DirectionTest.java:[lines 16-48]</Message>
+         </SourceLine>
+         <Message>In class nl.tudelft.jpacman.board.DirectionTest</Message>
+      </Class>
+      <Method isStatic="false" classname="nl.tudelft.jpacman.board.DirectionTest" signature="()V" name="testThatNullHasToString" primary="true">
+         <SourceLine endBytecode="71" classname="nl.tudelft.jpacman.board.DirectionTest" start="46" end="48" sourcepath="nl/tudelft/jpacman/board/DirectionTest.java" sourcefile="DirectionTest.java" startBytecode="0" />
+         <Message>In method nl.tudelft.jpacman.board.DirectionTest.testThatNullHasToString()</Message>
+      </Method>
+      <LocalVariable role="LOCAL_VARIABLE_VALUE_OF" pc="4" name="nullsy" register="1">
+         <Message>Value loaded from nullsy</Message>
+      </LocalVariable>
+      <SourceLine role="SOURCE_LINE_DEREF" endBytecode="5" classname="nl.tudelft.jpacman.board.DirectionTest" start="47" end="47" sourcepath="nl/tudelft/jpacman/board/DirectionTest.java" sourcefile="DirectionTest.java" startBytecode="5" primary="true">
+         <Message>Dereferenced at DirectionTest.java:[line 47]</Message>
+      </SourceLine>
+   </BugInstance>
+</BugCollection>

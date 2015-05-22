@@ -20,7 +20,7 @@ import java.util.List;
  * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
-public class PullRequestWarningGenerator implements CommitWarningGenerator<GitUsageWarning> {
+public class PullRequestWarningGenerator implements CommitWarningGenerator<GitUsageWarning, Void> {
 
     private final GitServerClient gitServerClient;
 
@@ -30,7 +30,7 @@ public class PullRequestWarningGenerator implements CommitWarningGenerator<GitUs
     }
 
     @Override
-    public List<GitUsageWarning> generateWarnings(final Commit commitEntity) {
+    public List<GitUsageWarning> generateWarnings(final Commit commitEntity, final Void attachment) {
         final List<GitUsageWarning> warnings = Lists.newArrayList();
         val group = commitEntity.getRepository();
 

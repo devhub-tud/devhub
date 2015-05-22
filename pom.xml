@@ -130,7 +130,17 @@
 			<artifactId>jackson-datatype-guava</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-        <dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-xml-provider</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-multipart-provider</artifactId>
             <version>${resteasy.version}</version>

@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities.warnings;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -17,6 +18,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @Entity
+@ToString(callSuper = true)
 @DiscriminatorValue("findbugs")
 @EqualsAndHashCode(callSuper = true)
 public class FindbugsWarning extends LineWarning {

@@ -28,6 +28,8 @@ import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsReport;
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser;
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDReport;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
@@ -40,6 +42,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
 import nl.tudelft.ewi.git.client.GitClientException;
@@ -80,11 +83,13 @@ public class HooksResource extends Resource {
 	private final Warnings warnings;
 	private final PMDLogParser pmdLogParser;
 	private final CheckstyleLogParser checkstyleLogParser;
+	private final FindBugsWarningGenerator findBugsWarningGenerator;
 
 	@Inject
 	HooksResource(Config config, BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
 			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
-			Commits commits, Warnings warnings, PMDLogParser pmdLogParser, CheckstyleLogParser checkstyleLogParser) {
+			Commits commits, Warnings warnings, PMDLogParser pmdLogParser, CheckstyleLogParser checkstyleLogParser,
+			FindBugsWarningGenerator findBugsWarningGenerator) {
 
 		this.config = config;
 		this.buildBackend = buildBackend;
@@ -98,6 +103,7 @@ public class HooksResource extends Resource {
 		this.warnings = warnings;
 		this.pmdLogParser = pmdLogParser;
 		this.checkstyleLogParser = checkstyleLogParser;
+		this.findBugsWarningGenerator = findBugsWarningGenerator;
 	}
 
 	@POST
@@ -214,8 +220,24 @@ public class HooksResource extends Resource {
 		String repoName = decode(repository, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);
-		List<CheckstyleWarning> pmdWarnings = checkstyleLogParser.generateWarnings(commit, report);
-		pmdWarnings.forEach(warnings::persist);
+		List<CheckstyleWarning> checkstyleWarnings = checkstyleLogParser.generateWarnings(commit, report);
+		checkstyleWarnings.forEach(warnings::persist);
+	}
+
+	@POST
+	@Path("findbugs-result")
+	@RequireAuthenticatedBuildServer
+	@Consumes(MediaType.APPLICATION_XML)
+	@Transactional
+	public void onCheckstyleResult(@QueryParam("repository") String repository,
+								   @NotEmpty @QueryParam("commit") String commitId,
+								   final FindBugsReport report) throws UnsupportedEncodingException {
+
+		String repoName = decode(repository, "UTF-8");
+		Group group = groups.findByRepoName(repoName);
+		Commit commit = commits.ensureExists(group, commitId);
+		List<FindbugsWarning> findbugsWarnings = findBugsWarningGenerator.generateWarnings(commit, report);
+		findbugsWarnings.forEach(warnings::persist);
 	}
 
 }

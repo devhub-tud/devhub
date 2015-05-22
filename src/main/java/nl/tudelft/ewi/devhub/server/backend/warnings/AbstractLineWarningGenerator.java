@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
+import com.google.inject.persist.Transactional;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
@@ -24,8 +25,8 @@ import java.util.stream.Stream;
  */
 public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarning> implements CommitWarningGenerator<T, A> {
 
-    private final GitServerClient gitServerClient;
-    private final Commits commits;
+    protected final GitServerClient gitServerClient;
+    protected final Commits commits;
 
     protected AbstractLineWarningGenerator(final GitServerClient gitServerClient, final Commits commits) {
         this.gitServerClient = gitServerClient;
@@ -36,8 +37,9 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
     public List<T> generateWarnings(final Commit commit, final A attachment) {
         final Group group = commit.getRepository();
         final Repository repository = retrieveRepository(group);
+
         return getFiles(attachment).flatMap(v -> {
-            String filePath = filePathFor(v);
+            String filePath = filePathFor(v, commit);
             BlameModel blameModel = retrieveBlameModel(repository, commit.getCommitId(), filePath);
             return getViolations(v).map(violation -> {
                 T warning = mapToWarning(violation);
@@ -47,7 +49,7 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
             });
         })
         .filter(warning -> warning.getCommit().equals(commit))
-        .collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     /**
@@ -88,7 +90,8 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
      * @param blameModel {@link BlameModel} for the current file
      * @return {@link Source} for the current {@code Warning}
      */
-    protected Source blameSource(V violation, Group group, BlameModel blameModel) {
+    @Transactional
+    private final Source blameSource(final V violation, final Group group, final BlameModel blameModel) {
         int sourceLineNumber = getLineNumber(violation);
 
         BlameModel.BlameBlock block = blameModel.getBlameBlock(sourceLineNumber);
@@ -134,9 +137,10 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
     /**
      * Return the file path for the file in the stream
      * @param value Stream entity
+     * @param commit current commit
      * @return file path for the entity
      */
-    protected abstract String filePathFor(F value);
+    protected abstract String filePathFor(F value, Commit commit);
 
     /**
      * Return an empty list if a stream is null.

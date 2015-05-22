@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
 import nl.tudelft.ewi.git.client.GitServerClient;
 
@@ -103,7 +104,7 @@ public class CheckstyleLogParser extends AbstractLineWarningGenerator<CheckStyle
     }
 
     @Override
-    protected String filePathFor(final CheckStyleFile value) {
+    protected String filePathFor(CheckStyleFile value, Commit commit) {
         return getRelativePath(value.getName());
     }
 

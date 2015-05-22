@@ -14,6 +14,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.git.client.GitServerClient;
 
@@ -85,7 +86,7 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFil
 	}
 
 	@Override
-	protected String filePathFor(final PMDFile value) {
+	protected String filePathFor(final PMDFile value, final Commit commit) {
 		return getRelativePath(value.getName());
 	}
 

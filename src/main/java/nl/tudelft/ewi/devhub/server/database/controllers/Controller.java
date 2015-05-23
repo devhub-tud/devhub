@@ -19,7 +19,7 @@ public class Controller<T> {
 	}
 
 	@Transactional
-	public T persist(T entity) {
+	public <V extends T> V persist(V entity) {
 		entityManager.persist(entity);
 		entityManager.flush();
 		return entity;

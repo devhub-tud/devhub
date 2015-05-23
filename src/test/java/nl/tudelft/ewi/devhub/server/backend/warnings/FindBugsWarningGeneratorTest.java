@@ -26,7 +26,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
@@ -46,11 +46,9 @@ public class FindBugsWarningGeneratorTest {
     private final static String EXPECTED_PATH = "src/test/java/nl/tudelft/jpacman/board/DirectionTest.java";
     private final static String COMMIT_ID = "234345345345";
 
-    @Mock
-    private Group group;
+    @Mock private Group group;
     @Mock private Commit commit;
-    @InjectMocks
-    private FindBugsWarningGenerator findBugsWarningGenerator;
+    @InjectMocks  private FindBugsWarningGenerator findBugsWarningGenerator;
     @Mock private Commits commits;
     @Mock private GitServerClient gitServerClient;
     @Mock private Repositories repositories;
@@ -89,12 +87,12 @@ public class FindBugsWarningGeneratorTest {
         AnnotationIntrospector introspector = new JacksonXmlAnnotationIntrospector();
         mapper.getDeserializationConfig().withAppendedAnnotationIntrospector(introspector);
 
-        FindbugsWarning expected = expectedWarning(EXPECTED_PATH, 16,
+        FindbugsWarning expected = expectedWarning(EXPECTED_PATH, 47,
             "Null pointer dereference of nullsy in nl.tudelft.jpacman.board.DirectionTest.testThatNullHasToString()", 1);
 
         try(InputStreamReader inputStreamReader = new InputStreamReader(FindBugsWarningGeneratorTest.class.getResourceAsStream("/findbugsXml.xml"))) {
             FindBugsWarningGenerator.FindBugsReport report = mapper.readValue(inputStreamReader, FindBugsWarningGenerator.FindBugsReport.class);
-            List<FindbugsWarning> warnings = findBugsWarningGenerator.generateWarnings(commit, report);
+            Set<FindbugsWarning> warnings = findBugsWarningGenerator.generateWarnings(commit, report);
             assertThat(warnings, contains(expected));
         }
     }

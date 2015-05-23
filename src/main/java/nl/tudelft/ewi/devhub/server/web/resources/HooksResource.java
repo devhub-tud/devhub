@@ -2,8 +2,8 @@ package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -26,12 +26,12 @@ import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
-import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser;
-import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleReport;
 import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator;
 import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsReport;
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser;
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDReport;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
@@ -81,14 +81,14 @@ public class HooksResource extends Resource {
 	private final PullRequestBackend pullRequestBackend;
 	private final Commits commits;
 	private final Warnings warnings;
-	private final PMDLogParser pmdLogParser;
-	private final CheckstyleLogParser checkstyleLogParser;
+	private final PMDWarningGenerator pmdWarningGenerator;
+	private final CheckstyleWarningGenerator checkstyleWarningGenerator;
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
 
 	@Inject
 	HooksResource(Config config, BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
 			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
-			Commits commits, Warnings warnings, PMDLogParser pmdLogParser, CheckstyleLogParser checkstyleLogParser,
+			Commits commits, Warnings warnings, PMDWarningGenerator pmdWarningGenerator, CheckstyleWarningGenerator checkstyleWarningGenerator,
 			FindBugsWarningGenerator findBugsWarningGenerator) {
 
 		this.config = config;
@@ -101,8 +101,8 @@ public class HooksResource extends Resource {
 		this.pullRequestBackend = pullRequestBackend;
 		this.commits = commits;
 		this.warnings = warnings;
-		this.pmdLogParser = pmdLogParser;
-		this.checkstyleLogParser = checkstyleLogParser;
+		this.pmdWarningGenerator = pmdWarningGenerator;
+		this.checkstyleWarningGenerator = checkstyleWarningGenerator;
 		this.findBugsWarningGenerator = findBugsWarningGenerator;
 	}
 
@@ -204,8 +204,10 @@ public class HooksResource extends Resource {
 		String repoName = decode(repository, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);
-		List<PMDWarning> pmdWarnings = pmdLogParser.generateWarnings(commit, report);
-		pmdWarnings.forEach(warnings::persist);
+		Set<PMDWarning> pmdWarnings = pmdWarningGenerator.generateWarnings(commit, report);
+		Set<PMDWarning> persistedWarnings = warnings.persist(group, pmdWarnings);
+		log.info("Persisted {} of {} PMD warnings for {}", persistedWarnings.size(),
+				pmdWarnings.size(), group);
 	}
 
 	@POST
@@ -213,15 +215,17 @@ public class HooksResource extends Resource {
 	@RequireAuthenticatedBuildServer
 	@Consumes(MediaType.APPLICATION_XML)
 	@Transactional
-	public void onCheckstyleResult(@QueryParam("repository") String repository,
-								   @NotEmpty @QueryParam("commit") String commitId,
-								   final CheckStyleReport report) throws UnsupportedEncodingException {
+	public void onFindBugsResult(@QueryParam("repository") String repository,
+								 @NotEmpty @QueryParam("commit") String commitId,
+								 final CheckStyleReport report) throws UnsupportedEncodingException {
 
 		String repoName = decode(repository, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);
-		List<CheckstyleWarning> checkstyleWarnings = checkstyleLogParser.generateWarnings(commit, report);
-		checkstyleWarnings.forEach(warnings::persist);
+		Set<CheckstyleWarning> checkstyleWarnings = checkstyleWarningGenerator.generateWarnings(commit, report);
+		Set<CheckstyleWarning> persistedWarnings = warnings.persist(group, checkstyleWarnings);
+		log.info("Persisted {} of {} Checkstyle warnings for {}", persistedWarnings.size(),
+				checkstyleWarnings.size(), group);
 	}
 
 	@POST
@@ -229,15 +233,17 @@ public class HooksResource extends Resource {
 	@RequireAuthenticatedBuildServer
 	@Consumes(MediaType.APPLICATION_XML)
 	@Transactional
-	public void onCheckstyleResult(@QueryParam("repository") String repository,
-								   @NotEmpty @QueryParam("commit") String commitId,
-								   final FindBugsReport report) throws UnsupportedEncodingException {
+	public void onFindBugsResult(@QueryParam("repository") String repository,
+								 @NotEmpty @QueryParam("commit") String commitId,
+								 final FindBugsReport report) throws UnsupportedEncodingException {
 
 		String repoName = decode(repository, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);
-		List<FindbugsWarning> findbugsWarnings = findBugsWarningGenerator.generateWarnings(commit, report);
-		findbugsWarnings.forEach(warnings::persist);
+		Set<FindbugsWarning> findbugsWarnings = findBugsWarningGenerator.generateWarnings(commit, report);
+		Set<FindbugsWarning> persistedWarnings = warnings.persist(group, findbugsWarnings);
+		log.info("Persisted {} of {} FindBugs warnings for {}", persistedWarnings.size(),
+				findbugsWarnings.size(), group);
 	}
 
 }

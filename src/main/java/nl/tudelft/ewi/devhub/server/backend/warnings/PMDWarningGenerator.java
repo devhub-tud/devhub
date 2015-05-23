@@ -18,14 +18,14 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.git.client.GitServerClient;
 
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDReport;
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDFile;
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDLogParser.PMDViolation;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDFile;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDViolation;
 
 /**
  * Generator for PMD warnings
  */
-public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFile, PMDViolation, PMDWarning> {
+public class PMDWarningGenerator extends AbstractLineWarningGenerator<PMDReport, PMDFile, PMDViolation, PMDWarning> {
 
 	@Data
 	@EqualsAndHashCode
@@ -76,7 +76,7 @@ public class PMDLogParser extends AbstractLineWarningGenerator<PMDReport, PMDFil
 	}
 
 	@Inject
-	public PMDLogParser(final GitServerClient gitServerClient, final Commits commits) {
+	public PMDWarningGenerator(final GitServerClient gitServerClient, final Commits commits) {
 		super(gitServerClient, commits);
 	}
 

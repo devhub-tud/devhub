@@ -16,16 +16,16 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import java.util.List;
 import java.util.stream.Stream;
 
-import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleReport;
-import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleFile;
-import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleLogParser.CheckStyleError;
+import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleReport;
+import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleFile;
+import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleError;
 
 /**
  * A {@code LineWarningGenerator} for Checkstyle warnings
  *
  * @author Jan-Willem Gmelig Meyling
  */
-public class CheckstyleLogParser extends AbstractLineWarningGenerator<CheckStyleReport, CheckStyleFile, CheckStyleError, CheckstyleWarning> {
+public class CheckstyleWarningGenerator extends AbstractLineWarningGenerator<CheckStyleReport, CheckStyleFile, CheckStyleError, CheckstyleWarning> {
 
     @Data
     @EqualsAndHashCode
@@ -76,7 +76,7 @@ public class CheckstyleLogParser extends AbstractLineWarningGenerator<CheckStyle
     }
 
     @Inject
-    public CheckstyleLogParser(final GitServerClient gitServerClient, final Commits commits) {
+    public CheckstyleWarningGenerator(final GitServerClient gitServerClient, final Commits commits) {
         super(gitServerClient, commits);
     }
 

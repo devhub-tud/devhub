@@ -27,7 +27,7 @@ import javax.persistence.Table;
 @Data
 @Entity
 @Table(name = "group_warning")
-@EqualsAndHashCode(of={"id"})
+@EqualsAndHashCode(of={"repository"})
 @DiscriminatorColumn(name = "warning_type")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class Warning {

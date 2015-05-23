@@ -50,16 +50,6 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
     @Data
     @EqualsAndHashCode
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class FindBugsClass {
-
-        @JacksonXmlProperty(localName = "SourceLine")
-        private SourceLine sourceLine;
-    }
-
-
-    @Data
-    @EqualsAndHashCode
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BugInstance {
 
         @JacksonXmlProperty(localName = "priority", isAttribute = true)
@@ -72,11 +62,11 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
         private String LongMessage;
 
 
-        @JacksonXmlProperty(localName = "Class")
-        private FindBugsClass findBugsClass;
+        @JacksonXmlProperty(localName = "SourceLine")
+        private SourceLine sourceLine;
 
         public String getSourcePath() {
-            return getFindBugsClass().getSourceLine().getSourcePath();
+            return getSourceLine().getSourcePath();
         }
 
     }
@@ -122,7 +112,7 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
 
     @Override
     protected int getLineNumber(final BugInstance violation) {
-        return violation.getFindBugsClass().getSourceLine().getStart();
+        return violation.getSourceLine().getStart();
     }
 
     @Override

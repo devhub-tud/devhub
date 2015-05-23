@@ -13,8 +13,10 @@ import nl.tudelft.ewi.git.models.BlameModel;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * The {@code AbstractLineWarningGenerator} contains logic that can be shared for generating {@link LineWarning
@@ -34,7 +36,7 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
     }
 
     @Override
-    public List<T> generateWarnings(final Commit commit, final A attachment) {
+    public Set<T> generateWarnings(final Commit commit, final A attachment) {
         final Group group = commit.getRepository();
         final Repository repository = retrieveRepository(group);
 
@@ -48,8 +50,7 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
                 return warning;
             });
         })
-        .filter(warning -> warning.getCommit().equals(commit))
-                .collect(Collectors.toList());
+        .collect(toSet());
     }
 
     /**

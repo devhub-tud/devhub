@@ -457,7 +457,7 @@ public class ProjectResource extends Resource {
 
 		List<String> blameCommits = getCommitsForBlame(blame);
         parameters.put("comments", commentBackend.getCommentChecker(blameCommits));
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitId);
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, blameCommits);
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		List<Locale> locales = Collections.list(request.getLocales());

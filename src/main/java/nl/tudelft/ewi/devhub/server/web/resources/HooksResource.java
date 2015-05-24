@@ -16,7 +16,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
@@ -45,6 +44,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
+import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
@@ -65,11 +65,6 @@ import static java.net.URLDecoder.decode;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON + Resource.UTF8_CHARSET)
 public class HooksResource extends Resource {
-
-	@Data
-	private static class GitPush {
-		private String repository;
-	}
 
 	private final Config config;
 	private final BuildsBackend buildBackend;

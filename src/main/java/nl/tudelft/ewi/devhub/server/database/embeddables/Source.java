@@ -36,7 +36,7 @@ public class Source {
      * and : https://hibernate.atlassian.net/browse/HHH-6221
      */
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumnsOrFormulas({
         @JoinColumnOrFormula(formula = @JoinFormula(value = "repository_name", referencedColumnName = "repository_name")),
         @JoinColumnOrFormula(column = @JoinColumn(name = "source_commit_id", referencedColumnName = "commit_id"))

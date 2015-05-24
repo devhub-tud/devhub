@@ -329,9 +329,6 @@ public class PullRequestBackend {
             return fileCopy;
         }
 
-        public DiffBlameModel getDiffModel() {
-            return diffModel;
-        }
     }
 
 }

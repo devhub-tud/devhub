@@ -30,7 +30,7 @@ public abstract class CommitWarning extends Warning {
 
     @NotNull
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumnsOrFormulas({
         @JoinColumnOrFormula(formula = @JoinFormula(value = "repository_name", referencedColumnName = "repository_name")),
         @JoinColumnOrFormula(column = @JoinColumn(name = "commit_id", referencedColumnName = "commit_id"))

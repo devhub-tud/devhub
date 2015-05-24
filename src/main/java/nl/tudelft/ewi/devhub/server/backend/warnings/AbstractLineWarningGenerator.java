@@ -23,6 +23,10 @@ import static java.util.stream.Collectors.toSet;
  * LineWarnings}. For every file in the commit it retrieves the {@code BlameModel}, in order to set the warnings
  * on the original commits.
  *
+ * @param <A> The type of attachment that this {@link CommitWarningGenerator} consumes
+ * @param <F> The type of file objects
+ * @param <V> The type of unconverted violations for a file
+ * @param <T> The type of warning that will be generated from the violation
  * @author Jan-Willem Gmelig Meyling
  */
 public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarning> implements CommitWarningGenerator<T, A> {

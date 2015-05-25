@@ -7,10 +7,6 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
-import nl.tudelft.ewi.build.jaxrs.models.GitSource;
-import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
-import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
@@ -20,7 +16,6 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
@@ -36,7 +31,6 @@ import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
 import nl.tudelft.ewi.git.models.CommitSubList;
@@ -46,7 +40,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -65,13 +58,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -89,9 +82,7 @@ public class ProjectResource extends Resource {
 	private final Group group;
 	private final PullRequests pullRequests;
 	private final CommentBackend commentBackend;
-    private final GitServerClient client;
     private final BuildsBackend buildBackend;
-    private final Config config;
 	private final GitServerClient gitClient;
 	private final CommitComments comments;
 	private final CommentMailer commentMailer;
@@ -105,13 +96,11 @@ public class ProjectResource extends Resource {
 			final CommentBackend commentBackend,
 			final BuildResults buildResults,
 			final PullRequests pullRequests,
-            final GitServerClient client,
-            final BuildsBackend buildBackend,
 			final GitServerClient gitClient,
+			final BuildsBackend buildBackend,
 			final CommitComments comments,
 			final CommentMailer commentMailer,
 			final Commits commits,
-            final Config config,
 			final Warnings warnings) {
 
 		this.templateEngine = templateEngine;
@@ -120,13 +109,11 @@ public class ProjectResource extends Resource {
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
-        this.client = client;
         this.buildBackend = buildBackend;
 		this.gitClient = gitClient;
 		this.comments = comments;
 		this.commentMailer = commentMailer;
 		this.commits = commits;
-        this.config = config;
 		this.warnings = warnings;
 	}
 
@@ -270,51 +257,8 @@ public class ProjectResource extends Resource {
                                   @PathParam("commitId") String commitId)
 			throws URISyntaxException, UnsupportedEncodingException, GitClientException {
 
-        BuildResult buildResult;
-
-        try {
-            buildResult = buildResults.find(group, commitId);
-
-            if(buildResult.getSuccess() == null) {
-                // There is a build queued
-                URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
-                return Response.seeOther(responseUri).build();
-            }
-            else {
-                buildResult.setSuccess(null);
-                buildResult.setLog(null);
-                buildResults.merge(buildResult);
-            }
-        }
-        catch (EntityNotFoundException e) {
-            buildResult = BuildResult.newBuildResult(group, commitId);
-            buildResults.persist(buildResult);
-        }
-
-        MavenBuildInstruction instruction = new MavenBuildInstruction();
-        instruction.setWithDisplay(true);
-        instruction.setPhases(new String[] { "package" });
-
-        Repositories repositories = client.repositories();
-		Repository repository = repositories.retrieve(group.getRepositoryName());
-
-        StringBuilder callbackBuilder = new StringBuilder();
-        callbackBuilder.append(config.getHttpUrl());
-        callbackBuilder.append("/hooks/build-result");
-        callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
-        callbackBuilder.append("&commit=" + URLEncoder.encode(commitId, "UTF-8"));
-
-        GitSource source = new GitSource();
-        source.setRepositoryUrl(repository.getUrl());
-        source.setCommitId(commitId);
-
-        BuildRequest buildRequest = new BuildRequest();
-        buildRequest.setCallbackUrl(callbackBuilder.toString());
-        buildRequest.setInstruction(instruction);
-        buildRequest.setSource(source);
-        buildRequest.setTimeout(group.getBuildTimeout());
-
-        buildBackend.offerBuild(buildRequest);
+		nl.tudelft.ewi.devhub.server.database.entities.Commit commit = commits.ensureExists(group, commitId);
+		buildBackend.rebuildCommit(commit);
         URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
         return Response.seeOther(responseUri).build();
     }
@@ -455,7 +399,7 @@ public class ProjectResource extends Resource {
 		parameters.put("repository", repository);
 		parameters.put("states", new CommitChecker(group, buildResults));
 
-		List<String> blameCommits = getCommitsForBlame(blame);
+		Set<String> blameCommits = getCommitsForBlame(blame);
         parameters.put("comments", commentBackend.getCommentChecker(blameCommits));
 		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, blameCommits);
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
@@ -464,11 +408,10 @@ public class ProjectResource extends Resource {
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
 	}
 
-	private List<String> getCommitsForBlame(BlameModel blame) {
+	private Set<String> getCommitsForBlame(BlameModel blame) {
 		return blame.getBlames().stream()
 			.map(BlameModel.BlameBlock::getFromCommitId)
-				.distinct()
-				.collect(Collectors.toList());
+			.collect(Collectors.toSet());
 	}
 
 	@Data

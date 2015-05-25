@@ -1,9 +1,9 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -16,11 +16,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
-import nl.tudelft.ewi.build.jaxrs.models.GitSource;
-import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
@@ -45,6 +43,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
+import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
@@ -66,7 +65,6 @@ import static java.net.URLDecoder.decode;
 @Produces(MediaType.APPLICATION_JSON + Resource.UTF8_CHARSET)
 public class HooksResource extends Resource {
 
-	private final Config config;
 	private final BuildsBackend buildBackend;
 	private final GitServerClient client;
 	private final BuildResults buildResults;
@@ -81,12 +79,11 @@ public class HooksResource extends Resource {
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
 
 	@Inject
-	HooksResource(Config config, BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
+	HooksResource(BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
 			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
 			Commits commits, Warnings warnings, PMDWarningGenerator pmdWarningGenerator, CheckstyleWarningGenerator checkstyleWarningGenerator,
 			FindBugsWarningGenerator findBugsWarningGenerator) {
 
-		this.config = config;
 		this.buildBackend = buildBackend;
 		this.client = client;
 		this.buildResults = buildResults;
@@ -108,48 +105,28 @@ public class HooksResource extends Resource {
 
 		Repositories repositories = client.repositories();
 		Repository repository = repositories.retrieve(push.getRepository());
-
-		MavenBuildInstruction instruction = new MavenBuildInstruction();
-		instruction.setWithDisplay(true);
-		instruction.setPhases(new String[] { "package" });
-
 		Group group = groups.findByRepoName(push.getRepository());
-		for (BranchModel branch : repository.getBranches()) {
-			String commitId = branch.getCommit().getCommit();
 
-			if ("HEAD".equals(branch.getSimpleName())) {
-				continue;
-			}
-			if (buildResults.exists(group, commitId)) {
-				continue;
-			}
+		repository.getBranches().stream()
+			.map(BranchModel::getCommit)
+			.map(commitModel -> commits.ensureExists(group, commitModel.getCommit()))
+			.distinct()
+			.filter(commit -> !buildResults.exists(commit))
+			.forEach(buildBackend::buildCommit);
 
-			log.info("Submitting a build for branch: {} of repository: {}", branch.getName(), repository.getName());
+		repository.getBranches().stream()
+			.flatMap(branchModel -> findOpenPullRequests(group, branchModel))
+			.forEach(pullRequest -> updatePullRequest(repository, pullRequest));
+	}
 
-			GitSource source = new GitSource();
-			source.setRepositoryUrl(repository.getUrl());
-			source.setCommitId(commitId);
+	@SneakyThrows
+	private void updatePullRequest(Repository repository, PullRequest pullRequest) {
+		pullRequestBackend.updatePullRequest(repository, pullRequest);
+	}
 
-			StringBuilder callbackBuilder = new StringBuilder();
-			callbackBuilder.append(config.getHttpUrl());
-			callbackBuilder.append("/hooks/build-result");
-			callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
-			callbackBuilder.append("&commit=" + URLEncoder.encode(commitId, "UTF-8"));
-
-			BuildRequest buildRequest = new BuildRequest();
-			buildRequest.setCallbackUrl(callbackBuilder.toString());
-			buildRequest.setInstruction(instruction);
-			buildRequest.setSource(source);
-			buildRequest.setTimeout(group.getBuildTimeout());
-
-			buildBackend.offerBuild(buildRequest);
-			buildResults.persist(BuildResult.newBuildResult(group, commitId));
-
-			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
-			if(pullRequest != null) {
-				pullRequestBackend.updatePullRequest(repository, pullRequest);
-			}
-		}
+	private Stream<PullRequest> findOpenPullRequests(Group group, BranchModel branch) {
+		PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
+		return pullRequest == null ? Stream.empty() : Stream.of(pullRequest);
 	}
 
 	@POST

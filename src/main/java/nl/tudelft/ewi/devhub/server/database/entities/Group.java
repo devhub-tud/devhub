@@ -20,6 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import com.google.common.collect.Sets;
+import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 
 @Data
 @Entity

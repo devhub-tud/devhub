@@ -20,6 +20,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import com.google.common.collect.Lists;

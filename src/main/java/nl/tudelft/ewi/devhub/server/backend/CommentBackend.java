@@ -14,6 +14,7 @@ import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 
 import javax.persistence.EntityManager;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -78,7 +79,7 @@ public class CommentBackend {
      * 		commits to look for
      * @return a CommitChecker
      */
-    public CommentChecker getCommentChecker(List<String> commitIds) {
+    public CommentChecker getCommentChecker(Collection<String> commitIds) {
         return new CommentChecker(commitIds);
     }
 
@@ -93,7 +94,7 @@ public class CommentBackend {
     	 */
         public final List<CommitComment> comments;
 
-        public CommentChecker(List<String> commitIds) {
+        public CommentChecker(Collection<String> commitIds) {
             comments = commentsDAO.getInlineCommentsFor(group, commitIds);
         }
 

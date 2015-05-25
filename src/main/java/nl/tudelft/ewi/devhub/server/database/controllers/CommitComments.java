@@ -9,6 +9,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.QCommitComment;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,7 +59,7 @@ public class CommitComments extends Controller<CommitComment> {
      * @return A List of comments attached to the commit
      */
     @Transactional
-    public List<CommitComment> getInlineCommentsFor(Group group, List<String> commitIds) {
+    public List<CommitComment> getInlineCommentsFor(Group group, Collection<String> commitIds) {
         return query().from(QCommitComment.commitComment)
             .where(QCommitComment.commitComment.source.isNotNull()
                     .and(QCommitComment.commitComment.commit.repository.eq(group)

@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.server.database.entities;
+package nl.tudelft.ewi.devhub.server.database.entities.builds;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;

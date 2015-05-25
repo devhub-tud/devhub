@@ -7,6 +7,7 @@ import javax.persistence.EntityNotFoundException;
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.QBuildResult;
 
@@ -15,6 +16,11 @@ public class BuildResults extends Controller<BuildResult> {
 	@Inject
 	public BuildResults(EntityManager entityManager) {
 		super(entityManager);
+	}
+
+	@Transactional
+	public BuildResult find(Commit commit) {
+		return find(commit.getRepository(), commit.getCommitId());
 	}
 
 	@Transactional
@@ -31,6 +37,11 @@ public class BuildResults extends Controller<BuildResult> {
 			throw new EntityNotFoundException();
 		}
 		return result;
+	}
+
+	@Transactional
+	public boolean exists(Commit commit) {
+		return exists(commit.getRepository(), commit.getCommitId());
 	}
 	
 	@Transactional

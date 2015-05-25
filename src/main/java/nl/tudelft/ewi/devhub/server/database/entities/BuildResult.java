@@ -20,6 +20,10 @@ import org.hibernate.validator.constraints.NotEmpty;
 @Table(name = "build_results")
 public class BuildResult {
 
+	public static BuildResult newBuildResult(Commit commit) {
+		return newBuildResult(commit.getRepository(), commit.getCommitId());
+	}
+
 	public static BuildResult newBuildResult(Group group, String commit) {
 		BuildResult result = new BuildResult();
 		result.setRepository(group);

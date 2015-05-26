@@ -82,7 +82,7 @@ public class PMDWarningGenerator extends AbstractLineWarningGenerator<PMDReport,
 
 	@Override
 	protected Stream<PMDFile> getFiles(final PMDReport pmdReport) {
-		return pmdReport.getFiles().stream();
+		return emptyIfNull(pmdReport.getFiles()).stream();
 	}
 
 	@Override

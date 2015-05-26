@@ -461,7 +461,7 @@
 			<column name="instruction_type" type="varchar(10)">
 				<constraints nullable="false" />
 			</column>
-			<column name="command" type="varchar(40)">
+			<column name="command" type="varchar(200)">
 				<constraints nullable="false" />
 			</column>
 			<column name="withDisplay" type="boolean" />
@@ -476,13 +476,13 @@
 
 		<insert tableName="build_instructions">
 			<column name="instruction_type">java-maven</column>
-			<column name="command">package</column>
+			<column name="command">package checkstyle:checkstyle findbugs:findbugs</column>
 			<column name="withDisplay">true</column>
 		</insert>
 
 		<update tableName="courses">
 			<column name="build_instruction" value="1"/>
-			<where>1</where>
+			<where>true</where>
 		</update>
 
 		<addForeignKeyConstraint constraintName="build_instruction_ref_in_courses"

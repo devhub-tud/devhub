@@ -42,8 +42,8 @@ public class Warnings extends Controller<Warning> {
     public Map<String, Long> commitsWithWarningsFor(Group group) {
         return query().from(commitWarning)
             .where(commitWarning.repository.eq(group))
-            .groupBy(commitWarning.commit)
-            .map(commitWarning.commit.commitId, commitWarning.count());
+            .groupBy(commitWarning.commit.commitId)
+            .map(commitWarning.commit.commitId, commitWarning.id.count());
     }
 
     /**

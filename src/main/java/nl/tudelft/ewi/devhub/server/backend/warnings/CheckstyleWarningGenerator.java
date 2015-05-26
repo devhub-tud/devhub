@@ -82,7 +82,7 @@ public class CheckstyleWarningGenerator extends AbstractLineWarningGenerator<Che
 
     @Override
     protected int getLineNumber(final CheckStyleError violation) {
-        return violation.getLine();
+        return violation.getLine() == 0 ? 1 : violation.getLine();
     }
 
     @Override
@@ -100,7 +100,7 @@ public class CheckstyleWarningGenerator extends AbstractLineWarningGenerator<Che
 
     @Override
     protected Stream<CheckStyleFile> getFiles(final CheckStyleReport report) {
-        return report.getFiles().stream();
+        return emptyIfNull(report.getFiles()).stream();
     }
 
     @Override

@@ -85,7 +85,7 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
         private List<BugInstance> violations;
 
         public Stream<FindBugsFile> getFiles() {
-            return violations.stream()
+            return emptyIfNull(violations).stream()
                 .collect(Collectors.groupingBy(BugInstance::getSourcePath))
                 .values().stream()
                 .map(FindBugsFile::new);
@@ -125,7 +125,7 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
 
     @Override
     protected Stream<BugInstance> getViolations(final FindBugsFile file) {
-        return file.getWarnings().stream();
+        return emptyIfNull(file.getWarnings()).stream();
     }
 
     @Override

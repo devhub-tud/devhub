@@ -12,12 +12,14 @@ import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.NotFoundException;
 
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.client.BuildServerBackend;
 import nl.tudelft.ewi.build.client.BuildServerBackendImpl;
 import nl.tudelft.ewi.build.jaxrs.models.BuildInstruction;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
+import nl.tudelft.ewi.build.jaxrs.models.FileRequest;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
@@ -167,7 +169,7 @@ public class BuildsBackend {
 		gitSource.setRepositoryUrl(group.getRepositoryName());
 		BuildInstruction buildInstruction = group.getBuildInstruction()
 				.getBuildInstruction();
-		String callbackUrl = getStringBuilder(commit, group);
+		String callbackUrl = getStringBuilder(commit, group, "build-result");
 
 
 		BuildRequest buildRequest = new BuildRequest();
@@ -175,15 +177,25 @@ public class BuildsBackend {
 		buildRequest.setInstruction(buildInstruction);
 		buildRequest.setTimeout(group.getBuildTimeout());
 		buildRequest.setCallbackUrl(callbackUrl);
+
+		FileRequest checkstyle = new FileRequest();
+		checkstyle.setRelativePath("/target/checkstyle-result.xml");
+		checkstyle.setCallbackUrl(getStringBuilder(commit, group, "checkstyle-result"));
+
+		FileRequest findBugs = new FileRequest();
+		findBugs.setRelativePath("target/findbugsXml.xml");
+		findBugs.setCallbackUrl(getStringBuilder(commit, group, "findbugs-result"));
+
+		List<FileRequest> fileRequests = Lists.newArrayList(checkstyle, findBugs);
 		log.info("Submitting a build for commit: {} of repository: {}", commit, group);
 		offerBuild(buildRequest);
 	}
 
 	@SneakyThrows
-	protected String getStringBuilder(final Commit commit, final Group group) {
+	protected String getStringBuilder(final Commit commit, final Group group, final String resource) {
 		StringBuilder callbackBuilder = new StringBuilder();
 		callbackBuilder.append(config.getHttpUrl());
-		callbackBuilder.append("/hooks/build-result");
+		callbackBuilder.append("/hooks/").append(resource);
 		callbackBuilder.append("?repository=" + URLEncoder.encode(group.getRepositoryName(), "UTF-8"));
 		callbackBuilder.append("&commit=" + URLEncoder.encode(commit.getCommitId(), "UTF-8"));
 		return callbackBuilder.toString();

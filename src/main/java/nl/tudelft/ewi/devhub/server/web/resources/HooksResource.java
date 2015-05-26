@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -19,7 +20,6 @@ import javax.ws.rs.core.MediaType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
-import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
@@ -43,7 +43,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
-import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
@@ -55,12 +54,14 @@ import com.google.common.collect.Lists;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import static java.net.URLDecoder.decode;
 
 @Slf4j
 @RequestScoped
 @Path("hooks")
+@ValidateRequest
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON + Resource.UTF8_CHARSET)
 public class HooksResource extends Resource {
@@ -100,7 +101,7 @@ public class HooksResource extends Resource {
 
 	@POST
 	@Path("git-push")
-	public void onGitPush(@Context HttpServletRequest request, GitPush push) throws UnsupportedEncodingException, GitClientException {
+	public void onGitPush(@Context HttpServletRequest request, @Valid GitPush push) throws UnsupportedEncodingException, GitClientException {
 		log.info("Received git-push event: {}", push);
 
 		Repositories repositories = client.repositories();
@@ -133,9 +134,11 @@ public class HooksResource extends Resource {
 	@Path("build-result")
 	@RequireAuthenticatedBuildServer
 	@Transactional
-	public void onBuildResult(@QueryParam("repository") String repository, @QueryParam("commit") String commit,
+	public void onBuildResult(@QueryParam("repository") @NotEmpty String repository,
+							  @QueryParam("commit") @NotEmpty String commit,
 			nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) throws UnsupportedEncodingException {
 
+		log.info("Retrieved build result for {} at {}", commit, repository);
 		String repoName = decode(repository, "UTF-8");
 		String commitId = decode(commit, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
@@ -168,11 +171,11 @@ public class HooksResource extends Resource {
 	@RequireAuthenticatedBuildServer
 	@Consumes(MediaType.APPLICATION_XML)
 	@Transactional
-	public void onPmdResult(@QueryParam("repository") String repository,
-							@NotEmpty @QueryParam("commit") String commitId,
+	public void onPmdResult(@QueryParam("repository") @NotEmpty String repository,
+							@QueryParam("commit") @NotEmpty String commitId,
 							final PMDReport report) throws UnsupportedEncodingException {
 
-
+		log.info("Retrieved PMD result for {} at {}", commitId, repository);
 		String repoName = decode(repository, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);
@@ -187,10 +190,11 @@ public class HooksResource extends Resource {
 	@RequireAuthenticatedBuildServer
 	@Consumes(MediaType.APPLICATION_XML)
 	@Transactional
-	public void onFindBugsResult(@QueryParam("repository") String repository,
-								 @NotEmpty @QueryParam("commit") String commitId,
-								 final CheckStyleReport report) throws UnsupportedEncodingException {
+	public void onCheckstyleResult(@QueryParam("repository") @NotEmpty String repository,
+								   @QueryParam("commit") @NotEmpty String commitId,
+								   final CheckStyleReport report) throws UnsupportedEncodingException {
 
+		log.info("Retrieved Checkstyle result for {} at {}", commitId, repository);
 		String repoName = decode(repository, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);
@@ -205,10 +209,11 @@ public class HooksResource extends Resource {
 	@RequireAuthenticatedBuildServer
 	@Consumes(MediaType.APPLICATION_XML)
 	@Transactional
-	public void onFindBugsResult(@QueryParam("repository") String repository,
-								 @NotEmpty @QueryParam("commit") String commitId,
+	public void onFindBugsResult(@QueryParam("repository") @NotEmpty String repository,
+								 @QueryParam("commit") @NotEmpty String commitId,
 								 final FindBugsReport report) throws UnsupportedEncodingException {
 
+		log.info("Retrieved Findbugs result for {} at {}", commitId, repository);
 		String repoName = decode(repository, "UTF-8");
 		Group group = groups.findByRepoName(repoName);
 		Commit commit = commits.ensureExists(group, commitId);

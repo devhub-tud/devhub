@@ -20,8 +20,17 @@ public class MavenBuildInstructionEntity extends BuildInstructionEntity {
 	@Column(name = "command")
 	private String command;
 	
-	@Column(name = "withDisplay")
+	@Column(name = "with_display")
 	private boolean withDisplay;
+
+	@Column(name = "checkstyle")
+	private boolean checkstyle;
+
+	@Column(name = "findbugs")
+	private boolean findbugs;
+
+	@Column(name = "pmd")
+	private boolean pmd;
 
 	@Override
 	public MavenBuildInstruction getBuildInstruction() {

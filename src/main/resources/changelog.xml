@@ -464,7 +464,10 @@
 			<column name="command" type="varchar(200)">
 				<constraints nullable="false" />
 			</column>
-			<column name="withDisplay" type="boolean" />
+			<column name="with_display" type="boolean" />
+			<column name="checkstyle" type="boolean" defaultValue="false"/>
+			<column name="findbugs" type="boolean" defaultValue="false"/>
+			<column name="pmd" type="boolean" defaultValue="false"/>
 		</createTable>
 
 		<addColumn tableName="courses">
@@ -476,8 +479,8 @@
 
 		<insert tableName="build_instructions">
 			<column name="instruction_type">java-maven</column>
-			<column name="command">package checkstyle:checkstyle findbugs:findbugs</column>
-			<column name="withDisplay">true</column>
+			<column name="command">test</column>
+			<column name="with_display">true</column>
 		</insert>
 
 		<update tableName="courses">

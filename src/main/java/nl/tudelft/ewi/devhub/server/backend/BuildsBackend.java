@@ -1,5 +1,36 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.build.client.BuildServerBackend;
+import nl.tudelft.ewi.build.client.BuildServerBackendImpl;
+import nl.tudelft.ewi.build.jaxrs.models.BuildInstruction;
+import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
+import nl.tudelft.ewi.build.jaxrs.models.GitSource;
+import nl.tudelft.ewi.build.jaxrs.models.plugins.MavenBuildPlugin;
+import nl.tudelft.ewi.devhub.server.Config;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
+import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.Repository;
+
+import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.MediaType;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -8,40 +39,13 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
-import javax.ws.rs.NotFoundException;
-
-import com.google.common.collect.Lists;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.build.client.BuildServerBackend;
-import nl.tudelft.ewi.build.client.BuildServerBackendImpl;
-import nl.tudelft.ewi.build.jaxrs.models.BuildInstruction;
-import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
-import nl.tudelft.ewi.build.jaxrs.models.FileRequest;
-import nl.tudelft.ewi.build.jaxrs.models.GitSource;
-import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
-import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Queues;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
-import com.google.inject.persist.UnitOfWork;
-
 /**
  * The {@link BuildsBackend} allows you to query and manipulate data from the build-server.
  */
 @Slf4j
 public class BuildsBackend {
 
+	private final GitServerClient gitServerClient;
 	private final BuildServers buildServers;
 	private final Provider<BuildSubmitter> submitters;
 	private final ConcurrentLinkedQueue<BuildRequest> buildQueue;
@@ -52,13 +56,14 @@ public class BuildsBackend {
 
 	@Inject
 	BuildsBackend(BuildServers buildServers, Provider<BuildSubmitter> submitters,
-				  BuildResults buildResults, Config config) {
+				  BuildResults buildResults, GitServerClient gitServerClient, Config config) {
 		this.buildServers = buildServers;
 		this.submitters = submitters;
 		this.buildQueue = Queues.newConcurrentLinkedQueue();
 		this.executor = new ScheduledThreadPoolExecutor(1);
 		this.running = new AtomicBoolean(false);
 		this.buildResults = buildResults;
+		this.gitServerClient = gitServerClient;
 		this.config = config;
 	}
 	
@@ -126,6 +131,7 @@ public class BuildsBackend {
 	 * Build a commit
 	 * @param commit
 	 */
+	@Transactional
 	public void buildCommit(final Commit commit) {
 		if (buildResults.exists(commit)) {
 			return;
@@ -138,6 +144,7 @@ public class BuildsBackend {
 	 * Rebuild a commit
 	 * @param commit
 	 */
+	@Transactional
 	public void rebuildCommit(final Commit commit) {
 		BuildResult buildResult;
 
@@ -161,38 +168,106 @@ public class BuildsBackend {
 		createBuildRequest(commit);
 	}
 
+	/**
+	 * Create the build request for a commit
+	 * @param commit commit to be build
+	 */
 	protected void createBuildRequest(final Commit commit) {
 		Group group = commit.getRepository();
+		GitSource gitSource = createGitSource(commit, group);
 
-		GitSource gitSource = new GitSource();
-		gitSource.setCommitId(commit.getCommitId());
-		gitSource.setRepositoryUrl(group.getRepositoryName());
-		BuildInstruction buildInstruction = group.getBuildInstruction()
-				.getBuildInstruction();
-		String callbackUrl = getStringBuilder(commit, group, "build-result");
+		BuildInstructionEntity buildInstructionEntity = group.getBuildInstruction();
+		BuildInstruction buildInstruction = buildInstructionEntity.getBuildInstruction();
+		if(buildInstructionEntity instanceof MavenBuildInstructionEntity) {
+			buildInstruction.setPlugins(getPlugins(commit, group, (MavenBuildInstructionEntity) buildInstructionEntity));
+		}
 
-
+		String callbackUrl = getCallbackUrl(commit, group, "build-result");
 		BuildRequest buildRequest = new BuildRequest();
 		buildRequest.setSource(gitSource);
 		buildRequest.setInstruction(buildInstruction);
 		buildRequest.setTimeout(group.getBuildTimeout());
 		buildRequest.setCallbackUrl(callbackUrl);
 
-		FileRequest checkstyle = new FileRequest();
-		checkstyle.setRelativePath("/target/checkstyle-result.xml");
-		checkstyle.setCallbackUrl(getStringBuilder(commit, group, "checkstyle-result"));
-
-		FileRequest findBugs = new FileRequest();
-		findBugs.setRelativePath("target/findbugsXml.xml");
-		findBugs.setCallbackUrl(getStringBuilder(commit, group, "findbugs-result"));
-
-		List<FileRequest> fileRequests = Lists.newArrayList(checkstyle, findBugs);
 		log.info("Submitting a build for commit: {} of repository: {}", commit, group);
 		offerBuild(buildRequest);
 	}
 
+	/**
+	 * Create the BuildPlugins for a build request
+	 * @param commit Commit to be built
+	 * @param group Group to build for
+	 * @return
+	 */
+	protected List<MavenBuildPlugin> getPlugins(final Commit commit, final Group group, final MavenBuildInstructionEntity build) {
+		List<MavenBuildPlugin> plugins = Lists.newArrayList();
+
+		if(build.isCheckstyle()) {
+			MavenBuildPlugin checkstyle = getCheckstylePlugin(commit, group);
+			plugins.add(checkstyle);
+		}
+
+		if(build.isFindbugs()) {
+			MavenBuildPlugin findBugs = getFindBugsPlugin(commit, group);
+			plugins.add(findBugs);
+		}
+
+		if(build.isPmd()) {
+			MavenBuildPlugin pmd = getPMDPlugin(commit, group);
+			plugins.add(pmd);
+		}
+
+		return plugins;
+	}
+
+	private MavenBuildPlugin getCheckstylePlugin(Commit commit, Group group) {
+		MavenBuildPlugin checkstyle = new MavenBuildPlugin();
+		checkstyle.setPhases(new String[]{"checkstyle:checkstyle"});
+		checkstyle.setCallbackUrl(getCallbackUrl(commit, group, "checkstyle-result"));
+		checkstyle.setFilePath("target/checkstyle-result.xml");
+		checkstyle.setContentType(MediaType.APPLICATION_XML);
+		return checkstyle;
+	}
+
+	private MavenBuildPlugin getFindBugsPlugin(Commit commit, Group group) {
+		MavenBuildPlugin findBugs = new MavenBuildPlugin();
+		findBugs.setPhases(new String[]{"findbugs:findbugs"});
+		findBugs.setCallbackUrl(getCallbackUrl(commit, group, "findbugs-result"));
+		findBugs.setFilePath("target/findbugsXml.xml");
+		findBugs.setContentType(MediaType.APPLICATION_XML);
+		return findBugs;
+	}
+
+	private MavenBuildPlugin getPMDPlugin(Commit commit, Group group) {
+		MavenBuildPlugin pmd = new MavenBuildPlugin();
+		pmd.setPhases(new String[]{"pmd:pmd"});
+		pmd.setCallbackUrl(getCallbackUrl(commit, group, "pmd-result"));
+		pmd.setFilePath("target/pmd.xml");
+		pmd.setContentType(MediaType.APPLICATION_XML);
+		return pmd;
+	}
+
+	/**
+	 * Create a GitSource for the group
+	 * @param commit Commit to be build
+	 * @param group Group to build for
+	 * @return GitSource
+	 */
+	protected GitSource createGitSource(Commit commit, Group group) {
+		GitSource gitSource = new GitSource();
+		gitSource.setCommitId(commit.getCommitId());
+		gitSource.setRepositoryUrl(getRepositoryUrl(group));
+		return gitSource;
+	}
+
 	@SneakyThrows
-	protected String getStringBuilder(final Commit commit, final Group group, final String resource) {
+	private String getRepositoryUrl(final Group group) {
+		Repository repository = gitServerClient.repositories().retrieve(group.getRepositoryName());
+		return repository.getUrl();
+	}
+
+	@SneakyThrows
+	protected String getCallbackUrl(final Commit commit, final Group group, final String resource) {
 		StringBuilder callbackBuilder = new StringBuilder();
 		callbackBuilder.append(config.getHttpUrl());
 		callbackBuilder.append("/hooks/").append(resource);

@@ -6,7 +6,7 @@
 
 <div class="container">
 
-    <ol class="breadcrumb">
+    <ol class="breadcrumb hidden-xs">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
         <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li>
         <li>${assignment.getName()}</li>

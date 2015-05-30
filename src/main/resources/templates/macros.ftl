@@ -10,6 +10,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="/static/css/devhub.css">
 		<link rel="stylesheet" href="/static/octicons/octicons.css">
+
 		<!--[if lt IE 9]>
 			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
 			<script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -19,19 +20,31 @@
 [/#macro]
 
 [#macro renderMenu i18n user]
-		<div class="menu">
+		<nav class="navbar navbar-default navbar-static-top menu">
 			<div class="container">
-				<a href="/" class="logo-text"><img class="logo-image" src="/static/img/logo.png"> DEVHUB</a>
-				<div class="pull-right">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand logo-text" href="/">
+						<img class="logo-image" src="/static/img/logo.png"> DEVHUB
+					</a>
+				</div>
+				<div class="collapse navbar-collapse nav-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav navbar-right">
 [#if user?? && user.isAdmin()]
-					<a href="/build-servers">${i18n.translate("section.build-servers")}</a>
+				 		<li><a href="/build-servers">${i18n.translate("section.build-servers")}</a></li>
 [/#if]
-                    <a href="/courses">${i18n.translate("section.courses")}</a>
-					<a href="/accounts">${i18n.translate("section.account")}</a>
-					<a href="/logout">${i18n.translate("section.logout")}</a>
+						<li><a href="/courses">${i18n.translate("section.courses")}</a></li>
+						<li><a href="/accounts">${i18n.translate("section.account")}</a></li>
+						<li><a href="/logout">${i18n.translate("section.logout")}</a></li>
+					</ul>
 				</div>
 			</div>
-		</div>	
+		</nav>
 [/#macro]
 
 [#macro renderFileTreeExplorer group commit repository path entries]
@@ -91,7 +104,7 @@
 [/#macro]
 
 [#macro renderCommitHeader i18n group commit currentView]
-			<ol class="breadcrumb">
+			<ol class="breadcrumb hidden-xs">
 
                 <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
                 <li><a href="/courses/${group.course.getCode()}">${group.course.getCode()} - ${group.course.getName()}</a></li>

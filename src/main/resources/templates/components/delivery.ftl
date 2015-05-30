@@ -4,14 +4,15 @@
     [/#if]
 [/#macro]
 
-[#macro buildLabel delivery group states]
+[#macro buildLabel delivery group builds]
     [#assign commitId = delivery.getCommitId()!]
-    [#if commitId?? && commitId?has_content && states.hasStarted(commitId)]
-        [#if states.hasFinished(commitId)]
-            [#if states.hasSucceeded(commitId)]
+    [#if commitId?? && commitId?has_content]
+    [#assign buildResult = builds[commitId]![]]
+        [#if buildResult?? && buildResult?has_content && buildResult.hasFinished()]
+            [#if buildResult.hasSucceeded()]
             <span class="label label-success">${i18n.translate("build.state.succeeded")}</span>
             [#else]
-            <span class="label label-success">${i18n.translate("build.state.failed")}</span>
+            <span class="label label-danger">${i18n.translate("build.state.failed")}</span>
             [/#if]
         [/#if]
     [/#if]

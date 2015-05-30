@@ -9,8 +9,8 @@ import com.google.inject.servlet.RequestScoped;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
-import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
@@ -21,7 +21,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
-import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
@@ -51,11 +50,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -139,6 +141,13 @@ public class ProjectPullResource extends Resource {
     public Response getPullRequests(@Context HttpServletRequest request) throws IOException, GitClientException {
         Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 
+        List<PullRequest> openPullRequests = pullRequests.findOpenPullRequests(group);
+        List<PullRequest> closedPullReqeusts = pullRequests.findClosedPullRequests(group);
+
+        Collection<String> commitIds = Stream.concat(openPullRequests.stream(), closedPullReqeusts.stream())
+            .map(PullRequest::getDestination)
+            .collect(Collectors.toSet());
+
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
         parameters.put("group", group);
@@ -146,7 +155,7 @@ public class ProjectPullResource extends Resource {
         parameters.put("repository", repository);
         parameters.put("openPullRequests", pullRequests.findOpenPullRequests(group));
         parameters.put("closedPullRequests", pullRequests.findClosedPullRequests(group));
-        parameters.put("commitChecker", new CommitChecker(group, buildResults));
+        parameters.put("builds", buildResults.findBuildResults(group, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-pulls.ftl", locales, parameters));
@@ -177,7 +186,7 @@ public class ProjectPullResource extends Resource {
         parameters.put("pullRequest", pullRequest);
         parameters.put("events", resolver.getEvents());
         parameters.put("repository", repository);
-        parameters.put("states", new CommitChecker(group, buildResults));
+        parameters.put("builds", buildResults.findBuildResults(group, commitIds));
 
         List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitIds);
         parameters.put("lineWarnings", new WarningResolver(lineWarnings));
@@ -248,7 +257,7 @@ public class ProjectPullResource extends Resource {
         parameters.put("pullRequest", pullRequest);
         parameters.put("repository", repository);
         parameters.put("diffViewModel", diffBlameModel);
-        parameters.put("states", new CommitChecker(group, buildResults));
+        parameters.put("builds", buildResults.findBuildResults(group, commitIds));
 
         List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitIds);
         parameters.put("lineWarnings", new WarningResolver(lineWarnings));

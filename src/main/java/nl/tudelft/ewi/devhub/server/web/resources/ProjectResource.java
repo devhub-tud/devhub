@@ -21,7 +21,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
-import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
@@ -41,6 +40,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -140,7 +140,6 @@ public class ProjectResource extends Resource {
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
-		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("repository", repository);
 
 		try {
@@ -153,6 +152,7 @@ public class ProjectResource extends Resource {
 			Collection<String> commitIds = getCommitIds(commits);
 			parameters.put("warnings", warnings.commitsWithWarningsFor(group, commitIds));
 			parameters.put("comments", comments.commentsFor(group, commitIds));
+			parameters.put("builds", buildResults.findBuildResults(group, commitIds));
 
 			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
 			if(pullRequest != null) {
@@ -251,8 +251,14 @@ public class ProjectResource extends Resource {
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("commit", commit);
-		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("repository", repository);
+
+		try {
+			parameters.put("buildResult", buildResults.find(group, commitId));
+		}
+		catch (EntityNotFoundException e) {
+			log.debug("No build result for commit {}", commitId);
+		}
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-commit-view.ftl", locales, parameters));
@@ -292,7 +298,13 @@ public class ProjectResource extends Resource {
 		parameters.put("diffViewModel", diffBlameModel);
 		parameters.put("comments", comments.getCommentsFor(group, commitId));
 		parameters.put("commentChecker", commentBackend.getCommentChecker(Lists.newArrayList(commitId)));
-		parameters.put("states", new CommitChecker(group, buildResults));
+
+		try {
+			parameters.put("buildResult", buildResults.find(group, commitId));
+		}
+		catch (EntityNotFoundException e) {
+			log.debug("No build result for commit {}", commitId);
+		}
 
 		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitId);
 		parameters.put("warnings", warnings.getWarningsFor(group, commitId));
@@ -346,7 +358,13 @@ public class ProjectResource extends Resource {
 		parameters.put("group", group);
 		parameters.put("repository", repository);
 		parameters.put("entries", entries);
-		parameters.put("states", new CommitChecker(group, buildResults));
+
+		try {
+			parameters.put("buildResult", buildResults.find(group, commitId));
+		}
+		catch (EntityNotFoundException e) {
+			log.debug("No build result for commit {}", commitId);
+		}
 		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-folder-view.ftl", locales, parameters));
@@ -407,7 +425,13 @@ public class ProjectResource extends Resource {
 		parameters.put("highlight", Highlight.forFileName(path));
 		parameters.put("group", group);
 		parameters.put("repository", repository);
-		parameters.put("states", new CommitChecker(group, buildResults));
+
+		try {
+			parameters.put("buildResult", buildResults.find(group, commitId));
+		}
+		catch (EntityNotFoundException e) {
+			log.debug("No build result for commit {}", commitId);
+		}
 
 		Set<String> blameCommits = getCommitsForBlame(blame);
         parameters.put("comments", commentBackend.getCommentChecker(blameCommits));

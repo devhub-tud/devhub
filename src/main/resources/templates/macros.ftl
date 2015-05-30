@@ -103,9 +103,9 @@
 	[/#if]
 			</ol>
 
-	[#if states.hasStarted(commit.getCommit())]
-		[#if states.hasFinished(commit.getCommit())]
-			[#if states.hasSucceeded(commit.getCommit())]
+	[#if buildResult?? && buildResult?has_content]
+		[#if buildResult.hasFinished()]
+			[#if buildResult.hasSucceeded()]
 			<div class="commit succeeded">
 				<span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>
 			[#else]
@@ -130,12 +130,14 @@
 						<ul class="dropdown-menu" role="menu">
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff">${i18n.translate("commit.view-diff")}</a></li>
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">${i18n.translate("commit.view-files")}</a></li>
-	[#if states.hasFinished(commit.getCommit())]
+	[#if buildResult?? && buildResult?has_content]
+		[#if buildResult.hasFinished()]
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/build">${i18n.translate("commit.view-build-log")}</a></li>
-		[#if !states.hasSucceeded(commit.getCommit()) ]
+			[#if !buildResult.hasSucceeded()]
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
+			[/#if]
 		[/#if]
-	[#elseif !states.hasStarted(commit.getCommit()) ]
+	[#else]
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
 	[/#if]
 						</ul>

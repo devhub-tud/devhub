@@ -81,7 +81,8 @@
                 [#if repository?? && repository?has_content]
                     [#if commits?? && commits?has_content]
                         [#list commits.commits as commit]
-                            [@commitRow.render group states commit.commit "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff"]
+                            [#assign buildResult = builds[commit.commit]![]]
+                            [@commitRow.render group buildResult commit.commit "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff"]
                                 <span class="pull-right">
                                   [#if comments??]
                                       [#assign numComments = comments[commit.commit]!0]

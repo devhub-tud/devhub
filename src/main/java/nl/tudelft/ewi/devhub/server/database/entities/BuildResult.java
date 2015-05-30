@@ -1,7 +1,9 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -50,8 +52,25 @@ public class BuildResult {
 	@Column(name = "success")
 	private Boolean success;
 
-	@Type(type = "org.hibernate.type.TextType")
 	@Column(name = "log")
+	@Basic(fetch = FetchType.LAZY)
+	@Type(type = "org.hibernate.type.TextType")
 	private String log;
+
+	/**
+	 * Check if the build is finished or queued
+	 * @return true if the build is finished
+	 */
+	public boolean hasFinished() {
+		return getSuccess() != null;
+	}
+
+	/**
+	 * Check if the build has succeeded
+	 * @return true if the build has succeeded
+	 */
+	public boolean hasSucceeded() {
+		return Boolean.TRUE.equals(getSuccess());
+	}
 
 }

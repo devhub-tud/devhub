@@ -24,7 +24,8 @@
                 [#if openPullRequests?? && openPullRequests?has_content]
                     [#list openPullRequests as pullRequest]
                         [#assign commit = repository.retrieveCommit(pullRequest.destination)]
-                        [@commitRow.render group commitChecker commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
+                        [#assign buildResult = builds[commit.commit]![]]
+                        [@commitRow.render group buildResult pullRequest.destination "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
                             <span class="pull-right">
                                 <span class="text-success octicon octicon-arrow-up"></span>
                                 <span class="text-muted">${pullRequest.ahead}</span>

@@ -15,22 +15,23 @@
         <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
     </ol>
 
-[#if states.hasStarted(commit.getCommit())]
-    [#if states.hasFinished(commit.getCommit())]
-        [#if states.hasSucceeded(commit.getCommit())]
-        <div class="commit succeeded">
-            <span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>
+[#assign buildResult = builds[pullRequest.destination]![]]
+[#if buildResult?? && buildResult?has_content]
+    [#if buildResult.hasFinished()]
+        [#if buildResult.hasSucceeded()]
+				<div class="commit succeeded">
+					<span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>
         [#else]
-        <div class="commit failed">
-            <span class="state glyphicon glyphicon-remove-circle" title="${i18n.translate("build.state.failed")}"></span>
+				<div class="commit failed">
+					<span class="state glyphicon glyphicon-remove-circle" title="${i18n.translate("build.state.failed")}"></span>
         [/#if]
     [#else]
-    <div class="commit running">
-        <span class="state glyphicon glyphicon-align-justify" title="${i18n.translate("build.state.queued")}"></span>
+		<div class="commit running">
+			<span class="state glyphicon glyphicon-align-justify" title="${i18n.translate("build.state.queued")}"></span>
     [/#if]
 [#else]
 <div class="commit ignored">
-    <span class="state glyphicon glyphicon-unchecked"></span>
+	<span class="state glyphicon glyphicon-unchecked"></span>
 [/#if]
 
     <span class="view-picker">
@@ -52,6 +53,18 @@
                         <span class="label label-default">${commit.getCommit()?substring(0,7)?upper_case }</span>
                         <span>${commit.getMessage()}</span>
                     </a>
+                    [#assign buildResult = builds[commit.commit]![]]
+                    [#if buildResult?? && buildResult?has_content && buildResult.hasFinished()]
+                    	[#if buildResult.hasSucceeded()]
+		                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${pullRequest.destination}/build">
+                                <span class="octicon octicon-check text-success"></span>
+                            </a>
+                        [#else]
+                            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${pullRequest.destination}/build">
+	                            <span class="octicon octicon-x text-danger"></span>
+                            </a>
+                        [/#if]
+                    [/#if]
                 </li>
             [/#list]
             </ul>

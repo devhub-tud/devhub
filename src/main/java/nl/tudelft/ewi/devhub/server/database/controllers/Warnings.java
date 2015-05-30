@@ -11,16 +11,15 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 
+import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import static java.util.stream.Collectors.toSet;
-import static nl.tudelft.ewi.devhub.server.database.entities.warnings.QLineWarning.lineWarning;
 import static nl.tudelft.ewi.devhub.server.database.entities.warnings.QCommitWarning.commitWarning;
+import static nl.tudelft.ewi.devhub.server.database.entities.warnings.QLineWarning.lineWarning;
 
 /**
  * Data access object for Warnings
@@ -39,9 +38,10 @@ public class Warnings extends Controller<Warning> {
      * @return a list of commit ids that have warnings
      */
     @Transactional
-    public Map<String, Long> commitsWithWarningsFor(Group group) {
+    public Map<String, Long> commitsWithWarningsFor(Group group, Collection<String> commitIds) {
         return query().from(commitWarning)
-            .where(commitWarning.repository.eq(group))
+            .where(commitWarning.repository.eq(group)
+                .and(commitWarning.commit.commitId.in(commitIds)))
             .groupBy(commitWarning.commit.commitId)
             .map(commitWarning.commit.commitId, commitWarning.id.count());
     }

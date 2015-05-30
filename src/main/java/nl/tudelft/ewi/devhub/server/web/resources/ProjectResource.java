@@ -33,6 +33,7 @@ import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
+import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.CommitSubList;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 import nl.tudelft.ewi.git.models.EntryType;
@@ -58,6 +59,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -138,9 +140,7 @@ public class ProjectResource extends Resource {
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
-		parameters.put("warnings", warnings.commitsWithWarningsFor(group));
 		parameters.put("states", new CommitChecker(group, buildResults));
-		parameters.put("comments", new HasCommentsChecker());
 		parameters.put("repository", repository);
 
 		try {
@@ -149,6 +149,10 @@ public class ProjectResource extends Resource {
 			parameters.put("commits", commits);
 			parameters.put("branch", branch);
 			parameters.put("pagination", new Pagination(page, commits.getTotal()));
+
+			Collection<String> commitIds = getCommitIds(commits);
+			parameters.put("warnings", warnings.commitsWithWarningsFor(group, commitIds));
+			parameters.put("comments", comments.commentsFor(group, commitIds));
 
 			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
 			if(pullRequest != null) {
@@ -159,6 +163,12 @@ public class ProjectResource extends Resource {
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
+	}
+
+	protected List<String> getCommitIds(CommitSubList commits) {
+		return commits.getCommits().stream()
+				.map(CommitModel::getCommit)
+				.collect(Collectors.toList());
 	}
 
 	@GET
@@ -412,20 +422,6 @@ public class ProjectResource extends Resource {
 		return blame.getBlames().stream()
 			.map(BlameModel.BlameBlock::getFromCommitId)
 			.collect(Collectors.toSet());
-	}
-
-	@Data
-	public class HasCommentsChecker {
-
-		/**
-		 * Check how many comments there are for a commitId
-		 * @param commitId the commitId
-		 * @return the amount of commits
-		 */
-		public long amountOfCommits(String commitId) {
-			return comments.amountOfComments(group, commitId);
-		}
-
 	}
 	
 	@Data

@@ -495,5 +495,11 @@
 			baseTableName="groups" baseColumnNames="build_instruction"
 			referencedTableName="build_instructions" referencedColumnNames="id" />
 	</changeSet>
+	
+	<changeSet id="ignored-file-warning" author="LiamClark">
+		<addColumn tableName="group_warning">
+			<column name="file_name" type="varchar(50)"></column>
+		</addColumn>
+	</changeSet>
 
 </databaseChangeLog>

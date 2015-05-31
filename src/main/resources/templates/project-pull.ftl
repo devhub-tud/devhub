@@ -104,6 +104,7 @@
                 <button id="btn-merge" class="btn btn-primary"><i class="octicon octicon-git-merge"></i> <span>${i18n.translate("pull-request.merge")}</span></button>
         [/#if]
             </div>
+            <span class="octicon octicon-git-pull-request pull-request-badge"></span>
             <span id="merge-message">${i18n.translate("pull-request.open.message")}</span>
     [#-- else case should not happen --]
     [/#if]
@@ -159,16 +160,20 @@ $(function() {
     $('#btn-merge').click(function() {
         var btn = $(this).attr('disabled', true);
         var label = $('span', btn).html('${i18n.translate("pull-request.merging")}');
+		var message = $('#merge-message');
 
         $.post("/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/merge")
             .done(function(res) {
                 if(res.success) {
                     label.html('${i18n.translate("pull-request.merged")}');
                     btn.removeClass('btn-primary').addClass('btn-success');
+                    message.html('${i18n.translate("pull-request.closed.message")}');
                 }
                 else {
                     label.html('${i18n.translate("pull-request.failed-to-merge")}');
                     btn.removeClass('btn-primary').addClass('btn-danger');
+                    message.html('${i18n.translate("pull-request.failed-to-merge.message")}');
+                    $('.pull-request-badge').addClass('failed');
                 }
 
                 $('#btn-close').remove();

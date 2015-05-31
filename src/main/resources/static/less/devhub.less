@@ -200,6 +200,8 @@ td.no-data {
 
 td.commit {
     position: relative;
+	width:100%;
+	min-height: 44px;
 
 	&.failed {
 		background-color: @red-background-color;
@@ -792,6 +794,13 @@ code {
   margin-right: 10px;
 
   &.failed {
-	background-color:  rgb(146, 150, 147);
+	background-color: rgb(146, 150, 147);
   }
+}
+
+.delivery-filter {
+  padding: 0;
+  outline: none !important;
+  text-decoration: none !important;
+  margin-top: -2px;
 }

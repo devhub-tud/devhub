@@ -27,7 +27,7 @@
             <span class="state glyphicon glyphicon-unchecked"></span>
         [/#if]
     [#else]
-        <td class="commit" style="width:100%; min-height: 44px;">
+        <td class="commit">
         [#if href?? && href?has_content]<a href="${href}">[/#if]
     [/#if]
     [#nested /]

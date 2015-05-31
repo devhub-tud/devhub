@@ -2,12 +2,30 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -27,31 +45,42 @@ public class Delivery implements Comparable<Delivery> {
      * @author Jan-Willem Gmelig Meyling
      */
     public enum State {
-        SUBMITTED("delivery.state.submitted", "info"),
-        REJECTED("delivery.state.rejected", "warning"),
-        APPROVED("delivery.state.approved", "success"),
-        DISAPPROVED("delivery.state.disapproved", "danger");
+        SUBMITTED("delivery.state.submitted", "info", "delivery.state.submitted.description", "delivery.state.submitted.message"),
+        REJECTED("delivery.state.rejected", "warning", "delivery.state.rejected.description", "delivery.state.submitted.message"),
+        APPROVED("delivery.state.approved", "success", "delivery.state.approved.description", "delivery.state.submitted.message"),
+        DISAPPROVED("delivery.state.disapproved", "danger", "delivery.state.disapproved.description", "delivery.state.submitted.message");
 
+        /**
+         * The translation key used for the badges, for example "Submitted".
+         */
+        @Getter
         private final String translationKey;
+
+        /**
+         * The style class used for the badges, for example "warning" (= orange).
+         */
+        @Getter
         private final String style;
 
-        State(String translationKey, String style) {
+        /**
+         * The translation key used for the description tooltips. These are mainly for the
+         * reviewers. For example: "Submissions that should be fixed and resubmitted."
+         */
+        @Getter
+        private final String descriptionTranslionKey;
+
+        /**
+         * The translation key used for the message tooltips. These are mainly for the
+         * students. For example: "Please fix the addressed issues before resubmitting."
+         */
+        @Getter
+        private final String messageTranslationKey;
+
+        State(String translationKey, String style, String descriptionTranslionKey, String messageTranslationKey) {
             this.translationKey = translationKey;
             this.style = style;
-        }
-
-        /**
-         * @return the translation key for the state
-         */
-        public String getTranslationKey() {
-            return translationKey;
-        }
-
-        /**
-         * @return the style for this state
-         */
-        public String getStyle() {
-            return style;
+            this.descriptionTranslionKey = descriptionTranslionKey;
+            this.messageTranslationKey = messageTranslationKey;
         }
     }
 

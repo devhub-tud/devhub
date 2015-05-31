@@ -19,7 +19,9 @@
 
 [#macro deliveryStateLabel delivery]
     [#assign state = delivery.getState()]
-    <span class="label label-${state.style}">${i18n.translate(state.translationKey)}</span>
+    <span class="label label-${state.style}" data-toggle="tooltip" title="${i18n.translate(state.messageTranslationKey)}">
+        ${i18n.translate(state.translationKey)}
+    </span>
 [/#macro]
 
 [#macro render delivery states]

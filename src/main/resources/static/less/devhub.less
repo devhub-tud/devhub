@@ -98,7 +98,7 @@ h1 {
 .menu {
 	background-color: #fff;
 	border-bottom: 1px solid #ddd;
-	padding: 21px 0px;
+	padding: 6px 0px;
 	margin-bottom: 24px;
 	width: 100%;
 	
@@ -109,15 +109,27 @@ h1 {
 		line-height: 40px;
 		color: #b8b8b8;
 	}
-	
+
+	.navbar-toggle {
+		margin-top: 20px;
+	}
+
+  	.nav {
+		margin-top: 10px;
+	}
+
 	a {
 		font-size: 17px;
 		margin-bottom: 0px;
 		line-height: 40px;
-		color: #b8b8b8;
+		color: #b8b8b8 !important;
 		
 		&:not(:last-child) {
 			margin-right: 32px;
+		}
+
+		&.logo-text:hover {
+			color: #b8b8b8 !important;
 		}
 	}
 }
@@ -356,16 +368,21 @@ div.commit {
 		background: -ms-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(229,229,229,1) 100%); /* IE10+ */
 		background: linear-gradient(to bottom, rgba(255,255,255,1) 0%,rgba(229,229,229,1) 100%); /* W3C */
 
-		height: 47px;
 		border-bottom: 1px solid #ccc;
-		padding: 8px 7px 0px 0px !important;
+		padding: 3px 7px 0px 0px !important;
 		.rounded-top;
-		
+
+		.buttons {
+		  margin-top: 5px;
+		}
 		
 		h5 {
-			padding: 9px 10px 0px 13px !important;
-			margin: 0px;
-			
+			line-height: 25px;
+			margin: 4px 5px 7px 8px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+
 			.label {
 				vertical-align: 2px;
 				margin-right: 4px;
@@ -376,6 +393,7 @@ div.commit {
 
 .diff {
 	.diffs {
+		table-layout: fixed;
 		margin: 0px;
 		padding: 0px;
 		.rounded-bottom;
@@ -532,7 +550,7 @@ div.commit {
 		
 		.panel {
 			margin: 20px;
-			width: 600px;
+			max-width: 600px;
 		}
 		
 		.btn {
@@ -744,6 +762,7 @@ code {
 .panel-comment {
   p {
 	margin: 0;
+	word-wrap: break-word;
   }
 }
 

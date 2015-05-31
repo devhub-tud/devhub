@@ -9,7 +9,9 @@
 [@macros.renderCommitHeader i18n group commit i18n.translate("commit.view-files") /]
 			<div class="diff box">
 				<div class="header">
-					<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${path?url('UTF8')}" class="pull-right btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
+				  	<span class="pull-right hidden-xs buttons">
+						<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${path?url('UTF8')}" class="btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
+					</span>
 					<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
 				</div>
 			[#if contents?? && contents?has_content]

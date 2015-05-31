@@ -1,5 +1,5 @@
 [#macro renderBreadcrumb i18n group]
-    <ol class="breadcrumb">
+    <ol class="breadcrumb hidden-xs">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
         <li><a href="/courses/${group.course.getCode()}">${group.course.getCode()} - ${group.course.getName()}</a></li>
         <li class="active">Group ${group.getGroupNumber()}</li>

@@ -4,12 +4,17 @@
 
 <div class="diff box" data-commit="${commit.getCommit()}" data-old-path="${diffModel.oldPath}" data-new-path="${diffModel.newPath}">
     <div class="header">
-        <button class="pull-right btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> ${i18n.translate("button.label.fold")}</button>
-        <button class="pull-right btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> ${i18n.translate("button.label.unfold")}</button>
+        <span class="pull-right hidden-xs buttons">
+        [#if !diffModel.isDeleted()]
+            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${diffModel.newPath?url('UTF8')}" class="btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> ${i18n.translate("button.label.download")}</a>
+        [/#if]
+            <button class="btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> ${i18n.translate("button.label.fold")}</button>
+            <button class="btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> ${i18n.translate("button.label.unfold")}</button>
+        </span>
+
         [#if diffModel.isDeleted()]
-            <h5><span class="label label-danger">Deleted</span> ${diffModel.oldPath}</h5>
+                <h5><span class="label label-danger">Deleted</span> ${diffModel.oldPath}</h5>
         [#else]
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${diffModel.newPath?url('UTF8')}" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> ${i18n.translate("button.label.download")}</a>
             [#if diffModel.isMoved()]
                 <h5><span class="label label-warn">${i18n.translate("diff.type.moved")}</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
             [#elseif diffModel.isCopied()]

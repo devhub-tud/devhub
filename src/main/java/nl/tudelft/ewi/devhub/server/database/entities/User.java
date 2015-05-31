@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -72,7 +73,8 @@ public class User {
 	@Size(max = 20)
 	@Column(name = "student_number", length = 20, nullable = true)
 	private String studentNumber;
-	
+
+	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
 	@Column(name = "password")

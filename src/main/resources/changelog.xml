@@ -424,4 +424,12 @@
 		</addColumn>
 	</changeSet>
 
+	<changeSet id="longer_branch_names" author="Jan-Willem Gmelig Meyling">
+		<modifyDataType tableName="pull_requests" columnName="branch_name" newDataType="varchar(255)"/>
+
+		<addColumn tableName="users">
+			<column name="student_number" type="varchar(20)"/>
+		</addColumn>
+	</changeSet>
+
 </databaseChangeLog>

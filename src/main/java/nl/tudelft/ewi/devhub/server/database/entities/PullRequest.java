@@ -12,6 +12,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,7 +46,8 @@ public class PullRequest {
 	private Long issueId;
 
 	@NotNull
-	@Column(name="branch_name")
+	@Size(max = 255)
+	@Column(name="branch_name", length = 255)
 	private String branchName;
 	
 	@Column(name="open")

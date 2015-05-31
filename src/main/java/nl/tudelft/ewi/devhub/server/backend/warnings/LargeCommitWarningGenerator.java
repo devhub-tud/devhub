@@ -34,7 +34,7 @@ implements CommitPushWarningGenerator<LargeCommitWarning> {
     @Override
     @SneakyThrows
     public Set<LargeCommitWarning> generateWarnings(Commit commit, GitPush attachment) {
-        List<DiffFile> diffs = getGitCommit(commit, attachment).diff().getDiffs();
+        List<DiffFile> diffs = getGitCommit(commit).diff().getDiffs();
 
         if(tooManyFiles(diffs, commit) || tooManyLineChanges(diffs, commit)) {
             LargeCommitWarning warning = new LargeCommitWarning();

@@ -24,7 +24,7 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorValue("successive-build-failure")
 @EqualsAndHashCode(callSuper = true)
-public class SuccessiveBuildfailure extends CommitWarning {
+public class SuccessiveBuildFailure extends CommitWarning {
 
     private static final String RESOURCE_KEY = "warning.successive-build-failures";
 

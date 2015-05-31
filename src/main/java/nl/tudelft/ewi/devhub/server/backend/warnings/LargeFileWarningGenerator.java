@@ -39,7 +39,7 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
     @Override
     @SneakyThrows
     public Set<LargeFileWarning> generateWarnings(Commit commit, GitPush attachment) {
-        final List<DiffFile> diffs = getGitCommit(commit, attachment).diff().getDiffs();
+        final List<DiffFile> diffs = getGitCommit(commit).diff().getDiffs();
         this.repository = getRepository(commit);
         this.commit = commit;
         this.maxFileSize = getIntegerProperty(commit.getRepository().getCourse(), MAX_FILE_SIZE_PROPERTY, MAX_FILE_SIZE);

@@ -28,7 +28,11 @@
             [#list deliveryStates as state]
                 <div class="col-md-2 progress-info">
                     <span class="text-${state.style} glyphicon glyphicon-stop"></span>
-                    ${i18n.translate(state.translationKey)}: ${assignmentStats.getCountFor(state)} (${assignmentStats.getPercentageFor(state)}%)
+                    <button class="btn btn-link delivery-filter" data-filter-class="${state.toString()?lower_case}">
+                        <span>${i18n.translate(state.translationKey)}:</span>
+                        <span>${assignmentStats.getCountFor(state)}</span>
+                        <span>(${assignmentStats.getPercentageFor(state)}%)</span>
+                    </button>
                 </div>
             [/#list]
             <div class="col-md-2 progress-info">${i18n.translate("assignment.submissions")}: ${assignmentStats.amountOfSubmissions()}</div>
@@ -41,7 +45,9 @@
     [#if lastDeliveries?? && lastDeliveries?has_content]
         [#list lastDeliveries as delivery]
             [#assign group = delivery.getGroup()]
-            [@commitRow.render group states![] commitId![] "/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}"]
+        <tr class="delivery ${delivery.getState().toString()?lower_case}">
+          <td class="commit">
+            <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
                 <div class="pull-right">
 
                 [#assign commitId = delivery.getCommitId()!]
@@ -69,7 +75,9 @@
                 </div>
                 <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
                 <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-            [/@commitRow.render]
+            </a>
+          </td>
+        </tr>
         [/#list]
     [#else]
         <tr>
@@ -83,5 +91,7 @@
     </div>
 
 </div>
-[@macros.renderScripts /]
+[@macros.renderScripts]
+<script src="/static/js/deliveries-filter.js"></script>
+[/@macros.renderScripts]
 [@macros.renderFooter /]

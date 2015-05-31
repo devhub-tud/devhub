@@ -155,6 +155,7 @@
 		<script src="/static/js/jquery.min.js"></script>
 		<script src="/static/js/bootstrap.min.js"></script>
 		<script src="/static/js/validation.js"></script>
+		[#nested/]
 [/#macro]
 
 [#macro renderFooter]

@@ -204,6 +204,8 @@ public class AssignmentsResource extends Resource {
     }
 
     private final static String TEXT_CSV = "text/csv";
+    private final static char CSV_FIELD_SEPARATOR = ';';
+    private final static char CSV_ROW_SEPARATOR = '\n';
 
     /**
      * Download the grades for this assignment
@@ -227,27 +229,26 @@ public class AssignmentsResource extends Resource {
             throw new UnauthorizedException();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("AssignmentNo;NetId;Name;State;Grade;Commentary;").append('\n');
+        sb.append("Assignment;NetId;StudentNo;Name;State;Grade;").append(CSV_ROW_SEPARATOR);
 
         deliveriesDAO.getLastDeliveries(assignment).forEach(delivery -> {
             User user = delivery.getCreatedUser();
             Delivery.Review review = delivery.getReview();
 
-            sb.append(assignment.getAssignmentId()).append(';');
-            sb.append(user.getNetId()).append(';');
-            sb.append(user.getName()).append(';');
-            //TODO Student number
+            sb.append(assignment.getName()).append(CSV_FIELD_SEPARATOR);
+            sb.append(user.getNetId()).append(CSV_FIELD_SEPARATOR);
+            sb.append(user.getStudentNumber()).append(CSV_FIELD_SEPARATOR);
+            sb.append(user.getName()).append(CSV_FIELD_SEPARATOR);
 
             if(review != null) {
-                sb.append(review.getState()).append(';');
-                sb.append(review.getGrade()).append(';');
-                sb.append(review.getCommentary()).append(';');
+                sb.append(review.getState()).append(CSV_FIELD_SEPARATOR);
+                sb.append(review.getGrade()).append(CSV_FIELD_SEPARATOR);
             }
             else {
-                sb.append("SUBMITTED;").append(';').append(';');
+                sb.append("SUBMITTED;").append(CSV_FIELD_SEPARATOR);
             }
 
-            sb.append('\n');
+            sb.append(CSV_ROW_SEPARATOR);
         });
 
         return sb.toString();

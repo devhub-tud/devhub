@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -56,15 +58,23 @@ public class User {
 	private long id;
 
 	@NotNull
-	@Column(name = "net_id")
+	@Size(max = 32)
+	@Column(name = "net_id", length = 32, nullable = false)
 	private String netId;
 
-	@Column(name = "name")
+	@Size(max = 128)
+	@Column(name = "name", length = 128, nullable = true)
 	private String name;
 
-	@Column(name = "email")
+	@Size(max = 255)
+	@Column(name = "email", length = 255, nullable = true)
 	private String email;
-	
+
+	@Size(max = 20)
+	@Column(name = "student_number", length = 20, nullable = true)
+	private String studentNumber;
+
+	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
 	@Column(name = "password")

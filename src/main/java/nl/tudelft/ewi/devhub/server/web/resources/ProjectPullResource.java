@@ -73,6 +73,7 @@ public class ProjectPullResource extends Resource {
     private final CommentMailer commentMailer;
     private final PullRequestComments pullRequestComments;
     private final PullRequestMailer pullRequestMailer;
+    private final HooksResource hooksResource;
 
     @Inject
     ProjectPullResource(final TemplateEngine templateEngine,
@@ -85,7 +86,8 @@ public class ProjectPullResource extends Resource {
                     final GitServerClient gitClient,
                     final CommentMailer commentMailer,
                     final PullRequestMailer pullRequestMailer,
-                    final PullRequestComments pullRequestComments) {
+                    final PullRequestComments pullRequestComments,
+                    final HooksResource hooksResource) {
 
         this.templateEngine = templateEngine;
         this.group = group;
@@ -98,6 +100,7 @@ public class ProjectPullResource extends Resource {
         this.commentMailer = commentMailer;
         this.pullRequestComments = pullRequestComments;
         this.pullRequestMailer = pullRequestMailer;
+        this.hooksResource = hooksResource;
     }
 
     @POST
@@ -291,7 +294,7 @@ public class ProjectPullResource extends Resource {
     @Path("/pull/{pullId}/merge")
     @Produces(MediaType.APPLICATION_JSON)
     public MergeResponse mergePullRequest(@Context HttpServletRequest request,
-                                          @PathParam("pullId") long pullId) throws GitClientException {
+                                          @PathParam("pullId") long pullId) throws GitClientException, IOException {
 
         PullRequest pullRequest = pullRequests.findById(group, pullId);
         Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
@@ -306,6 +309,10 @@ public class ProjectPullResource extends Resource {
             pullRequest.setOpen(false);
             pullRequest.setMerged(true);
             pullRequests.merge(pullRequest);
+            // Currently the git server fails to correctly trigger the push hook
+            // Therefore, we invoke the githook manually
+            // See: https://github.com/devhub-tud/devhub/issues/140
+            hooksResource.onGitPush(request, new HooksResource.GitPush(group.getRepositoryName()));
         }
 
         return response;

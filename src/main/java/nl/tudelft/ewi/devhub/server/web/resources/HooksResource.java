@@ -1,31 +1,21 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.Locale;
-
-import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
 import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
@@ -39,10 +29,20 @@ import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BranchModel;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
+import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Locale;
 
 @Slf4j
 @RequestScoped
@@ -52,7 +52,9 @@ import com.google.inject.servlet.RequestScoped;
 public class HooksResource extends Resource {
 
 	@Data
-	private static class GitPush {
+	@NoArgsConstructor
+	@AllArgsConstructor
+	static class GitPush {
 		private String repository;
 	}
 

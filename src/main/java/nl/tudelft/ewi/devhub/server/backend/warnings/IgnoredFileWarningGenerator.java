@@ -1,11 +1,13 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IgnoredFileWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
+import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.EntryType;
 
@@ -25,8 +27,13 @@ public class IgnoredFileWarningGenerator extends GitCommitPushWarningGenerator<I
             ".project/", ".classpath/", "target/", "bin/", ".metadata/"};
     private Repository repository;
 
-    @SneakyThrows
+    @Inject
+    public IgnoredFileWarningGenerator(GitServerClient gitServerClient) {
+        super(gitServerClient);
+    }
+
     @Override
+    @SneakyThrows
     public Collection<IgnoredFileWarning> generateWarnings(Commit commit, GitPush attachment) {
         repository = getRepository(commit);
         Set<IgnoredFileWarning> warnings = Sets.newHashSet();

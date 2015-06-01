@@ -5,28 +5,27 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 
-import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.validation.constraints.Size;
 
 /**
- * Created by LC on 30/05/15.
+ * Ignored files should not be commited.
+ * Furthermore, the .gitignore should not be removed or cleaned.
+ *
+ * @author Liam Clark
  */
-
 @Data
 @Entity
 @DiscriminatorValue("ignored-file")
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class IgnoredFileWarning extends CommitWarning {
+public class IgnoredFileWarning extends FileWarning {
 
-    @Column(name= "file_name")
-    @Size(max = 50)
-    private String fileName;
+    private static final String RESOURCE_KEY = "warning.committed-ignored-files";
 
     @Override
     public String getMessage(Translator translator) {
-        return null;
+        return translator.translate(RESOURCE_KEY, getFileName());
     }
+
 }

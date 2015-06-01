@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 @RequestScoped
 public class IgnoredFileWarningGenerator extends GitCommitPushWarningGenerator<IgnoredFileWarning> {
 
-    private static final String[] extensions = {".class", ".bin.pdf", ".doc", ".docx", ".jar"};
-    private static final String[] folders = {".iml", ".idea/", "", ".metadata/", ".settings/",
+    private static final String[] extensions = {".iml",".class", ".bin", ".pdf", ".doc", ".docx", ".jar"};
+    private static final String[] folders = { ".idea/", ".metadata/", ".settings/",
             ".project/", ".classpath/", "target/", "bin/", ".metadata/"};
     private Repository repository;
 

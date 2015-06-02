@@ -53,7 +53,8 @@
                 [#if closedPullRequests?? && closedPullRequests?has_content]
                     [#list closedPullRequests as pullRequest]
                         [#assign commit = repository.retrieveCommit(pullRequest.destination)]
-                        [@commitRow.render group commitChecker commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
+                        [#assign buildResult = builds[commit.commit]![]]
+                        [@commitRow.render group buildResult commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
                         <span class="pull-right">
                             [#if pullRequest.merged]
                                 <span class="label label-success"><i class="octicon octicon-git-merge"></i> Merged</span>

@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LargeCommitWarning;
@@ -18,6 +19,7 @@ import java.util.Set;
 /**
  * @author Liam Clark
  */
+@Slf4j
 public class LargeCommitWarningGenerator  extends AbstractCommitWarningGenerator<LargeCommitWarning, GitPush>
 implements CommitPushWarningGenerator<LargeCommitWarning> {
 
@@ -34,14 +36,17 @@ implements CommitPushWarningGenerator<LargeCommitWarning> {
     @Override
     @SneakyThrows
     public Set<LargeCommitWarning> generateWarnings(Commit commit, GitPush attachment) {
+        log.debug("Start generating warnings for {} in {}", commit, this);
         List<DiffFile> diffs = getGitCommit(commit).diff().getDiffs();
 
         if(tooManyFiles(diffs, commit) || tooManyLineChanges(diffs, commit)) {
             LargeCommitWarning warning = new LargeCommitWarning();
             warning.setCommit(commit);
+            log.debug("Finished generating warnings for {} in {}", commit, this);
             return Sets.newHashSet(warning);
         }
 
+        log.debug("Finished generating warnings for {} in {}", commit, this);
         return Collections.emptySet();
     }
 

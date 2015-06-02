@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LargeFileWarning;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 /**
  * @author Jan-Willem Gmelig Meyling
  */
+@Slf4j
 @RequestScoped
 public class LargeFileWarningGenerator extends AbstractCommitWarningGenerator<LargeFileWarning, GitPush>
 implements CommitPushWarningGenerator<LargeFileWarning> {
@@ -39,17 +41,21 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
     @Override
     @SneakyThrows
     public Set<LargeFileWarning> generateWarnings(Commit commit, GitPush attachment) {
+        log.debug("Started generating warnings for {} in {}", commit, this);
         final List<DiffFile> diffs = getGitCommit(commit).diff().getDiffs();
         this.repository = getRepository(commit);
         this.commit = commit;
         this.maxFileSize = getIntegerProperty(commit.getRepository().getCourse(), MAX_FILE_SIZE_PROPERTY, MAX_FILE_SIZE);
 
-        return diffs.stream()
+        Set<LargeFileWarning> warnings = diffs.stream()
             .filter(file -> !file.isDeleted())
             .filter(this::filterTextFiles)
             .filter(this::filterLargeFiles)
             .map(this::mapToWarning)
             .collect(Collectors.toSet());
+
+        log.debug("Finished generating warnings for {} in {}", commit, this);
+        return warnings;
     }
 
     @SneakyThrows

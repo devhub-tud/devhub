@@ -31,6 +31,7 @@ implements CommitPushWarningGenerator<GitUsageWarning> {
 
     @Override
     public Set<GitUsageWarning> generateWarnings(final Commit commitEntity, final GitPush attachment) {
+        log.debug("Started generating warnings for {} in {}", commitEntity, this);
         final Set<GitUsageWarning> warnings = Sets.newHashSet();
 
         try {
@@ -44,6 +45,7 @@ implements CommitPushWarningGenerator<GitUsageWarning> {
             log.warn(e.getMessage(), e);
         }
 
+        log.debug("Finished generating warnings for {} in {}", commitEntity, this);
         return warnings;
     }
 

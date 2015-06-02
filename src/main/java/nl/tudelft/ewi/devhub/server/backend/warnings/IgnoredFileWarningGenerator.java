@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IgnoredFileWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
@@ -18,14 +19,17 @@ import java.util.stream.Stream;
 /**
  * @author Liam Clark
  */
+@Slf4j
 @RequestScoped
 public class IgnoredFileWarningGenerator extends AbstractCommitWarningGenerator<IgnoredFileWarning, GitPush>
 implements CommitPushWarningGenerator<IgnoredFileWarning> {
 
-    private static final String[] extensions = {".iml",".class", ".bin", ".pdf", ".doc", ".docx", ".jar"};
+    private static final String[] extensions = {".iml",".class", ".bin", ".doc", ".docx", ".jar"};
     private static final String[] folders = { ".idea/", ".metadata/", ".settings/",
             ".project/", ".classpath/", "target/", "bin/", ".metadata/"};
+
     private Repository repository;
+    private Commit commit;
 
     @Inject
     public IgnoredFileWarningGenerator(GitServerClient gitServerClient) {
@@ -35,14 +39,17 @@ implements CommitPushWarningGenerator<IgnoredFileWarning> {
     @Override
     @SneakyThrows
     public Set<IgnoredFileWarning> generateWarnings(Commit commit, GitPush attachment) {
-        repository = getRepository(commit);
+        log.debug("Start generating warnings for {} in {}", commit, this);
+        this.repository = getRepository(commit);
+        this.commit = commit;
         Set<IgnoredFileWarning> warnings = Sets.newHashSet();
         walkCommitStructure("",commit.getCommitId(),warnings);
+        log.debug("Finished generating warnings for {} in {}", commit, this);
         return warnings;
     }
 
     @SneakyThrows
-    public void walkCommitStructure(String path, String commit, Set<IgnoredFileWarning> warnings){
+    public void walkCommitStructure(String path, String commitId, Set<IgnoredFileWarning> warnings){
 
         if(folderViolation(path)){
             IgnoredFileWarning warning = new IgnoredFileWarning();
@@ -50,10 +57,10 @@ implements CommitPushWarningGenerator<IgnoredFileWarning> {
             warnings.add(warning);
         }
 
-        Map<String,EntryType> directory = repository.listDirectoryEntries(commit,path);
+        Map<String,EntryType> directory = repository.listDirectoryEntries(commitId, path);
         directory.entrySet().stream()
                 .filter(entry -> entry.getValue().equals(EntryType.FOLDER))
-                .forEach(entry-> walkCommitStructure(path+entry.getKey(),commit,warnings));
+                .forEach(entry-> walkCommitStructure(path+entry.getKey(),commitId, warnings));
 
         directory.entrySet().stream()
                 .filter(entry -> !entry.getValue().equals(EntryType.FOLDER))
@@ -61,6 +68,7 @@ implements CommitPushWarningGenerator<IgnoredFileWarning> {
                 .filter(IgnoredFileWarningGenerator::fileViolation)
                 .map(file -> {
                     IgnoredFileWarning warning = new IgnoredFileWarning();
+                    warning.setCommit(commit);
                     warning.setFileName(file);
                     return warning;
                 })

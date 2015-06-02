@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
@@ -137,6 +138,9 @@ public class Warnings extends Controller<Warning> {
      */
     @Transactional
     public <V extends CommitWarning> Set<V> persist(final Group group, final Set<V> warnings) {
+        Preconditions.checkNotNull(group);
+        Preconditions.checkNotNull(warnings);
+
         final Set<Commit> commits = getCommitsForWarnings(warnings);
         final List<CommitWarning> existingWarnings = getAllCommitWarningsFor(group, commits);
         return warnings.stream()
@@ -151,8 +155,10 @@ public class Warnings extends Controller<Warning> {
      * @return Set of commits
      */
     protected static Set<Commit> getCommitsForWarnings(Collection<? extends CommitWarning> warnings) {
+        assert warnings != null;
         return warnings.stream()
             .map(CommitWarning::getCommit)
+            .map(Preconditions::checkNotNull)
             .collect(toSet());
     }
 

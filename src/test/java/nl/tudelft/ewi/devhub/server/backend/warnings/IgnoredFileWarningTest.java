@@ -1,10 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.warnings.GitUsageWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IgnoredFileWarning;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
@@ -25,6 +21,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
+
 /**
  * @author Jan-Willem Gmelig Meyling
  */
@@ -44,7 +44,7 @@ public class IgnoredFileWarningTest {
     @Mock private CommitModel commitModel;
     @InjectMocks  private IgnoredFileWarningGenerator generator;
 
-    private GitUsageWarning warning;
+    private IgnoredFileWarning warning;
 
     @Before
     public void beforeTest() throws Exception {
@@ -57,7 +57,7 @@ public class IgnoredFileWarningTest {
 
         directory1.clear();
 
-        warning = new GitUsageWarning();
+        warning = new IgnoredFileWarning();
         warning.setCommit(commitEntity);
     }
 
@@ -65,7 +65,6 @@ public class IgnoredFileWarningTest {
     public void TestIngoredFile(){
         directory1.put("types.class",EntryType.TEXT);
         Collection<IgnoredFileWarning> warnings = generator.generateWarnings(commitEntity, null);
-        IgnoredFileWarning warning = new IgnoredFileWarning();
         warning.setFileName("types.class");
         assertEquals(warning,warnings.stream().findFirst().get());
     }

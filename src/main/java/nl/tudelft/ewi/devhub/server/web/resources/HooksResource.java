@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
@@ -128,7 +129,7 @@ public class HooksResource extends Resource {
 			.flatMap(branchModel -> findOpenPullRequests(group, branchModel))
 			.forEach(pullRequest -> updatePullRequest(repository, pullRequest));
 
-		notBuildCommits.forEach(commit -> triggerWarnings(commit, push));
+		notBuildCommits.forEach(commit -> triggerWarnings(group, commit, push));
 	}
 
 	@POST
@@ -140,29 +141,37 @@ public class HooksResource extends Resource {
 
 		Group group = groups.findByRepoName(repository);
 		Commit commit = commits.ensureExists(group, commitId);
+
+		Preconditions.checkNotNull(group);
+		Preconditions.checkNotNull(commit);
+
 		GitPush gitPush = new GitPush();
 		gitPush.setRepository(repository);
-		triggerWarnings(commit, gitPush);
+		triggerWarnings(group, commit, gitPush);
 	}
 
-	protected void triggerWarnings(Commit commit, GitPush gitPush) {
-		try {
-			Group group = commit.getRepository();
+	protected void triggerWarnings(final Group group, final Commit commit, final GitPush gitPush) {
+		assert group != null;
+		assert commit != null;
+		assert gitPush != null;
 
-			Set<? extends CommitWarning> pushWarnings = pushWarningGenerators.stream()
-				.flatMap(generator -> {
+		Set<? extends CommitWarning> pushWarnings = pushWarningGenerators.stream()
+			.flatMap(generator -> {
+				try {
 					Set<CommitWarning> commitWarningList = generator.generateWarnings(commit, gitPush);
 					return commitWarningList.stream();
-				})
-				.collect(Collectors.toSet());
+				}
+				catch (Exception e) {
+					log.warn("Failed to generate warnings with {} for {} ", generator, commit);
+					log.warn(e.getMessage(), e);
+					return Stream.empty();
+				}
+			})
+			.collect(Collectors.toSet());
 
-			Set<? extends CommitWarning> persistedWarnings = warnings.persist(group, pushWarnings);
-			log.info("Persisted {} of {} push warnings for {}", persistedWarnings.size(),
-					pushWarnings.size(), group);
-		}
-		catch (Exception e) {
-			log.warn("Failed to generate warnings for {}", e, commit);
-		}
+		Set<? extends CommitWarning> persistedWarnings = warnings.persist(group, pushWarnings);
+		log.info("Persisted {} of {} push warnings for {}", persistedWarnings.size(),
+				pushWarnings.size(), group);
 	}
 
 	@SneakyThrows

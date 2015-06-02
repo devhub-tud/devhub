@@ -11,12 +11,12 @@ import nl.tudelft.ewi.git.client.Repository;
 /**
  * @author Liam Clark
  */
-public abstract class GitCommitPushWarningGenerator<T extends CommitWarning> implements CommitPushWarningGenerator<T> {
+public abstract class AbstractCommitWarningGenerator<T extends CommitWarning, A> implements CommitWarningGenerator<T, A> {
 
     protected final GitServerClient gitServerClient;
 
     @Inject
-    public GitCommitPushWarningGenerator(GitServerClient gitServerClient) {
+    public AbstractCommitWarningGenerator(GitServerClient gitServerClient) {
         this.gitServerClient = gitServerClient;
     }
 

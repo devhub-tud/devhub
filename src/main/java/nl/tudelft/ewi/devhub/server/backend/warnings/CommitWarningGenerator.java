@@ -3,7 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend.warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * The {@code CommitWarningGenerator} is a base interface for objects that create
@@ -22,6 +22,6 @@ public interface CommitWarningGenerator<T extends CommitWarning, A> {
      * @param commit Commit to generate warnings for
      * @return a {@code Collection} of warnings
      */
-    Collection<T> generateWarnings(Commit commit, A attachment);
+    Set<T> generateWarnings(Commit commit, A attachment);
 
 }

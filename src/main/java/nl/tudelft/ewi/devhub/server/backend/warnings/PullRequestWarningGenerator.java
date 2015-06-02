@@ -1,13 +1,9 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.collect.Lists;
-
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-
 import lombok.extern.slf4j.Slf4j;
-
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.GitUsageWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.client.Branch;
@@ -16,7 +12,7 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CommitModel;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * The {@code PullRequestWarningGenerator} checks for every push hookif the newest commit
@@ -25,23 +21,23 @@ import java.util.List;
  * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
-public class PullRequestWarningGenerator implements CommitPushWarningGenerator<GitUsageWarning> {
-
-    private final GitServerClient gitServerClient;
+public class PullRequestWarningGenerator extends AbstractCommitWarningGenerator<GitUsageWarning, GitPush>
+implements CommitPushWarningGenerator<GitUsageWarning> {
 
     @Inject
     public PullRequestWarningGenerator(GitServerClient gitServerClient) {
-        this.gitServerClient = gitServerClient;
+        super(gitServerClient);
     }
 
     @Override
-    public List<GitUsageWarning> generateWarnings(final Commit commitEntity, final GitPush attachment) {
-        final List<GitUsageWarning> warnings = Lists.newArrayList();
-        Group group = commitEntity.getRepository();
+    public Set<GitUsageWarning> generateWarnings(final Commit commitEntity, final GitPush attachment) {
+        final Set<GitUsageWarning> warnings = Sets.newHashSet();
 
         try {
-            if(commitOnMaster(group, commitEntity.getCommitId())) {
-                warnings.add(new GitUsageWarning());
+            if(commitOnMaster(commitEntity)) {
+                GitUsageWarning warning = new GitUsageWarning();
+                warning.setCommit(commitEntity);
+                warnings.add(warning);
             }
         }
         catch (GitClientException e) {
@@ -51,15 +47,15 @@ public class PullRequestWarningGenerator implements CommitPushWarningGenerator<G
         return warnings;
     }
 
-    protected CommitModel getMasterCommit(final Group group) throws GitClientException {
-        Repository repository = gitServerClient.repositories().retrieve(group.getRepositoryName());
+    protected CommitModel getMasterCommit(final Commit commit) throws GitClientException {
+        Repository repository = getRepository(commit);
         Branch master = repository.retrieveBranch("master");
         return master.getCommit();
     }
 
-    protected boolean commitOnMaster(final Group group, final String commitId) throws GitClientException {
-        CommitModel commitModel = getMasterCommit(group);
-        return headIsMaster(commitModel, commitId) && headIsNoMerge(commitModel);
+    protected boolean commitOnMaster(final Commit commit) throws GitClientException {
+        CommitModel commitModel = getMasterCommit(commit);
+        return headIsMaster(commitModel, commit.getCommitId()) && headIsNoMerge(commitModel);
     }
 
     protected boolean headIsMaster(final CommitModel commitModel, final String commitId) {

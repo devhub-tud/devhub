@@ -11,16 +11,16 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.EntryType;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * Created by LC on 30/05/15.
+ * @author Liam Clark
  */
 @RequestScoped
-public class IgnoredFileWarningGenerator extends GitCommitPushWarningGenerator<IgnoredFileWarning> {
+public class IgnoredFileWarningGenerator extends AbstractCommitWarningGenerator<IgnoredFileWarning, GitPush>
+implements CommitPushWarningGenerator<IgnoredFileWarning> {
 
     private static final String[] extensions = {".iml",".class", ".bin", ".pdf", ".doc", ".docx", ".jar"};
     private static final String[] folders = { ".idea/", ".metadata/", ".settings/",
@@ -34,12 +34,13 @@ public class IgnoredFileWarningGenerator extends GitCommitPushWarningGenerator<I
 
     @Override
     @SneakyThrows
-    public Collection<IgnoredFileWarning> generateWarnings(Commit commit, GitPush attachment) {
+    public Set<IgnoredFileWarning> generateWarnings(Commit commit, GitPush attachment) {
         repository = getRepository(commit);
         Set<IgnoredFileWarning> warnings = Sets.newHashSet();
         walkCommitStructure("",commit.getCommitId(),warnings);
         return warnings;
     }
+
     @SneakyThrows
     public void walkCommitStructure(String path, String commit, Set<IgnoredFileWarning> warnings){
 

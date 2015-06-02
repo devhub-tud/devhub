@@ -3,9 +3,8 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -43,27 +42,4 @@ public class CommitComment extends Comment {
     @Embedded
     private Source source;
 
-    @Data
-    @Embeddable
-	@EqualsAndHashCode
-    public static class Source {
-
-        @NotNull
-        @ManyToOne(fetch=FetchType.LAZY)
-        @JoinColumns({
-            @JoinColumn(name="source_repository_name", referencedColumnName="repository_name"),
-            @JoinColumn(name="source_commit_id", referencedColumnName="commit_id")
-        })
-        private Commit sourceCommit;
-
-        @NotNull
-        @Column(name = "source_line_number")
-        private Integer sourceLineNumber;
-
-        @NotNull
-        @Column(name = "source_file_path")
-        private String sourceFilePath;
-
-    }
-	
 }

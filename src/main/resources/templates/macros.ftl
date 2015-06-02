@@ -10,6 +10,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="/static/css/devhub.css">
 		<link rel="stylesheet" href="/static/octicons/octicons.css">
+
 		<!--[if lt IE 9]>
 			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
 			<script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -19,19 +20,31 @@
 [/#macro]
 
 [#macro renderMenu i18n user]
-		<div class="menu">
+		<nav class="navbar navbar-default navbar-static-top menu">
 			<div class="container">
-				<a href="/" class="logo-text"><img class="logo-image" src="/static/img/logo.png"> DEVHUB</a>
-				<div class="pull-right">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand logo-text" href="/">
+						<img class="logo-image" src="/static/img/logo.png"> DEVHUB
+					</a>
+				</div>
+				<div class="collapse navbar-collapse nav-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav navbar-right">
 [#if user?? && user.isAdmin()]
-					<a href="/build-servers">${i18n.translate("section.build-servers")}</a>
+				 		<li><a href="/build-servers">${i18n.translate("section.build-servers")}</a></li>
 [/#if]
-                    <a href="/courses">${i18n.translate("section.courses")}</a>
-					<a href="/accounts">${i18n.translate("section.account")}</a>
-					<a href="/logout">${i18n.translate("section.logout")}</a>
+						<li><a href="/courses">${i18n.translate("section.courses")}</a></li>
+						<li><a href="/accounts">${i18n.translate("section.account")}</a></li>
+						<li><a href="/logout">${i18n.translate("section.logout")}</a></li>
+					</ul>
 				</div>
 			</div>
-		</div>	
+		</nav>
 [/#macro]
 
 [#macro renderFileTreeExplorer group commit repository path entries]
@@ -91,7 +104,7 @@
 [/#macro]
 
 [#macro renderCommitHeader i18n group commit currentView]
-			<ol class="breadcrumb">
+			<ol class="breadcrumb hidden-xs">
 
                 <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
                 <li><a href="/courses/${group.course.getCode()}">${group.course.getCode()} - ${group.course.getName()}</a></li>
@@ -103,9 +116,9 @@
 	[/#if]
 			</ol>
 
-	[#if states.hasStarted(commit.getCommit())]
-		[#if states.hasFinished(commit.getCommit())]
-			[#if states.hasSucceeded(commit.getCommit())]
+	[#if buildResult?? && buildResult?has_content]
+		[#if buildResult.hasFinished()]
+			[#if buildResult.hasSucceeded()]
 			<div class="commit succeeded">
 				<span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>
 			[#else]
@@ -130,12 +143,14 @@
 						<ul class="dropdown-menu" role="menu">
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff">${i18n.translate("commit.view-diff")}</a></li>
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/tree">${i18n.translate("commit.view-files")}</a></li>
-	[#if states.hasFinished(commit.getCommit())]
+	[#if buildResult?? && buildResult?has_content]
+		[#if buildResult.hasFinished()]
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/build">${i18n.translate("commit.view-build-log")}</a></li>
-		[#if !states.hasSucceeded(commit.getCommit()) ]
+			[#if !buildResult.hasSucceeded()]
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
+			[/#if]
 		[/#if]
-	[#elseif !states.hasStarted(commit.getCommit()) ]
+	[#else]
 							<li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/rebuild">${i18n.translate("commit.rebuild")}</a></li>
 	[/#if]
 						</ul>
@@ -147,6 +162,18 @@
 	[#if commit.getMessage()?has_content]
 					<div class="description">${commit.getMessage()}</div>
 	[/#if]
+					<div>
+  	[#if warnings?? && warnings?has_content]
+						<ul class="list-unstyled">
+  	    [#list warnings as warning]
+							<li class="alert alert-warning alert-dismissible" role="alert">
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<i class="glyphicon glyphicon-warning-sign"></i> ${warning.getMessage(i18n)}
+							</li>
+  	    [/#list]
+						</ul>
+  	[/#if]
+					</div>
 				</span>
 			</div>
 [/#macro]

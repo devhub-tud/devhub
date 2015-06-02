@@ -170,7 +170,7 @@
 			<column name="password" type="varchar(128)" />
 		</addColumn>
 	</changeSet>
-	
+
 	<changeSet id="add_unique_constraint_groups" author="Jan-Willem Gmelig Meyling">
 		<addUniqueConstraint columnNames="course_id,group_number" tableName="groups" />
 	</changeSet>
@@ -424,12 +424,103 @@
 		</addColumn>
 	</changeSet>
 
+	<changeSet id="warning_tables" author="Jan-Willem Gmelig Meyling">
+		<dropColumn tableName="commit_comment" columnName="source_repository_name"/>
+
+		<createTable tableName="group_warning">
+			<!-- Common warning attributes -->
+			<column name="warning_type" type="varchar(30)"/>
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false"/>
+			</column>
+			<!-- Commit id for CommitWarnings -->
+			<column name="commit_id" type="varchar(40)"/>
+			<!-- Source embeddable for LineWarnings -->
+			<column name="source_commit_id" type="varchar(40)"/>
+			<column name="source_line_number" type="int"/>
+			<column name="source_file_path" type="varchar(255)"/>
+			<!-- Message for checkstyle, findbugs warnings -->
+			<column name="message" type="varchar(1024)"/>
+			<!-- Priority for findbugs and PMD warnings -->
+			<column name="priority" type="int"/>
+			<!-- Severity for checkstye warnings -->
+			<column name="severity" type="varchar(10)"/>
+			<!-- Rule for PMD warnings -->
+			<column name="rule" type="varchar(100)"/>
+		</createTable>
+	</changeSet>
+
+	<changeSet id="add_build_instruction_entity" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="build_instructions">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="instruction_type" type="varchar(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="command" type="varchar(200)">
+				<constraints nullable="false" />
+			</column>
+			<column name="with_display" type="boolean" />
+			<column name="checkstyle" type="boolean" defaultValue="false"/>
+			<column name="findbugs" type="boolean" defaultValue="false"/>
+			<column name="pmd" type="boolean" defaultValue="false"/>
+		</createTable>
+
+		<addColumn tableName="courses">
+			<column name="build_instruction" type="bigint"/>
+		</addColumn>
+		<addColumn tableName="groups">
+			<column name="build_instruction" type="bigint"/>
+		</addColumn>
+
+		<insert tableName="build_instructions">
+			<column name="instruction_type">java-maven</column>
+			<column name="command">test</column>
+			<column name="with_display">true</column>
+		</insert>
+
+		<update tableName="courses">
+			<column name="build_instruction" value="1"/>
+			<where>true</where>
+		</update>
+
+		<addForeignKeyConstraint constraintName="build_instruction_ref_in_courses"
+			baseTableName="courses" baseColumnNames="build_instruction"
+			referencedTableName="build_instructions" referencedColumnNames="id" />
+		<addForeignKeyConstraint constraintName="build_instruction_ref_in_groups"
+			baseTableName="groups" baseColumnNames="build_instruction"
+			referencedTableName="build_instructions" referencedColumnNames="id" />
+	</changeSet>
+
 	<changeSet id="longer_branch_names" author="Jan-Willem Gmelig Meyling">
 		<modifyDataType tableName="pull_requests" columnName="branch_name" newDataType="varchar(255)"/>
 
 		<addColumn tableName="users">
 			<column name="student_number" type="varchar(20)"/>
 		</addColumn>
+	</changeSet>
+
+	<changeSet id="course_properties" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="course_properties">
+			<column name="course_id" type="bigint">
+				<constraints nullable="false"/>
+			</column>
+			<column name="property_key" type="varchar(40)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="property_value" type="varchar(40)"></column>
+		</createTable>
+
+		<addPrimaryKey tableName="course_properties" columnNames="course_id, property_key"></addPrimaryKey>
+
+		<addColumn tableName="group_warning">
+			<column name="file_name" type="varchar(50)"></column>
+		</addColumn>
+
 	</changeSet>
 
 </databaseChangeLog>

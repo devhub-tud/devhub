@@ -41,7 +41,7 @@
                 [#list myDeliveries as delivery]
                 <tr>
                     <td>
-                        [@deliveryElement.render delivery states/]
+                        [@deliveryElement.render delivery builds/]
                         <div class="pull-right">
                     [#if user.isAdmin() || user.isAssisting(course)]
                           <a href="deliveries/${delivery.getDeliveryId()}/review" class="btn btn-default">${i18n.translate("button.label.review")}</a>

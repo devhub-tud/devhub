@@ -3,18 +3,17 @@ package nl.tudelft.ewi.devhub.server.backend;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequestComment;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.Repository;
@@ -131,28 +130,21 @@ public class PullRequestBackend {
     private void updateDestinationCommit(PullRequest pullRequest, Branch branch) {
         CommitModel destination = branch.getCommit();
         String destinationId = destination.getCommit();
-        if(!destinationId.equals(pullRequest.getMergeBase())) {
+        if(!destinationId.equals(pullRequest.getDestination())) {
             pullRequest.setDestination(destinationId);
             log.info("Destination set to {} for {}", destinationId, pullRequest);
         }
     }
 
     /**
-     * Get the events for a PullRequest
-     * @param repository Repository that contains the pull request
-     * @param pullRequest PullRequest to update
-     * @return a List of events
-     * @throws GitClientException if a GitClientException occurs
+     *
+     * @param pullRequest  PullRequest to update
+     * @param diffModel DiffBlameModel for the pull request
+     * @param group the current group
+     * @return  a List of events
      */
-    public SortedSet<Event> getEventsForPullRequest(Group group, Repository repository, PullRequest pullRequest) throws GitClientException {
-        DiffBlameModel diffBlameModel = getDiffBlameModelForPull(pullRequest, repository);
-        return new EventResolver(pullRequest, diffBlameModel, group).getEvents();
-    }
-
-    private static DiffBlameModel getDiffBlameModelForPull(PullRequest pullRequest, Repository repository) throws GitClientException {
-        String destinationId = pullRequest.getDestination();
-        String mergeBaseId = pullRequest.getMergeBase();
-        return repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
+    public EventResolver getEventResolver(final PullRequest pullRequest, final DiffBlameModel diffModel, final Group group) {
+        return new EventResolver(pullRequest, diffModel, group);
     }
 
     enum EventType {
@@ -295,7 +287,7 @@ public class PullRequestBackend {
             return inlineComments.stream()
                 .collect(Collectors.groupingBy(CommitComment::getSource))
                 .entrySet().stream().map(entry -> {
-                    CommitComment.Source source = entry.getKey();
+                    Source source = entry.getKey();
                     SortedSet<CommitComment> comments = Sets.newTreeSet(entry.getValue());
                     DiffBlameModel.DiffBlameFile subModel = findSubModel(source);
                     return new CommentContextEvent(comments, subModel);
@@ -303,7 +295,7 @@ public class PullRequestBackend {
                 .collect(Collectors.toList());
         }
 
-        private DiffBlameModel.DiffBlameFile findSubModel(CommitComment.Source source) {
+        private DiffBlameModel.DiffBlameFile findSubModel(Source source) {
             for(DiffBlameModel.DiffBlameFile diffFile : diffModel.getDiffs()) {
                 for(DiffBlameModel.DiffBlameContext diffContext : diffFile.getContexts()) {
                     List<DiffBlameModel.DiffBlameLine> lines = diffContext.getLines();

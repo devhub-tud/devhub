@@ -1,26 +1,30 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-import org.hibernate.validator.constraints.NotEmpty;
-
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Entity
@@ -78,6 +82,16 @@ public class Course {
 	public void setCode(String code) {
 		this.code = code.toUpperCase();
 	}
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "build_instruction", nullable = false)
+	private BuildInstructionEntity buildInstruction;
+
+	@ElementCollection
+	@JoinTable(name="course_properties", joinColumns=@JoinColumn(name="course_id"))
+	@MapKeyColumn(name="property_key")
+	@Column(name="property_value")
+	private Map<String, String> properties;
 
 	public List<User> getAssistants() {
 		List<User> assistants = Lists.newArrayList();

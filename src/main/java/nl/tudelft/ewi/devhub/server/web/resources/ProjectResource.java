@@ -7,10 +7,6 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
-import nl.tudelft.ewi.build.jaxrs.models.GitSource;
-import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
-import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
@@ -18,23 +14,25 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.util.CommitChecker;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
+import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
+import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.CommitSubList;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 import nl.tudelft.ewi.git.models.EntryType;
@@ -61,14 +59,16 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequestScoped
@@ -84,13 +84,12 @@ public class ProjectResource extends Resource {
 	private final Group group;
 	private final PullRequests pullRequests;
 	private final CommentBackend commentBackend;
-    private final GitServerClient client;
     private final BuildsBackend buildBackend;
-    private final Config config;
 	private final GitServerClient gitClient;
 	private final CommitComments comments;
 	private final CommentMailer commentMailer;
 	private final Commits commits;
+	private final Warnings warnings;
 
 	@Inject
 	ProjectResource(final TemplateEngine templateEngine,
@@ -99,13 +98,12 @@ public class ProjectResource extends Resource {
 			final CommentBackend commentBackend,
 			final BuildResults buildResults,
 			final PullRequests pullRequests,
-            final GitServerClient client,
-            final BuildsBackend buildBackend,
 			final GitServerClient gitClient,
+			final BuildsBackend buildBackend,
 			final CommitComments comments,
 			final CommentMailer commentMailer,
 			final Commits commits,
-            final Config config) {
+			final Warnings warnings) {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
@@ -113,13 +111,12 @@ public class ProjectResource extends Resource {
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
-        this.client = client;
         this.buildBackend = buildBackend;
 		this.gitClient = gitClient;
 		this.comments = comments;
 		this.commentMailer = commentMailer;
 		this.commits = commits;
-        this.config = config;
+		this.warnings = warnings;
 	}
 
 	@GET
@@ -143,8 +140,6 @@ public class ProjectResource extends Resource {
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
-		parameters.put("states", new CommitChecker(group, buildResults));
-		parameters.put("comments", new HasCommentsChecker());
 		parameters.put("repository", repository);
 
 		try {
@@ -153,6 +148,11 @@ public class ProjectResource extends Resource {
 			parameters.put("commits", commits);
 			parameters.put("branch", branch);
 			parameters.put("pagination", new Pagination(page, commits.getTotal()));
+
+			Collection<String> commitIds = getCommitIds(commits);
+			parameters.put("warnings", warnings.commitsWithWarningsFor(group, commitIds));
+			parameters.put("comments", comments.commentsFor(group, commitIds));
+			parameters.put("builds", buildResults.findBuildResults(group, commitIds));
 
 			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
 			if(pullRequest != null) {
@@ -163,6 +163,12 @@ public class ProjectResource extends Resource {
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
+	}
+
+	protected List<String> getCommitIds(CommitSubList commits) {
+		return commits.getCommits().stream()
+				.map(CommitModel::getCommit)
+				.collect(Collectors.toList());
 	}
 
 	@GET
@@ -204,7 +210,7 @@ public class ProjectResource extends Resource {
 
 		if(sourceCommitId != null) {
 			// In-line comment
-			CommitComment.Source source = new CommitComment.Source();
+			Source source = new Source();
 			source.setSourceCommit(commits.ensureExists(group, sourceCommitId));
 			source.setSourceFilePath(sourceFileName);
 			source.setSourceLineNumber(sourceLineNumber);
@@ -245,8 +251,14 @@ public class ProjectResource extends Resource {
 		parameters.put("user", currentUser);
 		parameters.put("group", group);
 		parameters.put("commit", commit);
-		parameters.put("states", new CommitChecker(group, buildResults));
 		parameters.put("repository", repository);
+
+		try {
+			parameters.put("buildResult", buildResults.find(group, commitId));
+		}
+		catch (EntityNotFoundException e) {
+			log.debug("No build result for commit {}", commitId);
+		}
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-commit-view.ftl", locales, parameters));
@@ -261,56 +273,13 @@ public class ProjectResource extends Resource {
                                   @PathParam("commitId") String commitId)
 			throws URISyntaxException, UnsupportedEncodingException, GitClientException {
 
-        BuildResult buildResult;
-
-        try {
-            buildResult = buildResults.find(group, commitId);
-
-            if(buildResult.getSuccess() == null) {
-                // There is a build queued
-                URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
-                return Response.seeOther(responseUri).build();
-            }
-            else {
-                buildResult.setSuccess(null);
-                buildResult.setLog(null);
-                buildResults.merge(buildResult);
-            }
-        }
-        catch (EntityNotFoundException e) {
-            buildResult = BuildResult.newBuildResult(group, commitId);
-            buildResults.persist(buildResult);
-        }
-
-        MavenBuildInstruction instruction = new MavenBuildInstruction();
-        instruction.setWithDisplay(true);
-        instruction.setPhases(new String[] { "package" });
-
-        Repositories repositories = client.repositories();
-		Repository repository = repositories.retrieve(group.getRepositoryName());
-
-        StringBuilder callbackBuilder = new StringBuilder();
-        callbackBuilder.append(config.getHttpUrl());
-        callbackBuilder.append("/hooks/build-result");
-        callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getName(), "UTF-8"));
-        callbackBuilder.append("&commit=" + URLEncoder.encode(commitId, "UTF-8"));
-
-        GitSource source = new GitSource();
-        source.setRepositoryUrl(repository.getUrl());
-        source.setCommitId(commitId);
-
-        BuildRequest buildRequest = new BuildRequest();
-        buildRequest.setCallbackUrl(callbackBuilder.toString());
-        buildRequest.setInstruction(instruction);
-        buildRequest.setSource(source);
-        buildRequest.setTimeout(group.getBuildTimeout());
-
-        buildBackend.offerBuild(buildRequest);
+		nl.tudelft.ewi.devhub.server.database.entities.Commit commit = commits.ensureExists(group, commitId);
+		buildBackend.rebuildCommit(commit);
         URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
         return Response.seeOther(responseUri).build();
     }
 
-    @GET
+	@GET
 	@Path("/commits/{commitId}/diff")
 	@Transactional
 	public Response showCommitChanges(@Context HttpServletRequest request,
@@ -329,9 +298,19 @@ public class ProjectResource extends Resource {
 		parameters.put("diffViewModel", diffBlameModel);
 		parameters.put("comments", comments.getCommentsFor(group, commitId));
 		parameters.put("commentChecker", commentBackend.getCommentChecker(Lists.newArrayList(commitId)));
-		parameters.put("states", new CommitChecker(group, buildResults));
 
-		List<Locale> locales = Collections.list(request.getLocales());
+		try {
+			parameters.put("buildResult", buildResults.find(group, commitId));
+		}
+		catch (EntityNotFoundException e) {
+			log.debug("No build result for commit {}", commitId);
+		}
+
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitId);
+		parameters.put("warnings", warnings.getWarningsFor(group, commitId));
+		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
+
+    		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-diff-view.ftl", locales, parameters));
 	}
 
@@ -379,7 +358,13 @@ public class ProjectResource extends Resource {
 		parameters.put("group", group);
 		parameters.put("repository", repository);
 		parameters.put("entries", entries);
-		parameters.put("states", new CommitChecker(group, buildResults));
+
+		try {
+			parameters.put("buildResult", buildResults.find(group, commitId));
+		}
+		catch (EntityNotFoundException e) {
+			log.debug("No build result for commit {}", commitId);
+		}
 		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-folder-view.ftl", locales, parameters));
@@ -430,36 +415,37 @@ public class ProjectResource extends Resource {
 
 		String[] contents = repository.showFile(commitId, path).split("\\r?\\n");
         BlameModel blame = commit.blame(path);
-        CommentBackend.CommentChecker commentChecker = commentBackend.getCommentChecker(Lists.newArrayList(commitId));
 
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("commit", commit);
         parameters.put("blame", blame);
-        parameters.put("comments", commentChecker);
 		parameters.put("path", path);
 		parameters.put("contents", contents);
 		parameters.put("highlight", Highlight.forFileName(path));
 		parameters.put("group", group);
 		parameters.put("repository", repository);
-		parameters.put("states", new CommitChecker(group, buildResults));
+
+		try {
+			parameters.put("buildResult", buildResults.find(group, commitId));
+		}
+		catch (EntityNotFoundException e) {
+			log.debug("No build result for commit {}", commitId);
+		}
+
+		Set<String> blameCommits = getCommitsForBlame(blame);
+        parameters.put("comments", commentBackend.getCommentChecker(blameCommits));
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, blameCommits);
+		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
 	}
 
-	@Data
-	public class HasCommentsChecker {
-
-		/**
-		 * Check how many comments there are for a commitId
-		 * @param commitId the commitId
-		 * @return the amount of commits
-		 */
-		public long amountOfCommits(String commitId) {
-			return comments.amountOfComments(group, commitId);
-		}
-
+	private Set<String> getCommitsForBlame(BlameModel blame) {
+		return blame.getBlames().stream()
+			.map(BlameModel.BlameBlock::getFromCommitId)
+			.collect(Collectors.toSet());
 	}
 	
 	@Data

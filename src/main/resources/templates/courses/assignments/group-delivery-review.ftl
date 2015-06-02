@@ -27,7 +27,7 @@
         <div class="col-md-10">
             <table class="table table-bordered">
                 <tr>
-                    <td>[@deliveryElement.render delivery states/]</td>
+                    <td>[@deliveryElement.render delivery builds/]</td>
                 </tr>
             </table>
 

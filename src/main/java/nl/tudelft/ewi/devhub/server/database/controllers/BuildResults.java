@@ -1,14 +1,18 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
-
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.QBuildResult;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import java.util.Collection;
+import java.util.Map;
+
+import static nl.tudelft.ewi.devhub.server.database.entities.QBuildResult.buildResult;
 
 public class BuildResults extends Controller<BuildResult> {
 
@@ -18,19 +22,37 @@ public class BuildResults extends Controller<BuildResult> {
 	}
 
 	@Transactional
+	public BuildResult find(Commit commit) {
+		return find(commit.getRepository(), commit.getCommitId());
+	}
+
+	@Transactional
 	public BuildResult find(Group group, String commitId) {
 		Preconditions.checkNotNull(group);
 		Preconditions.checkNotNull(commitId);
 		
-		BuildResult result = query().from(QBuildResult.buildResult)
-				.where(QBuildResult.buildResult.repository.groupId.eq(group.getGroupId()))
-				.where(QBuildResult.buildResult.commitId.equalsIgnoreCase(commitId))
-				.singleResult(QBuildResult.buildResult);
+		BuildResult result = query().from(buildResult)
+				.where(buildResult.repository.groupId.eq(group.getGroupId()))
+				.where(buildResult.commitId.equalsIgnoreCase(commitId))
+				.singleResult(buildResult);
 		
 		if (result == null) {
 			throw new EntityNotFoundException();
 		}
 		return result;
+	}
+
+	@Transactional
+	public Map<String, BuildResult> findBuildResults(Group group, Collection<String> commitIds) {
+		return query().from(buildResult)
+				.where(buildResult.repository.eq(group)
+						.and(buildResult.commitId.in(commitIds)))
+				.map(buildResult.commitId, buildResult);
+	}
+
+	@Transactional
+	public boolean exists(Commit commit) {
+		return exists(commit.getRepository(), commit.getCommitId());
 	}
 	
 	@Transactional

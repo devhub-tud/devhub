@@ -1,5 +1,30 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Queues;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.build.client.BuildServerBackend;
+import nl.tudelft.ewi.build.client.BuildServerBackendImpl;
+import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
+import nl.tudelft.ewi.devhub.server.Config;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.Repository;
+
+import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
+import javax.ws.rs.NotFoundException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -7,42 +32,32 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
-
-import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.build.client.BuildServerBackend;
-import nl.tudelft.ewi.build.client.BuildServerBackendImpl;
-import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
-import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
-import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Queues;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
-import com.google.inject.persist.UnitOfWork;
-
 /**
- * The {@link BuildServerClient} allows you to query and manipulate data from the build-server.
+ * The {@link BuildsBackend} allows you to query and manipulate data from the build-server.
  */
 @Slf4j
 public class BuildsBackend {
 
+	private final GitServerClient gitServerClient;
 	private final BuildServers buildServers;
 	private final Provider<BuildSubmitter> submitters;
 	private final ConcurrentLinkedQueue<BuildRequest> buildQueue;
 	private final ScheduledExecutorService executor;
 	private final AtomicBoolean running;
+	private final BuildResults buildResults;
+	private final Config config;
 
 	@Inject
-	BuildsBackend(BuildServers buildServers, Provider<BuildSubmitter> submitters) {
+	BuildsBackend(BuildServers buildServers, Provider<BuildSubmitter> submitters,
+				  BuildResults buildResults, GitServerClient gitServerClient, Config config) {
 		this.buildServers = buildServers;
 		this.submitters = submitters;
 		this.buildQueue = Queues.newConcurrentLinkedQueue();
 		this.executor = new ScheduledThreadPoolExecutor(1);
 		this.running = new AtomicBoolean(false);
+		this.buildResults = buildResults;
+		this.gitServerClient = gitServerClient;
+		this.config = config;
 	}
 	
 	public List<BuildServer> listActiveBuildServers() {
@@ -104,7 +119,71 @@ public class BuildsBackend {
 			}
 		}
 	}
-	
+
+	/**
+	 * Build a commit
+	 * @param commit
+	 */
+	@Transactional
+	public void buildCommit(final Commit commit) {
+		if (buildResults.exists(commit)) {
+			return;
+		}
+		createBuildRequest(commit);
+		buildResults.persist(BuildResult.newBuildResult(commit));
+	}
+
+	/**
+	 * Rebuild a commit
+	 * @param commit
+	 */
+	@Transactional
+	public void rebuildCommit(final Commit commit) {
+		BuildResult buildResult;
+
+		try {
+			buildResult = buildResults.find(commit);
+
+			if(buildResult.getSuccess() == null) {
+				// There is a build queued
+				throw new IllegalArgumentException("There already is a build queued for this commit");
+			}
+			else {
+				buildResult.setSuccess(null);
+				buildResult.setLog(null);
+				buildResults.merge(buildResult);
+			}
+		}
+		catch (EntityNotFoundException e) {
+			buildResult = BuildResult.newBuildResult(commit);
+			buildResults.persist(buildResult);
+		}
+		createBuildRequest(commit);
+	}
+
+	/**
+	 * Create the build request for a commit
+	 * @param commit commit to be build
+	 */
+	@SneakyThrows
+	protected void createBuildRequest(final Commit commit) {
+		Group group = commit.getRepository();
+		Repository repository = gitServerClient.repositories().retrieve(group.getRepositoryName());
+		BuildRequest buildRequest = group.getBuildInstruction().createBuildRequest(config, commit, repository);
+		log.info("Submitting a build for commit: {} of repository: {}", commit, group);
+		offerBuild(buildRequest);
+	}
+
+	@SneakyThrows
+	protected String getCallbackUrl(final Commit commit, final Group group, final String resource) {
+		StringBuilder callbackBuilder = new StringBuilder();
+		callbackBuilder.append(config.getHttpUrl());
+		callbackBuilder.append("/hooks/").append(resource);
+		callbackBuilder.append("?repository=" + URLEncoder.encode(group.getRepositoryName(), "UTF-8"));
+		callbackBuilder.append("&commit=" + URLEncoder.encode(commit.getCommitId(), "UTF-8"));
+		return callbackBuilder.toString();
+	}
+
 	public void shutdown() throws InterruptedException {
 		executor.shutdown();
 		executor.awaitTermination(1, TimeUnit.MINUTES);

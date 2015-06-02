@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -10,12 +11,13 @@ import com.google.inject.servlet.RequestScoped;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
-import nl.tudelft.ewi.devhub.server.database.controllers.*;
+import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.util.CommitChecker;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -29,7 +31,13 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.util.GenericType;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -37,10 +45,12 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -122,16 +132,21 @@ public class ProjectAssignmentsResource extends Resource {
         Assignment assignment = assignments.find(group.getCourse(), assignmentId);
         Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
 
+        List<Delivery> myDeliveries = deliveries.getDeliveries(assignment, group);
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
         parameters.put("group", group);
         parameters.put("course", group.getCourse());
         parameters.put("repository", repository);
         parameters.put("assignment", assignment);
-        parameters.put("myDeliveries", deliveries.getDeliveries(assignment, group));
+        parameters.put("myDeliveries", myDeliveries);
         parameters.put("canSubmit", !deliveries.lastDeliveryIsApprovedOrDisapproved(assignment, group));
-        parameters.put("states", new CommitChecker(group, buildResults));
         parameters.put("recentCommits", repository.retrieveBranch("master").retrieveCommits(0, 25).getCommits());
+
+        Collection<String> commitIds = myDeliveries.stream()
+                .map(Delivery::getCommitId)
+                .collect(Collectors.toSet());
+        parameters.put("builds", buildResults.findBuildResults(group, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-assignment-view.ftl", locales, parameters));
@@ -278,8 +293,10 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("delivery", delivery);
         parameters.put("assignment", delivery.getAssignment());
         parameters.put("deliveryStates", Delivery.State.values());
-        parameters.put("states", new CommitChecker(group, buildResults));
         parameters.put("repository", gitClient.repositories().retrieve(group.getRepositoryName()));
+
+        List<String> commitIds = Lists.newArrayList(delivery.getCommitId());
+        parameters.put("builds", buildResults.findBuildResults(group, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-delivery-review.ftl", locales, parameters));

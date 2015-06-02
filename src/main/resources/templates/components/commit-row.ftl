@@ -1,9 +1,9 @@
-[#macro render group states commitId href=""]
+[#macro render group buildResult commitId href=""]
 <tr>
-    [#if group?? && states?? && states?has_content && commitId??]
-        [#if states.hasStarted(commitId)]
-            [#if states.hasFinished(commitId)]
-                [#if states.hasSucceeded(commitId)]
+    [#if buildResult?? && commitId?? && commitId?has_content]
+        [#if buildResult?has_content]
+            [#if buildResult.hasFinished()]
+                [#if buildResult.hasSucceeded()]
                 <td class="commit succeeded" id="${commitId}">
                     <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
                         <span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>

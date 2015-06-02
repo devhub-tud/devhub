@@ -81,13 +81,22 @@
                 [#if repository?? && repository?has_content]
                     [#if commits?? && commits?has_content]
                         [#list commits.commits as commit]
-                            [@commitRow.render group states commit.commit "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff"]
-                                [#if comments?? && comments?has_content]
-                                    [#assign numComments = comments.amountOfCommits(commit.commit)]
-                                    [#if numComments > 0]
-                                        <span class="pull-right"><i class="glyphicon glyphicon-comment"></i> ${numComments}</span>
-                                    [/#if]
-                                [/#if]
+                            [#assign buildResult = builds[commit.commit]![]]
+                            [@commitRow.render group buildResult commit.commit "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff"]
+                                <span class="pull-right">
+                                  [#if comments??]
+                                      [#assign numComments = comments[commit.commit]!0]
+                                      [#if numComments > 0]
+                                            <div><i class="glyphicon glyphicon-comment"></i> ${numComments}</div>
+                                      [/#if]
+                                  [/#if]
+                                  [#if warnings??]
+                                      [#assign numWarnings = warnings[commit.commit]!0]
+                                      [#if numWarnings > 0]
+                                            <div class="text-warning"><i class="glyphicon glyphicon-warning-sign"></i> ${numWarnings}</div>
+                                      [/#if]
+                                  [/#if]
+                                </span>
                                 <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
                                 <div class="committer">${commit.getAuthor()}</div>
                                 <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>

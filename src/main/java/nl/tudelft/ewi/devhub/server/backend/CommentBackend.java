@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -13,6 +14,7 @@ import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 
 import javax.persistence.EntityManager;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,7 +79,7 @@ public class CommentBackend {
      * 		commits to look for
      * @return a CommitChecker
      */
-    public CommentChecker getCommentChecker(List<String> commitIds) {
+    public CommentChecker getCommentChecker(Collection<String> commitIds) {
         return new CommentChecker(commitIds);
     }
 
@@ -92,7 +94,7 @@ public class CommentBackend {
     	 */
         public final List<CommitComment> comments;
 
-        public CommentChecker(List<String> commitIds) {
+        public CommentChecker(Collection<String> commitIds) {
             comments = commentsDAO.getInlineCommentsFor(group, commitIds);
         }
 
@@ -111,16 +113,9 @@ public class CommentBackend {
                                                       final String sourcePath,
                                                       final Integer sourceLineNumber) {
             return comments.stream()
-            		.filter((comment) ->
-            		{
-		                CommitComment.Source source = comment.getSource();
-		                
-		                return source.getSourceCommit().getCommitId().equals(sourceCommitId)
-		                		&& source.getSourceFilePath().equals(sourcePath)
-		                		&& source.getSourceLineNumber().equals(sourceLineNumber);
-		            })
-		            .sorted()
-		            .collect(Collectors.toList());
+                .filter((comment) -> comment.getSource().equals(sourceCommitId, sourcePath, sourceLineNumber))
+                .sorted()
+                .collect(Collectors.toList());
         }
 
     }

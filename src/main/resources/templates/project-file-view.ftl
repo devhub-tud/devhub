@@ -1,6 +1,7 @@
 [#import "macros.ftl" as macros]
 [#import "components/comment.ftl" as commentElement]
 [#import "components/inline-comments.ftl" as inlineComments]
+[#import "components/warning-bullet.ftl" as warningBullet]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
@@ -8,7 +9,9 @@
 [@macros.renderCommitHeader i18n group commit i18n.translate("commit.view-files") /]
 			<div class="diff box">
 				<div class="header">
-					<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${path?url('UTF8')}" class="pull-right btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
+				  	<span class="pull-right hidden-xs buttons">
+						<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${path?url('UTF8')}" class="btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
+					</span>
 					<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
 				</div>
 			[#if contents?? && contents?has_content]
@@ -16,15 +19,21 @@
 					<table class="table diffs">
 						<tbody>
 				[#list contents as line]
-                    [#assign blameBlock = blame.getBlameBlock(line_index + 1)]
-                    [#assign sourceLineNumber = blameBlock.getFromLineNumber(line_index + 1)]
+					[#assign line_number = line_index + 1]
+                    [#assign blameBlock = blame.getBlameBlock(line_number)]
+                    [#assign sourceLineNumber = blameBlock.getFromLineNumber(line_number)]
                     [#assign commentsForThisLine = comments.getCommentsForLine(blameBlock.fromCommitId, blameBlock.fromFilePath, sourceLineNumber)]
 
                             <tr data-source-commit="${blameBlock.fromCommitId}"
                                 data-source-line-number="${sourceLineNumber}"
                                 data-source-file-name="${blameBlock.fromFilePath}"
 							  	data-link-commit="${blameBlock.fromCommitId}">
-                                <td class="ln">${line_index + 1}</td>
+                                <td class="ln">
+									[#if lineWarnings??]
+										[@warningBullet.renderBullet i18n lineWarnings blameBlock.fromCommitId blameBlock.fromFilePath sourceLineNumber 0 sourceLineNumber/]
+									[/#if]
+	                                <a href="#R${line_number}" id="R${line_number}">${line_number}</a>
+								</td>
                                 <td class="code"> <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a><pre>${line}</pre></td>
                             </tr>
 

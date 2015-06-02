@@ -4,9 +4,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
@@ -15,6 +12,7 @@ import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CommitPushWarningGenerator;
 import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator;
 import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsReport;
 import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator;
@@ -30,10 +28,12 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.SuccessiveBuildFailure;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
+import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
@@ -56,6 +56,7 @@ import javax.ws.rs.core.MediaType;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.net.URLDecoder.decode;
@@ -68,13 +69,6 @@ import static java.net.URLDecoder.decode;
 @Produces(MediaType.APPLICATION_JSON + Resource.UTF8_CHARSET)
 public class HooksResource extends Resource {
 
-	@Data
-	@NoArgsConstructor
-	@AllArgsConstructor
-	static class GitPush {
-		private String repository;
-	}
-
 	private final BuildsBackend buildBackend;
 	private final GitServerClient client;
 	private final BuildResults buildResults;
@@ -84,6 +78,7 @@ public class HooksResource extends Resource {
 	private final PullRequestBackend pullRequestBackend;
 	private final Commits commits;
 	private final Warnings warnings;
+	private final Set<CommitPushWarningGenerator> pushWarningGenerators;
 	private final PMDWarningGenerator pmdWarningGenerator;
 	private final CheckstyleWarningGenerator checkstyleWarningGenerator;
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
@@ -93,7 +88,8 @@ public class HooksResource extends Resource {
 	HooksResource(BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
 			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
 			Commits commits, Warnings warnings, PMDWarningGenerator pmdWarningGenerator, CheckstyleWarningGenerator checkstyleWarningGenerator,
-			FindBugsWarningGenerator findBugsWarningGenerator, SuccessiveBuildFailureGenerator successiveBuildFailureGenerator) {
+			FindBugsWarningGenerator findBugsWarningGenerator, SuccessiveBuildFailureGenerator successiveBuildFailureGenerator,
+			Set<CommitPushWarningGenerator> pushWarningGenerators) {
 
 		this.buildBackend = buildBackend;
 		this.client = client;
@@ -108,6 +104,7 @@ public class HooksResource extends Resource {
 		this.checkstyleWarningGenerator = checkstyleWarningGenerator;
 		this.findBugsWarningGenerator = findBugsWarningGenerator;
 		this.successiveBuildFailureGenerator = successiveBuildFailureGenerator;
+		this.pushWarningGenerators = pushWarningGenerators;
 	}
 
 	@POST
@@ -119,16 +116,53 @@ public class HooksResource extends Resource {
 		Repository repository = repositories.retrieve(push.getRepository());
 		Group group = groups.findByRepoName(push.getRepository());
 
-		repository.getBranches().stream()
+		Set<Commit> notBuildCommits = repository.getBranches().stream()
 			.map(BranchModel::getCommit)
 			.map(commitModel -> commits.ensureExists(group, commitModel.getCommit()))
-			.distinct()
 			.filter(commit -> !buildResults.exists(commit))
-			.forEach(buildBackend::buildCommit);
+			.collect(Collectors.toSet());
+
+		notBuildCommits.forEach(buildBackend::buildCommit);
 
 		repository.getBranches().stream()
 			.flatMap(branchModel -> findOpenPullRequests(group, branchModel))
 			.forEach(pullRequest -> updatePullRequest(repository, pullRequest));
+
+		notBuildCommits.forEach(commit -> triggerWarnings(commit, push));
+	}
+
+	@POST
+	@Transactional
+	@RequireAuthenticatedBuildServer
+	@Path("trigger-warning-generation")
+	public void triggerWarnings(@QueryParam("repository") @NotEmpty String repository,
+								@QueryParam("commit") @NotEmpty String commitId) {
+
+		Group group = groups.findByRepoName(repository);
+		Commit commit = commits.ensureExists(group, commitId);
+		GitPush gitPush = new GitPush();
+		gitPush.setRepository(repository);
+		triggerWarnings(commit, gitPush);
+	}
+
+	protected void triggerWarnings(Commit commit, GitPush gitPush) {
+		try {
+			Group group = commit.getRepository();
+
+			Set<? extends CommitWarning> pushWarnings = pushWarningGenerators.stream()
+				.flatMap(generator -> {
+					Set<CommitWarning> commitWarningList = generator.generateWarnings(commit, gitPush);
+					return commitWarningList.stream();
+				})
+				.collect(Collectors.toSet());
+
+			Set<? extends CommitWarning> persistedWarnings = warnings.persist(group, pushWarnings);
+			log.info("Persisted {} of {} push warnings for {}", persistedWarnings.size(),
+					pushWarnings.size(), group);
+		}
+		catch (Exception e) {
+			log.warn("Failed to generate warnings for {}", e, commit);
+		}
 	}
 
 	@SneakyThrows

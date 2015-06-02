@@ -24,6 +24,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
+import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.devhub.server.web.models.PullCloseResponse;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -340,7 +341,7 @@ public class ProjectPullResource extends Resource {
             // Currently the git server fails to correctly trigger the push hook
             // Therefore, we invoke the githook manually
             // See: https://github.com/devhub-tud/devhub/issues/140
-            hooksResource.onGitPush(request, new HooksResource.GitPush(group.getRepositoryName()));
+            hooksResource.onGitPush(request, new GitPush(group.getRepositoryName()));
         }
 
         return response;

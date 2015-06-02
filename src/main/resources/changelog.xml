@@ -495,11 +495,24 @@
 			baseTableName="groups" baseColumnNames="build_instruction"
 			referencedTableName="build_instructions" referencedColumnNames="id" />
 	</changeSet>
-	
-	<changeSet id="ignored-file-warning" author="LiamClark">
+
+	<changeSet id="course_properties" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="course_properties">
+			<column name="course_id" type="bigint">
+				<constraints nullable="false"/>
+			</column>
+			<column name="property_key" type="varchar(40)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="property_value" type="varchar(40)"></column>
+		</createTable>
+
+		<addPrimaryKey tableName="course_properties" columnNames="course_id, property_key"></addPrimaryKey>
+
 		<addColumn tableName="group_warning">
 			<column name="file_name" type="varchar(50)"></column>
 		</addColumn>
+
 	</changeSet>
 
 </databaseChangeLog>

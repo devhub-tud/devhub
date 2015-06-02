@@ -31,7 +31,7 @@ public class CommitComments extends Controller<CommitComment> {
     @Transactional
     public List<CommitComment> getCommentsFor(Group group, String... commitIds) {
         return query().from(commitComment)
-                .where(commitComment.source.isNull()
+                .where(commitComment.source.sourceFilePath.isNull()
                         .and(commitComment.commit.repository.eq(group)
                                 .and(commitComment.commit.commitId.in(commitIds))))
             .list(commitComment);
@@ -46,7 +46,7 @@ public class CommitComments extends Controller<CommitComment> {
     @Transactional
     public List<CommitComment> getCommentsFor(Group group, List<String> commitIds) {
         return query().from(commitComment)
-                .where(commitComment.source.isNull()
+                .where(commitComment.source.sourceFilePath.isNull()
                         .and(commitComment.commit.repository.eq(group)
                                 .and(commitComment.commit.commitId.in(commitIds))))
                 .list(commitComment);
@@ -61,7 +61,7 @@ public class CommitComments extends Controller<CommitComment> {
     @Transactional
     public List<CommitComment> getInlineCommentsFor(Group group, Collection<String> commitIds) {
         return query().from(commitComment)
-            .where(commitComment.source.isNotNull()
+            .where(commitComment.source.sourceFilePath.isNotNull()
                     .and(commitComment.commit.repository.eq(group)
                             .and(commitComment.commit.commitId.in(commitIds))))
             .list(commitComment);

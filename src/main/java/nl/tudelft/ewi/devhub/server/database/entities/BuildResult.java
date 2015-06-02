@@ -73,4 +73,12 @@ public class BuildResult {
 		return Boolean.TRUE.equals(getSuccess());
 	}
 
+	/**
+	 * Check if the build has failed
+	 * @return true if the build has failed
+	 */
+	public boolean hasFailed() {
+		return Boolean.FALSE.equals(getSuccess());
+	}
+
 }

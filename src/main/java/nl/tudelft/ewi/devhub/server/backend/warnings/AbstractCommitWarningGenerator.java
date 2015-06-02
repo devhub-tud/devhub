@@ -1,10 +1,9 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
 import com.google.inject.Inject;
+import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
-import nl.tudelft.ewi.devhub.server.web.models.GitPush;
-import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
 
@@ -20,13 +19,16 @@ public abstract class AbstractCommitWarningGenerator<T extends CommitWarning, A>
         this.gitServerClient = gitServerClient;
     }
 
-    protected nl.tudelft.ewi.git.client.Commit getGitCommit(Commit commit, GitPush attachment) throws GitClientException {
+    @SneakyThrows
+    protected nl.tudelft.ewi.git.client.Commit getGitCommit(Commit commit) {
         return gitServerClient.repositories()
-                .retrieve(attachment.getRepository())
-                .retrieveCommit(commit.getCommitId());
+            .retrieve(commit.getRepository().getRepositoryName())
+            .retrieveCommit(commit.getCommitId());
     }
 
-    protected Repository getRepository(Commit commit) throws GitClientException {
-        return  gitServerClient.repositories().retrieve(commit.getRepository().getRepositoryName());
+    @SneakyThrows
+    protected Repository getRepository(Commit commit) {
+        return  gitServerClient.repositories()
+            .retrieve(commit.getRepository().getRepositoryName());
     }
 }

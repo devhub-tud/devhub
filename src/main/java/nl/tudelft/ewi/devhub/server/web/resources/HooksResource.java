@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.web.resources;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
@@ -117,36 +118,62 @@ public class HooksResource extends Resource {
 		Repository repository = repositories.retrieve(push.getRepository());
 		Group group = groups.findByRepoName(push.getRepository());
 
-		Set<Commit> notBuildCommits = repository.getBranches().stream()
+		Set<Commit> commitsToBeBuilt = repository.getBranches().stream()
 			.map(BranchModel::getCommit)
-			.map(commitModel -> commits.ensureExists(group, commitModel.getCommit()))
-			.filter(commit -> !buildResults.exists(commit))
+			.flatMap(commitModel -> findCommitsToBeBuilt(group, repository, commitModel.getCommit()).stream())
 			.collect(Collectors.toSet());
 
-		notBuildCommits.forEach(buildBackend::buildCommit);
+		commitsToBeBuilt.stream()
+			.forEach(buildBackend::buildCommit);
 
 		repository.getBranches().stream()
 			.flatMap(branchModel -> findOpenPullRequests(group, branchModel))
 			.forEach(pullRequest -> updatePullRequest(repository, pullRequest));
 
-		notBuildCommits.forEach(commit -> triggerWarnings(group, commit, push));
+		commitsToBeBuilt.forEach(commit -> triggerWarnings(group, commit, push));
+	}
+
+	protected Set<Commit> findCommitsToBeBuilt(final Group group, final Repository repository,
+											   final String commitId) {
+		Set<Commit> commits = Sets.newHashSet();
+		nl.tudelft.ewi.git.client.Commit commitModel = retrieveCommit(repository, commitId);
+		findCommitsToBeBuilt(group, repository, commitModel, commits);
+		return commits;
+	}
+
+	protected void findCommitsToBeBuilt(final Group group, final Repository repository,
+										final nl.tudelft.ewi.git.client.Commit commitModel,
+										final Set<Commit> results) {
+		final Commit commit = commits.ensureExists(group, commitModel.getCommit());
+
+		if(!buildResults.exists(commit)) {
+			results.add(commit);
+			Stream.of(commitModel.getParents())
+				.map(commitId -> retrieveCommit(repository, commitId))
+				.forEach(a -> findCommitsToBeBuilt(group, repository, a, results));
+		}
+	}
+
+	@SneakyThrows
+	protected nl.tudelft.ewi.git.client.Commit retrieveCommit(Repository repository, String commitId) {
+		return repository.retrieveCommit(commitId);
 	}
 
 	@POST
 	@Transactional
 	@RequireAuthenticatedBuildServer
 	@Path("trigger-warning-generation")
-	public void triggerWarnings(@QueryParam("repository") @NotEmpty String repository,
-								@QueryParam("commit") @NotEmpty String commitId) {
+	public void triggerWarnings(@QueryParam("repository") @NotEmpty String repositoryName,
+								@QueryParam("commit") @NotEmpty String commitId) throws GitClientException {
 
-		Group group = groups.findByRepoName(repository);
+		Group group = groups.findByRepoName(repositoryName);
 		Commit commit = commits.ensureExists(group, commitId);
 
 		Preconditions.checkNotNull(group);
 		Preconditions.checkNotNull(commit);
 
 		GitPush gitPush = new GitPush();
-		gitPush.setRepository(repository);
+		gitPush.setRepository(repositoryName);
 		triggerWarnings(group, commit, gitPush);
 	}
 

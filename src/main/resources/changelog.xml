@@ -522,5 +522,14 @@
 		</addColumn>
 
 	</changeSet>
+	
+	<changeSet id="date_for_commits" author="Jan-Willem Gmelig Meyling">
+		<addColumn tableName="commit">
+			<column name="author" type="varchar(255)"></column>
+			<column name="committed" type="datetime"/>
+			<column name="pushed" type="datetime"/>
+			<column name="merge" type="boolean" />
+		</addColumn>
+	</changeSet>
 
 </databaseChangeLog>

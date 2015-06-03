@@ -41,6 +41,11 @@ public abstract class ProjectSidebarView extends AuthenticatedView {
 		return new AssignmentsView(getDriver());
 	}
 
+	public ContributorsView toContributorsView() {
+		getDriver().findElement(By.linkText("Contributors")).click();
+		return new ContributorsView(getDriver());
+	}
+
 	public String getGroupName() {
 		return getBreadcrumb().findElement(By.xpath("./li[3]")).getText();
 	}

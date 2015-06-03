@@ -51,11 +51,11 @@ public class CoursesView extends AuthenticatedView {
 	/**
 	 * @return A {@link List} of all {@link Project}s in the "Assisting projects" section.
 	 */
-	public List<Project> listAssistingProjects() {
+	public List<CourseOverview> listAssistingCourses() {
 		invariant();
 		WebElement assistingProjectsHeader = getDriver().findElement(ASSISTING_PROJECTS_HEADER);
 		WebElement table = Dom.nextSibling(assistingProjectsHeader, "table");
-		return listProjectsInTable(table);
+		return listProjectOverviewsInTable(table);
 	}
 
 	private List<Project> listProjectsInTable(WebElement table) {
@@ -74,6 +74,23 @@ public class CoursesView extends AuthenticatedView {
 		}
 		return projects;
 	}
+	
+	private List<CourseOverview> listProjectOverviewsInTable(WebElement table) {
+		List<WebElement> entries = table.findElements(By.tagName("td"));
+		if (entries.size() == 1) {
+			if (!Dom.isVisible(entries.get(0), By.tagName("a"))) {
+				return Lists.newArrayList();
+			}
+		}
+
+		List<CourseOverview> projects = Lists.newArrayList();
+		for (WebElement entry : entries) {
+			WebElement projectLink = entry.findElement(By.tagName("a"));
+			CourseOverview project = new CourseOverview(projectLink.getText(), projectLink);
+			projects.add(project);
+		}
+		return projects;
+	}
 
 	@Data
 	public class Project {
@@ -88,4 +105,17 @@ public class CoursesView extends AuthenticatedView {
 		}
 	}
 
+	@Data
+	public class CourseOverview {
+		private final String namel;
+		
+		@Getter(AccessLevel.NONE)
+		private final WebElement anchor;
+		
+		public CourseView click() {
+			anchor.click();
+			return new CourseView(getDriver());
+		}
+	}
+	
 }

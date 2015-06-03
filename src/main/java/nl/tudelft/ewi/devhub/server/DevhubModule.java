@@ -27,6 +27,7 @@ import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.GitServerClientImpl;
+import nl.tudelft.ewi.git.client.Repositories;
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.reflections.Reflections;
 
@@ -89,6 +90,11 @@ public class DevhubModule extends ServletModule {
 			log.info("Registering resource {}", clasz);
 			bind(clasz);
 		}
+	}
+
+	@Provides
+	public Repositories provideRepositories(final GitServerClient gitServerClient) {
+		return gitServerClient.repositories();
 	}
 	
 	@Provides

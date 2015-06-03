@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -13,7 +14,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Ordering;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -24,7 +31,7 @@ import lombok.ToString;
 @ToString(exclude="comments")
 @IdClass(Commit.CommitId.class)
 @EqualsAndHashCode(of={"repository", "commitId"})
-public class Commit {
+public class Commit implements Comparable<Commit> {
 
 	@Data
 	@EqualsAndHashCode
@@ -41,8 +48,29 @@ public class Commit {
 	@Id
 	@Column(name = "commit_id")
 	private String commitId;
+
+	@Size(max = 255)
+	@Column(name = "author", length = 255)
+	private String author;
+
+	@Column(name = "committed")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date commitTime;
+
+	@Column(name = "pushed")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date pushTime;
+
+	@Column(name = "merge")
+	private Boolean merge;
 	
 	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade=CascadeType.ALL)
 	private List<CommitComment> comments;
-	
+
+	@Override
+	public int compareTo(Commit o) {
+		return ComparisonChain.start()
+			.compare(getCommitTime(), o.getCommitTime(), Ordering.natural().nullsLast())
+			.result();
+	}
 }

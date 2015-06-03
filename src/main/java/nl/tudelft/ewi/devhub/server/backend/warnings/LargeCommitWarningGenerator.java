@@ -39,7 +39,7 @@ implements CommitPushWarningGenerator<LargeCommitWarning> {
         log.debug("Start generating warnings for {} in {}", commit, this);
         List<DiffFile> diffs = getGitCommit(commit).diff().getDiffs();
 
-        if(tooManyFiles(diffs, commit) || tooManyLineChanges(diffs, commit)) {
+        if(!commit.getMerge() && (tooManyFiles(diffs, commit) || tooManyLineChanges(diffs, commit))) {
             LargeCommitWarning warning = new LargeCommitWarning();
             warning.setCommit(commit);
             log.debug("Finished generating warnings for {} in {}", commit, this);

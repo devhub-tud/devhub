@@ -1,6 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
@@ -9,11 +8,10 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IgnoredFileWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
-import nl.tudelft.ewi.git.models.EntryType;
+import nl.tudelft.ewi.git.models.DiffModel;
 
-import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -24,12 +22,10 @@ import java.util.stream.Stream;
 public class IgnoredFileWarningGenerator extends AbstractCommitWarningGenerator<IgnoredFileWarning, GitPush>
 implements CommitPushWarningGenerator<IgnoredFileWarning> {
 
-    private static final String[] extensions = {".iml",".class", ".bin", ".doc", ".docx", ".jar"};
-    private static final String[] folders = { ".idea/", ".metadata/", ".settings/",
-            ".project/", ".classpath/", "target/", "bin/", ".metadata/"};
+    private static final String PROPERTY_KEY = "ignored.file-extensions";
+    private static final String[] DEFAULT_EXTENSIONS = {".doc", ".docx", ".jar", ".xls", ".xlsx"};
 
-    private Repository repository;
-    private Commit commit;
+    private String[] ext;
 
     @Inject
     public IgnoredFileWarningGenerator(GitServerClient gitServerClient) {
@@ -40,46 +36,26 @@ implements CommitPushWarningGenerator<IgnoredFileWarning> {
     @SneakyThrows
     public Set<IgnoredFileWarning> generateWarnings(Commit commit, GitPush attachment) {
         log.debug("Start generating warnings for {} in {}", commit, this);
-        this.repository = getRepository(commit);
-        this.commit = commit;
-        Set<IgnoredFileWarning> warnings = Sets.newHashSet();
-        walkCommitStructure("",commit.getCommitId(),warnings);
+        this.ext = getProperty(commit, PROPERTY_KEY, DEFAULT_EXTENSIONS);
+
+        final Set<IgnoredFileWarning> warnings = getGitCommit(commit).diff().getDiffs().stream()
+            .filter(diffFile -> !diffFile.isDeleted())
+            .map(DiffModel.DiffFile::getNewPath)
+            .filter(this::fileViolation)
+            .map(path -> {
+                IgnoredFileWarning warning = new IgnoredFileWarning();
+                warning.setCommit(commit);
+                warning.setFileName(path);
+                return warning;
+            })
+            .collect(Collectors.toSet());
+
         log.debug("Finished generating warnings for {} in {}", commit, this);
         return warnings;
     }
 
-    @SneakyThrows
-    public void walkCommitStructure(String path, String commitId, Set<IgnoredFileWarning> warnings){
-
-        if(folderViolation(path)){
-            IgnoredFileWarning warning = new IgnoredFileWarning();
-            warning.setFileName(path);
-            warnings.add(warning);
-        }
-
-        Map<String,EntryType> directory = repository.listDirectoryEntries(commitId, path);
-        directory.entrySet().stream()
-                .filter(entry -> entry.getValue().equals(EntryType.FOLDER))
-                .forEach(entry-> walkCommitStructure(path+entry.getKey(),commitId, warnings));
-
-        directory.entrySet().stream()
-                .filter(entry -> !entry.getValue().equals(EntryType.FOLDER))
-                .map(Map.Entry::getKey)
-                .filter(IgnoredFileWarningGenerator::fileViolation)
-                .map(file -> {
-                    IgnoredFileWarning warning = new IgnoredFileWarning();
-                    warning.setCommit(commit);
-                    warning.setFileName(file);
-                    return warning;
-                })
-                .forEach(warnings::add);
+    private boolean fileViolation(final String path){
+       return Stream.of(ext).filter(path::endsWith).findAny().isPresent();
     }
 
-    private static boolean fileViolation(String path){
-       return Stream.of(extensions).filter(path::endsWith).findAny().isPresent();
-    }
-
-    private static boolean folderViolation(String path){
-        return Stream.of(folders).filter(path::endsWith).findAny().isPresent();
-    }
 }

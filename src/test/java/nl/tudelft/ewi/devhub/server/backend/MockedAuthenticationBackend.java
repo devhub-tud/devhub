@@ -4,6 +4,8 @@ import javax.persistence.EntityNotFoundException;
 
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -26,6 +28,9 @@ public class MockedAuthenticationBackend implements AuthenticationBackend {
 	
 	@Override
 	public boolean authenticate(String netId, String password) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(netId));
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(password));
+
 		if (usersMap.containsKey(netId)) {
 			String storedPassword = usersMap.get(netId);
 			return storedPassword.equals(password);

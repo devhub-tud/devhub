@@ -2,15 +2,18 @@ package nl.tudelft.ewi.devhub.server.backend.warnings;
 
 import com.google.inject.persist.Transactional;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
 
+import javax.ws.rs.NotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +32,7 @@ import static java.util.stream.Collectors.toSet;
  * @param <T> The type of warning that will be generated from the violation
  * @author Jan-Willem Gmelig Meyling
  */
+@Slf4j
 public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarning> implements CommitWarningGenerator<T, A> {
 
     protected final GitServerClient gitServerClient;
@@ -40,21 +44,109 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
     }
 
     @Override
+    @Transactional
     public Set<T> generateWarnings(final Commit commit, final A attachment) {
-        final Group group = commit.getRepository();
-        final Repository repository = retrieveRepository(group);
+        final ScopedWarningGenerator scopedWarningGenerator = new ScopedWarningGenerator(commit);
+        return getFiles(attachment)
+            .flatMap(scopedWarningGenerator::mapWarningsForFile)
+            .collect(toSet());
+    }
 
-        return getFiles(attachment).flatMap(v -> {
-            String filePath = filePathFor(v, commit);
-            BlameModel blameModel = retrieveBlameModel(repository, commit.getCommitId(), filePath);
-            return getViolations(v).map(violation -> {
+    /**
+     * The {@code ScopedWarningGenerator} is used by the
+     * {@link AbstractLineWarningGenerator#generateWarnings(Commit, Object)} method
+     * to produce warnings. It adds scope to the used lambda expressions.
+     */
+    class ScopedWarningGenerator {
+
+        private final Commit commit;
+        private final Group group;
+        private final Repository repository;
+
+        /**
+         * The {@code ScopedWarningGenerator} is used by the
+         * {@link AbstractLineWarningGenerator#generateWarnings(Commit, Object)} method
+         * to produce warnings. It adds scope to the used lambda expressions.
+         */
+        public ScopedWarningGenerator(Commit commit) {
+            this.commit = commit;
+            this.group = commit.getRepository();
+            this.repository = retrieveRepository(group);
+        }
+
+        /**
+         * Map a file representation to a {@code Stream} of {@link Warning Warnings}.
+         *
+         * @param file File representation
+         * @return A {@code Stream} of generated warnings
+         */
+        public Stream<T> mapWarningsForFile(final F file) {
+            BlameModel blameModel;
+
+            try {
+                String filePath = filePathFor(file, commit);
+                blameModel = retrieveBlameModel(repository, commit.getCommitId(), filePath);
+            }
+            catch (NotFoundException e) {
+                log.warn(e.getMessage());
+                return Stream.empty();
+            }
+
+            BlameSourceScope blameSourceGenerator = new BlameSourceScope(blameModel);
+            return getViolations(file).map(blameSourceGenerator::map);
+        }
+
+        /**
+         * For warnings to be generated, a {@link BlameModel} should be fetched from
+         * the git server. The {@code BlameSourceScope} adds the {@code BlameModel} to
+         * the scope for the used lambda expressions.
+         */
+        protected class BlameSourceScope {
+
+            private final BlameModel blameModel;
+
+            /**
+             * For warnings to be generated, a {@link BlameModel} should be fetched from
+             * the git server. The {@code BlameSourceScope} adds the {@code BlameModel} to
+             * the scope for the used lambda expressions.
+             */
+            public BlameSourceScope(BlameModel blameModel) {
+                this.blameModel = blameModel;
+            }
+
+            /**
+             * Convert a violation into a generated warning.
+             *
+             * @param violation Violation to be converted
+             * @return Converted violation
+             */
+            public T map(V violation) {
                 T warning = mapToWarning(violation);
-                Source source = blameSource(violation, group, blameModel);
+                Source source = getSource(violation);
                 warning.setSource(source);
                 return warning;
-            });
-        })
-        .collect(toSet());
+            }
+
+            /**
+             * Set the correct source for the warning.
+             *
+             * @param violation the violation that causes the warning
+             * @return {@link Source} for the current {@code Warning}
+             */
+            protected Source getSource(final V violation) {
+                int sourceLineNumber = getLineNumber(violation);
+
+                BlameModel.BlameBlock block = blameModel.getBlameBlock(sourceLineNumber);
+                String sourceCommitId = block.getFromCommitId();
+                Commit sourceCommit = commits.ensureExists(group, sourceCommitId);
+
+                Source source = new Source();
+                source.setSourceCommit(sourceCommit);
+                source.setSourceFilePath(block.getFromFilePath());
+                source.setSourceLineNumber(block.getFromLineNumber(sourceLineNumber));
+                return source;
+            }
+        }
     }
 
     /**
@@ -86,28 +178,6 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
     @SneakyThrows
     protected static BlameModel retrieveBlameModel(final Repository repository, final String commitId, final String path) {
         return repository.retrieveCommit(commitId).blame(path);
-    }
-
-    /**
-     * Set the correct source for the warning
-     * @param violation the violation that causes the warning
-     * @param group the {@link Group} that owns the repository
-     * @param blameModel {@link BlameModel} for the current file
-     * @return {@link Source} for the current {@code Warning}
-     */
-    @Transactional
-    private final Source blameSource(final V violation, final Group group, final BlameModel blameModel) {
-        int sourceLineNumber = getLineNumber(violation);
-
-        BlameModel.BlameBlock block = blameModel.getBlameBlock(sourceLineNumber);
-        String sourceCommitId = block.getFromCommitId();
-        Commit sourceCommit = commits.ensureExists(group, sourceCommitId);
-
-        Source source = new Source();
-        source.setSourceCommit(sourceCommit);
-        source.setSourceFilePath(block.getFromFilePath());
-        source.setSourceLineNumber(block.getFromLineNumber(sourceLineNumber));
-        return source;
     }
 
     /**

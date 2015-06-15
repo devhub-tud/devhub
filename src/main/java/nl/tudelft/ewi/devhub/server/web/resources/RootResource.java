@@ -103,10 +103,11 @@ public class RootResource {
 			}
 		}
 		catch (IllegalArgumentException e) {
-			log.debug(e.getMessage(), e);
+			log.debug(String.format("Failed to login %s with %s", netId, password));
 		}
-		
+
 		return Response.seeOther(new URI("/login?error=error.invalid-credentials")).build();
+
 	}
 	
 }

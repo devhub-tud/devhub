@@ -44,7 +44,8 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
         private String sourcePath;
 
         @JacksonXmlProperty(localName = "start", isAttribute = true)
-        private int start;
+        private Integer start;
+
     }
 
     @Data
@@ -125,7 +126,9 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
 
     @Override
     protected Stream<BugInstance> getViolations(final FindBugsFile file) {
-        return emptyIfNull(file.getWarnings()).stream();
+        return emptyIfNull(file.getWarnings()).stream()
+            // Apparently some sources do not have line numbers attached to it
+            .filter(bugInstance -> bugInstance.getSourceLine().getStart() != null);
     }
 
     @Override

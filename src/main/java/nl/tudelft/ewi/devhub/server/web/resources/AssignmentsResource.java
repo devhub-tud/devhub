@@ -229,7 +229,7 @@ public class AssignmentsResource extends Resource {
             throw new UnauthorizedException();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("Assignment;NetId;StudentNo;Name;State;Grade;").append(CSV_ROW_SEPARATOR);
+        sb.append("Assignment;NetId;StudentNo;Name;Group;State;Grade;").append(CSV_ROW_SEPARATOR);
 
         deliveriesDAO.getLastDeliveries(assignment).forEach(delivery -> {
             User user = delivery.getCreatedUser();
@@ -239,6 +239,7 @@ public class AssignmentsResource extends Resource {
             sb.append(user.getNetId()).append(CSV_FIELD_SEPARATOR);
             sb.append(user.getStudentNumber()).append(CSV_FIELD_SEPARATOR);
             sb.append(user.getName()).append(CSV_FIELD_SEPARATOR);
+            sb.append(delivery.getGroup().getGroupName()).append(CSV_FIELD_SEPARATOR);
 
             if(review != null) {
                 sb.append(review.getState()).append(CSV_FIELD_SEPARATOR);
@@ -253,7 +254,6 @@ public class AssignmentsResource extends Resource {
 
         return sb.toString();
     }
-
 
     /**
      * An edit page page for an assignment

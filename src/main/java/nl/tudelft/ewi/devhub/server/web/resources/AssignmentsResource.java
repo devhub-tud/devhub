@@ -232,24 +232,25 @@ public class AssignmentsResource extends Resource {
         sb.append("Assignment;NetId;StudentNo;Name;Group;State;Grade;").append(CSV_ROW_SEPARATOR);
 
         deliveriesDAO.getLastDeliveries(assignment).forEach(delivery -> {
-            User user = delivery.getCreatedUser();
             Delivery.Review review = delivery.getReview();
 
-            sb.append(assignment.getName()).append(CSV_FIELD_SEPARATOR);
-            sb.append(user.getNetId()).append(CSV_FIELD_SEPARATOR);
-            sb.append(user.getStudentNumber()).append(CSV_FIELD_SEPARATOR);
-            sb.append(user.getName()).append(CSV_FIELD_SEPARATOR);
-            sb.append(delivery.getGroup().getGroupName()).append(CSV_FIELD_SEPARATOR);
+            delivery.getGroup().getMembers().forEach(user -> {
+                sb.append(assignment.getName()).append(CSV_FIELD_SEPARATOR);
+                sb.append(user.getNetId()).append(CSV_FIELD_SEPARATOR);
+                sb.append(user.getStudentNumber()).append(CSV_FIELD_SEPARATOR);
+                sb.append(user.getName()).append(CSV_FIELD_SEPARATOR);
+                sb.append(delivery.getGroup().getGroupName()).append(CSV_FIELD_SEPARATOR);
 
-            if(review != null) {
-                sb.append(review.getState()).append(CSV_FIELD_SEPARATOR);
-                sb.append(review.getGrade()).append(CSV_FIELD_SEPARATOR);
-            }
-            else {
-                sb.append("SUBMITTED;").append(CSV_FIELD_SEPARATOR);
-            }
+                if(review != null) {
+                    sb.append(review.getState()).append(CSV_FIELD_SEPARATOR);
+                    sb.append(review.getGrade()).append(CSV_FIELD_SEPARATOR);
+                }
+                else {
+                    sb.append("SUBMITTED;").append(CSV_FIELD_SEPARATOR);
+                }
 
-            sb.append(CSV_ROW_SEPARATOR);
+                sb.append(CSV_ROW_SEPARATOR);
+            });
         });
 
         return sb.toString();

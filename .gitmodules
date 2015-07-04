@@ -1,0 +1,12 @@
+[submodule "src/main/resources/static/vendor/jquery"]
+	path = src/main/resources/static/vendor/jquery
+	url = https://github.com/components/jquery.git
+[submodule "src/main/resources/static/vendor/bootstrap"]
+	path = src/main/resources/static/vendor/bootstrap
+	url = https://github.com/components/bootstrap.git
+[submodule "src/main/resources/static/vendor/octicons"]
+	path = src/main/resources/static/vendor/octicons
+	url = https://github.com/github/octicons.git
+[submodule "src/main/resources/static/vendor/highlightjs"]
+	path = src/main/resources/static/vendor/highlightjs
+	url = https://github.com/components/highlightjs.git

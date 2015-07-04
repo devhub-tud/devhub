@@ -1,5 +1,10 @@
+@import "../vendor/bootstrap/less/bootstrap.less";
+@import "../vendor/octicons/octicons/octicons.less";
 
-@import "bootstrap/bootstrap.less";
+// Bootstrap requires a path ending with '/'
+@icon-font-path: "../vendor/bootstrap/fonts/";
+// Octicons requires a path ending without '/'
+@octicons-font-path: "../vendor/octicons/octicons";
 
 @font-face {
 	font-weight: 300;
@@ -104,6 +109,7 @@ h1 {
 	
 	
 	.logo-text {
+	  	height: 74px;
 		font-size: 22px;
 		margin-bottom: 0px;
 		line-height: 40px;
@@ -137,6 +143,7 @@ h1 {
 .logo-image {
 	width: 44px;
 	height: 44px;
+  	display: inline !important;
 }
 
 .icon {

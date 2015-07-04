@@ -58,7 +58,7 @@
 [@macros.renderScripts /]
 
 [#if highlight?? && highlight.isHighlight() ]
-	<script src="/static/js/highlight.pack.js"></script>
+	<script src="/static/vendor/highlightjs/highlight.pack.js"></script>
 [/#if]
 	<script>
 		$(document).ready(function() {

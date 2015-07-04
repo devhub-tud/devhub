@@ -9,7 +9,6 @@
 [/#if]
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="/static/css/devhub.css">
-		<link rel="stylesheet" href="/static/octicons/octicons.css">
 
 		<!--[if lt IE 9]>
 			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -179,8 +178,8 @@
 [/#macro]
 
 [#macro renderScripts]
-		<script src="/static/js/jquery.min.js"></script>
-		<script src="/static/js/bootstrap.min.js"></script>
+		<script src="/static/vendor/jquery/jquery.min.js"></script>
+		<script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/static/js/validation.js"></script>
 		<script src="/static/js/main.js"></script>
 		[#nested/]

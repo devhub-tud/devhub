@@ -11,7 +11,7 @@ To succesfully run and test Devhub, a couple of steps should be followed to setu
 1. Set `target/metamodel` as *source* directory in the IDE.
 1. Run `mvn compile`, this compiles all application sources.
 1. Install [Project Lombok](https://projectlombok.org/).
-	* For **Eclilpse** follow these steps:
+	* For **Eclipse** follow these steps:
 		1. Close Eclipse.
 		1. Run the following JAR: `.m2/repository/org/projectlombok/lombok/LATEST_LOMBOK_VERSION/lombok-LATEST_LOMBOK_VERSION.jar`. 
 		1. The installation will provide the required steps to attach Lombok to Eclipse.

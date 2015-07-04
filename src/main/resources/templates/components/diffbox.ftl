@@ -50,16 +50,16 @@
             var unfolder = $(this).parent().find(".unfolder");
 
             body.addClass("folded");
-            $(this).css("display", "none").blur();
-            unfolder.css("display", "block");
+            $(this).hide().blur();
+            unfolder.show();
         });
         $(".unfolder").click(function (e) {
             var body = $(this).parentsUntil(".box").parent();
             var folder = $(this).parent().find(".folder");
 
             body.removeClass("folded");
-            $(this).css("display", "none").blur();
-            folder.css("display", "block");
+            $(this).hide().blur();
+            folder.show();
         });
     });
 </script>

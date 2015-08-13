@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.database.entities.Comment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;

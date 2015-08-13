@@ -1,7 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -11,7 +10,7 @@ import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.devhub.server.backend.ProjectsBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -76,7 +75,7 @@ public class CourseEnrollResource extends Resource {
                                                @QueryParam("error") String error) throws IOException {
 
         HttpSession session = request.getSession();
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
 
         String previousCourseCode = String.valueOf(session.getAttribute("projects.setup.course"));
         session.setAttribute("projects.setup.course", courseCode);
@@ -111,7 +110,7 @@ public class CourseEnrollResource extends Resource {
                                                @QueryParam("error") String error) throws IOException {
 
         HttpSession session = request.getSession();
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
         Collection<User> members = (Collection<User>) session.getAttribute("projects.setup.members");
 
         Map<String, Object> parameters = Maps.newHashMap();
@@ -134,7 +133,7 @@ public class CourseEnrollResource extends Resource {
             throws IOException {
 
         HttpSession session = request.getSession();
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
 
         if (step == 1) {
             Collection<User> groupMembers = getGroupMembers(request);
@@ -185,14 +184,14 @@ public class CourseEnrollResource extends Resource {
         return members.values();
     }
 
-    public int getMinGroupSize(Course course) {
+    public int getMinGroupSize(CourseEdition course) {
         if (currentUser.isAdmin() || currentUser.isAssisting(course)) {
             return MIN_GROUP_SIZE;
         }
         return course.getMinGroupSize();
     }
 
-    public int getMaxGroupSize(Course course) {
+    public int getMaxGroupSize(CourseEdition course) {
         return course.getMaxGroupSize();
     }
 

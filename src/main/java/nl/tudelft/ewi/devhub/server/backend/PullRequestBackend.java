@@ -10,10 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
-import nl.tudelft.ewi.devhub.server.database.entities.Comment;
-import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.Repository;
@@ -52,7 +52,7 @@ public class PullRequestBackend {
      */
     @Transactional
     public void createPullRequest(Repository repository, PullRequest pullRequest) throws GitClientException {
-        pullRequest.setIssueId(pullRequests.getNextPullRequestNumber(pullRequest.getGroup()));
+        pullRequest.setIssueId(pullRequests.getNextPullRequestNumber(pullRequest.getRepository()));
         updateCommitPointers(repository, pullRequest);
         log.info("Persisisting pull-request {}", pullRequest);
         pullRequests.persist(pullRequest);
@@ -140,11 +140,11 @@ public class PullRequestBackend {
      *
      * @param pullRequest  PullRequest to update
      * @param diffModel DiffBlameModel for the pull request
-     * @param group the current group
+     * @param repositoryEntity the current repository
      * @return  a List of events
      */
-    public EventResolver getEventResolver(final PullRequest pullRequest, final DiffBlameModel diffModel, final Group group) {
-        return new EventResolver(pullRequest, diffModel, group);
+    public EventResolver getEventResolver(final PullRequest pullRequest, final DiffBlameModel diffModel, final RepositoryEntity repositoryEntity) {
+        return new EventResolver(pullRequest, diffModel, repositoryEntity);
     }
 
     enum EventType {
@@ -242,14 +242,14 @@ public class PullRequestBackend {
         private final List<CommitComment> inlineComments;
         private final PullRequest pullRequest;
         private final List<String> commitIds;
-        private final Group group;
+        private final RepositoryEntity repositoryEntity;
 
-        public EventResolver(PullRequest pullRequest, DiffBlameModel diffModel, Group group) {
+        public EventResolver(PullRequest pullRequest, DiffBlameModel diffModel, RepositoryEntity repositoryEntity) {
             this.diffModel = diffModel;
             this.pullRequest = pullRequest;
             this.commitIds = Lists.transform(diffModel.getCommits(), CommitModel::getCommit);
-            this.inlineComments = commentsDAO.getInlineCommentsFor(group, commitIds);
-            this.group = group;
+            this.inlineComments = commentsDAO.getInlineCommentsFor(repositoryEntity, commitIds);
+            this.repositoryEntity = repositoryEntity;
         }
 
         public SortedSet<Event> getEvents() {
@@ -262,7 +262,7 @@ public class PullRequestBackend {
         }
 
         private Collection<CommentEvent> getCommentsForCommits() {
-            return commentsDAO.getCommentsFor(group, commitIds)
+            return commentsDAO.getCommentsFor(repositoryEntity, commitIds)
                     .stream()
                     .map(CommentEvent::new)
                     .collect(Collectors.toList());

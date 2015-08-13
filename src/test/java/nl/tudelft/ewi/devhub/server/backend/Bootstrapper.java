@@ -138,14 +138,14 @@ public class Bootstrapper {
 		}
 		
 		for (BCourse course : state.getCourses()) {
-			Course entity;
+			CourseEdition entity;
 
 			try {
 				entity = courses.find(course.getCode());
-				log.debug("Course already existing in database: " + entity.getCode());
+				log.debug("CourseEdition already existing in database: " + entity.getCode());
 			}
 			catch (Exception e) {
-				entity = new Course();
+				entity = new CourseEdition();
 				entity.setCode(course.getCode().toLowerCase());
 				entity.setName(course.getName());
 				entity.setTemplateRepositoryUrl(course.getTemplateRepositoryUrl());

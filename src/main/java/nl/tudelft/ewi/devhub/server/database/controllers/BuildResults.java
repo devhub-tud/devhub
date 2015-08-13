@@ -5,6 +5,7 @@ import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -27,13 +28,13 @@ public class BuildResults extends Controller<BuildResult> {
 	}
 
 	@Transactional
-	public BuildResult find(Group group, String commitId) {
-		Preconditions.checkNotNull(group);
+	public BuildResult find(RepositoryEntity repository, String commitId) {
+		Preconditions.checkNotNull(repository);
 		Preconditions.checkNotNull(commitId);
 		
 		BuildResult result = query().from(buildResult)
-				.where(buildResult.repository.groupId.eq(group.getGroupId()))
-				.where(buildResult.commitId.equalsIgnoreCase(commitId))
+				.where(buildResult.commit.repository.id.eq(repository.getId()))
+				.where(buildResult.commit.id.commitId.equalsIgnoreCase(commitId))
 				.singleResult(buildResult);
 		
 		if (result == null) {
@@ -43,11 +44,11 @@ public class BuildResults extends Controller<BuildResult> {
 	}
 
 	@Transactional
-	public Map<String, BuildResult> findBuildResults(Group group, Collection<String> commitIds) {
+	public Map<String, BuildResult> findBuildResults(RepositoryEntity repository, Collection<String> commitIds) {
 		return query().from(buildResult)
-				.where(buildResult.repository.eq(group)
-						.and(buildResult.commitId.in(commitIds)))
-				.map(buildResult.commitId, buildResult);
+				.where(buildResult.commit.repository.id.eq(repository.getId())
+						.and(buildResult.commit.id.commitId.in(commitIds)))
+				.map(buildResult.commit.id.commitId, buildResult);
 	}
 
 	@Transactional
@@ -56,12 +57,12 @@ public class BuildResults extends Controller<BuildResult> {
 	}
 	
 	@Transactional
-	public boolean exists(Group group, String commitId) {
-		Preconditions.checkNotNull(group);
+	public boolean exists(RepositoryEntity repository, String commitId) {
+		Preconditions.checkNotNull(repository);
 		Preconditions.checkNotNull(commitId);
 		
 		try {
-			find(group, commitId);
+			find(repository, commitId);
 			return true;
 		}
 		catch (EntityNotFoundException e) {

@@ -6,7 +6,7 @@ import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LargeFileWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.client.GitServerClient;
@@ -45,7 +45,7 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
         final List<DiffFile> diffs = getGitCommit(commit).diff().getDiffs();
         this.repository = getRepository(commit);
         this.commit = commit;
-        this.maxFileSize = getIntegerProperty(commit.getRepository().getCourse(), MAX_FILE_SIZE_PROPERTY, MAX_FILE_SIZE);
+        this.maxFileSize = commit.getRepository().getIntegerProperty(MAX_FILE_SIZE_PROPERTY, MAX_FILE_SIZE);
 
         Set<LargeFileWarning> warnings = diffs.stream()
             .filter(file -> !file.isDeleted())
@@ -92,7 +92,7 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
         return path.substring(path.lastIndexOf('/') + 1);
     }
 
-    private int getIntegerProperty(Course course, String key, int other) {
+    private int getIntegerProperty(CourseEdition course, String key, int other) {
         String value = course.getProperties().get(key);
         if (!Strings.isNullOrEmpty(value)) {
             return Integer.valueOf(value);

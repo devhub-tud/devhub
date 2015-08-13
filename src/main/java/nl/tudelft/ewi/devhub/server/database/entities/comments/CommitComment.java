@@ -1,9 +1,10 @@
-package nl.tudelft.ewi.devhub.server.database.entities;
+package nl.tudelft.ewi.devhub.server.database.entities.comments;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -27,7 +28,7 @@ public class CommitComment extends Comment {
 	@NotNull
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({
-		@JoinColumn(name="repository_name", referencedColumnName="repository_name"),
+		@JoinColumn(name="repository_id", referencedColumnName="repository_id"),
 		@JoinColumn(name="commit_id", referencedColumnName="commit_id")
 	})
 	private Commit commit;

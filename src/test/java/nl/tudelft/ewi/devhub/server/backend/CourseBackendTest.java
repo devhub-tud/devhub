@@ -2,11 +2,9 @@ package nl.tudelft.ewi.devhub.server.backend;
 
 import java.util.ArrayList;
 
-import nl.tudelft.ewi.devhub.server.database.controllers.CourseAssistants;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseAssistant;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.git.client.GitClientException;
@@ -64,7 +62,7 @@ public class CourseBackendTest extends BackendTest {
 
 	private ArrayList<CourseAssistant> oldAssistants;
 	
-	private Course course;
+	private CourseEdition course;
 	
 	@Before
 	public void setUp() throws GitClientException {

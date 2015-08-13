@@ -38,7 +38,7 @@ public class Source {
     @NotNull
     @ManyToOne
     @JoinColumnsOrFormulas({
-        @JoinColumnOrFormula(formula = @JoinFormula(value = "repository_name", referencedColumnName = "repository_name")),
+        @JoinColumnOrFormula(formula = @JoinFormula(value = "repository_id", referencedColumnName = "repository_id")),
         @JoinColumnOrFormula(column = @JoinColumn(name = "source_commit_id", referencedColumnName = "commit_id"))
     })
     private Commit sourceCommit;

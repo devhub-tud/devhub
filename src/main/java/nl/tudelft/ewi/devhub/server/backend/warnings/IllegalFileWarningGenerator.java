@@ -47,8 +47,8 @@ implements CommitPushWarningGenerator<IllegalFileWarning> {
         log.debug("Start generating warnings for {} in {}", commit, this);
         this.repository = getRepository(commit);
         this.commit = commit;
-        this.illegalExtensions = getProperty(commit, DEFAULT_EXTENSIONS_PROPERTY_KEY, DEFAULT_EXTENSIONS);
-        this.illegalFolders = getProperty(commit, DEFAULT_FOLDERS_PROPERTY_KEY, DEFAULT_FOLDERS);
+        this.illegalExtensions = commit.getRepository().getCommaSeparatedValues(DEFAULT_EXTENSIONS_PROPERTY_KEY, DEFAULT_EXTENSIONS);
+        this.illegalFolders = commit.getRepository().getCommaSeparatedValues(DEFAULT_FOLDERS_PROPERTY_KEY, DEFAULT_FOLDERS);
 
         Set<IllegalFileWarning> warnings = Sets.newHashSet();
         walkCommitStructure("",commit.getCommitId(),warnings);

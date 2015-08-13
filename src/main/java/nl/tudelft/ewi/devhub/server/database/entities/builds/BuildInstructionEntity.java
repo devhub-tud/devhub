@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.entities.builds;
 
+import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildInstruction;
@@ -19,6 +20,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.Table;
 import java.net.URLEncoder;
 
+@Data
 @Slf4j
 @Entity
 @Inheritance
@@ -30,6 +32,9 @@ public abstract class BuildInstructionEntity {
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
+
+	@Column(name = "build_timeout")
+	private Integer buildTimeout;
 
 	/**
 	 * Create the BuildInstruction for a build.
@@ -52,7 +57,7 @@ public abstract class BuildInstructionEntity {
 		BuildRequest buildRequest = new BuildRequest();
 		buildRequest.setInstruction(getBuildInstruction(config, commit));
 		buildRequest.setSource(createGitSource(repository, commit));
-		buildRequest.setTimeout(commit.getRepository().getBuildTimeout());
+		buildRequest.setTimeout(getBuildTimeout());
 		buildRequest.setCallbackUrl(getCallbackUrl(config, commit, "build-result"));
 		log.debug("Created build request {}", buildRequest);
 		return buildRequest;

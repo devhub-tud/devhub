@@ -32,39 +32,4 @@ public abstract class AbstractCommitWarningGenerator<T extends CommitWarning, A>
             .retrieve(commit.getRepository().getRepositoryName());
     }
 
-    /**
-     * Get the property for a course
-     * @param commit commit for the group
-     * @param key key under which the property is stored
-     * @param def default value
-     * @return the value
-     */
-    protected String getProperty(final Commit commit, String key, final String def) {
-        final String value = commit.getRepository()
-            .getCourse()
-            .getProperties()
-            .get(key);
-        if(value == null) {
-            return def;
-        }
-        return value;
-    }
-
-    /**
-     * Get the property for a course
-     * @param commit commit for the group
-     * @param key key under which the property is stored
-     * @param def default value
-     * @return the value
-     */
-    protected String[] getProperty(final Commit commit, String key, final String[] def) {
-        final String value = commit.getRepository()
-            .getCourse()
-            .getProperties()
-            .get(key);
-        if(value == null) {
-            return def;
-        }
-        return value.split(",");
-    }
 }

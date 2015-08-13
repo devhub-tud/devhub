@@ -1,18 +1,11 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -27,7 +20,6 @@ import lombok.ToString;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 
 @Data
 @Entity
@@ -39,8 +31,8 @@ public class User {
 	private static final Comparator<Group> GROUP_COMPARATOR = new Comparator<Group>() {
 		@Override
 		public int compare(Group group1, Group group2) {
-			Course course1 = group1.getCourse();
-			Course course2 = group2.getCourse();
+			CourseEdition course1 = group1.getCourse();
+			CourseEdition course2 = group2.getCourse();
 			String code1 = course1.getCode();
 			String code2 = course2.getCode();
 			int compare = code1.compareTo(code2);
@@ -59,7 +51,7 @@ public class User {
 
 	@NotNull
 	@Size(max = 32)
-	@Column(name = "net_id", length = 32, nullable = false)
+	@Column(name = "net_id", length = 32, nullable = false, unique = true)
 	private String netId;
 
 	@Size(max = 128)
@@ -71,7 +63,7 @@ public class User {
 	private String email;
 
 	@Size(max = 20)
-	@Column(name = "student_number", length = 20, nullable = true)
+	@Column(name = "student_number", length = 20, nullable = true, unique = true)
 	private String studentNumber;
 
 	@Basic(fetch = FetchType.LAZY)
@@ -83,59 +75,36 @@ public class User {
 	@Column(name = "admin")
 	private boolean admin;
 
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-	private List<GroupMembership> memberOf;
+	@ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
+	private List<Group> groups;
 
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-	private List<CourseAssistant> assists;
+	@ManyToMany(mappedBy = "assistants", fetch = FetchType.LAZY)
+	private Set<CourseEdition> assists;
 
+	@Deprecated
 	public List<Group> listGroups() {
-		List<Group> groups = Lists.newArrayList();
-		for (GroupMembership membership : memberOf) {
-			groups.add(membership.getGroup());
-		}
-
-		Collections.sort(groups, GROUP_COMPARATOR);
-		return groups;
+		return getGroups();
 	}
 	
 	public List<Group> listAssistedGroups() {
-		List<Group> groups = Lists.newArrayList();
-		for (CourseAssistant assist : assists) {
-			groups.addAll(assist.getCourse().getGroups());
-		}
-
-		Collections.sort(groups, GROUP_COMPARATOR);
-		return groups;
+		return getAssists().stream()
+			.flatMap(edition -> edition.getGroups().stream())
+			.sorted(GROUP_COMPARATOR)
+			.collect(Collectors.toList());
 	}
 
 	public boolean isMemberOf(Group group) {
-		for (GroupMembership membership : getMemberOf()) {
-			if (group.equals(membership.getGroup())) {
-				return true;
-			}
-		}
-		return false;
+		return getGroups().contains(group);
 	}
 
-	public boolean isAssisting(Course course) {
-		for (CourseAssistant assistant : getAssists()) {
-			Course assistedCourse = assistant.getCourse();
-			if (assistedCourse.getId() == course.getId()) {
-				return true;
-			}
-		}
-		return false;
+	public boolean isAssisting(CourseEdition course) {
+		return getAssists().contains(course);
 	}
 
-	public boolean isParticipatingInCourse(Course course) {
-		for (GroupMembership membership : getMemberOf()) {
-			Group group = membership.getGroup();
-			if (course.equals(group.getCourse())) {
-				return true;
-			}
-		}
-		return false;
+	public boolean isParticipatingInCourse(CourseEdition course) {
+		return getGroups().stream()
+			.map(Group::getCourse)
+			.anyMatch(course::equals);
 	}
 	
 	public void setPassword(String password) {

@@ -3,8 +3,8 @@ package nl.tudelft.ewi.devhub.server.database.controllers;
 import com.google.inject.AbstractModule;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.git.client.Repositories;
@@ -112,14 +112,14 @@ public class CommitsTest {
 	
 	protected Group createGroup() {
 		Group group = new Group();
-		Course course = getTestCourse();
+		CourseEdition course = getTestCourse();
 		group.setGroupNumber(random.nextLong());
 		group.setCourse(course);
 		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
 		return groups.persist(group);
 	}
 	
-	protected Course getTestCourse() {
+	protected CourseEdition getTestCourse() {
 		return courses.find("TI1705");
 	}
 	

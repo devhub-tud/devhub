@@ -25,7 +25,7 @@ import org.eclipse.jetty.http.HttpStatus;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
@@ -98,7 +98,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 		Matcher matcher = pattern.matcher(uri);
 		
 		if(matcher.matches()) {
-			Course course = coursesProvider.get().find(matcher.group(1));
+			CourseEdition course = coursesProvider.get().find(matcher.group(1));
 			Group group = groupsProvider.get().find(course, Long.parseLong(matcher.group(2)));
 			if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 				throw new UnauthorizedException();

@@ -32,7 +32,7 @@ public abstract class CommitWarning extends Warning {
     @JsonIgnore
     @ManyToOne
     @JoinColumnsOrFormulas({
-        @JoinColumnOrFormula(formula = @JoinFormula(value = "repository_name", referencedColumnName = "repository_name")),
+        @JoinColumnOrFormula(formula = @JoinFormula(value = "repository_id", referencedColumnName = "repository_id")),
         @JoinColumnOrFormula(column = @JoinColumn(name = "commit_id", referencedColumnName = "commit_id"))
     })
     private Commit commit;

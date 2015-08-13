@@ -5,12 +5,11 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitClientException;
@@ -39,22 +38,20 @@ public class ProjectsBackend {
 	private static final String COULD_NOT_CREATE_GROUP = "error.could-not-create-group";
 	private static final String GIT_SERVER_UNAVAILABLE = "error.git-server-unavailable";
 
-	private final Provider<GroupMemberships> groupMembershipsProvider;
 	private final Provider<Groups> groupsProvider;
 	private final GitServerClient client;
 
 	private final Object groupNumberLock = new Object();
 
 	@Inject
-	ProjectsBackend(Provider<GroupMemberships> groupMembershipsProvider, Provider<Groups> groupsProvider,
+	ProjectsBackend(Provider<Groups> groupsProvider,
 			Provider<Users> usersProvider, GitServerClient client) {
 
-		this.groupMembershipsProvider = groupMembershipsProvider;
 		this.groupsProvider = groupsProvider;
 		this.client = client;
 	}
 
-	public void setupProject(Course course, Collection<User> members) throws ApiError {
+	public void setupProject(CourseEdition course, Collection<User> members) throws ApiError {
 		Preconditions.checkNotNull(course);
 		Preconditions.checkNotNull(members);
 		
@@ -68,7 +65,7 @@ public class ProjectsBackend {
 
 	private void deleteRepositoryFromGit(Group group) {
 		try {
-			String repositoryName = group.getRepositoryName();
+			String repositoryName = group.getRepository().getRepositoryName();
 			log.info("Deleting repository from Git server: {}", repositoryName);
 
 			Repositories repositories = client.repositories();
@@ -83,30 +80,15 @@ public class ProjectsBackend {
 	@Transactional
 	protected void deleteGroupFromDatabase(Group group) {
 		log.info("Deleting group from database: {}", group);
-		GroupMemberships groupMemberships = groupMembershipsProvider.get();
-		Groups groups = groupsProvider.get();
-
-		List<GroupMembership> memberships = groupMemberships.ofGroup(group);
-		for (GroupMembership membership : memberships) {
-			groupMemberships.delete(membership);
-		}
-		groups.delete(groups.find(group.getGroupId()));
+		groupsProvider.get().delete(group);
 	}
 
 	@Transactional
-	protected Group persistRepository(Course course, Collection<User> members) throws ApiError {
-		GroupMemberships groupMemberships = groupMembershipsProvider.get();
+	protected Group persistRepository(CourseEdition course, Collection<User> members) throws ApiError {
 		Groups groups = groupsProvider.get();
 
 		List<Group> courseGroups = groups.find(course);
 		Set<Long> groupNumbers = getGroupNumbers(courseGroups);
-
-		// Ensure that requester has no other projects for same course.
-		for (User member : members) {
-			if (member.isParticipatingInCourse(course)) {
-				throw new ApiError(ALREADY_REGISTERED_FOR_COURSE);
-			}
-		}
 
 		// Select first free group number.
 		long newGroupNumber = 1;
@@ -117,11 +99,14 @@ public class ProjectsBackend {
 		Group group = new Group();
 		group.setCourse(course);
 		group.setGroupNumber(newGroupNumber);
-		group.setBuildTimeout(course.getBuildTimeout());
-		group.setRepositoryName("courses/" + course.getCode()
-			.toLowerCase() + "/group-" + group.getGroupNumber());
+		group.setMembers(Sets.newHashSet(members));
+
+		GroupRepository groupRepository = new GroupRepository();
+		groupRepository.setRepositoryName(course.createRepositoryName(group).toASCIIString());
+		group.setRepository(groupRepository);
 
 		boolean worked = false;
+		Throwable cause = null;
 		for (int attempt = 1; attempt <= 3 && !worked; attempt++) {
 			try {
 				groups.persist(group);
@@ -130,20 +115,13 @@ public class ProjectsBackend {
 			catch (ConstraintViolationException e) {
 				log.warn("Could not persist group: {}", group);
 				group.setGroupNumber(group.getGroupNumber() + 1);
-				group.setRepositoryName("courses/" + course.getCode()
-					.toLowerCase() + "/group-" + group.getGroupNumber());
+				groupRepository.setRepositoryName(course.createRepositoryName(group).toASCIIString());
+				cause = e;
 			}
 		}
 
 		if (!worked) {
-			throw new ApiError(COULD_NOT_CREATE_GROUP);
-		}
-
-		for (User member : members) {
-			GroupMembership membership = new GroupMembership();
-			membership.setGroup(group);
-			membership.setUser(member);
-			groupMemberships.persist(membership);
+			throw new ApiError(COULD_NOT_CREATE_GROUP, cause);
 		}
 
 		log.info("Created new group in database: {}", group);
@@ -152,7 +130,7 @@ public class ProjectsBackend {
 	
 	public void provisionRepository(Group group, Collection<User> members) throws ApiError {
 		String courseCode = group.getCourse().getCode();
-		String repositoryName = group.getRepositoryName();
+		String repositoryName = group.getRepository().getRepositoryName();
 		String templateRepositoryUrl = group.getCourse()
 			.getTemplateRepositoryUrl();
 		

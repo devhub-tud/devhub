@@ -9,7 +9,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
-import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitServerClientMock;

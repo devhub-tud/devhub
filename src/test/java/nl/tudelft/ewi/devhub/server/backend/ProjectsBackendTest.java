@@ -4,12 +4,10 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
-import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitClientException;
@@ -38,7 +36,7 @@ public class ProjectsBackendTest extends BackendTest {
 	private static GitServerClient gitClient;
 	private ProjectsBackend projectsBackend;
 
-	private Course course;
+	private CourseEdition course;
 	
 	private User user;
 
@@ -94,7 +92,7 @@ public class ProjectsBackendTest extends BackendTest {
 		projectsBackend.setupProject(course, Lists.newArrayList(user));
 	}
 	
-	protected static void putUserInCourse(User user, Course course) {
+	protected static void putUserInCourse(User user, CourseEdition course) {
 		Group group = new Group();
 		group.setCourse(course);
 		GroupMembership groupMembership = new GroupMembership();
@@ -106,7 +104,7 @@ public class ProjectsBackendTest extends BackendTest {
 			.thenReturn(Lists.newArrayList(groupMembership));
 	}
 	
-	protected static void verifyPersistedGroup(Group group, Course course, User... members) {
+	protected static void verifyPersistedGroup(Group group, CourseEdition course, User... members) {
 		assertNotNull(group);
 		assertEquals(course, group.getCourse());
 		for(User member : members)

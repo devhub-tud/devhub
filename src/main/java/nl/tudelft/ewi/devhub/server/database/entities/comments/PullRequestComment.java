@@ -1,8 +1,9 @@
-package nl.tudelft.ewi.devhub.server.database.entities;
+package nl.tudelft.ewi.devhub.server.database.entities.comments;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;

@@ -6,16 +6,15 @@ import java.util.Random;
 
 import com.google.common.collect.Lists;
 
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 public class BackendTest {
 
 	private static final Random random = new Random();
 
-	protected Course createCourse() {
-		Course course = new Course();
+	protected CourseEdition createCourse() {
+		CourseEdition course = new CourseEdition();
 		course.setCode(randomString().substring(0,4));
 		course.setName(randomString());
 		course.setStart(new Date());

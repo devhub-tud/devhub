@@ -1,30 +1,25 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.tudelft.ewi.devhub.server.backend.CoursesBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.models.GroupModel;
-import nl.tudelft.ewi.git.models.UserModel;
-import org.jboss.resteasy.annotations.Form;
 
-import javax.persistence.PersistenceException;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -49,14 +44,14 @@ public class CoursesResource extends Resource {
     @Inject
     private Courses courses;
 
-    @Inject
-    private GroupMemberships memberships;
-
     @Inject @Named("current.user")
     private User currentUser;
 
     @Inject
     private CoursesBackend coursesBackend;
+
+    @Inject
+    private Groups groups;
 
     @Inject
     private TemplateEngine templateEngine;
@@ -89,14 +84,16 @@ public class CoursesResource extends Resource {
     @Path("{courseCode}")
     public Response getCourse(@Context HttpServletRequest request,
                               @PathParam("courseCode") String courseCode) throws IOException {
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-            Group group = memberships.forCourseAndUser(currentUser, course);
-            if(group != null) {
+            try {
+                Group group = groups.find(course, currentUser);
                 return redirect("/courses/" + course.getCode() + "/groups/" + group.getGroupNumber());
             }
-            return redirect("/courses");
+            catch (EntityNotFoundException e) {
+                return redirect("/courses");
+            }
         }
 
         Map<String, Object> parameters = Maps.newHashMap();
@@ -125,7 +122,7 @@ public class CoursesResource extends Resource {
             throw new UnauthorizedException();
         }
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
@@ -163,8 +160,8 @@ public class CoursesResource extends Resource {
             throw new UnauthorizedException();
         }
 
-        Course course = courses.find(id);
-        course.setName(courseName);
+        CourseEdition course = courses.find(id);
+        course.getCourse().setName(courseName);
         course.setTemplateRepositoryUrl(templateRepository);
         course.setMinGroupSize(minGroupSize);
         course.setMaxGroupSize(maxGroupSize);
@@ -239,27 +236,32 @@ public class CoursesResource extends Resource {
             throw new UnauthorizedException();
         }
 
+        CourseEdition courseEdition = new CourseEdition();
         Course course = new Course();
         course.setCode(courseCode);
         course.setName(courseName);
-        course.setTemplateRepositoryUrl(templateRepository);
-        course.setMinGroupSize(minGroupSize);
-        course.setMaxGroupSize(maxGroupSize);
-        course.setBuildTimeout(buildTimeout);
-        course.setStart(new Date());
+        courseEdition.setCourse(course);
+
+        courseEdition.setTemplateRepositoryUrl(templateRepository);
+        courseEdition.setMinGroupSize(minGroupSize);
+        courseEdition.setMaxGroupSize(maxGroupSize);
+        courseEdition.setBuildTimeout(buildTimeout);
+
+        TimeSpan timeSpan = new TimeSpan(new Date(), null);
+        courseEdition.setTimeSpan(timeSpan);
 
         try {
-            coursesBackend.createCourse(course);
+            coursesBackend.createCourse(courseEdition);
         }
         catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
             if(violations.isEmpty()) {
-                return redirect("/courses/setup?error=error.course-create-error");
+                return redirect("/courses/setup?error=error.courseEdition-create-error");
             }
             return redirect("/courses/setup?error=" + violations.iterator().next().getMessage());
         }
         catch (Exception e) {
-            return redirect("/courses/setup?error=error.course-create-error");
+            return redirect("/courses/setup?error=error.courseEdition-create-error");
         }
 
         return redirect("/courses");

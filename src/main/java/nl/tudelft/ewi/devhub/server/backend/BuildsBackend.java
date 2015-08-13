@@ -13,10 +13,7 @@ import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
@@ -167,19 +164,19 @@ public class BuildsBackend {
 	 */
 	@SneakyThrows
 	protected void createBuildRequest(final Commit commit) {
-		Group group = commit.getRepository();
-		Repository repository = gitServerClient.repositories().retrieve(group.getRepositoryName());
-		BuildRequest buildRequest = group.getBuildInstruction().createBuildRequest(config, commit, repository);
-		log.info("Submitting a build for commit: {} of repository: {}", commit, group);
+		RepositoryEntity repositoryEntity = commit.getRepository();
+		Repository repository = gitServerClient.repositories().retrieve(repositoryEntity.getRepositoryName());
+		BuildRequest buildRequest = repositoryEntity.getBuildInstruction().createBuildRequest(config, commit, repository);
+		log.info("Submitting a build for commit: {} of repository: {}", commit, repository);
 		offerBuild(buildRequest);
 	}
 
 	@SneakyThrows
-	protected String getCallbackUrl(final Commit commit, final Group group, final String resource) {
+	protected String getCallbackUrl(final Commit commit, final RepositoryEntity repository, final String resource) {
 		StringBuilder callbackBuilder = new StringBuilder();
 		callbackBuilder.append(config.getHttpUrl());
 		callbackBuilder.append("/hooks/").append(resource);
-		callbackBuilder.append("?repository=" + URLEncoder.encode(group.getRepositoryName(), "UTF-8"));
+		callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getRepositoryName(), "UTF-8"));
 		callbackBuilder.append("&commit=" + URLEncoder.encode(commit.getCommitId(), "UTF-8"));
 		return callbackBuilder.toString();
 	}

@@ -6,7 +6,7 @@ import javax.inject.Inject;
 import javax.persistence.PersistenceException;
 import javax.validation.ConstraintViolationException;
 
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -39,7 +39,7 @@ public class GroupsTest {
 	
 	@Test(expected=ConstraintViolationException.class)
 	public void testInsertGroupWithoutGroupNumber() {
-		Course course = getTestCourse();
+		CourseEdition course = getTestCourse();
 		Group group = new Group();
 		group.setRepositoryName("courses/ti1705/group-1");
 		group.setCourse(course);
@@ -48,7 +48,7 @@ public class GroupsTest {
 	
 	@Test(expected=ConstraintViolationException.class)
 	public void testInsertGroupWithoutRepositoryName() {
-		Course course = getTestCourse();
+		CourseEdition course = getTestCourse();
 		Group group = new Group();
 		group.setGroupNumber(6l);
 		group.setCourse(course);
@@ -102,7 +102,7 @@ public class GroupsTest {
 	@Test
 	public void testListPersistedGroup() {
 		Group group = createGroup();
-		Course course = group.getCourse();
+		CourseEdition course = group.getCourse();
 		groups.persist(group);
 		assertThat(groups.find(course), hasItem(group));
 	}
@@ -117,7 +117,7 @@ public class GroupsTest {
 	@Test
 	public void testFindByGroupNumber() {
 		Group group = createGroup();
-		Course course = group.getCourse();
+		CourseEdition course = group.getCourse();
 		groups.persist(group);
 		assertEquals(group, groups.find(course, group.getGroupNumber()));
 	}
@@ -132,14 +132,14 @@ public class GroupsTest {
 	
 	protected Group createGroup() {
 		Group group = new Group();
-		Course course = getTestCourse();
+		CourseEdition course = getTestCourse();
 		group.setGroupNumber(random.nextLong());
 		group.setCourse(course);
 		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
 		return group;
 	}
 	
-	protected Course getTestCourse() {
+	protected CourseEdition getTestCourse() {
 		return courses.find("TI1705");
 	}
 	

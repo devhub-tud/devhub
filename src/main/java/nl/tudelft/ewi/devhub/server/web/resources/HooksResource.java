@@ -28,7 +28,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;

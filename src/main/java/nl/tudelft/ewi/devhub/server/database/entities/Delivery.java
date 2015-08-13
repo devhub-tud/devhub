@@ -37,7 +37,7 @@ import java.util.List;
 @Entity
 @Table(name = "assignment_deliveries")
 @ToString(exclude = {"notes", "attachments"})
-@EqualsAndHashCode(of={"assignment", "group"})
+@EqualsAndHashCode(of={"deliveryId"})
 public class Delivery implements Comparable<Delivery> {
 
     /**
@@ -46,9 +46,9 @@ public class Delivery implements Comparable<Delivery> {
      */
     public enum State {
         SUBMITTED("delivery.state.submitted", "info", "delivery.state.submitted.description", "delivery.state.submitted.message"),
-        REJECTED("delivery.state.rejected", "warning", "delivery.state.rejected.description", "delivery.state.submitted.message"),
-        APPROVED("delivery.state.approved", "success", "delivery.state.approved.description", "delivery.state.submitted.message"),
-        DISAPPROVED("delivery.state.disapproved", "danger", "delivery.state.disapproved.description", "delivery.state.submitted.message");
+        REJECTED("delivery.state.rejected", "warning", "delivery.state.rejected.description", "delivery.state.rejected.message"),
+        APPROVED("delivery.state.approved", "success", "delivery.state.approved.description", "delivery.state.approved.message"),
+        DISAPPROVED("delivery.state.disapproved", "danger", "delivery.state.disapproved.description", "delivery.state.disapproved.message");
 
         /**
          * The translation key used for the badges, for example "Submitted".
@@ -89,14 +89,11 @@ public class Delivery implements Comparable<Delivery> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long deliveryId;
 
-    @ManyToOne
-    @JoinColumns({
-        @JoinColumn(name = "course_id", referencedColumnName = "course_id"),
-        @JoinColumn(name = "assignment_id", referencedColumnName = "assignment_id")
-    })
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "assignment_id")
     private Assignment assignment;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "group_id")
     private Group group;
 

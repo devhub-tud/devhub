@@ -7,6 +7,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 import nl.tudelft.ewi.git.client.GitServerClient;
@@ -60,7 +61,7 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
     class ScopedWarningGenerator {
 
         private final Commit commit;
-        private final Group group;
+        private final RepositoryEntity repositoryEntity;
         private final Repository repository;
 
         /**
@@ -70,8 +71,8 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
          */
         public ScopedWarningGenerator(Commit commit) {
             this.commit = commit;
-            this.group = commit.getRepository();
-            this.repository = retrieveRepository(group);
+            this.repositoryEntity = commit.getRepository();
+            this.repository = retrieveRepository(repositoryEntity);
         }
 
         /**
@@ -138,7 +139,7 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
 
                 BlameModel.BlameBlock block = blameModel.getBlameBlock(sourceLineNumber);
                 String sourceCommitId = block.getFromCommitId();
-                Commit sourceCommit = commits.ensureExists(group, sourceCommitId);
+                Commit sourceCommit = commits.ensureExists(repositoryEntity, sourceCommitId);
 
                 Source source = new Source();
                 source.setSourceCommit(sourceCommit);
@@ -159,12 +160,12 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
     }
 
     /**
-     * Retrieve the repository for this group
-     * @param group The current group
-     * @return Repository for the group
+     * Retrieve the repository for this repositoryEntity
+     * @param group The current repositoryEntity
+     * @return Repository for the repositoryEntity
      */
     @SneakyThrows
-    protected Repository retrieveRepository(final Group group) {
+    protected Repository retrieveRepository(final RepositoryEntity group) {
         return gitServerClient.repositories().retrieve(group.getRepositoryName());
     }
 

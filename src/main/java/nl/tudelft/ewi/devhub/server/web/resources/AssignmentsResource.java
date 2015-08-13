@@ -11,7 +11,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
@@ -92,7 +92,7 @@ public class AssignmentsResource extends Resource {
                                   @PathParam("courseCode") String courseCode,
                                   @QueryParam("error") String error) throws IOException {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
@@ -126,7 +126,7 @@ public class AssignmentsResource extends Resource {
                                @FormParam("summary") String summary,
                                @FormParam("due-date") String dueDate) {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
@@ -182,7 +182,7 @@ public class AssignmentsResource extends Resource {
                                       @PathParam("courseCode") String courseCode,
                                       @PathParam("assignmentId") Long assignmentId) throws IOException {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
@@ -222,7 +222,7 @@ public class AssignmentsResource extends Resource {
                                             @PathParam("courseCode") String courseCode,
                                             @PathParam("assignmentId") Long assignmentId) throws IOException {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
@@ -271,7 +271,7 @@ public class AssignmentsResource extends Resource {
                                           @QueryParam("error") String error) throws IOException {
 
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
@@ -299,7 +299,7 @@ public class AssignmentsResource extends Resource {
                                    @FormParam("summary") String summary,
                                    @FormParam("due-date") String dueDate) {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();

@@ -3,85 +3,67 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 import java.io.Serializable;
 import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-import com.google.common.collect.Sets;
-import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
+import lombok.*;
 
 @Data
 @Entity
 @Table(name = "groups")
 @EqualsAndHashCode(of = { "groupId" })
-@ToString(of = { "groupId" })
 public class Group implements Serializable {
 
-	@Id
-	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long groupId;
+	@Data
+	@Embeddable
+	public static class GroupId implements Serializable {
+
+		@Setter(AccessLevel.PROTECTED)
+		@Getter(AccessLevel.PROTECTED)
+		@Column(name = "course_edition_id")
+		private long courseEditionId;
+
+		@Column(name = "group_number")
+		private long groupNumber;
+
+	}
+
+	@Delegate
+	@EmbeddedId
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
+	private GroupId groupId = new GroupId();
 
 	@NotNull
 	@ManyToOne
-	@JoinColumn(name = "course_id")
-	private Course course;
+	@MapsId("courseEditionId")
+	private CourseEdition course;
 
-	@NotNull
-	@Column(name = "group_number")
-	private Long groupNumber;
-	
-	@Column(name = "build_timeout")
-	private Integer buildTimeout;
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "repository_id", referencedColumnName = "id", unique = true)
+	private GroupRepository repository;
 
-	@OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
-	private Set<GroupMembership> memberships;
-
-	@NotNull
-	@Column(name = "repository_name")
-	private String repositoryName;
-
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@JoinColumn(name = "build_instruction", nullable = true)
-	private BuildInstructionEntity buildInstruction;
-
-	public Set<User> getMembers() {
-		Set<User> members = Sets.newHashSet();
-		for (GroupMembership membership : memberships) {
-			members.add(membership.getUser());
+	@ManyToMany
+	@JoinTable(
+		name="group_memberships",
+		joinColumns={
+				@JoinColumn(name="user_id", referencedColumnName="id")
+		},
+		inverseJoinColumns={
+			@JoinColumn(name="course_edition_id", referencedColumnName="course_edition_id"),
+			@JoinColumn(name="group_number", referencedColumnName="group_number")
+		},
+		uniqueConstraints = {
+			@UniqueConstraint(name = "UNIQUE_GROUP_MEMBERSHIP_PER_COURSE", columnNames = {"user_id", "course_edition_id"})
 		}
-		return members;
-	}
+	)
+	private Set<User> members;
 
 	public String getGroupName() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(course.getCode());
-		builder.append(" - ");
-		builder.append(course.getName());
-		builder.append(" (Group #");
-		builder.append(groupNumber);
-		builder.append(")");
-		return builder.toString();
-	}
-
-	public Integer getBuildTimeout() {
-		return buildTimeout != null ? buildTimeout : course.getBuildTimeout();
-	}
-
-	public BuildInstructionEntity getBuildInstruction() {
-		return buildInstruction != null ? buildInstruction : course.getBuildInstruction();
+		return String.format("%s - %s (Group %d)",
+				getCourse().getCode(),
+				getCourse().getName(),
+				getGroupNumber());
 	}
 
 }

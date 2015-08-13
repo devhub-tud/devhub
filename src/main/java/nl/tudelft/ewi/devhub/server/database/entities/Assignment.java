@@ -2,16 +2,14 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
+import com.sun.istack.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.annotation.Nullable;
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -20,28 +18,18 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name= "assignments")
-@IdClass(Assignment.AssignmentId.class)
 @ToString(exclude = "summary")
-@EqualsAndHashCode(of={"course", "assignmentId"})
+@EqualsAndHashCode(of = { "assignmentId" })
 public class Assignment implements Comparable<Assignment> {
 
-    @Data
-    @EqualsAndHashCode
-    public static class AssignmentId implements Serializable {
-        private Course course;
-        private Long assignmentId;
-    }
-
     @Id
-    @NotNull
-    @ManyToOne
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long assignmentId;
+
+    @ManyToOne(optional = false)
     @JoinColumn(name = "course_id")
-    private Course course;
-
-    @Id
-    @NotNull(message = "assignment.number.should-be-given")
-    @Column(name = "assignment_id")
-    private Long assignmentId;
+    private CourseEdition course;
 
     @NotEmpty(message = "assignment.name.should-be-given")
     @Column(name = "name")

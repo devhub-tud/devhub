@@ -5,8 +5,8 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 
@@ -26,29 +26,29 @@ public class Commits extends Controller<Commit> {
 	}
 	
 	@Transactional
-	public Commit retrieve(Group group, String commitId) {
+	public Commit retrieve(RepositoryEntity repository, String commitId) {
 		return query().from(commit)
-			.where(commit.repository.eq(group))
-			.where(commit.commitId.eq(commitId))
+			.where(commit.id.repositoryId.eq(repository.getId()))
+			.where(commit.id.commitId.eq(commitId))
 			.singleResult(commit);
 	}
 	
 	@Transactional
-	public Commit ensureExists(Group group, String commitId) {
-		Commit commit = retrieve(group, commitId);
+	public Commit ensureExists(RepositoryEntity repositoryEntity, String commitId) {
+		Commit commit = retrieve(repositoryEntity, commitId);
 		
 		if(commit == null) {
-			commit = createCommit(group, commitId);
+			commit = createCommit(repositoryEntity, commitId);
 		}
 		
 		return commit;
 	}
 
-	protected Commit createCommit(Group group, String commitId) {
-		final nl.tudelft.ewi.git.client.Commit gitCommit = retrieveCommit(group, commitId);
+	protected Commit createCommit(RepositoryEntity repositoryEntity, String commitId) {
+		final nl.tudelft.ewi.git.client.Commit gitCommit = retrieveCommit(repositoryEntity, commitId);
 		final Commit commit = new Commit();
 		commit.setCommitId(commitId);
-		commit.setRepository(group);
+		commit.setRepository(repositoryEntity);
 		commit.setComments(Lists.<CommitComment> newArrayList());
 		commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
 		commit.setPushTime(new Date());
@@ -58,22 +58,22 @@ public class Commits extends Controller<Commit> {
 	}
 
 	@SneakyThrows
-	protected nl.tudelft.ewi.git.client.Commit retrieveCommit(Group group, String commitId) {
-		Repository repository = repositories.retrieve(group.getRepositoryName());
+	protected nl.tudelft.ewi.git.client.Commit retrieveCommit(RepositoryEntity repositoryEntity, String commitId) {
+		Repository repository = repositories.retrieve(repositoryEntity.getRepositoryName());
 		return repository.retrieveCommit(commitId);
 	}
 
 	/**
 	 * Check if a commit exists
-	 * @param group Group
+	 * @param repository RepositoryEntity
 	 * @param commitId Commit id
 	 * @return boolean
 	 */
 	@Transactional
-	public boolean exists(Group group, String commitId) {
+	public boolean exists(RepositoryEntity repository, String commitId) {
 		return query().from(commit)
-			.where(commit.repository.eq(group))
-			.where(commit.commitId.eq(commitId))
+			.where(commit.id.repositoryId.eq(repository.getId()))
+			.where(commit.id.commitId.eq(commitId))
 			.exists();
 	}
 	

@@ -1,21 +1,9 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import javax.persistence.*;
 
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.Type;
-import org.hibernate.validator.constraints.NotEmpty;
 
 @Data
 @Entity
@@ -23,31 +11,32 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class BuildResult {
 
 	public static BuildResult newBuildResult(Commit commit) {
-		return newBuildResult(commit.getRepository(), commit.getCommitId());
-	}
-
-	public static BuildResult newBuildResult(Group group, String commit) {
 		BuildResult result = new BuildResult();
-		result.setRepository(group);
-		result.setCommitId(commit);
+		result.setCommit(commit);
 		result.setSuccess(null);
 		result.setLog(null);
 		return result;
 	}
 
-	@Id
-	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+//	@Id
+//	@Column(name = "id")
+//	@GeneratedValue(strategy = GenerationType.IDENTITY)
+//	private long id;
+//
+//	@OneToOne(optional = false)
+//	@JoinColumns({
+//		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
+//		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id")
+//	})
 
-	@NotNull
-	@ManyToOne
-	@JoinColumn(name = "repository_id")
-	private Group repository;
+	@EmbeddedId
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
+	private Commit.CommitId id = new Commit.CommitId();
 
-	@NotEmpty
-	@Column(name = "commit_id")
-	private String commitId;
+	@MapsId
+	@OneToOne(optional = false)
+	private Commit commit;
 
 	@Column(name = "success")
 	private Boolean success;
@@ -79,6 +68,10 @@ public class BuildResult {
 	 */
 	public boolean hasFailed() {
 		return Boolean.FALSE.equals(getSuccess());
+	}
+
+	public RepositoryEntity getRepository() {
+		return getCommit().getRepository();
 	}
 
 }

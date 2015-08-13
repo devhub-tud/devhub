@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
 import com.google.common.collect.Maps;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IllegalFileWarning;
 import nl.tudelft.ewi.git.client.Branch;
@@ -38,7 +38,7 @@ public class IllegalFileWarningTest {
 
     @Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
     @Mock private Group group;
-    @Mock private Course course;
+    @Mock private CourseEdition course;
     @Mock private Commit commit;
     @Mock private Repository repository;
     @Mock private Repositories repositories;

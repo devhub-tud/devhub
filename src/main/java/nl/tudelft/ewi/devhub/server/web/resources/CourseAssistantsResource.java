@@ -10,7 +10,7 @@ import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.devhub.server.backend.CoursesBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -24,7 +24,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by jgmeligmeyling on 03/03/15.
@@ -82,7 +81,7 @@ public class CourseAssistantsResource extends Resource {
 
 
         HttpSession session = request.getSession();
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
 
         String previousCourseCode = String.valueOf(session.getAttribute("courses.setup.course"));
         session.setAttribute("courses.setup.course", courseCode);
@@ -114,7 +113,7 @@ public class CourseAssistantsResource extends Resource {
                                                    @QueryParam("error") String error) throws IOException {
 
         HttpSession session = request.getSession();
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
         Collection<User> members = (Collection<User>) session.getAttribute("courses.course.assistants");
 
         Map<String, Object> parameters = Maps.newHashMap();
@@ -141,7 +140,7 @@ public class CourseAssistantsResource extends Resource {
         }
 
         HttpSession session = request.getSession();
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode);
 
         if (step == 1) {
             Collection<User> courseAssistants = getCourseAssistants(request);

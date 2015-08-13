@@ -1,9 +1,9 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.inject.Inject;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
@@ -65,14 +65,14 @@ public class PullRequestsTest {
 	
 	protected Group createGroup() {
 		Group group = new Group();
-		Course course = getTestCourse();
+		CourseEdition course = getTestCourse();
 		group.setGroupNumber(random.nextLong());
 		group.setCourse(course);
 		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
 		return groups.persist(group);
 	}
 	
-	protected Course getTestCourse() {
+	protected CourseEdition getTestCourse() {
 		return courses.find("TI1705");
 	}
 	

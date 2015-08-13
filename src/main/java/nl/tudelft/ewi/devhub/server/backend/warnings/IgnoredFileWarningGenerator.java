@@ -36,7 +36,7 @@ implements CommitPushWarningGenerator<IgnoredFileWarning> {
     @SneakyThrows
     public Set<IgnoredFileWarning> generateWarnings(Commit commit, GitPush attachment) {
         log.debug("Start generating warnings for {} in {}", commit, this);
-        this.ext = getProperty(commit, PROPERTY_KEY, DEFAULT_EXTENSIONS);
+        this.ext = commit.getRepository().getCommaSeparatedValues(PROPERTY_KEY, DEFAULT_EXTENSIONS);
 
         final Set<IgnoredFileWarning> warnings = getGitCommit(commit).diff().getDiffs().stream()
             .filter(diffFile -> !diffFile.isDeleted())

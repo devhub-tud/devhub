@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 
 import javax.persistence.Column;
@@ -40,8 +40,8 @@ public abstract class Warning {
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "repository_name", referencedColumnName = "repository_name")
-    private Group repository;
+    @JoinColumn(name = "repository_id", referencedColumnName = "id")
+    private RepositoryEntity repository;
 
     /**
      * Retrieve a descriptive message for the warning

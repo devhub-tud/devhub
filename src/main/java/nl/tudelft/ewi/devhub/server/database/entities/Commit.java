@@ -4,50 +4,45 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
+import javax.persistence.*;
 import javax.validation.constraints.Size;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 
 @Data
 @Entity
-@Table(name="commit")
-@ToString(exclude="comments")
-@IdClass(Commit.CommitId.class)
-@EqualsAndHashCode(of={"repository", "commitId"})
+@Table(name = "commit")
+@ToString(exclude = "comments")
+@EqualsAndHashCode(of = "commitId")
 public class Commit implements Comparable<Commit> {
 
 	@Data
+	@Embeddable
 	@EqualsAndHashCode
 	public static class CommitId implements Serializable {
-		private Group repository;
+
+		@Getter(AccessLevel.PROTECTED)
+		@Setter(AccessLevel.PROTECTED)
+		@Column(name = "repository_id")
+		private long repositoryId;
+
+		@Column(name = "commit_id")
 		private String commitId;
+
 	}
 
-	@Id
-	@ManyToOne
-	@JoinColumn(name = "repository_name", referencedColumnName = "repository_name")
-	private Group repository;
-	
-	@Id
-	@Column(name = "commit_id")
-	private String commitId;
+	@Delegate
+	@EmbeddedId
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
+	private CommitId id = new CommitId();
+
+	@ManyToOne(optional = false)
+	@MapsId("repositoryId")
+	private RepositoryEntity repository;
 
 	@Size(max = 255)
 	@Column(name = "author", length = 255)
@@ -64,7 +59,7 @@ public class Commit implements Comparable<Commit> {
 	@Column(name = "merge")
 	private Boolean merge;
 	
-	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<CommitComment> comments;
 
 	@Override

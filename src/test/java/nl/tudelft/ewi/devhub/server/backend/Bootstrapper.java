@@ -158,7 +158,7 @@ public class Bootstrapper {
 
 				entity.setMinGroupSize(course.getMinGroupSize());
 				entity.setMaxGroupSize(course.getMaxGroupSize());
-				entity.setBuildTimeout(course.getBuildTimeout());
+				entity.getBuildInstruction().setBuildTimeout(course.getBuildTimeout());
 				courses.persist(entity);
 
 				log.debug("Persisted course: " + entity.getCode());

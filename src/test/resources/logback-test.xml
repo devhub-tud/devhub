@@ -10,6 +10,8 @@
 	<logger name="nl.tudelft.ewi" level="DEBUG"></logger>
 	<logger name="liquibase" level="INFO"></logger>
     <logger name="org.eclipse.jetty" level="INFO"></logger>
+    <logger name="log4j.logger.org.hibernate.type" level="TRACE"/>
+
 
 	<root level="WARN">
 		<appender-ref ref="STDOUT" />

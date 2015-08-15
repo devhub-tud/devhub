@@ -2,7 +2,9 @@ package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.inject.AbstractModule;
 import lombok.SneakyThrows;
+import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
@@ -19,6 +21,7 @@ import org.mockito.Mockito;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -97,10 +100,10 @@ public class CommitsTest {
 		CommitComment comment = new CommitComment();
 		comment.setCommit(commit);
 		comment.setContent("This is a comment");
-		//comment.setOldFilePath("dev/null");
-		//comment.setOldLineNumber(null);
-		//comment.setNewFilePath(".gitignore");
-		//comment.setNewLineNumber(1);
+//		comment.setOldFilePath("dev/null");
+//		comment.setOldLineNumber(null);
+//		comment.setNewFilePath(".gitignore");
+//		comment.setNewLineNumber(1);
 		comment.setTime(new Date());
 		comment.setUser(student1());
 		commit.getComments().add(comment);
@@ -125,7 +128,20 @@ public class CommitsTest {
 	}
 	
 	protected CourseEdition getTestCourse() {
-		return courses.find("TI1705");
+		try {
+			return courses.find("TI1705");
+		}
+		catch (EntityNotFoundException e) {
+			Course course = new Course();
+			course.setName("Software Quality & Testing");
+			course.setCode("TI1705");
+			CourseEdition courseEdition = new CourseEdition();
+			courseEdition.setTimeSpan(new TimeSpan(new Date(), null));
+			courseEdition.setCourse(course);
+			courseEdition.setMinGroupSize(2);
+			courseEdition.setMaxGroupSize(2);
+			return courses.persist(courseEdition);
+		}
 	}
 	
 	protected User student1() {

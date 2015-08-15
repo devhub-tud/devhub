@@ -36,17 +36,22 @@ public class DatabaseStructure {
 		this.properties = PersistenceConfiguration.load("default");
 		Strategy strategy = getStrategy(properties);
 
-		switch (strategy) {
-			case DROP_CREATE:
-				dropStructure();
-				updateStructure();
-				break;
-			case UPDATE:
-				updateStructure();
-				break;
-			default:
+		if(strategy == null) {
+			log.warn("No \"liquibase.liquibase-strategy\" parameter specified in persistence configuration.");
+		}
+		else {
+			switch (strategy) {
+				case DROP_CREATE:
+					dropStructure();
+					updateStructure();
+					break;
+				case UPDATE:
+					updateStructure();
+					break;
+				default:
 				throw new IllegalArgumentException("No \"liquibase.liquibase-strategy\" " +
 						"parameter specified in persistence configuration.");
+			}
 		}
 	}
 

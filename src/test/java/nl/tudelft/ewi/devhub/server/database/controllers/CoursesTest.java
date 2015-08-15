@@ -136,7 +136,6 @@ public class CoursesTest {
 		courseEdition.setTimeSpan(new TimeSpan(new Date(), null));
 		courseEdition.setMinGroupSize(2);
 		courseEdition.setMaxGroupSize(2);
-		courseEdition.setBuildTimeout(600);
 		return courseEdition;
 	}
 	

@@ -2,8 +2,11 @@ package nl.tudelft.ewi.devhub.server.database.entities.issues;
 
 import lombok.*;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Parameter;
 import java.io.Serializable;
 
 /**
@@ -32,6 +35,11 @@ public abstract class AbstractIssue {
     private RepositoryEntity repository;
 
 	@Id
+	@GenericGenerator(name = "seq_issue_id", strategy = "nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator", parameters = {
+		@org.hibernate.annotations.Parameter(name = FKSegmentedIdentifierGenerator.TABLE_PARAM, value = "seq_issue_id"),
+		@org.hibernate.annotations.Parameter(name = FKSegmentedIdentifierGenerator.CLUSER_COLUMN, value = "repository_id")
+	})
+	@GeneratedValue(generator = "seq_issue_id")
 	@Column(name = "issue_id")
 	private long issueId;
 

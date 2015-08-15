@@ -165,7 +165,7 @@ public class CoursesResource extends Resource {
         course.setTemplateRepositoryUrl(templateRepository);
         course.setMinGroupSize(minGroupSize);
         course.setMaxGroupSize(maxGroupSize);
-        course.setBuildTimeout(buildTimeout);
+        course.getBuildInstruction().setBuildTimeout(buildTimeout);
 
         try {
             coursesBackend.mergeCourse(course);
@@ -245,7 +245,7 @@ public class CoursesResource extends Resource {
         courseEdition.setTemplateRepositoryUrl(templateRepository);
         courseEdition.setMinGroupSize(minGroupSize);
         courseEdition.setMaxGroupSize(maxGroupSize);
-        courseEdition.setBuildTimeout(buildTimeout);
+        courseEdition.getBuildInstruction().setBuildTimeout(buildTimeout);
 
         TimeSpan timeSpan = new TimeSpan(new Date(), null);
         courseEdition.setTimeSpan(timeSpan);

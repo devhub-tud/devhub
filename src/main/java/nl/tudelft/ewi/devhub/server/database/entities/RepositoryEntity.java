@@ -29,8 +29,8 @@ import java.util.Map;
  */
 @Data
 @Entity
-@EqualsAndHashCode
 @Table(name = "repository")
+@EqualsAndHashCode(of = {"id"})
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorFormula("CASE WHEN group_id IS NOT NULL THEN 'GROUP' END")
 public abstract class RepositoryEntity implements Configurable {

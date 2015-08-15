@@ -4,16 +4,20 @@ import java.io.Serializable;
 import java.util.Set;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 
+import com.google.common.collect.ComparisonChain;
 import lombok.*;
+import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 @Data
 @Entity
 @Table(name = "groups")
 @IdClass(Group.GroupId.class)
+@ToString(of = {"courseEdition", "groupNumber"})
 @EqualsAndHashCode(of = {"courseEdition", "groupNumber" })
-public class Group implements Serializable {
+public class Group implements Comparable<Group>, Serializable {
 
 	@Data
 	@NoArgsConstructor
@@ -32,7 +36,12 @@ public class Group implements Serializable {
 	private CourseEdition courseEdition;
 
 	@Id
-	@Column(name = "group_number")
+	@GenericGenerator(name = "seq_group_number", strategy = "nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator", parameters = {
+		@Parameter(name = FKSegmentedIdentifierGenerator.TABLE_PARAM, value = "seq_group_number"),
+		@Parameter(name = FKSegmentedIdentifierGenerator.CLUSER_COLUMN, value = "course_edition_id")
+	})
+	@GeneratedValue(generator = "seq_group_number")
+	@Column(name = "group_number", nullable = false)
 	private long groupNumber;
 
 	@OneToOne(cascade = CascadeType.ALL)
@@ -57,9 +66,9 @@ public class Group implements Serializable {
 
 	public String getGroupName() {
 		return String.format("%s - %s (Group %d)",
-				getCourseEdition().getCode(),
-				getCourseEdition().getName(),
-				getGroupNumber());
+			getCourseEdition().getCode(),
+			getCourseEdition().getName(),
+			getGroupNumber());
 	}
 
 	@Deprecated
@@ -67,4 +76,11 @@ public class Group implements Serializable {
 		return getCourseEdition();
 	}
 
+	@Override
+	public int compareTo(Group o) {
+		return ComparisonChain.start()
+			.compare(getCourseEdition(), o.getCourseEdition())
+			.compare(getGroupNumber(), o.getGroupNumber())
+			.result();
+	}
 }

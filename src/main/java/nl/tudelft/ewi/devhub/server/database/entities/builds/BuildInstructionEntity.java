@@ -18,6 +18,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.net.URLEncoder;
 
 @Data
@@ -33,6 +34,7 @@ public abstract class BuildInstructionEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
+	@NotNull(message = "error.course-timeout")
 	@Column(name = "build_timeout")
 	private Integer buildTimeout;
 

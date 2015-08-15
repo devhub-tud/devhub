@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
@@ -13,7 +14,8 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "course")
-@EqualsAndHashCode(of = "id")
+@ToString(of = {"id", "code"})
+@EqualsAndHashCode(of = {"id"})
 public class Course implements Comparable<Course> {
 
     @Id

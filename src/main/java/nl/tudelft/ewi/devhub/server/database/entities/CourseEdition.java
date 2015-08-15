@@ -21,7 +21,7 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "course_edition")
-@ToString(of = { "code" })
+@ToString(of = {"id", "course"})
 @EqualsAndHashCode(of = { "id" })
 public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 
@@ -49,15 +49,11 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	@Column(name = "template_repository_url")
 	private String templateRepositoryUrl;
 
-    @NotNull(message = "error.course-timeout")
-	@Column(name = "build_timeout")
-	private Integer buildTimeout;
-
 	@OrderBy("groupNumber ASC")
 	@OneToMany(mappedBy = "courseEdition", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<Group> groups;
 
-	@ManyToMany
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinTable(
 		name="course_assistants",
 		joinColumns={@JoinColumn(name="course_edition_id", referencedColumnName="id")},
@@ -68,8 +64,8 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Assignment> assignments;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "build_instruction", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+	@JoinColumn(name = "build_instruction")
 	private BuildInstructionEntity buildInstruction;
 
 	@ElementCollection
@@ -78,10 +74,12 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	@Column(name="property_value")
 	private Map<String, String> properties;
 
+	@Deprecated
 	public String getCode() {
 		return getCourse().getCode();
 	}
 
+	@Deprecated
 	public String getName() {
 		return getCourse().getName();
 	}
@@ -95,12 +93,15 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	}
 
 	public URI createRepositoryName(Group group) {
-		URI base = URI.create("courses").resolve(getCourse().getCode().toLowerCase());
+		URI base = URI.create("courses");
+		String coursePart = getCourse().getCode().toLowerCase();
+
 		TimeSpan timeSpan = getTimeSpan();
 		if(timeSpan.getEnd() != null) {
-			base = base.resolve(String.format("%02d%02d", timeSpan.getStart().getYear() % 100, timeSpan.getEnd().getYear() % 100));
+			coursePart += String.format("-%02d%02d", timeSpan.getStart().getYear() % 100, timeSpan.getEnd().getYear() % 100);
 		}
-		return base.resolve("group-" + group.getGroupNumber());
+
+		return base.resolve(coursePart).resolve("group-" + group.getGroupNumber());
 	}
 
 }

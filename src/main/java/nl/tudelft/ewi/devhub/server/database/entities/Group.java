@@ -11,33 +11,29 @@ import lombok.*;
 @Data
 @Entity
 @Table(name = "groups")
-@EqualsAndHashCode(of = { "groupId" })
+@IdClass(Group.GroupId.class)
+@EqualsAndHashCode(of = {"courseEdition", "groupNumber" })
 public class Group implements Serializable {
 
 	@Data
-	@Embeddable
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class GroupId implements Serializable {
 
-		@Setter(AccessLevel.PROTECTED)
-		@Getter(AccessLevel.PROTECTED)
-		@Column(name = "course_edition_id")
-		private long courseEditionId;
+		private long courseEdition;
 
-		@Column(name = "group_number")
 		private long groupNumber;
 
 	}
 
-	@Delegate
-	@EmbeddedId
-	@Getter(AccessLevel.PROTECTED)
-	@Setter(AccessLevel.PROTECTED)
-	private GroupId groupId = new GroupId();
+	@Id
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "course_id")
+	private CourseEdition courseEdition;
 
-	@NotNull
-	@ManyToOne
-	@MapsId("courseEditionId")
-	private CourseEdition course;
+	@Id
+	@Column(name = "group_number")
+	private long groupNumber;
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "repository_id", referencedColumnName = "id", unique = true)
@@ -61,9 +57,14 @@ public class Group implements Serializable {
 
 	public String getGroupName() {
 		return String.format("%s - %s (Group %d)",
-				getCourse().getCode(),
-				getCourse().getName(),
+				getCourseEdition().getCode(),
+				getCourseEdition().getName(),
 				getGroupNumber());
+	}
+
+	@Deprecated
+	public CourseEdition getCourse() {
+		return getCourseEdition();
 	}
 
 }

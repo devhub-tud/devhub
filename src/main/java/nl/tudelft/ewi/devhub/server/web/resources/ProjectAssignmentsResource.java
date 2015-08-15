@@ -17,6 +17,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
@@ -65,6 +66,7 @@ public class ProjectAssignmentsResource extends Resource {
     private final User currentUser;
     private final BuildResults buildResults;
     private final Group group;
+    private final RepositoryEntity repositoryEntity;
     private final GitServerClient gitClient;
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
@@ -84,6 +86,7 @@ public class ProjectAssignmentsResource extends Resource {
 
         this.templateEngine = templateEngine;
         this.group = group;
+        this.repositoryEntity = group.getRepository();
         this.currentUser = currentUser;
         this.buildResults = buildResults;
         this.deliveries = deliveries;
@@ -102,7 +105,7 @@ public class ProjectAssignmentsResource extends Resource {
     @GET
     @Transactional
     public Response getAssignmentsOverview(@Context HttpServletRequest request) throws IOException, ApiError, GitClientException {
-        Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+        Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
         Map<String, Object> parameters = Maps.newLinkedHashMap();
         parameters.put("user", currentUser);
         parameters.put("group", group);
@@ -130,7 +133,7 @@ public class ProjectAssignmentsResource extends Resource {
             throws IOException, ApiError, GitClientException {
 
         Assignment assignment = assignments.find(group.getCourse(), assignmentId);
-        Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+        Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 
         List<Delivery> myDeliveries = deliveries.getDeliveries(assignment, group);
         Map<String, Object> parameters = Maps.newLinkedHashMap();
@@ -146,7 +149,7 @@ public class ProjectAssignmentsResource extends Resource {
         Collection<String> commitIds = myDeliveries.stream()
                 .map(Delivery::getCommitId)
                 .collect(Collectors.toSet());
-        parameters.put("builds", buildResults.findBuildResults(group, commitIds));
+        parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-assignment-view.ftl", locales, parameters));
@@ -201,7 +204,7 @@ public class ProjectAssignmentsResource extends Resource {
 
     private void tagAssignmentDelivery(String commitId, Assignment assignment, Delivery delivery) {
         try {
-            Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+            Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
             CommitModel commitModel = new CommitModel();
             commitModel.setCommit(commitId);
 
@@ -293,10 +296,10 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("delivery", delivery);
         parameters.put("assignment", delivery.getAssignment());
         parameters.put("deliveryStates", Delivery.State.values());
-        parameters.put("repository", gitClient.repositories().retrieve(group.getRepositoryName()));
+        parameters.put("repository", gitClient.repositories().retrieve(repositoryEntity.getRepositoryName()));
 
         List<String> commitIds = Lists.newArrayList(delivery.getCommitId());
-        parameters.put("builds", buildResults.findBuildResults(group, commitIds));
+        parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-delivery-review.ftl", locales, parameters));

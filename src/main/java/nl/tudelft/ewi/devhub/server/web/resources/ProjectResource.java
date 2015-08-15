@@ -16,6 +16,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
@@ -82,6 +83,7 @@ public class ProjectResource extends Resource {
 	private final User currentUser;
 	private final BuildResults buildResults;
 	private final Group group;
+	private final RepositoryEntity repositoryEntity;
 	private final PullRequests pullRequests;
 	private final CommentBackend commentBackend;
     private final BuildsBackend buildBackend;
@@ -107,6 +109,7 @@ public class ProjectResource extends Resource {
 
 		this.templateEngine = templateEngine;
 		this.group = group;
+		this.repositoryEntity = group.getRepository();
 		this.currentUser = currentUser;
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
@@ -135,11 +138,9 @@ public class ProjectResource extends Resource {
 									   @QueryParam("page") @DefaultValue("1") int page,
 									   @QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
 
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
+		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("repository", repository);
 
 		try {
@@ -150,11 +151,11 @@ public class ProjectResource extends Resource {
 			parameters.put("pagination", new Pagination(page, commits.getTotal()));
 
 			Collection<String> commitIds = getCommitIds(commits);
-			parameters.put("warnings", warnings.commitsWithWarningsFor(group, commitIds));
-			parameters.put("comments", comments.commentsFor(group, commitIds));
-			parameters.put("builds", buildResults.findBuildResults(group, commitIds));
+			parameters.put("warnings", warnings.commitsWithWarningsFor(repositoryEntity, commitIds));
+			parameters.put("comments", comments.commentsFor(repositoryEntity, commitIds));
+			parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
-			PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
+			PullRequest pullRequest = pullRequests.findOpenPullRequest(repositoryEntity, branch.getName());
 			if(pullRequest != null) {
 				parameters.put("pullRequest", pullRequest);
 			}
@@ -163,6 +164,13 @@ public class ProjectResource extends Resource {
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
+	}
+
+	protected Map<String, Object> getBaseParameters() {
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("group", group);
+		return parameters;
 	}
 
 	protected List<String> getCommitIds(CommitSubList commits) {
@@ -176,11 +184,9 @@ public class ProjectResource extends Resource {
 	@Transactional
 	public Response showContributors(@Context HttpServletRequest request) throws IOException, GitClientException {
 
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
+		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("repository", repository);
 
 		List<Locale> locales = Collections.list(request.getLocales());
@@ -204,14 +210,14 @@ public class ProjectResource extends Resource {
 
 		CommitComment comment = new CommitComment();
 		comment.setContent(message);
-		comment.setCommit(commits.ensureExists(group, linkCommitId));
+		comment.setCommit(commits.ensureExists(repositoryEntity, linkCommitId));
 		comment.setTime(new Date());
 		comment.setUser(currentUser);
 
 		if(sourceCommitId != null) {
 			// In-line comment
 			Source source = new Source();
-			source.setSourceCommit(commits.ensureExists(group, sourceCommitId));
+			source.setSourceCommit(commits.ensureExists(repositoryEntity, sourceCommitId));
 			source.setSourceFilePath(sourceFileName);
 			source.setSourceLineNumber(sourceLineNumber);
 			comment.setSource(source);
@@ -244,17 +250,15 @@ public class ProjectResource extends Resource {
 									@PathParam("commitId") String commitId,
 									@QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
 
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		Commit commit = repository.retrieveCommit(commitId);
 
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
+		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("commit", commit);
 		parameters.put("repository", repository);
 
 		try {
-			parameters.put("buildResult", buildResults.find(group, commitId));
+			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));
 		}
 		catch (EntityNotFoundException e) {
 			log.debug("No build result for commit {}", commitId);
@@ -273,7 +277,7 @@ public class ProjectResource extends Resource {
                                   @PathParam("commitId") String commitId)
 			throws URISyntaxException, UnsupportedEncodingException, GitClientException {
 
-		nl.tudelft.ewi.devhub.server.database.entities.Commit commit = commits.ensureExists(group, commitId);
+		nl.tudelft.ewi.devhub.server.database.entities.Commit commit = commits.ensureExists(repositoryEntity, commitId);
 		buildBackend.rebuildCommit(commit);
         URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
         return Response.seeOther(responseUri).build();
@@ -286,28 +290,26 @@ public class ProjectResource extends Resource {
 									  @PathParam("commitId") String commitId)
 			throws IOException, ApiError, GitClientException {
 
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		nl.tudelft.ewi.git.client.Commit commit = repository.retrieveCommit(commitId);
 		DiffBlameModel diffBlameModel = commit.diffBlame();
 
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
+		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("commit", commit);
 		parameters.put("repository", repository);
 		parameters.put("diffViewModel", diffBlameModel);
-		parameters.put("comments", comments.getCommentsFor(group, commitId));
+		parameters.put("comments", comments.getCommentsFor(repositoryEntity, commitId));
 		parameters.put("commentChecker", commentBackend.getCommentChecker(Lists.newArrayList(commitId)));
 
 		try {
-			parameters.put("buildResult", buildResults.find(group, commitId));
+			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));
 		}
 		catch (EntityNotFoundException e) {
 			log.debug("No build result for commit {}", commitId);
 		}
 
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, commitId);
-		parameters.put("warnings", warnings.getWarningsFor(group, commitId));
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, commitId);
+		parameters.put("warnings", warnings.getWarningsFor(repositoryEntity, commitId));
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
     		List<Locale> locales = Collections.list(request.getLocales());
@@ -330,7 +332,7 @@ public class ProjectResource extends Resource {
 			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
 			@PathParam("path") String path) throws ApiError, IOException, GitClientException {
 
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
 
 			@Override
@@ -351,16 +353,14 @@ public class ProjectResource extends Resource {
 
 		entries.putAll(repository.listDirectoryEntries(commitId, path));
 		
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
+		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("commit", repository.retrieveCommit(commitId));
 		parameters.put("path", path);
-		parameters.put("group", group);
 		parameters.put("repository", repository);
 		parameters.put("entries", entries);
 
 		try {
-			parameters.put("buildResult", buildResults.find(group, commitId));
+			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));
 		}
 		catch (EntityNotFoundException e) {
 			log.debug("No build result for commit {}", commitId);
@@ -379,7 +379,7 @@ public class ProjectResource extends Resource {
 							@PathParam("commitId") String commitId,
 							@PathParam("path") String path) throws ApiError, IOException, GitClientException {
 
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		return Response.ok(repository.showBinFile(commitId, path))
 				.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
 				.build();
@@ -401,7 +401,7 @@ public class ProjectResource extends Resource {
 			fileName = path.substring(path.lastIndexOf('/') + 1);
 		}
 
-		Repository repository = gitClient.repositories().retrieve(group.getRepositoryName());
+		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		Commit commit = repository.retrieveCommit(commitId);
 		Map<String, EntryType> entries = repository.listDirectoryEntries(commitId, folderPath);
 
@@ -416,18 +416,16 @@ public class ProjectResource extends Resource {
 		String[] contents = repository.showFile(commitId, path).split("\\r?\\n");
         BlameModel blame = commit.blame(path);
 
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
+		Map<String, Object> parameters  = getBaseParameters();
 		parameters.put("commit", commit);
         parameters.put("blame", blame);
 		parameters.put("path", path);
 		parameters.put("contents", contents);
 		parameters.put("highlight", Highlight.forFileName(path));
-		parameters.put("group", group);
 		parameters.put("repository", repository);
 
 		try {
-			parameters.put("buildResult", buildResults.find(group, commitId));
+			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));
 		}
 		catch (EntityNotFoundException e) {
 			log.debug("No build result for commit {}", commitId);
@@ -435,7 +433,7 @@ public class ProjectResource extends Resource {
 
 		Set<String> blameCommits = getCommitsForBlame(blame);
         parameters.put("comments", commentBackend.getCommentChecker(blameCommits));
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(group, blameCommits);
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, blameCommits);
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		List<Locale> locales = Collections.list(request.getLocales());

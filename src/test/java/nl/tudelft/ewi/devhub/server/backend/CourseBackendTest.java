@@ -1,7 +1,9 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import java.util.ArrayList;
+import java.util.Set;
 
+import com.google.common.collect.Sets;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -54,22 +56,18 @@ public class CourseBackendTest extends BackendTest {
 	
 	@Mock
 	private GroupMembers groupMembers;
-	
-	@Mock
-	private CourseAssistants courseAssistantsDAO;
 
 	private ArrayList<User> newAssistants;
 
-	private ArrayList<CourseAssistant> oldAssistants;
+	private Set<User> oldAssistants;
 	
 	private CourseEdition course;
 	
 	@Before
 	public void setUp() throws GitClientException {
 		course = createCourse();
-		newAssistants = Lists.newArrayList(createUsersArray());
-		oldAssistants = Lists.newArrayList(createAssistantsArray());
-		course.setCourseAssistants(oldAssistants);
+		oldAssistants = Sets.newHashSet(createUser(), createUser());
+		course.setAssistants(oldAssistants);
 		
 		when(currentUser.isAdmin()).thenReturn(true);
 		when(groups.ensureExists(Matchers.any())).thenReturn(null);
@@ -77,17 +75,6 @@ public class CourseBackendTest extends BackendTest {
 		when(gitServerClient.users()).thenReturn(users);
 		when(groups.groupMembers(Matchers.any())).thenReturn(groupMembers);
 
-		when(courseAssistantsDAO.persist(any())).thenAnswer((invocation -> {
-			CourseAssistant courseAssistant = (CourseAssistant) invocation.getArguments()[0];
-			oldAssistants.add(courseAssistant);
-			return courseAssistant;
-		}));
-
-		when(courseAssistantsDAO.delete(any())).thenAnswer((invocation -> {
-			CourseAssistant courseAssistant = (CourseAssistant) invocation.getArguments()[0];
-			oldAssistants.remove(courseAssistant);
-			return courseAssistant;
-		}));
 	}
 
 	private User[] createUsersArray() {
@@ -96,21 +83,6 @@ public class CourseBackendTest extends BackendTest {
 		
 		for (int i = 0; i < numberOfUsers; i++) {
 			assistants[i] = createUser();
-		}
-		
-		return assistants;
-	}
-
-	private CourseAssistant[] createAssistantsArray() {
-		int numberOfAssistants = 5;
-		CourseAssistant[] assistants = new CourseAssistant[numberOfAssistants];
-		
-		for (int i = 0; i < numberOfAssistants; i++) {
-			CourseAssistant assistant = new CourseAssistant();
-			assistant.setCourse(course);
-			assistant.setUser(createUser());
-			
-			assistants[i] = assistant;
 		}
 		
 		return assistants;

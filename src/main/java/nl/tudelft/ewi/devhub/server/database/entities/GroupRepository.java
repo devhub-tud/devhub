@@ -30,7 +30,7 @@ public class GroupRepository extends RepositoryEntity {
     public BuildInstructionEntity getBuildInstruction() {
         BuildInstructionEntity buildInstructionEntity = super.getBuildInstruction();
         if(buildInstructionEntity == null) {
-            buildInstructionEntity = getGroup().getCourse().getBuildInstruction();
+            buildInstructionEntity = getGroup().getCourseEdition().getBuildInstruction();
         }
         return buildInstructionEntity;
     }
@@ -41,7 +41,7 @@ public class GroupRepository extends RepositoryEntity {
     }
 
     protected CourseEdition getCourseEdition() {
-        return getGroup().getCourse();
+        return getGroup().getCourseEdition();
     }
 
     @Override

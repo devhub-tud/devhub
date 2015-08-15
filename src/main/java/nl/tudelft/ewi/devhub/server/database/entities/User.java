@@ -31,8 +31,8 @@ public class User {
 	private static final Comparator<Group> GROUP_COMPARATOR = new Comparator<Group>() {
 		@Override
 		public int compare(Group group1, Group group2) {
-			CourseEdition course1 = group1.getCourse();
-			CourseEdition course2 = group2.getCourse();
+			CourseEdition course1 = group1.getCourseEdition();
+			CourseEdition course2 = group2.getCourseEdition();
 			String code1 = course1.getCode();
 			String code2 = course2.getCode();
 			int compare = code1.compareTo(code2);
@@ -103,7 +103,7 @@ public class User {
 
 	public boolean isParticipatingInCourse(CourseEdition course) {
 		return getGroups().stream()
-			.map(Group::getCourse)
+			.map(Group::getCourseEdition)
 			.anyMatch(course::equals);
 	}
 	

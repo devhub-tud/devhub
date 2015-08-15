@@ -22,12 +22,12 @@ import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDRepo
 import nl.tudelft.ewi.devhub.server.backend.warnings.SuccessiveBuildFailureGenerator;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.RepositoriesController;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
@@ -74,7 +74,7 @@ public class HooksResource extends Resource {
 	private final BuildsBackend buildBackend;
 	private final GitServerClient client;
 	private final BuildResults buildResults;
-	private final Groups groups;
+	private final RepositoriesController repositoriesController;
 	private final BuildResultMailer mailer;
 	private final PullRequests pullRequests;
 	private final PullRequestBackend pullRequestBackend;
@@ -88,7 +88,7 @@ public class HooksResource extends Resource {
 
 	@Inject
 	HooksResource(BuildsBackend buildBackend, GitServerClient client, BuildResults buildResults,
-			Groups groups, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
+		    RepositoriesController repositoriesController, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
 			Commits commits, Warnings warnings, PMDWarningGenerator pmdWarningGenerator, CheckstyleWarningGenerator checkstyleWarningGenerator,
 			FindBugsWarningGenerator findBugsWarningGenerator, SuccessiveBuildFailureGenerator successiveBuildFailureGenerator,
 			Set<CommitPushWarningGenerator> pushWarningGenerators) {
@@ -96,7 +96,7 @@ public class HooksResource extends Resource {
 		this.buildBackend = buildBackend;
 		this.client = client;
 		this.buildResults = buildResults;
-		this.groups = groups;
+		this.repositoriesController = repositoriesController;
 		this.mailer = mailer;
 		this.pullRequests = pullRequests;
 		this.pullRequestBackend = pullRequestBackend;
@@ -116,41 +116,41 @@ public class HooksResource extends Resource {
 
 		Repositories repositories = client.repositories();
 		Repository repository = repositories.retrieve(push.getRepository());
-		Group group = groups.findByRepoName(push.getRepository());
+		RepositoryEntity repositoryEntity = repositoriesController.find(push.getRepository());
 
 		Set<Commit> commitsToBeBuilt = repository.getBranches().stream()
 			.map(BranchModel::getCommit)
-			.flatMap(commitModel -> findCommitsToBeBuilt(group, repository, commitModel.getCommit()).stream())
+			.flatMap(commitModel -> findCommitsToBeBuilt(repositoryEntity, repository, commitModel.getCommit()).stream())
 			.collect(Collectors.toSet());
 
 		commitsToBeBuilt.stream()
 			.forEach(buildBackend::buildCommit);
 
 		repository.getBranches().stream()
-			.flatMap(branchModel -> findOpenPullRequests(group, branchModel))
+			.flatMap(branchModel -> findOpenPullRequests(repositoryEntity, branchModel))
 			.forEach(pullRequest -> updatePullRequest(repository, pullRequest));
 
-		commitsToBeBuilt.forEach(commit -> triggerWarnings(group, commit, push));
+		commitsToBeBuilt.forEach(commit -> triggerWarnings(repositoryEntity, commit, push));
 	}
 
-	protected Set<Commit> findCommitsToBeBuilt(final Group group, final Repository repository,
+	protected Set<Commit> findCommitsToBeBuilt(final RepositoryEntity repositoryEntity, final Repository repository,
 											   final String commitId) {
 		Set<Commit> commits = Sets.newHashSet();
 		nl.tudelft.ewi.git.client.Commit commitModel = retrieveCommit(repository, commitId);
-		findCommitsToBeBuilt(group, repository, commitModel, commits);
+		findCommitsToBeBuilt(repositoryEntity, repository, commitModel, commits);
 		return commits;
 	}
 
-	protected void findCommitsToBeBuilt(final Group group, final Repository repository,
+	protected void findCommitsToBeBuilt(final RepositoryEntity repositoryEntity, final Repository repository,
 										final nl.tudelft.ewi.git.client.Commit commitModel,
 										final Set<Commit> results) {
-		final Commit commit = commits.ensureExists(group, commitModel.getCommit());
+		final Commit commit = commits.ensureExists(repositoryEntity, commitModel.getCommit());
 
 		if(!buildResults.exists(commit)) {
 			results.add(commit);
 			Stream.of(commitModel.getParents())
 				.map(commitId -> retrieveCommit(repository, commitId))
-				.forEach(a -> findCommitsToBeBuilt(group, repository, a, results));
+				.forEach(a -> findCommitsToBeBuilt(repositoryEntity, repository, a, results));
 		}
 	}
 
@@ -166,19 +166,19 @@ public class HooksResource extends Resource {
 	public void triggerWarnings(@QueryParam("repository") @NotEmpty String repositoryName,
 								@QueryParam("commit") @NotEmpty String commitId) throws GitClientException {
 
-		Group group = groups.findByRepoName(repositoryName);
-		Commit commit = commits.ensureExists(group, commitId);
+		RepositoryEntity repositoryEntity = repositoriesController.find(repositoryName);
+		Commit commit = commits.ensureExists(repositoryEntity, commitId);
 
-		Preconditions.checkNotNull(group);
+		Preconditions.checkNotNull(repositoryEntity);
 		Preconditions.checkNotNull(commit);
 
 		GitPush gitPush = new GitPush();
 		gitPush.setRepository(repositoryName);
-		triggerWarnings(group, commit, gitPush);
+		triggerWarnings(repositoryEntity, commit, gitPush);
 	}
 
-	protected void triggerWarnings(final Group group, final Commit commit, final GitPush gitPush) {
-		assert group != null;
+	protected void triggerWarnings(final RepositoryEntity repositoryEntity, final Commit commit, final GitPush gitPush) {
+		assert repositoryEntity != null;
 		assert commit != null;
 		assert gitPush != null;
 
@@ -196,9 +196,9 @@ public class HooksResource extends Resource {
 			})
 			.collect(Collectors.toSet());
 
-		Set<? extends CommitWarning> persistedWarnings = warnings.persist(group, pushWarnings);
+		Set<? extends CommitWarning> persistedWarnings = warnings.persist(repositoryEntity, pushWarnings);
 		log.info("Persisted {} of {} push warnings for {}", persistedWarnings.size(),
-				pushWarnings.size(), group);
+				pushWarnings.size(), repositoryEntity);
 	}
 
 	@SneakyThrows
@@ -206,8 +206,8 @@ public class HooksResource extends Resource {
 		pullRequestBackend.updatePullRequest(repository, pullRequest);
 	}
 
-	private Stream<PullRequest> findOpenPullRequests(Group group, BranchModel branch) {
-		PullRequest pullRequest = pullRequests.findOpenPullRequest(group, branch.getName());
+	private Stream<PullRequest> findOpenPullRequests(RepositoryEntity repositoryEntity, BranchModel branch) {
+		PullRequest pullRequest = pullRequests.findOpenPullRequest(repositoryEntity, branch.getName());
 		return pullRequest == null ? Stream.empty() : Stream.of(pullRequest);
 	}
 
@@ -221,11 +221,12 @@ public class HooksResource extends Resource {
 
 		log.info("Retrieved build result for {} at {}", commitId, repository);
 		String repoName = decode(repository, "UTF-8");
-		Group group = groups.findByRepoName(repoName);
+		RepositoryEntity repositoryEntity = repositoriesController.find(repoName);
+		Commit commit = commits.ensureExists(repositoryEntity, commitId);
 
 		BuildResult result;
 		try {
-			result = buildResults.find(group, commitId);
+			result = buildResults.find(repositoryEntity, commitId);
 			result.setSuccess(buildResult.getStatus() == Status.SUCCEEDED);
 			result.setLog(Joiner.on('\n')
 				.join(buildResult.getLogLines()));
@@ -233,7 +234,7 @@ public class HooksResource extends Resource {
 			buildResults.merge(result);
 		}
 		catch (EntityNotFoundException e) {
-			result = BuildResult.newBuildResult(group, commitId);
+			result = BuildResult.newBuildResult(commit);
 			result.setSuccess(buildResult.getStatus() == Status.SUCCEEDED);
 			result.setLog(Joiner.on('\n')
 				.join(buildResult.getLogLines()));
@@ -246,9 +247,8 @@ public class HooksResource extends Resource {
 		}
 
 		try {
-			Commit commit = commits.retrieve(group, commitId);
 			Set<SuccessiveBuildFailure> swarns = successiveBuildFailureGenerator.generateWarnings(commit, result);
-			warnings.persist(group, swarns);
+			warnings.persist(repositoryEntity, swarns);
 		}
 		catch (Exception e) {
 			log.warn("Failed to persist sucessive build failure for {}", e, result);
@@ -267,12 +267,13 @@ public class HooksResource extends Resource {
 
 		log.info("Retrieved PMD result for {} at {}", commitId, repository);
 		String repoName = decode(repository, "UTF-8");
-		Group group = groups.findByRepoName(repoName);
-		Commit commit = commits.ensureExists(group, commitId);
+		RepositoryEntity repositoryEntity = repositoriesController.find(repoName);
+
+		Commit commit = commits.ensureExists(repositoryEntity, commitId);
 		Set<PMDWarning> pmdWarnings = pmdWarningGenerator.generateWarnings(commit, report);
-		Set<PMDWarning> persistedWarnings = warnings.persist(group, pmdWarnings);
+		Set<PMDWarning> persistedWarnings = warnings.persist(repositoryEntity, pmdWarnings);
 		log.info("Persisted {} of {} PMD warnings for {}", persistedWarnings.size(),
-				pmdWarnings.size(), group);
+				pmdWarnings.size(), repositoryEntity);
 	}
 
 	@POST
@@ -286,12 +287,13 @@ public class HooksResource extends Resource {
 
 		log.info("Retrieved Checkstyle result for {} at {}", commitId, repository);
 		String repoName = decode(repository, "UTF-8");
-		Group group = groups.findByRepoName(repoName);
-		Commit commit = commits.ensureExists(group, commitId);
+		RepositoryEntity repositoryEntity = repositoriesController.find(repoName);
+
+		Commit commit = commits.ensureExists(repositoryEntity, commitId);
 		Set<CheckstyleWarning> checkstyleWarnings = checkstyleWarningGenerator.generateWarnings(commit, report);
-		Set<CheckstyleWarning> persistedWarnings = warnings.persist(group, checkstyleWarnings);
+		Set<CheckstyleWarning> persistedWarnings = warnings.persist(repositoryEntity, checkstyleWarnings);
 		log.info("Persisted {} of {} Checkstyle warnings for {}", persistedWarnings.size(),
-				checkstyleWarnings.size(), group);
+				checkstyleWarnings.size(), repositoryEntity);
 	}
 
 	@POST
@@ -305,12 +307,13 @@ public class HooksResource extends Resource {
 
 		log.info("Retrieved Findbugs result for {} at {}", commitId, repository);
 		String repoName = decode(repository, "UTF-8");
-		Group group = groups.findByRepoName(repoName);
-		Commit commit = commits.ensureExists(group, commitId);
+		RepositoryEntity repositoryEntity = repositoriesController.find(repoName);
+
+		Commit commit = commits.ensureExists(repositoryEntity, commitId);
 		Set<FindbugsWarning> findbugsWarnings = findBugsWarningGenerator.generateWarnings(commit, report);
-		Set<FindbugsWarning> persistedWarnings = warnings.persist(group, findbugsWarnings);
+		Set<FindbugsWarning> persistedWarnings = warnings.persist(repositoryEntity, findbugsWarnings);
 		log.info("Persisted {} of {} FindBugs warnings for {}", persistedWarnings.size(),
-				findbugsWarnings.size(), group);
+				findbugsWarnings.size(), repositoryEntity);
 	}
 
 }

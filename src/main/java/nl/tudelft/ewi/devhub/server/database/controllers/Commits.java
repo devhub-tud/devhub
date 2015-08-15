@@ -28,8 +28,8 @@ public class Commits extends Controller<Commit> {
 	@Transactional
 	public Commit retrieve(RepositoryEntity repository, String commitId) {
 		return query().from(commit)
-			.where(commit.id.repositoryId.eq(repository.getId()))
-			.where(commit.id.commitId.eq(commitId))
+			.where(commit.repository.eq(repository))
+			.where(commit.commitId.eq(commitId))
 			.singleResult(commit);
 	}
 	
@@ -72,8 +72,8 @@ public class Commits extends Controller<Commit> {
 	@Transactional
 	public boolean exists(RepositoryEntity repository, String commitId) {
 		return query().from(commit)
-			.where(commit.id.repositoryId.eq(repository.getId()))
-			.where(commit.id.commitId.eq(commitId))
+			.where(commit.repository.eq(repository))
+			.where(commit.commitId.eq(commitId))
 			.exists();
 	}
 	

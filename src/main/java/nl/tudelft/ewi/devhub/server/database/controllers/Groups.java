@@ -35,8 +35,8 @@ public class Groups extends Controller<Group> {
 	public List<Group> find(CourseEdition course) {
 		Preconditions.checkNotNull(course);
 		return query().from(group)
-			.where(group.course.id.eq(course.getId()))
-			.orderBy(group.groupId.groupNumber.asc())
+			.where(group.courseEdition.id.eq(course.getId()))
+			.orderBy(group.groupNumber.asc())
 			.list(group);
 	}
 
@@ -44,8 +44,8 @@ public class Groups extends Controller<Group> {
 	public Group find(CourseEdition course, long groupNumber) {
 		Preconditions.checkNotNull(course);
 		Group res = query().from(group)
-			.where(group.course.id.eq(course.getId()))
-			.where(group.groupId.groupNumber.eq(groupNumber))
+			.where(group.courseEdition.id.eq(course.getId()))
+			.where(group.groupNumber.eq(groupNumber))
 			.singleResult(group);
 
 		return ensureNotNull(res, "Could not find group by course: " + course + " and groupNumber: " + groupNumber);
@@ -58,7 +58,7 @@ public class Groups extends Controller<Group> {
 
 		return ensureNotNull(query().from(group)
 			.where(group.members.contains(user)
-			.and(group.course.eq(courseEdition)))
+			.and(group.courseEdition.eq(courseEdition)))
 			.singleResult(group),
 			String.format("Could not find group by course %s and user %s", courseEdition, user));
 	}

@@ -15,34 +15,30 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 @Data
 @Entity
 @Table(name = "commit")
+@IdClass(Commit.CommitId.class)
 @ToString(exclude = "comments")
-@EqualsAndHashCode(of = "commitId")
+@EqualsAndHashCode(of = {"repository", "commitId"})
 public class Commit implements Comparable<Commit> {
 
 	@Data
-	@Embeddable
-	@EqualsAndHashCode
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class CommitId implements Serializable {
 
-		@Getter(AccessLevel.PROTECTED)
-		@Setter(AccessLevel.PROTECTED)
-		@Column(name = "repository_id")
-		private long repositoryId;
+		private long repository;
 
-		@Column(name = "commit_id")
 		private String commitId;
 
 	}
 
-	@Delegate
-	@EmbeddedId
-	@Getter(AccessLevel.PROTECTED)
-	@Setter(AccessLevel.PROTECTED)
-	private CommitId id = new CommitId();
-
+	@Id
 	@ManyToOne(optional = false)
-	@MapsId("repositoryId")
+	@JoinColumn(name = "repository_id")
 	private RepositoryEntity repository;
+
+	@Id
+	@Column(name = "commit_id")
+	private String commitId;
 
 	@Size(max = 255)
 	@Column(name = "author", length = 255)

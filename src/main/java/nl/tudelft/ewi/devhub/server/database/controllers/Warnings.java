@@ -43,9 +43,9 @@ public class Warnings extends Controller<Warning> {
     public Map<String, Long> commitsWithWarningsFor(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
         return query().from(commitWarning)
             .where(commitWarning.repository.eq(repositoryEntity)
-                .and(commitWarning.commit.id.commitId.in(commitIds)))
-            .groupBy(commitWarning.commit.id.commitId)
-            .map(commitWarning.commit.id.commitId, commitWarning.id.count());
+                .and(commitWarning.commit.commitId.in(commitIds)))
+            .groupBy(commitWarning.commit.commitId)
+            .map(commitWarning.commit.commitId, commitWarning.id.count());
     }
 
     /**
@@ -74,7 +74,7 @@ public class Warnings extends Controller<Warning> {
     public List<CommitWarning> getWarningsFor(final RepositoryEntity repositoryEntity, final List<String> commitIds) {
         return query().from(commitWarning)
                 .where(commitWarning.repository.eq(repositoryEntity)
-                        .and(commitWarning.commit.id.commitId.in(commitIds))
+                        .and(commitWarning.commit.commitId.in(commitIds))
                         .and(commitWarning.notIn(getLineWarningsForQuery(repositoryEntity, commitIds))))
                 .list(commitWarning);
     }
@@ -82,7 +82,7 @@ public class Warnings extends Controller<Warning> {
     protected ListSubQuery<LineWarning> getLineWarningsForQuery(final RepositoryEntity repositoryEntity, final List<String> commitIds) {
         return new JPASubQuery().from(lineWarning)
             .where(lineWarning.repository.eq(repositoryEntity)
-                    .and(lineWarning.commit.id.commitId.in(commitIds)))
+                    .and(lineWarning.commit.commitId.in(commitIds)))
             .list(lineWarning);
     }
 
@@ -97,7 +97,7 @@ public class Warnings extends Controller<Warning> {
     public List<LineWarning> getLineWarningsFor(final RepositoryEntity repositoryEntity, final String commitId) {
         return query().from(lineWarning)
             .where(lineWarning.repository.eq(repositoryEntity)
-                    .and(lineWarning.commit.id.commitId.eq(commitId)))
+                    .and(lineWarning.commit.commitId.eq(commitId)))
             .list(lineWarning);
     }
 
@@ -112,7 +112,7 @@ public class Warnings extends Controller<Warning> {
     public List<LineWarning> getLineWarningsFor(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
         return query().from(lineWarning)
                 .where(lineWarning.repository.eq(repositoryEntity)
-                        .and(lineWarning.commit.id.commitId.in(commitIds)))
+                        .and(lineWarning.commit.commitId.in(commitIds)))
                 .list(lineWarning);
     }
 

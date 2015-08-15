@@ -46,7 +46,7 @@ public class Courses extends Controller<CourseEdition> {
     public List<CourseEdition> listParticipatingCourses(User user) {
 		return query().from(group)
 				.where(group.members.contains(user))
-				.list(group.course);
+				.list(group.courseEdition);
     }
 
 	/**
@@ -90,7 +90,7 @@ public class Courses extends Controller<CourseEdition> {
 
 		ListSubQuery<CourseEdition> participatingCourses = new JPASubQuery().from(group)
 			.where(group.members.contains(user))
-			.list(group.course);
+			.list(group.courseEdition);
 
 		return activeCoursesBaseQuery()
 			.where(courseEdition.notIn(participatingCourses))

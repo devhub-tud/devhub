@@ -84,10 +84,10 @@ public class ProjectsBackend {
 	}
 
 	@Transactional
-	protected Group persistRepository(CourseEdition course, Collection<User> members) throws ApiError {
+	protected Group persistRepository(CourseEdition courseEdition, Collection<User> members) throws ApiError {
 		Groups groups = groupsProvider.get();
 
-		List<Group> courseGroups = groups.find(course);
+		List<Group> courseGroups = groups.find(courseEdition);
 		Set<Long> groupNumbers = getGroupNumbers(courseGroups);
 
 		// Select first free group number.
@@ -97,12 +97,12 @@ public class ProjectsBackend {
 		}
 
 		Group group = new Group();
-		group.setCourse(course);
+		group.setCourseEdition(courseEdition);
 		group.setGroupNumber(newGroupNumber);
 		group.setMembers(Sets.newHashSet(members));
 
 		GroupRepository groupRepository = new GroupRepository();
-		groupRepository.setRepositoryName(course.createRepositoryName(group).toASCIIString());
+		groupRepository.setRepositoryName(courseEdition.createRepositoryName(group).toASCIIString());
 		group.setRepository(groupRepository);
 
 		boolean worked = false;
@@ -115,7 +115,7 @@ public class ProjectsBackend {
 			catch (ConstraintViolationException e) {
 				log.warn("Could not persist group: {}", group);
 				group.setGroupNumber(group.getGroupNumber() + 1);
-				groupRepository.setRepositoryName(course.createRepositoryName(group).toASCIIString());
+				groupRepository.setRepositoryName(courseEdition.createRepositoryName(group).toASCIIString());
 				cause = e;
 			}
 		}

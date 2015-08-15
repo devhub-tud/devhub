@@ -34,7 +34,7 @@ public class CommitComments extends Controller<CommitComment> {
         return query().from(commitComment)
                 .where(commitComment.source.sourceFilePath.isNull()
                         .and(commitComment.commit.repository.eq(repositoryEntity)
-                                .and(commitComment.commit.id.commitId.in(commitIds))))
+                                .and(commitComment.commit.commitId.in(commitIds))))
             .list(commitComment);
     }
 
@@ -49,7 +49,7 @@ public class CommitComments extends Controller<CommitComment> {
         return query().from(commitComment)
                 .where(commitComment.source.sourceFilePath.isNull()
                         .and(commitComment.commit.repository.eq(repositoryEntity)
-                                .and(commitComment.commit.id.commitId.in(commitIds))))
+                                .and(commitComment.commit.commitId.in(commitIds))))
                 .list(commitComment);
     }
 
@@ -64,7 +64,7 @@ public class CommitComments extends Controller<CommitComment> {
         return query().from(commitComment)
             .where(commitComment.source.sourceFilePath.isNotNull()
                     .and(commitComment.commit.repository.eq(repositoryEntity)
-                            .and(commitComment.commit.id.commitId.in(commitIds))))
+                            .and(commitComment.commit.commitId.in(commitIds))))
             .list(commitComment);
     }
 
@@ -77,9 +77,9 @@ public class CommitComments extends Controller<CommitComment> {
     public Map<String, Long> commentsFor(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
         return query().from(commitComment)
             .where(commitComment.commit.repository.eq(repositoryEntity)
-                    .and(commitComment.commit.id.commitId.in(commitIds)))
-            .groupBy(commitComment.commit.id.commitId)
-            .map(commitComment.commit.id.commitId, commitComment.commentId.count());
+                    .and(commitComment.commit.commitId.in(commitIds)))
+            .groupBy(commitComment.commit.commitId)
+            .map(commitComment.commit.commitId, commitComment.commentId.count());
     }
 
 }

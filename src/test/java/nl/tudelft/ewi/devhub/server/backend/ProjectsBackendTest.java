@@ -30,7 +30,6 @@ import static org.junit.Assert.*;
 
 public class ProjectsBackendTest extends BackendTest {
 	
-	private static final GroupMemberships groupMemberships = mock(GroupMemberships.class);
 	private static final Groups groups = mock(Groups.class);
 	private static final Users users = mock(Users.class);
 	private static GitServerClient gitClient;
@@ -51,7 +50,6 @@ public class ProjectsBackendTest extends BackendTest {
 	@Before
 	public void beforeTest() {
 		projectsBackend = new ProjectsBackend(
-				new ValueProvider<GroupMemberships>(groupMemberships),
 				new ValueProvider<Groups>(groups),
 				new ValueProvider<Users>(users),
 				gitClient);
@@ -59,8 +57,6 @@ public class ProjectsBackendTest extends BackendTest {
 		course = createCourse();
 		user = createUser();
 		when(groups.find(course)).thenReturn(Lists.<Group>newArrayList());
-		when(groupMemberships.ofGroup(Mockito.any(Group.class)))
-			.thenReturn(Lists.<GroupMembership>newArrayList());
 	}
 	
 	@Test
@@ -80,7 +76,7 @@ public class ProjectsBackendTest extends BackendTest {
 					"@" + course.getCode().toLowerCase(), RepositoryModel.Level.ADMIN);
 
 		CreateRepositoryModel expectedRepoModel = new CreateRepositoryModel();
-		expectedRepoModel.setName(group.getRepositoryName());
+		expectedRepoModel.setName(group.getRepository().getRepositoryName());
 		expectedRepoModel.setTemplateRepository(course.getTemplateRepositoryUrl());
 		expectedRepoModel.setPermissions(expectedPermissions);
 		verify(gitClient.repositories()).create(expectedRepoModel);

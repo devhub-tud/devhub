@@ -20,6 +20,7 @@ import nl.tudelft.ewi.devhub.server.backend.warnings.CommitPushWarningGenerator;
 import nl.tudelft.ewi.devhub.server.database.DbModule;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;

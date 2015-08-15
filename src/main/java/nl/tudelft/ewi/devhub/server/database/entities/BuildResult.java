@@ -18,23 +18,11 @@ public class BuildResult {
 		return result;
 	}
 
-//	@Id
-//	@Column(name = "id")
-//	@GeneratedValue(strategy = GenerationType.IDENTITY)
-//	private long id;
-//
-//	@OneToOne(optional = false)
-//	@JoinColumns({
-//		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
-//		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id")
-//	})
-
-	@EmbeddedId
-	@Getter(AccessLevel.PROTECTED)
-	@Setter(AccessLevel.PROTECTED)
-	private Commit.CommitId id = new Commit.CommitId();
-
-	@MapsId
+	@Id
+	@PrimaryKeyJoinColumns({
+		@PrimaryKeyJoinColumn(name = "commit_id", referencedColumnName = "commit_id"),
+		@PrimaryKeyJoinColumn(name = "repository_id", referencedColumnName = "repository_id")
+	})
 	@OneToOne(optional = false)
 	private Commit commit;
 

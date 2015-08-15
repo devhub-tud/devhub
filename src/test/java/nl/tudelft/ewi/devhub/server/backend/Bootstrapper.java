@@ -6,16 +6,20 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
+import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -89,9 +93,7 @@ public class Bootstrapper {
 	
 	private final Users users;
 	private final Courses courses;
-	private final CourseAssistants assistants;
 	private final Groups groups;
-	private final GroupMemberships memberships;
 	private final MockedAuthenticationBackend authBackend;
 	private final ObjectMapper mapper;
 	private final GitServerClient gitClient;
@@ -100,16 +102,14 @@ public class Bootstrapper {
     private final Assignments assignments;
 
 	@Inject
-	Bootstrapper(Users users, Courses courses, CourseAssistants assistants, Groups groups, 
-			GroupMemberships memberships, MockedAuthenticationBackend authBackend, ObjectMapper mapper,
+	Bootstrapper(Users users, Courses courses, Groups groups,
+			MockedAuthenticationBackend authBackend, ObjectMapper mapper,
 			GitServerClient gitClient, ProjectsBackend projects, Assignments assignments,
 			Deliveries deliveries) {
 		
 		this.users = users;
 		this.courses = courses;
-		this.assistants = assistants;
 		this.groups = groups;
-		this.memberships = memberships;
 		this.authBackend = authBackend;
 		this.mapper = mapper;
 		this.gitClient = gitClient;
@@ -146,11 +146,16 @@ public class Bootstrapper {
 			}
 			catch (Exception e) {
 				entity = new CourseEdition();
-				entity.setCode(course.getCode().toLowerCase());
-				entity.setName(course.getName());
+				Course courseEntity = new Course();
+				courseEntity.setCode(course.getCode().toLowerCase());
+				courseEntity.setName(course.getName());
+				entity.setCourse(courseEntity);
+
 				entity.setTemplateRepositoryUrl(course.getTemplateRepositoryUrl());
-				entity.setStart(course.isStarted() ? new Date() : null);
-				entity.setEnd(course.isEnded() ? new Date() : null);
+				entity.setTimeSpan(new TimeSpan(
+					course.isStarted() ? new Date() : null,
+					course.isEnded() ? new Date() : null));
+
 				entity.setMinGroupSize(course.getMinGroupSize());
 				entity.setMaxGroupSize(course.getMaxGroupSize());
 				entity.setBuildTimeout(course.getBuildTimeout());
@@ -175,16 +180,12 @@ public class Bootstrapper {
 
 			GroupModel courseGroupModel = new GroupModel();
 			courseGroupModel.setName("@" + entity.getCode().toLowerCase());
-			courseGroupModel.setMembers(Lists.<IdentifiableModel> newArrayList());
-			
-			
+			courseGroupModel.setMembers(Lists.<IdentifiableModel>newArrayList());
+
 			for (String assistantNetId : course.getAssistants()) {
 				User assistantUser = userMapping.get(assistantNetId);
-				
-				CourseAssistant assistant = new CourseAssistant();
-				assistant.setCourse(entity);
-				assistant.setUser(assistantUser);
-				assistants.persist(assistant);
+				entity.getAssistants().add(assistantUser);
+				courses.merge(entity);
 				
 				UserModel userModel = gitClient.users()
 						.ensureExists(assistantNetId);
@@ -200,32 +201,31 @@ public class Bootstrapper {
 				Group groupEntity = new Group();
 				groupEntity.setCourse(entity);
 				groupEntity.setGroupNumber(group.getGroupNumber());
-				groupEntity.setBuildTimeout(group.getBuildTimeout());
-				groupEntity.setRepositoryName("courses/"
-						+ entity.getCode().toLowerCase() + "/group-"
-						+ group.getGroupNumber());
+
+				GroupRepository groupRepository = new GroupRepository();
+				groupRepository.setRepositoryName("courses/"
+					+ entity.getCode().toLowerCase() + "/group-"
+					+ group.getGroupNumber());
+				groupEntity.setRepository(groupRepository);
+
 				groups.persist(groupEntity);
-				
+
 				log.debug("    Persisted group: " + groupEntity.getGroupName());
 
-				List<User> members = Lists.<User> newArrayList();
+				Set<User> members = groupEntity.getMembers();
 				
 				for (String member : group.getMembers()) {
 					User memberUser = userMapping.get(member);
 					members.add(memberUser);
-					
-					GroupMembership membership = new GroupMembership();
-					membership.setGroup(groupEntity);
-					membership.setUser(memberUser);
-					memberships.persist(membership);
-					
+
+					groups.merge(groupEntity);
 					log.debug("        Persisted member: " + memberUser.getNetId());
 				}
 				
 				try {
 					// Allow cached versions of the repository
-					gitClient.repositories().retrieve(groupEntity.getRepositoryName());
-					log.info("Repository {} already exists", groupEntity.getRepositoryName());
+					gitClient.repositories().retrieve(groupRepository.getRepositoryName());
+					log.info("Repository {} already exists", groupRepository.getRepositoryName());
 				}
 				catch (Exception e) {
 					projects.provisionRepository(groupEntity, members);
@@ -247,12 +247,12 @@ public class Bootstrapper {
 						reviewEntity.setReviewTime(new Date(System.currentTimeMillis()));
 						deliveryEntity.setReview(reviewEntity);
 						
-						log.info("                Set review for delivery: " + groupEntity.getGroupId());
+						log.info("                Set review for delivery: " + groupEntity.getGroupNumber());
 					}
 					
 					deliveries.persist(deliveryEntity);
 					
-					log.debug("        Persisted delivery for group: " + groupEntity.getGroupId());
+					log.debug("        Persisted delivery for group: " + groupEntity.getGroupNumber());
 				}
 			}
 		}

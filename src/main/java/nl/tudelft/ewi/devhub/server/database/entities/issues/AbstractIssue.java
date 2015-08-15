@@ -11,29 +11,28 @@ import javax.persistence.*;
 @Data
 @MappedSuperclass
 @EqualsAndHashCode(of = {"id"})
+@IdClass(AbstractIssue.IssueId.class)
 public abstract class AbstractIssue {
 
     @Data
-    @Embeddable
+    @NoArgsConstructor
+	@AllArgsConstructor
     public static class IssueId {
 
-        @Column(name = "repository_id")
-        @Setter(AccessLevel.PROTECTED)
-        @Getter(AccessLevel.PROTECTED)
-        private long repositoryId;
+        private long repository;
 
-        @Column(name = "issue_id")
         private long issueId;
 
     }
 
-    @Delegate
-    @EmbeddedId
-    private IssueId id = new IssueId();
-
+	@Id
     @ManyToOne(optional = false)
-    @MapsId("repositoryId")
+	@JoinColumn(name = "repository_id")
     private RepositoryEntity repository;
+
+	@Id
+	@Column(name = "issue_id")
+	private long issueId;
 
     @Column(name="open")
     private boolean open;

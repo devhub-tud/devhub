@@ -54,7 +54,7 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	private Integer buildTimeout;
 
 	@OrderBy("groupNumber ASC")
-	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "courseEdition", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<Group> groups;
 
 	@ManyToMany

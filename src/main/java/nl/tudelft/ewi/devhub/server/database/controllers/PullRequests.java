@@ -30,7 +30,7 @@ public class PullRequests extends Controller<PullRequest> {
 	@Transactional
 	public PullRequest findById(final RepositoryEntity repositoryEntity, final long id) {
 		return ensureNotNull(query().from(pullRequest)
-				.where(pullRequest.id.issueId.eq(id)
+				.where(pullRequest.issueId.eq(id)
 						.and(pullRequest.repository.eq(repositoryEntity)))
 				.singleResult(pullRequest), "No pull request exists for id " + id);
 	}
@@ -60,7 +60,7 @@ public class PullRequests extends Controller<PullRequest> {
 		return query().from(pullRequest)
 			.where(pullRequest.repository.eq(repositoryEntity))
 			.where(pullRequest.open.isTrue())
-			.orderBy(pullRequest.id.issueId.desc())
+			.orderBy(pullRequest.issueId.desc())
 			.list(pullRequest);
 	}
 
@@ -74,7 +74,7 @@ public class PullRequests extends Controller<PullRequest> {
 		return query().from(pullRequest)
 			.where(pullRequest.repository.eq(repositoryEntity))
 			.where(pullRequest.open.isFalse())
-			.orderBy(pullRequest.id.issueId.desc())
+			.orderBy(pullRequest.issueId.desc())
 			.list(pullRequest);
 	}
 
@@ -101,8 +101,8 @@ public class PullRequests extends Controller<PullRequest> {
 	public long getNextPullRequestNumber(final RepositoryEntity repositoryEntity) {
 		Long val = query().from(pullRequest)
 			.where(pullRequest.repository.eq(repositoryEntity))
-			.orderBy(pullRequest.id.issueId.desc())
-			.singleResult(pullRequest.id.issueId);
+			.orderBy(pullRequest.issueId.desc())
+			.singleResult(pullRequest.issueId);
 		return val == null ? 1l : val.longValue() + 1;
 	}
 

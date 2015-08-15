@@ -94,7 +94,10 @@ public class Delivery implements Comparable<Delivery> {
     private Assignment assignment;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "group_id")
+    @JoinColumns({
+		@JoinColumn(name = "course_id", referencedColumnName = "course_id"),
+		@JoinColumn(name = "group_number", referencedColumnName = "group_number")
+	})
     private Group group;
 
     @Column(name = "commit_id")

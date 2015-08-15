@@ -28,7 +28,7 @@ public class Assignment implements Comparable<Assignment> {
     private long assignmentId;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "course_id")
+    @JoinColumn(name = "course_edition_id")
     private CourseEdition course;
 
     @NotEmpty(message = "assignment.name.should-be-given")

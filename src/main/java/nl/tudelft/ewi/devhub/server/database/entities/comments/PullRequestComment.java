@@ -23,8 +23,8 @@ public class PullRequestComment extends Comment  {
 	@NotNull
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({
-		@JoinColumn(name="issue_id", referencedColumnName="id"),
-		@JoinColumn(name="repository_name", referencedColumnName="repository_name")
+		@JoinColumn(name="repository_id", referencedColumnName="repository_id"),
+		@JoinColumn(name="issue_id", referencedColumnName="id")
 	})
 	private PullRequest pullRequest;
 

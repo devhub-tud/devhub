@@ -34,9 +34,9 @@ public class BuildResults extends Controller<BuildResult> {
 		
 		BuildResult result = query().from(buildResult)
 				.where(buildResult.commit.repository.id.eq(repository.getId()))
-				.where(buildResult.commit.id.commitId.equalsIgnoreCase(commitId))
+				.where(buildResult.commit.commitId.equalsIgnoreCase(commitId))
 				.singleResult(buildResult);
-		
+
 		if (result == null) {
 			throw new EntityNotFoundException();
 		}
@@ -47,8 +47,8 @@ public class BuildResults extends Controller<BuildResult> {
 	public Map<String, BuildResult> findBuildResults(RepositoryEntity repository, Collection<String> commitIds) {
 		return query().from(buildResult)
 				.where(buildResult.commit.repository.id.eq(repository.getId())
-						.and(buildResult.commit.id.commitId.in(commitIds)))
-				.map(buildResult.commit.id.commitId, buildResult);
+						.and(buildResult.commit.commitId.in(commitIds)))
+				.map(buildResult.commit.commitId, buildResult);
 	}
 
 	@Transactional

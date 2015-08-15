@@ -16,6 +16,7 @@ import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -90,28 +91,15 @@ public class ProjectsBackendTest extends BackendTest {
 	
 	protected static void putUserInCourse(User user, CourseEdition course) {
 		Group group = new Group();
-		group.setCourse(course);
-		GroupMembership groupMembership = new GroupMembership();
-		groupMembership.setUser(user);
-		groupMembership.setGroup(group);
-		group.setMemberships(Sets.newHashSet(groupMembership));
-		user.setMemberOf(Lists.newArrayList(groupMembership));
-		when(groupMemberships.ofGroup(group))
-			.thenReturn(Lists.newArrayList(groupMembership));
+		group.setMembers(Sets.newHashSet(user));
+		group.setCourseEdition(course);
+		course.setGroups(Lists.newArrayList(group));
 	}
 	
 	protected static void verifyPersistedGroup(Group group, CourseEdition course, User... members) {
 		assertNotNull(group);
 		assertEquals(course, group.getCourse());
-		for(User member : members)
-			verifyPersistedGroupMembership(member, group);
-	}
-	
-	protected static void verifyPersistedGroupMembership(User user, Group group) {
-		GroupMembership expected = new GroupMembership();
-		expected.setUser(user);
-		expected.setGroup(group);
-		verify(groupMemberships).persist(expected);	
+		assertThat(group.getMembers(), Matchers.contains(members));
 	}
 
 }

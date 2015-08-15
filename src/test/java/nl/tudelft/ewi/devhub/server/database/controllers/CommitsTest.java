@@ -3,6 +3,8 @@ package nl.tudelft.ewi.devhub.server.database.controllers;
 import com.google.inject.AbstractModule;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -68,14 +70,14 @@ public class CommitsTest {
 	@Test
 	public void testEnsureCommitInRepository() {
 		Group group = createGroup();
-		Commit commit = createCommit(group);
+		Commit commit = createCommit(group.getRepository());
 		assertEquals(group, commit.getRepository());
 	}
 	
 	@Test
 	public void testEnsureCommentInCommit() {
 		Group group = createGroup();
-		Commit commit = createCommit(group);
+		Commit commit = createCommit(group.getRepository());
 		CommitComment expected = createCommitComment(commit);
 		List<CommitComment> comments = commit.getComments();
 		assertEquals("Expected size 1 for list of comments", 1, comments.size());
@@ -106,7 +108,7 @@ public class CommitsTest {
 		return comment;
 	}
 	
-	protected Commit createCommit(Group repository) {
+	protected Commit createCommit(RepositoryEntity repository) {
 		return commits.ensureExists(repository, UUID.randomUUID().toString());
 	}
 	
@@ -114,8 +116,11 @@ public class CommitsTest {
 		Group group = new Group();
 		CourseEdition course = getTestCourse();
 		group.setGroupNumber(random.nextLong());
-		group.setCourse(course);
-		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
+		group.setCourseEdition(course);
+
+		GroupRepository groupRepository = new GroupRepository();
+		groupRepository.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
+		group.setRepository(groupRepository);
 		return groups.persist(group);
 	}
 	

@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.GitUsageWarning;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
@@ -34,7 +35,9 @@ public class PullRequestWarningGeneratorTest {
     private final static String OTHER_COMMIT_ID = "dcad";
     private final static String MASTER = "master";
 
-    @Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
+
+	@Mock private GroupRepository groupRepository;
+	@Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
     @Mock private Group group;
     @Mock private Commit commit;
     @Mock private Repository repository;
@@ -49,8 +52,9 @@ public class PullRequestWarningGeneratorTest {
     @Before
     public void beforeTest() throws Exception {
         when(commitEntity.getCommitId()).thenReturn(COMMIT_ID);
-        when(commitEntity.getRepository()).thenReturn(group);
-        when(group.getRepositoryName()).thenReturn("abc");
+		when(commitEntity.getRepository()).thenReturn(groupRepository);
+		when(group.getRepository()).thenReturn(groupRepository);
+		when(groupRepository.getRepositoryName()).thenReturn("");
         when(gitServerClient.repositories()).thenReturn(repositories);
         when(repositories.retrieve(anyString())).thenReturn(repository);
         when(repository.retrieveCommit(COMMIT_ID)).thenReturn(commit);

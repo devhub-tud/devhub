@@ -199,7 +199,7 @@ public class Bootstrapper {
 			
 			for (BGroup group : course.getGroups()) {
 				Group groupEntity = new Group();
-				groupEntity.setCourse(entity);
+				groupEntity.setCourseEdition(entity);
 				groupEntity.setGroupNumber(group.getGroupNumber());
 
 				GroupRepository groupRepository = new GroupRepository();

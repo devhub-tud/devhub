@@ -10,6 +10,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
@@ -46,6 +47,7 @@ public class FindBugsWarningGeneratorTest {
     private final static String EXPECTED_PATH = "src/test/java/nl/tudelft/jpacman/board/DirectionTest.java";
     private final static String COMMIT_ID = "234345345345";
 
+	@Mock private GroupRepository groupRepository;
     @Mock private Group group;
     @Mock private Commit commit;
     @InjectMocks  private FindBugsWarningGenerator findBugsWarningGenerator;
@@ -60,8 +62,9 @@ public class FindBugsWarningGeneratorTest {
     @Before
     public void initializeMocks() throws GitClientException {
         when(commit.getCommitId()).thenReturn(COMMIT_ID);
-        when(commit.getRepository()).thenReturn(group);
-        when(group.getRepositoryName()).thenReturn("");
+		when(commit.getRepository()).thenReturn(groupRepository);
+		when(group.getRepository()).thenReturn(groupRepository);
+		when(groupRepository.getRepositoryName()).thenReturn("");
         when(commits.ensureExists(any(), any())).thenReturn(commit);
 
         when(gitServerClient.repositories()).thenReturn(repositories);

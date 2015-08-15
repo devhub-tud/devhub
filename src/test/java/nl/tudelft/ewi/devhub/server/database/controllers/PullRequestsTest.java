@@ -35,43 +35,43 @@ public class PullRequestsTest {
 
 	private final static String COMMIT_A = "65191cfaca61fe538612122151a7297e34f01178";
 	private final static String COMMIT_B = "55c4656b98bf694c288918a82c8193eb83a33353";
-
-	@Test
-	public void testCreatePullRequest() {
-		Group group = createGroup();
-		PullRequest pr = new PullRequest();
-		pr.setIssueId(random.nextLong());
-		pr.setGroup(group);
-		pr.setBranchName("super-branch");
-		pr.setOpen(true);
-		pr.setDestination(COMMIT_A);
-		pr.setMergeBase(COMMIT_B);
-
-		pullRequests.persist(pr);
-		pullRequestEquals(pr, pullRequests.findOpenPullRequest(group, "super-branch"));
-	}
-	
-	private static void pullRequestEquals(PullRequest expected, PullRequest actual) {
-		try {
-			assertEquals(expected.getBranchName(), actual.getBranchName());
-			assertEquals(expected.getGroup(), actual.getGroup());
-			assertEquals(expected.isOpen(), actual.isOpen());
-		}
-		catch(AssertionError e) {
-			throw new AssertionError(String.format("Expected %s but was %s",
-					expected, actual), e);
-		}
-	}
-	
-	protected Group createGroup() {
-		Group group = new Group();
-		CourseEdition course = getTestCourse();
-		group.setGroupNumber(random.nextLong());
-		group.setCourse(course);
-		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
-		return groups.persist(group);
-	}
-	
+//
+//	@Test
+//	public void testCreatePullRequest() {
+//		Group group = createGroup();
+//		PullRequest pr = new PullRequest();
+//		pr.setIssueId(random.nextLong());
+//		pr.setGroup(group);
+//		pr.setBranchName("super-branch");
+//		pr.setOpen(true);
+//		pr.setDestination(COMMIT_A);
+//		pr.setMergeBase(COMMIT_B);
+//
+//		pullRequests.persist(pr);
+//		pullRequestEquals(pr, pullRequests.findOpenPullRequest(group, "super-branch"));
+//	}
+//
+//	private static void pullRequestEquals(PullRequest expected, PullRequest actual) {
+//		try {
+//			assertEquals(expected.getBranchName(), actual.getBranchName());
+//			assertEquals(expected.getGroup(), actual.getGroup());
+//			assertEquals(expected.isOpen(), actual.isOpen());
+//		}
+//		catch(AssertionError e) {
+//			throw new AssertionError(String.format("Expected %s but was %s",
+//					expected, actual), e);
+//		}
+//	}
+//
+//	protected Group createGroup() {
+//		Group group = new Group();
+//		CourseEdition course = getTestCourse();
+//		group.setGroupNumber(random.nextLong());
+//		group.setCourse(course);
+//		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
+//		return groups.persist(group);
+//	}
+//
 	protected CourseEdition getTestCourse() {
 		return courses.find("TI1705");
 	}

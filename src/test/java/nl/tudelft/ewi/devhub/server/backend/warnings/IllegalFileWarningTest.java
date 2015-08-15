@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend.warnings;
 import com.google.common.collect.Maps;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IllegalFileWarning;
 import nl.tudelft.ewi.git.client.Branch;
 import nl.tudelft.ewi.git.client.Commit;
@@ -36,7 +37,9 @@ public class IllegalFileWarningTest {
     private final static String COMMIT_ID = "abcd";
     private final Map<String,EntryType> directory1 = new HashMap<>();
 
-    @Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
+
+	@Mock private GroupRepository groupRepository;
+	@Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
     @Mock private Group group;
     @Mock private CourseEdition course;
     @Mock private Commit commit;
@@ -52,8 +55,9 @@ public class IllegalFileWarningTest {
     @Before
     public void beforeTest() throws Exception {
         when(commitEntity.getCommitId()).thenReturn(COMMIT_ID);
-        when(commitEntity.getRepository()).thenReturn(group);
-        when(group.getRepositoryName()).thenReturn("abc");
+		when(commitEntity.getRepository()).thenReturn(groupRepository);
+		when(group.getRepository()).thenReturn(groupRepository);
+		when(groupRepository.getRepositoryName()).thenReturn("");
         when(group.getCourse()).thenReturn(course);
         when(course.getProperties()).thenReturn(Maps.newHashMap());
         when(gitServerClient.repositories()).thenReturn(repositories);

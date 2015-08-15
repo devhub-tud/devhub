@@ -11,6 +11,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Test;
@@ -32,7 +33,7 @@ public class GroupsTest {
 	@Test(expected=ConstraintViolationException.class)
 	public void testInsertGroupWithoutCourse() {
 		Group group = new Group();
-		group.setRepositoryName("courses/ti1705/group-1");
+//		group.setRepositoryName("courses/ti1705/group-1");
 		group.setGroupNumber(5l);
 		groups.persist(group);
 	}
@@ -41,8 +42,8 @@ public class GroupsTest {
 	public void testInsertGroupWithoutGroupNumber() {
 		CourseEdition course = getTestCourse();
 		Group group = new Group();
-		group.setRepositoryName("courses/ti1705/group-1");
-		group.setCourse(course);
+//		group.setRepositoryName("courses/ti1705/group-1");
+		group.setCourseEdition(course);
 		groups.persist(group);
 	}
 	
@@ -51,22 +52,8 @@ public class GroupsTest {
 		CourseEdition course = getTestCourse();
 		Group group = new Group();
 		group.setGroupNumber(6l);
-		group.setCourse(course);
+		group.setCourseEdition(course);
 		groups.persist(group);
-	}
-	
-	@Test(expected=PersistenceException.class)
-	public void testUnableToInsertWithSameId() {
-		Group group = createGroup();
-		groups.persist(group);
-		
-		Group otherGroup = new Group();
-		otherGroup.setCourse(group.getCourse());
-		otherGroup.setGroupId(group.getGroupId());
-		otherGroup.setGroupNumber(random.nextLong());
-		otherGroup.setRepositoryName(String.format("courses/%s/group-%s",
-				group.getGroupNumber(), group.getCourse().getName()));
-		groups.persist(otherGroup);
 	}
 	
 	@Test(expected=PersistenceException.class)
@@ -74,10 +61,10 @@ public class GroupsTest {
 		Group group = createGroup();
 		groups.persist(group);
 		
-		Group otherGroup = new Group();
-		otherGroup.setCourse(group.getCourse());
+		Group otherGroup = createGroup();
+		otherGroup.setCourseEdition(group.getCourseEdition());
 		otherGroup.setGroupNumber(random.nextLong());
-		otherGroup.setRepositoryName(group.getRepositoryName());
+		otherGroup.getRepository().setRepositoryName(group.getRepository().getRepositoryName());
 		groups.persist(otherGroup);
 	}
 	
@@ -86,10 +73,9 @@ public class GroupsTest {
 		Group group = createGroup();
 		groups.persist(group);
 		
-		Group otherGroup = new Group();
-		otherGroup.setCourse(group.getCourse());
+		Group otherGroup = createGroup();
+		otherGroup.setCourseEdition(group.getCourseEdition());
 		otherGroup.setGroupNumber(group.getGroupNumber());
-		otherGroup.setRepositoryName(group.getRepositoryName().concat("B"));
 		groups.persist(otherGroup);
 	}
 	
@@ -106,14 +92,7 @@ public class GroupsTest {
 		groups.persist(group);
 		assertThat(groups.find(course), hasItem(group));
 	}
-	
-	@Test
-	public void testFindById() {
-		Group group = createGroup();
-		groups.persist(group);
-		assertEquals(group, groups.find(group.getGroupId()));
-	}
-	
+
 	@Test
 	public void testFindByGroupNumber() {
 		Group group = createGroup();
@@ -125,7 +104,7 @@ public class GroupsTest {
 	@Test
 	public void testFindByRepoName() {
 		Group group = createGroup();
-		String repoName = group.getRepositoryName();
+		String repoName = group.getRepository().getRepositoryName();
 		groups.persist(group);
 		assertEquals(group, groups.findByRepoName(repoName));
 	}
@@ -134,8 +113,11 @@ public class GroupsTest {
 		Group group = new Group();
 		CourseEdition course = getTestCourse();
 		group.setGroupNumber(random.nextLong());
-		group.setCourse(course);
-		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
+		group.setCourseEdition(course);
+
+		GroupRepository groupRepository = new GroupRepository();
+		groupRepository.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
+		group.setRepository(groupRepository);
 		return group;
 	}
 	

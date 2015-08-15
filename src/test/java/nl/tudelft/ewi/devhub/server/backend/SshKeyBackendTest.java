@@ -1,13 +1,8 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.math.BigInteger;
-import java.util.Random;
-
 import nl.tudelft.ewi.git.client.GitClientException;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.common.collect.Lists;
 
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -18,7 +13,7 @@ import nl.tudelft.ewi.git.models.UserModel;
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
-public class SshKeyBackendTest {
+public class SshKeyBackendTest extends BackendTest {
 
 	private static final GitServerClientMock gitClient = new GitServerClientMock();
 	
@@ -97,19 +92,6 @@ public class SshKeyBackendTest {
 	@Test(expected=ApiError.class)
 	public void testDeleteNonExistingSshKey() throws ApiError, GitClientException {
 		backend.deleteSshKey(user, "abcd");
-	}
-	
-	private final static Random random = new Random();
-	
-	protected String randomString() {
-		return new BigInteger(130, random).toString(32);
-	}
-
-	protected User createUser() {
-		User user = new User();
-		user.setMemberOf(Lists.<GroupMembership> newArrayList());
-		user.setNetId(randomString());
-		return user;
 	}
 	
 }

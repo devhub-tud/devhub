@@ -39,7 +39,7 @@ public class Course implements Comparable<Course> {
     /**
      * The editions for this course.
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
     @OrderBy("start_date ASC")
     private List<CourseEdition> editions;
 

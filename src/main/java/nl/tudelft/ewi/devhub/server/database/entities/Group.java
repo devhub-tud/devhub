@@ -28,7 +28,7 @@ public class Group implements Serializable {
 
 	@Id
 	@ManyToOne(optional = false)
-	@JoinColumn(name = "course_id")
+	@JoinColumn(name = "course_edition_id")
 	private CourseEdition courseEdition;
 
 	@Id
@@ -43,11 +43,11 @@ public class Group implements Serializable {
 	@JoinTable(
 		name="group_memberships",
 		joinColumns={
-				@JoinColumn(name="user_id", referencedColumnName="id")
-		},
-		inverseJoinColumns={
 			@JoinColumn(name="course_edition_id", referencedColumnName="course_edition_id"),
 			@JoinColumn(name="group_number", referencedColumnName="group_number")
+		},
+		inverseJoinColumns={
+			@JoinColumn(name="user_id", referencedColumnName="id")
 		},
 		uniqueConstraints = {
 			@UniqueConstraint(name = "UNIQUE_GROUP_MEMBERSHIP_PER_COURSE", columnNames = {"user_id", "course_edition_id"})

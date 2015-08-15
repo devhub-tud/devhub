@@ -60,7 +60,7 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	@ManyToMany
 	@JoinTable(
 		name="course_assistants",
-		joinColumns={@JoinColumn(name="course_id", referencedColumnName="id")},
+		joinColumns={@JoinColumn(name="course_edition_id", referencedColumnName="id")},
 		inverseJoinColumns={@JoinColumn(name="user_id", referencedColumnName="id")})
 	private Set<User> assistants;
 
@@ -73,7 +73,7 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	private BuildInstructionEntity buildInstruction;
 
 	@ElementCollection
-	@JoinTable(name="course_properties", joinColumns=@JoinColumn(name="course_id"))
+	@JoinTable(name="course_properties", joinColumns=@JoinColumn(name="course_edition_id"))
 	@MapKeyColumn(name="property_key")
 	@Column(name="property_value")
 	private Map<String, String> properties;

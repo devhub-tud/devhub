@@ -4,6 +4,7 @@ import lombok.*;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * Created by Jan-Willem on 8/11/2015.
@@ -17,7 +18,7 @@ public abstract class AbstractIssue {
     @Data
     @NoArgsConstructor
 	@AllArgsConstructor
-    public static class IssueId {
+    public static class IssueId implements Serializable {
 
         private long repository;
 

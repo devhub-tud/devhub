@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
 import com.google.inject.Provides;
+import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
@@ -77,9 +78,9 @@ public class DevhubModule extends ServletModule {
 	}
 
 	private void bindWarningGenerators() {
-		Multibinder<CommitPushWarningGenerator> uriBinder = Multibinder.newSetBinder(binder(), CommitPushWarningGenerator.class);
+		Multibinder<CommitPushWarningGenerator<?>> uriBinder = Multibinder.newSetBinder(binder(), new TypeLiteral<CommitPushWarningGenerator<?>>(){});
 		Reflections reflections = new Reflections(CommitPushWarningGenerator.class.getPackage().getName());
-		for (Class<? extends CommitPushWarningGenerator> clasz : reflections.getSubTypesOf(CommitPushWarningGenerator.class)) {
+		for (Class<? extends CommitPushWarningGenerator<?>> clasz : reflections.getSubTypesOf(CommitPushWarningGenerator.class)) {
 			log.info("Registering Push warning generator {}", clasz);
 			uriBinder.addBinding().to(clasz);
 		}

@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities.comments;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.devhub.server.database.entities.TimestampEvent;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -25,8 +26,8 @@ import java.util.Date;
 @Data
 @Entity
 @Inheritance(strategy= InheritanceType.TABLE_PER_CLASS)
-@EqualsAndHashCode(of={"commentId"})
-public abstract class Comment implements Comparable<Comment> {
+@EqualsAndHashCode(of={"commentId"}, callSuper = false)
+public abstract class Comment extends TimestampEvent {
 
     @Id
     @Column(name = "id")
@@ -42,15 +43,5 @@ public abstract class Comment implements Comparable<Comment> {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
-    @NotNull
-    @Column(name = "time")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date time;
-
-    @Override
-    public int compareTo(Comment o) {
-        return getTime().compareTo(o.getTime());
-    }
 
 }

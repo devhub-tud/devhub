@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities.issues;
 
 import lombok.*;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.TimestampEvent;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 import org.hibernate.annotations.*;
 
@@ -16,7 +17,7 @@ import java.io.Serializable;
 @MappedSuperclass
 @EqualsAndHashCode(of = {"id"})
 @IdClass(AbstractIssue.IssueId.class)
-public abstract class AbstractIssue {
+public abstract class AbstractIssue extends TimestampEvent {
 
     @Data
     @NoArgsConstructor

@@ -149,12 +149,12 @@
                 </div>
                 <table class="table">
                     <tbody>
-    [#if course.getBuildTimeout()?exists]
-                        <tr>
-                            <th>${i18n.translate("course.control.build-timeout")}</th>
-                            <td>${course.getBuildTimeout()} seconds</td>
-                        </tr>
-    [/#if]
+	[#if course.buildInstruction?? && course.buildInstruction.buildTimeout]
+						<tr>
+							<th>${i18n.translate("course.control.build-timeout")}</th>
+							<td>${course.buildInstruction.buildTimeout} seconds</td>
+						</tr>
+	[/#if]
     [#if course.getMinGroupSize()?exists]
                         <tr>
                             <th>${i18n.translate("course.control.min-group-size")}</th>

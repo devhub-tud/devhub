@@ -52,7 +52,6 @@ public class PullRequestBackend {
      */
     @Transactional
     public void createPullRequest(Repository repository, PullRequest pullRequest) throws GitClientException {
-        pullRequest.setIssueId(pullRequests.getNextPullRequestNumber(pullRequest.getRepository()));
         updateCommitPointers(repository, pullRequest);
         log.info("Persisisting pull-request {}", pullRequest);
         pullRequests.persist(pullRequest);

@@ -37,8 +37,8 @@ import java.util.List;
 @Entity
 @Table(name = "assignment_deliveries")
 @ToString(exclude = {"notes", "attachments"})
-@EqualsAndHashCode(of={"deliveryId"})
-public class Delivery implements Comparable<Delivery> {
+@EqualsAndHashCode(of={"deliveryId"}, callSuper = false)
+public class Delivery extends TimestampEvent {
 
     /**
      * The State for the Delivery
@@ -100,13 +100,12 @@ public class Delivery implements Comparable<Delivery> {
 	})
     private Group group;
 
-    @Column(name = "commit_id")
-    private String commitId;
-
-    @NotNull
-    @Column(name = "created")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date created;
+	@ManyToOne(optional = true)
+	@JoinColumns({
+		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
+		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id")
+	})
+    private Commit commitId;
 
     @NotNull
     @ManyToOne
@@ -177,12 +176,7 @@ public class Delivery implements Comparable<Delivery> {
 
     public boolean isLate() {
         Date dueDate = getAssignment().getDueDate();
-        return dueDate != null && getCreated().after(dueDate);
-    }
-
-    @Override
-    public int compareTo(Delivery other) {
-        return getCreated().compareTo(other.getCreated());
+        return dueDate != null && getTimestamp().after(dueDate);
     }
 
 }

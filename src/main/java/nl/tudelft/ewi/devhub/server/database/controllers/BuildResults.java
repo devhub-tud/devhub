@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
@@ -45,8 +46,15 @@ public class BuildResults extends Controller<BuildResult> {
 
 	@Transactional
 	public Map<String, BuildResult> findBuildResults(RepositoryEntity repository, Collection<String> commitIds) {
+		Preconditions.checkNotNull(repository);
+		Preconditions.checkNotNull(commitIds);
+
+		if(commitIds.isEmpty()) {
+			return ImmutableMap.of();
+		}
+
 		return query().from(buildResult)
-				.where(buildResult.commit.repository.id.eq(repository.getId())
+				.where(buildResult.commit.repository.eq(repository)
 						.and(buildResult.commit.commitId.in(commitIds)))
 				.map(buildResult.commit.commitId, buildResult);
 	}

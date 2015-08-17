@@ -158,7 +158,7 @@ public class Bootstrapper {
 
 				entity.setMinGroupSize(course.getMinGroupSize());
 				entity.setMaxGroupSize(course.getMaxGroupSize());
-				entity.getBuildInstruction().setBuildTimeout(course.getBuildTimeout());
+				entity.setAssistants(Sets.newHashSet());
 				courses.persist(entity);
 
 				log.debug("Persisted course: " + entity.getCode());
@@ -171,7 +171,7 @@ public class Bootstrapper {
                 assignmentEntity.setCourse(entity);
                 assignmentEntity.setName(assignment.getName());
                 assignmentEntity.setAssignmentId(assignment.getId());
-                assignments.persist(assignmentEntity);
+                assignments.merge(assignmentEntity);
                 log.debug("Persistted assignment {} in {}", assignmentEntity.getName(), course.getCode());
                 
                 // Store for later use to insert deliveries
@@ -200,6 +200,7 @@ public class Bootstrapper {
 			for (BGroup group : course.getGroups()) {
 				Group groupEntity = new Group();
 				groupEntity.setCourseEdition(entity);
+				groupEntity.setMembers(Sets.newHashSet());
 				groupEntity.setGroupNumber(group.getGroupNumber());
 
 				GroupRepository groupRepository = new GroupRepository();
@@ -234,7 +235,6 @@ public class Bootstrapper {
 				for (BDelivery delivery : group.getDeliveries()) {
 					Delivery deliveryEntity = new Delivery();
 					deliveryEntity.setAssignment(assignmentEntities.get(delivery.getAssignmentId()));
-					deliveryEntity.setCreated(new Date());
 					deliveryEntity.setGroup(groupEntity);
 					deliveryEntity.setCreatedUser(userMapping.get(delivery.getCreatedUserName()));
 					

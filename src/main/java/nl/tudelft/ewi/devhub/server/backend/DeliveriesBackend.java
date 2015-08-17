@@ -81,7 +81,6 @@ public class DeliveriesBackend {
 
         try {
             delivery.setCreatedUser(currentUser);
-            delivery.setCreated(new Date());
             deliveriesDAO.persist(delivery);
             log.info("{} submitted {}", currentUser, delivery);
         }

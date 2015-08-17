@@ -14,7 +14,7 @@ import java.util.Map;
  */
 @Data
 @Entity
-@DiscriminatorValue("GROUP")
+@DiscriminatorValue("1")
 @EqualsAndHashCode(callSuper = true)
 public class GroupRepository extends RepositoryEntity {
 

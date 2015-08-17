@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 import org.hibernate.annotations.DiscriminatorFormula;
+import org.hibernate.annotations.DiscriminatorOptions;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
@@ -32,7 +33,7 @@ import java.util.Map;
 @Table(name = "repository")
 @EqualsAndHashCode(of = {"id"})
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorFormula("CASE WHEN group_id IS NOT NULL THEN 'GROUP' END")
+@DiscriminatorColumn(discriminatorType = DiscriminatorType.INTEGER)
 public abstract class RepositoryEntity implements Configurable {
 
     @Id

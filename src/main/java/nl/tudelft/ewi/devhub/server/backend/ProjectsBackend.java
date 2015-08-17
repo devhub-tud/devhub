@@ -41,12 +41,8 @@ public class ProjectsBackend {
 	private final Provider<Groups> groupsProvider;
 	private final GitServerClient client;
 
-	private final Object groupNumberLock = new Object();
-
 	@Inject
-	ProjectsBackend(Provider<Groups> groupsProvider,
-			Provider<Users> usersProvider, GitServerClient client) {
-
+	ProjectsBackend(Provider<Groups> groupsProvider, GitServerClient client) {
 		this.groupsProvider = groupsProvider;
 		this.client = client;
 	}
@@ -57,10 +53,8 @@ public class ProjectsBackend {
 		
 		log.info("Setting up new project for course: {} and members: {}", course, members);
 
-		synchronized (groupNumberLock) {
-			Group group = persistRepository(course, members);
-			provisionRepository(group, members);
-		}
+		Group group = persistRepository(course, members);
+		provisionRepository(group, members);
 	}
 
 	private void deleteRepositoryFromGit(Group group) {
@@ -87,45 +81,23 @@ public class ProjectsBackend {
 	protected Group persistRepository(CourseEdition courseEdition, Collection<User> members) throws ApiError {
 		Groups groups = groupsProvider.get();
 
-		List<Group> courseGroups = groups.find(courseEdition);
-		Set<Long> groupNumbers = getGroupNumbers(courseGroups);
-
-		// Select first free group number.
-		long newGroupNumber = 1;
-		while (groupNumbers.contains(newGroupNumber)) {
-			newGroupNumber++;
-		}
-
 		Group group = new Group();
 		group.setCourseEdition(courseEdition);
-		group.setGroupNumber(newGroupNumber);
 		group.setMembers(Sets.newHashSet(members));
 
 		GroupRepository groupRepository = new GroupRepository();
 		groupRepository.setRepositoryName(courseEdition.createRepositoryName(group).toASCIIString());
 		group.setRepository(groupRepository);
 
-		boolean worked = false;
-		Throwable cause = null;
-		for (int attempt = 1; attempt <= 3 && !worked; attempt++) {
-			try {
-				groups.persist(group);
-				worked = true;
-			}
-			catch (ConstraintViolationException e) {
-				log.warn("Could not persist group: {}", group);
-				group.setGroupNumber(group.getGroupNumber() + 1);
-				groupRepository.setRepositoryName(courseEdition.createRepositoryName(group).toASCIIString());
-				cause = e;
-			}
+		try {
+			groups.persist(group);
+			log.info("Created new group in database: {}", group);
+			return group;
 		}
-
-		if (!worked) {
-			throw new ApiError(COULD_NOT_CREATE_GROUP, cause);
+		catch (ConstraintViolationException e) {
+			log.warn("Could not persist group: {}", group);
+			throw new ApiError(COULD_NOT_CREATE_GROUP, e);
 		}
-
-		log.info("Created new group in database: {}", group);
-		return group;
 	}
 	
 	public void provisionRepository(Group group, Collection<User> members) throws ApiError {
@@ -165,14 +137,6 @@ public class ProjectsBackend {
 		Repositories repositories = client.repositories();
 		repositories.create(repoModel);
 		log.info("Finished provisioning Git repository: {}", repoName);
-	}
-
-	private Set<Long> getGroupNumbers(Collection<Group> groups) {
-		Set<Long> groupNumbers = Sets.newTreeSet();
-		for (Group group : groups) {
-			groupNumbers.add(group.getGroupNumber());
-		}
-		return groupNumbers;
 	}
 
 }

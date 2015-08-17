@@ -17,8 +17,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 @Table(name = "commit")
 @IdClass(Commit.CommitId.class)
 @ToString(exclude = "comments")
-@EqualsAndHashCode(of = {"repository", "commitId"})
-public class Commit implements Comparable<Commit> {
+@EqualsAndHashCode(of = {"repository", "commitId"}, callSuper = false)
+public class Commit extends Event {
 
 	@Data
 	@NoArgsConstructor
@@ -59,9 +59,8 @@ public class Commit implements Comparable<Commit> {
 	private List<CommitComment> comments;
 
 	@Override
-	public int compareTo(Commit o) {
-		return ComparisonChain.start()
-			.compare(getCommitTime(), o.getCommitTime(), Ordering.natural().nullsLast())
-			.result();
+	public Date getTimestamp() {
+		return getPushTime();
 	}
+
 }

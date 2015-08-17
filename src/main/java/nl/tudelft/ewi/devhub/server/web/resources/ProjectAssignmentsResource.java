@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -148,8 +149,10 @@ public class ProjectAssignmentsResource extends Resource {
 
         Collection<String> commitIds = myDeliveries.stream()
                 .map(Delivery::getCommitId)
+				.filter(Predicates.notNull()::apply)
                 .collect(Collectors.toSet());
-        parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
+
+	        parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-assignment-view.ftl", locales, parameters));

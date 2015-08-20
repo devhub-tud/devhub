@@ -32,7 +32,6 @@ import static org.junit.Assert.*;
 public class ProjectsBackendTest extends BackendTest {
 	
 	private static final Groups groups = mock(Groups.class);
-	private static final Users users = mock(Users.class);
 	private static GitServerClient gitClient;
 	private ProjectsBackend projectsBackend;
 
@@ -50,10 +49,7 @@ public class ProjectsBackendTest extends BackendTest {
 	
 	@Before
 	public void beforeTest() {
-		projectsBackend = new ProjectsBackend(
-				new ValueProvider<Groups>(groups),
-				new ValueProvider<Users>(users),
-				gitClient);
+		projectsBackend = new ProjectsBackend(new ValueProvider(groups), gitClient);
 
 		course = createCourse();
 		user = createUser();

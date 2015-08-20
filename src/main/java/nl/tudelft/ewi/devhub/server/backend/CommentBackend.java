@@ -58,7 +58,6 @@ public class CommentBackend {
             throw new UnauthorizedException();
         }
 
-        comment.setTime(new Date());
         comment.setUser(currentUser);
 
         try {

@@ -78,9 +78,9 @@ public class DevhubModule extends ServletModule {
 	}
 
 	private void bindWarningGenerators() {
-		Multibinder<CommitPushWarningGenerator<?>> uriBinder = Multibinder.newSetBinder(binder(), new TypeLiteral<CommitPushWarningGenerator<?>>(){});
+		Multibinder<CommitPushWarningGenerator> uriBinder = Multibinder.newSetBinder(binder(), CommitPushWarningGenerator.class);
 		Reflections reflections = new Reflections(CommitPushWarningGenerator.class.getPackage().getName());
-		for (Class<? extends CommitPushWarningGenerator<?>> clasz : reflections.getSubTypesOf(CommitPushWarningGenerator.class)) {
+		for (Class<? extends CommitPushWarningGenerator> clasz : reflections.getSubTypesOf(CommitPushWarningGenerator.class)) {
 			log.info("Registering Push warning generator {}", clasz);
 			uriBinder.addBinding().to(clasz);
 		}

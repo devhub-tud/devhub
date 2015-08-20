@@ -210,7 +210,7 @@ public class PullRequestBackend {
 
         @Override
         public Date getDate() {
-            return comment.getTime();
+            return comment.getTimestamp();
         }
 
     }
@@ -230,7 +230,7 @@ public class PullRequestBackend {
 
         @Override
         public Date getDate() {
-            return comments.first().getTime();
+            return comments.first().getTimestamp();
         }
 
     }

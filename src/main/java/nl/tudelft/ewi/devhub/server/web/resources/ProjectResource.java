@@ -211,7 +211,6 @@ public class ProjectResource extends Resource {
 		CommitComment comment = new CommitComment();
 		comment.setContent(message);
 		comment.setCommit(commits.ensureExists(repositoryEntity, linkCommitId));
-		comment.setTime(new Date());
 		comment.setUser(currentUser);
 
 		if(sourceCommitId != null) {
@@ -228,7 +227,7 @@ public class ProjectResource extends Resource {
 
 		CommentResponse response = new CommentResponse();
 		response.setContent(message);
-		response.setDate(comment.getTime().toString());
+		response.setDate(comment.getTimestamp().toString());
 		response.setName(currentUser.getName());
 		response.setCommentId(comment.getCommentId());
 

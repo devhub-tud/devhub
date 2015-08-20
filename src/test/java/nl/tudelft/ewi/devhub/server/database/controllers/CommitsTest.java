@@ -92,7 +92,7 @@ public class CommitsTest {
 		//assertEquals(expected.getOldFilePath(), actual.getOldFilePath());
 		//assertEquals(expected.getNewLineNumber(), actual.getNewLineNumber());
 		//assertEquals(expected.getNewFilePath(), actual.getNewFilePath());
-		assertEquals(expected.getTime(), actual.getTime());
+		assertEquals(expected.getTimestamp(), actual.getTimestamp());
 		assertEquals(expected.getUser(), actual.getUser());
 	}
 	
@@ -104,7 +104,7 @@ public class CommitsTest {
 //		comment.setOldLineNumber(null);
 //		comment.setNewFilePath(".gitignore");
 //		comment.setNewLineNumber(1);
-		comment.setTime(new Date());
+		comment.setTimestamp(new Date());
 		comment.setUser(student1());
 		commit.getComments().add(comment);
 		commits.merge(commit);

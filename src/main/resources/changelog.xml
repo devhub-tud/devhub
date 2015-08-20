@@ -531,5 +531,9 @@
 			<column name="merge" type="boolean" />
 		</addColumn>
 	</changeSet>
+    
+    <changeSet id="database_refactor" author="Jan-Willem Gmelig Meyling">
+        
+    </changeSet>
 
 </databaseChangeLog>

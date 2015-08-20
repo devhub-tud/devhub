@@ -14,9 +14,11 @@ import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -67,6 +69,7 @@ public class ProjectAssignmentsResource extends Resource {
     private final User currentUser;
     private final BuildResults buildResults;
     private final Group group;
+	private final Commits commits;
     private final RepositoryEntity repositoryEntity;
     private final GitServerClient gitClient;
     private final Deliveries deliveries;
@@ -83,6 +86,7 @@ public class ProjectAssignmentsResource extends Resource {
                                       final GitServerClient gitClient,
                                       final DeliveriesBackend deliveriesBackend,
                                       final Assignments assignments,
+									  final Commits commits,
                                       final ReviewMailer reviewMailer) {
 
         this.templateEngine = templateEngine;
@@ -95,6 +99,7 @@ public class ProjectAssignmentsResource extends Resource {
         this.deliveriesBackend = deliveriesBackend;
         this.assignments = assignments;
         this.reviewMailer = reviewMailer;
+		this.commits = commits;
     }
 
     /**
@@ -148,7 +153,8 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("recentCommits", repository.retrieveBranch("master").retrieveCommits(0, 25).getCommits());
 
         Collection<String> commitIds = myDeliveries.stream()
-                .map(Delivery::getCommitId)
+                .map(Delivery::getCommit)
+				.map(Commit::getCommitId)
 				.filter(Predicates.notNull()::apply)
                 .collect(Collectors.toSet());
 
@@ -181,7 +187,8 @@ public class ProjectAssignmentsResource extends Resource {
         Assignment assignment = assignments.find(group.getCourse(), assignmentId);
         Delivery delivery = new Delivery();
         delivery.setAssignment(assignment);
-        delivery.setCommitId(commitId);
+
+        delivery.setCommit(commits.ensureExists(repositoryEntity, commitId));
         delivery.setNotes(notes);
         delivery.setGroup(group);
         deliveriesBackend.deliver(delivery);
@@ -301,7 +308,7 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("repository", gitClient.repositories().retrieve(repositoryEntity.getRepositoryName()));
 
-        List<String> commitIds = Lists.newArrayList(delivery.getCommitId());
+        List<String> commitIds = Lists.newArrayList(delivery.getCommit().getCommitId());
         parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());

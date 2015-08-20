@@ -18,7 +18,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 @IdClass(Commit.CommitId.class)
 @ToString(exclude = "comments")
 @EqualsAndHashCode(of = {"repository", "commitId"}, callSuper = false)
-public class Commit extends Event {
+public class Commit implements Event {
 
 	@Data
 	@NoArgsConstructor

@@ -1,14 +1,14 @@
 package nl.tudelft.ewi.devhub.server.database.entities.issues;
 
 import lombok.*;
+import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-import nl.tudelft.ewi.devhub.server.database.entities.TimestampEvent;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
-import javax.persistence.Parameter;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created by Jan-Willem on 8/11/2015.
@@ -17,7 +17,7 @@ import java.io.Serializable;
 @MappedSuperclass
 @EqualsAndHashCode(of = {"id"})
 @IdClass(AbstractIssue.IssueId.class)
-public abstract class AbstractIssue extends TimestampEvent {
+public abstract class AbstractIssue implements Event {
 
     @Data
     @NoArgsConstructor
@@ -46,6 +46,11 @@ public abstract class AbstractIssue extends TimestampEvent {
 
     @Column(name="open")
     private boolean open;
+
+	@CreationTimestamp
+	@Column(name = "created_date")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date timestamp;
 
     /**
      * @return true if the pull request is closed

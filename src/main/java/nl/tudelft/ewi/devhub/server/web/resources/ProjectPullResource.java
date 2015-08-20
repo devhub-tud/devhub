@@ -183,7 +183,7 @@ public class ProjectPullResource extends Resource {
         val destinationId = pullRequest.getDestination();
         val mergeBaseId = pullRequest.getMergeBase();
         val diffBlameModel = repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
-        val commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
+        List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
         val resolver = pullRequestBackend.getEventResolver(pullRequest, diffBlameModel, repositoryEntity);
 
         Map<String, Object> parameters = Maps.newLinkedHashMap();
@@ -224,13 +224,12 @@ public class ProjectPullResource extends Resource {
         comment.setContent(content);
         comment.setPullRequest(pullRequest);
         comment.setUser(currentUser);
-        comment.setTime(new Date());
         pullRequestComments.persist(comment);
 
         CommentResponse response = new CommentResponse();
         response.setContent(content);
         response.setName(currentUser.getName());
-        response.setDate(comment.getTime().toString());
+        response.setDate(comment.getTimestamp().toString());
         response.setCommentId(comment.getCommentId());
 
         String redirect = String.format("/courses/%s/groups/%d/pull/%d",

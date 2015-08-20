@@ -2,8 +2,9 @@ package nl.tudelft.ewi.devhub.server.database.entities.comments;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import nl.tudelft.ewi.devhub.server.database.entities.TimestampEvent;
+import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
@@ -27,7 +28,7 @@ import java.util.Date;
 @Entity
 @Inheritance(strategy= InheritanceType.TABLE_PER_CLASS)
 @EqualsAndHashCode(of={"commentId"}, callSuper = false)
-public abstract class Comment extends TimestampEvent {
+public abstract class Comment implements Event {
 
     @Id
     @Column(name = "id")
@@ -43,5 +44,10 @@ public abstract class Comment extends TimestampEvent {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+	@CreationTimestamp
+	@Column(name = "created_date")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date timestamp;
 
 }

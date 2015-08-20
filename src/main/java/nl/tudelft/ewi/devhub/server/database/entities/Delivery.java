@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Basic;
@@ -38,7 +39,7 @@ import java.util.List;
 @Table(name = "assignment_deliveries")
 @ToString(exclude = {"notes", "attachments"})
 @EqualsAndHashCode(of={"deliveryId"}, callSuper = false)
-public class Delivery extends TimestampEvent {
+public class Delivery implements Event {
 
     /**
      * The State for the Delivery
@@ -105,7 +106,7 @@ public class Delivery extends TimestampEvent {
 		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
 		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id")
 	})
-    private Commit commitId;
+    private Commit commit;
 
     @NotNull
     @ManyToOne
@@ -122,6 +123,11 @@ public class Delivery extends TimestampEvent {
     @JoinColumn(name = "delivery_id")
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DeliveryAttachment> attachments;
+
+	@CreationTimestamp
+	@Column(name = "created_date")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date timestamp;
 
     @Data
     @Embeddable

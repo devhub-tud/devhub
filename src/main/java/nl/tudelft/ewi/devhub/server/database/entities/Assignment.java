@@ -50,6 +50,7 @@ public class Assignment implements Comparable<Assignment> {
         return ComparisonChain.start()
             .compare(getDueDate(), o.getDueDate(), Ordering.natural().nullsFirst())
             .compare(getName(), o.getName())
+			.compare(getAssignmentId(), o.getAssignmentId())
             .result();
     }
 }

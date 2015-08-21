@@ -524,6 +524,13 @@
 	</changeSet>
 	
 	<changeSet id="date_for_commits" author="Jan-Willem Gmelig Meyling">
+
+        <dropForeignKeyConstraint baseTableName="pull_requests" constraintName="pr_repository_name_in_groups"/>
+        <dropForeignKeyConstraint baseTableName="commit" constraintName="commit_repository_name_in_groups"/>
+        <dropForeignKeyConstraint baseTableName="commit_comment" constraintName="commit_comment_commit_in_commits"/>
+        <dropForeignKeyConstraint baseTableName="commit_comment" constraintName="source_commit_comments_in_commits"/>
+        <dropForeignKeyConstraint baseTableName="pull_request_comments" constraintName="pr_commit_pr_in_prs"/>
+
 		<addColumn tableName="commit">
 			<column name="author" type="varchar(255)"></column>
 			<column name="committed" type="datetime"/>
@@ -533,7 +540,175 @@
 	</changeSet>
     
     <changeSet id="database_refactor" author="Jan-Willem Gmelig Meyling">
+
+        <addColumn tableName="build_instructions">
+            <column name="build_timeout" type="int" value="300" defaultValue="300"/>
+        </addColumn>
+        <dropColumn tableName="courses" columnName="build_timeout"/>
+        <dropColumn tableName="groups" columnName="build_timeout"/>
+
+        <renameTable oldTableName="courses" newTableName="course_edition"/>
+
+        <createTable tableName="course">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="code" type="varchar(12)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="varchar(64)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addColumn tableName="course_edition">
+            <column name="course_id" type="bigint"></column>
+        </addColumn>
+
+        <sql>
+            insert into course (id, code, name) select id, code, name from course_edition;
+            update course_edition set course_id = id;
+        </sql>
+
+        <addNotNullConstraint tableName="course_edition" columnName="course_id" columnDataType="bigint"/>
+        <addForeignKeyConstraint baseTableName="course" baseColumnNames="id" constraintName="course_edition_course_id"
+             referencedTableName="course_edition" referencedColumnNames="course_id"/>
+        <dropColumn tableName="course_edition" columnName="code"/>
+        <dropColumn tableName="course_edition" columnName="name"/>
+
+        <renameColumn tableName="course_properties" oldColumnName="course_id" newColumnName="course_edition_id"/>
+
+        <renameColumn tableName="course_assistants" oldColumnName="course_id" newColumnName="course_edition_id"/>
+        <renameColumn tableName="assignments" oldColumnName="course_id" newColumnName="course_edition_id"/>
+        <renameColumn tableName="groups" oldColumnName="course_id" newColumnName="course_edition_id"/>
+
+        <createTable tableName="repository">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="DTYPE" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="repository_name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="build_instruction" type="bigint"/>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="build_instruction_ref_in_repository"
+                 baseTableName="repository" baseColumnNames="build_instruction"
+                 referencedTableName="build_instructions" referencedColumnNames="id" />
+
+        <addColumn tableName="groups">
+            <column name="repository_id" type="bigint"></column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="repository" baseColumnNames="id" constraintName="repository_id_group"
+                referencedTableName="groups" referencedColumnNames="repository_id"/>
+
+        <sql>
+            insert into repository (id, DTYPE, repository_name, build_instruction) select id, 1 as DTYPE, repository_name, build_instruction from groups;
+            update groups set repository_id = id;
+        </sql>
+
+        <dropForeignKeyConstraint baseTableName="groups" constraintName="build_instruction_ref_in_groups"/>
+        <dropColumn tableName="groups" columnName="build_instruction"/>
+        <dropColumn tableName="groups" columnName="repository_name"/>
+
+        <addColumn tableName="pull_requests">
+            <column name="repository_id" type="bigint"></column>
+        </addColumn>
+
+        <renameColumn tableName="pull_requests" oldColumnName="id" newColumnName="issue_id"/>
+
+        <addColumn tableName="pull_requests">
+            <column name="created_date" type="datetime"></column>
+        </addColumn>
+
+        <addColumn tableName="commit_comment">
+            <column name="repository_id" type="bigint"></column>
+        </addColumn>
+
+        <addColumn tableName="commit">
+            <column name="repository_id" type="bigint"></column>
+        </addColumn>
+
+        <addColumn tableName="pull_request_comments">
+            <column name="repository_id" type="bigint"></column>
+        </addColumn>
+
+        <addColumn tableName="group_warning">
+            <column name="repository_id" type="bigint"></column>
+        </addColumn>
+
+        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_pull_requests" baseTableName="pull_requests" baseColumnNames="repository_id"/>
+        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_commit" baseTableName="commit" baseColumnNames="repository_id"/>
+        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id"/>
+        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id"/>
+
+        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id" constraintName="commit_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id, commit_id"/>
+        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"  constraintName="commit_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id, commit_id"/>
+        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"  constraintName="source_commit_id_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id, source_commit_id"/>
+        <addForeignKeyConstraint referencedTableName="pull_requests" referencedColumnNames="repository_id, issue_id" constraintName="pull_request_for_comment" baseTableName="pull_request_comments" baseColumnNames="repository_id, issue_id"/>
+
+        <sql>
+            update commit set repository_id = (select id from repository where repository.repository_name = commit.repository_name);
+            update commit_comment set repository_id = (select id from repository where repository.repository_name = commit_comment.repository_name);
+            update group_warning set repository_id = (select id from repository where repository.repository_name = group_warning.repository_name);
+            update pull_requests set repository_id = (select id from repository where repository.repository_name = pull_requests.repository_name);
+            update pull_request_comments set repository_id = (select id from repository where repository.repository_name = pull_request_comments.repository_name);
+        </sql>
+
+        <addNotNullConstraint tableName="commit" columnName="repository_id" columnDataType="bigint"/>
+        <addNotNullConstraint tableName="group_warning" columnName="repository_id" columnDataType="bigint"/>
+        <addNotNullConstraint tableName="pull_requests" columnName="repository_id" columnDataType="bigint"/>
+        <addNotNullConstraint tableName="commit_comment" columnName="repository_id" columnDataType="bigint"/>
+        <addNotNullConstraint tableName="pull_request_comments" columnName="repository_id" columnDataType="bigint"/>
+
+        <dropPrimaryKey tableName="commit"/>
+        <addPrimaryKey tableName="commit" columnNames="repository_id, commit_id"/>
+        <dropPrimaryKey tableName="pull_requests"/>
+        <addPrimaryKey tableName="pull_requests" columnNames="repository_id, issue_id"/>
+
+        <dropColumn tableName="commit" columnName="repository_name"/>
+        <dropColumn tableName="commit_comment" columnName="repository_name"/>
+        <dropColumn tableName="group_warning" columnName="repository_name"/>
+        <dropColumn tableName="pull_requests" columnName="repository_name"/>
+        <dropColumn tableName="pull_request_comments" columnName="repository_name"/>
+
+        <renameColumn tableName="assignments" oldColumnName="assignment_id" newColumnName="id"/>
+
+        <renameColumn tableName="assignment_deliveries" oldColumnName="course_id" newColumnName="course_edition_id"/>
+        <addColumn tableName="assignment_deliveries">
+                <column name="group_number" type="bigint"></column>
+        </addColumn>
+
+        <sql>update assignment_deliveries set group_number = (select group_number from groups where groups.id = assignment_deliveries.group_id);</sql>
+        <addNotNullConstraint tableName="assignment_deliveries" columnName="group_number" columnDataType="bigint"/>
+        <addForeignKeyConstraint baseTableName="groups" baseColumnNames="course_edition_id, group_number"
+                                 constraintName="assignment_delivery_group_exists"
+                                 referencedTableName="assignment_deliveries"
+                                 referencedColumnNames="course_edition_id, group_number"/>
         
+        <renameColumn tableName="assignment_deliveries" oldColumnName="group_id" newColumnName="repository_id"/>
+
+        <addUniqueConstraint tableName="users" columnNames="student_number"/>
+
+        <renameColumn tableName="commit_comment" oldColumnName="time" newColumnName="created_date"/>
+        <renameColumn tableName="pull_request_comments" oldColumnName="time" newColumnName="created_date"/>
+        <renameColumn tableName="assignment_deliveries" oldColumnName="created" newColumnName="created_date"/>
+
+        <dropColumn tableName="build_results" columnName="id"/>
+        <addPrimaryKey tableName="build_results" columnNames="repository_id, commit_id"/>
+        <dropForeignKeyConstraint baseTableName="build_results" constraintName="repository_ref_in_build_results"/>
+
+        <sql>insert into commit (repository_id, commit_id) select build_results.repository_id, build_results.commit_id from build_results where not exists ( select * from commit where commit.repository_id = build_results.repository_id and  commit.commit_id = build_results.commit_id);</sql>
+
+        <addForeignKeyConstraint baseTableName="commit" baseColumnNames="repository_id, commit_id"
+                                 constraintName="commit_for_build_result"
+                                 referencedTableName="build_results"
+                                 referencedColumnNames="repository_id, commit_id"/>
+
     </changeSet>
 
 </databaseChangeLog>

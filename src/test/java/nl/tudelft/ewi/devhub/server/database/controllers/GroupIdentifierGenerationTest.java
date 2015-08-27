@@ -25,6 +25,7 @@ import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -86,6 +87,7 @@ public class GroupIdentifierGenerationTest {
 
 
 	@Test
+	@Ignore
 	public void test() throws Exception {
 		List<User> users = performInTransaction(TaskInTransaction::createUsers).get();
 		List<CourseEdition> courseEditions = performInTransaction(TaskInTransaction::createCourseEditions).get();

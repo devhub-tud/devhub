@@ -30,6 +30,8 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
+import javax.persistence.PersistenceException;
+
 @Slf4j
 @Singleton
 public class ProjectsBackend {
@@ -47,14 +49,20 @@ public class ProjectsBackend {
 		this.client = client;
 	}
 
-	public void setupProject(CourseEdition course, Collection<User> members) throws ApiError {
+	public Group setupProject(CourseEdition course, Collection<User> members) throws ApiError {
 		Preconditions.checkNotNull(course);
 		Preconditions.checkNotNull(members);
 		
 		log.info("Setting up new project for course: {} and members: {}", course, members);
 
-		Group group = persistRepository(course, members);
-		provisionRepository(group, members);
+		try {
+			Group group = persistRepository(course, members);
+			provisionRepository(group, members);
+			return group;
+		}
+		catch (ConstraintViolationException | PersistenceException e) {
+			throw new ApiError(COULD_NOT_CREATE_GROUP, e);
+		}
 	}
 
 	private void deleteRepositoryFromGit(Group group) {
@@ -85,22 +93,16 @@ public class ProjectsBackend {
 		group.setCourseEdition(courseEdition);
 		group.setMembers(Sets.newHashSet(members));
 
+		groups.persist(group);
+		log.info("Created new group in database: {}", group);
+
 		GroupRepository groupRepository = new GroupRepository();
 		groupRepository.setRepositoryName(courseEdition.createRepositoryName(group).toASCIIString());
 		group.setRepository(groupRepository);
-
-		try {
-			groups.persist(group);
-			log.info("Created new group in database: {}", group);
-			return group;
-		}
-		catch (ConstraintViolationException e) {
-			log.warn("Could not persist group: {}", group);
-			throw new ApiError(COULD_NOT_CREATE_GROUP, e);
-		}
+		return groups.merge(group);
 	}
 	
-	public void provisionRepository(Group group, Collection<User> members) throws ApiError {
+	public void  provisionRepository(Group group, Collection<User> members) throws ApiError {
 		String courseCode = group.getCourse().getCode();
 		String repositoryName = group.getRepository().getRepositoryName();
 		String templateRepositoryUrl = group.getCourse()
@@ -113,7 +115,7 @@ public class ProjectsBackend {
 			log.error(e.getMessage(), e);
 			deleteGroupFromDatabase(group);
 			deleteRepositoryFromGit(group);
-			throw new ApiError(GIT_SERVER_UNAVAILABLE);
+			throw new ApiError(GIT_SERVER_UNAVAILABLE, e);
 		}
 	}
 

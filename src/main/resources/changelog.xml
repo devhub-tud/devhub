@@ -571,8 +571,9 @@
         </sql>
 
         <addNotNullConstraint tableName="course_edition" columnName="course_id" columnDataType="bigint"/>
-        <addForeignKeyConstraint baseTableName="course" baseColumnNames="id" constraintName="course_edition_course_id"
-             referencedTableName="course_edition" referencedColumnNames="course_id"/>
+        <addForeignKeyConstraint referencedTableName="course" referencedColumnNames="id" constraintName="course_edition_course_id"
+             baseTableName="course_edition" baseColumnNames="course_id"/>
+
         <dropColumn tableName="course_edition" columnName="code"/>
         <dropColumn tableName="course_edition" columnName="name"/>
 
@@ -603,8 +604,8 @@
             <column name="repository_id" type="bigint"></column>
         </addColumn>
 
-        <addForeignKeyConstraint baseTableName="repository" baseColumnNames="id" constraintName="repository_id_group"
-                referencedTableName="groups" referencedColumnNames="repository_id"/>
+        <addForeignKeyConstraint baseTableName="groups" baseColumnNames="repository_id" constraintName="repository_id_group"
+                referencedTableName="repository" referencedColumnNames="id"/>
 
         <sql>
             insert into repository (id, DTYPE, repository_name, build_instruction) select id, 1 as DTYPE, repository_name, build_instruction from groups;
@@ -685,11 +686,12 @@
 
         <sql>update assignment_deliveries set group_number = (select group_number from groups where groups.id = assignment_deliveries.group_id);</sql>
         <addNotNullConstraint tableName="assignment_deliveries" columnName="group_number" columnDataType="bigint"/>
-        <addForeignKeyConstraint baseTableName="groups" baseColumnNames="course_edition_id, group_number"
-                                 constraintName="assignment_delivery_group_exists"
-                                 referencedTableName="assignment_deliveries"
-                                 referencedColumnNames="course_edition_id, group_number"/>
-        
+
+        <addForeignKeyConstraint referencedTableName="groups" referencedColumnNames="course_edition_id, group_number"
+             constraintName="assignment_delivery_group_exists"
+             baseTableName="assignment_deliveries"
+             baseColumnNames="course_edition_id, group_number"/>
+
         <renameColumn tableName="assignment_deliveries" oldColumnName="group_id" newColumnName="repository_id"/>
 
         <addUniqueConstraint tableName="users" columnNames="student_number"/>
@@ -704,10 +706,65 @@
 
         <sql>insert into commit (repository_id, commit_id) select build_results.repository_id, build_results.commit_id from build_results where not exists ( select * from commit where commit.repository_id = build_results.repository_id and  commit.commit_id = build_results.commit_id);</sql>
 
-        <addForeignKeyConstraint baseTableName="commit" baseColumnNames="repository_id, commit_id"
-                                 constraintName="commit_for_build_result"
-                                 referencedTableName="build_results"
-                                 referencedColumnNames="repository_id, commit_id"/>
+        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"
+             constraintName="commit_for_build_result"
+             baseTableName="build_results"
+             baseColumnNames="repository_id, commit_id"/>
+
+        <dropForeignKeyConstraint baseTableName="group_memberships" constraintName="group_ref_in_groupmemberships"/>
+
+        <addColumn tableName="group_memberships">
+            <column name="course_edition_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="group_number" type="bigint">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint constraintName="group_ref_in_groupmemberships"
+             baseTableName="group_memberships" baseColumnNames="course_edition_id, group_number"
+             referencedTableName="groups" referencedColumnNames="course_edition_id, group_number" />
+
+        <sql>update group_memberships set course_edition_id = (select course_edition_id from groups where groups.id = group_memberships.group_id);</sql>
+        <sql>update group_memberships set group_number = (select group_number from groups where groups.id = group_memberships.group_id);</sql>
+
+        <dropPrimaryKey tableName="group_memberships"/>
+        <addPrimaryKey tableName="group_memberships" columnNames="course_edition_id, group_number, user_id"/>
+        <addUniqueConstraint tableName="group_memberships" columnNames="course_edition_id, user_id" constraintName="UNIQUE_GROUP_MEMBERSHIP_PER_COURSE"/>
+        <dropColumn tableName="group_memberships" columnName="group_id"/>
+
+        <createTable tableName="seq_group_number">
+            <column name="course_edition_id" type="bigint">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="next_val" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="seq_group_number" baseColumnNames="course_edition_id"
+             constraintName="group_number_seq_course_edition_unique"
+             referencedTableName="course_edition"
+             referencedColumnNames="id" onDelete="CASCADE"/>
+
+        <sql>insert into seq_group_number (course_edition_id, next_val) select course_edition_id, (MAX(group_number) + 1) as next_val from groups group by course_edition_id;</sql>
+
+        <createTable tableName="seq_issue_id">
+            <column name="repository_id" type="bigint">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="next_val" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="seq_issue_id" baseColumnNames="repository_id"
+             constraintName="issue_id_sequence_repository_unique"
+             referencedTableName="repository"
+             referencedColumnNames="id" onDelete="CASCADE"/>
+
+        <sql>insert into seq_issue_id (repository_id, next_val) select repository_id, (MAX(issue_id) + 1) as next_val from pull_requests group by repository_id;</sql>
 
     </changeSet>
 

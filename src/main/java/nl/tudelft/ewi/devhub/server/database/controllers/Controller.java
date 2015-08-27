@@ -7,7 +7,9 @@ import javax.persistence.EntityNotFoundException;
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 import com.mysema.query.jpa.impl.JPAQuery;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Controller<T> {
 
 	private final EntityManager entityManager;
@@ -22,6 +24,7 @@ public class Controller<T> {
 	public <V extends T> V persist(V entity) {
 		entityManager.persist(entity);
 		entityManager.flush();
+		log.debug("Persisted {}", entity);
 		return entity;
 	}
 

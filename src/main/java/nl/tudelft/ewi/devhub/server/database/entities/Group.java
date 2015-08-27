@@ -38,7 +38,8 @@ public class Group implements Comparable<Group>, Serializable {
 	@Id
 	@GenericGenerator(name = "seq_group_number", strategy = "nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator", parameters = {
 		@Parameter(name = FKSegmentedIdentifierGenerator.TABLE_PARAM, value = "seq_group_number"),
-		@Parameter(name = FKSegmentedIdentifierGenerator.CLUSER_COLUMN, value = "course_edition_id")
+		@Parameter(name = FKSegmentedIdentifierGenerator.CLUSER_COLUMN_PARAM, value = "course_edition_id"),
+		@Parameter(name = FKSegmentedIdentifierGenerator.PROPERTY_PARAM, value = "courseEdition")
 	})
 	@GeneratedValue(generator = "seq_group_number")
 	@Column(name = "group_number", nullable = false)

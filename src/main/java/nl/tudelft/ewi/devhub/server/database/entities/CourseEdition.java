@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
 import lombok.Data;
@@ -93,6 +94,8 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	}
 
 	public URI createRepositoryName(Group group) {
+		Preconditions.checkNotNull(group);
+
 		URI base = URI.create("courses");
 		String coursePart = getCourse().getCode().toLowerCase();
 
@@ -101,7 +104,9 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 			coursePart += String.format("-%02d%02d", timeSpan.getStart().getYear() % 100, timeSpan.getEnd().getYear() % 100);
 		}
 
-		return base.resolve(coursePart).resolve("group-" + group.getGroupNumber());
+		Long groupNumber = group.getGroupNumber();
+		Preconditions.checkNotNull(groupNumber);
+		return base.resolve(coursePart).resolve("group-" + groupNumber);
 	}
 
 }

@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.inject.AbstractModule;
 import lombok.SneakyThrows;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
@@ -28,6 +29,7 @@ import java.util.Random;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(JukitoRunner.class)
 @UseModules({TestDatabaseModule.class, CommitsTest.CommitsTestModule.class})
@@ -74,9 +76,9 @@ public class CommitsTest {
 	public void testEnsureCommitInRepository() {
 		Group group = createGroup();
 		Commit commit = createCommit(group.getRepository());
-		assertEquals(group, commit.getRepository());
+		assertEquals(group.getRepository(), commit.getRepository());
 	}
-	
+
 	@Test
 	public void testEnsureCommentInCommit() {
 		Group group = createGroup();
@@ -88,11 +90,9 @@ public class CommitsTest {
 		CommitComment actual = comments.get(0);
 		assertEquals(expected.getCommit(), actual.getCommit());
 		assertEquals(expected.getContent(), actual.getContent());
-		//assertEquals(expected.getOldLineNumber(), actual.getOldLineNumber());
-		//assertEquals(expected.getOldFilePath(), actual.getOldFilePath());
-		//assertEquals(expected.getNewLineNumber(), actual.getNewLineNumber());
-		//assertEquals(expected.getNewFilePath(), actual.getNewFilePath());
-		assertEquals(expected.getTimestamp(), actual.getTimestamp());
+
+		assertEquals(expected.getSource(), actual.getSource());
+		assertNotNull(actual.getTimestamp());
 		assertEquals(expected.getUser(), actual.getUser());
 	}
 	
@@ -100,11 +100,13 @@ public class CommitsTest {
 		CommitComment comment = new CommitComment();
 		comment.setCommit(commit);
 		comment.setContent("This is a comment");
-//		comment.setOldFilePath("dev/null");
-//		comment.setOldLineNumber(null);
-//		comment.setNewFilePath(".gitignore");
-//		comment.setNewLineNumber(1);
-		comment.setTimestamp(new Date());
+
+		Source source = new Source();
+		source.setSourceCommit(commit);
+		source.setSourceFilePath(".gitignore");
+		source.setSourceLineNumber(1);
+
+		comment.setSource(source);
 		comment.setUser(student1());
 		commit.getComments().add(comment);
 		commits.merge(commit);
@@ -118,13 +120,13 @@ public class CommitsTest {
 	protected Group createGroup() {
 		Group group = new Group();
 		CourseEdition course = getTestCourse();
-		group.setGroupNumber(random.nextLong());
 		group.setCourseEdition(course);
+		group = groups.persist(group);
 
 		GroupRepository groupRepository = new GroupRepository();
-		groupRepository.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
+		groupRepository.setRepositoryName(course.createRepositoryName(group).toASCIIString());
 		group.setRepository(groupRepository);
-		return groups.persist(group);
+		return groups.merge(group);
 	}
 	
 	protected CourseEdition getTestCourse() {

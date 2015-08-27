@@ -57,7 +57,7 @@ public class CourseBackendTest extends BackendTest {
 	@Mock
 	private GroupMembers groupMembers;
 
-	private ArrayList<User> newAssistants;
+	private Set<User> newAssistants;
 
 	private Set<User> oldAssistants;
 	
@@ -67,6 +67,7 @@ public class CourseBackendTest extends BackendTest {
 	public void setUp() throws GitClientException {
 		course = createCourse();
 		oldAssistants = Sets.newHashSet(createUser(), createUser());
+		newAssistants = Sets.newHashSet(createUser(), createUser());
 		course.setAssistants(oldAssistants);
 		
 		when(currentUser.isAdmin()).thenReturn(true);
@@ -141,9 +142,10 @@ public class CourseBackendTest extends BackendTest {
 	@Test
 	public void assistantsAreRemovedFromCourseWhenNotInNewList() throws GitClientException {
 		courseBackend.setAssistants(course, newAssistants);
-		
-		User removedAssistant = newAssistants.remove(0);
-		
+
+		User removedAssistant = newAssistants.iterator().next();
+		newAssistants.remove(removedAssistant);
+
 		courseBackend.setAssistants(course, newAssistants);
 
 		assertFalse(course.getAssistants().contains(removedAssistant));

@@ -1,20 +1,22 @@
 package nl.tudelft.ewi.devhub.server.database.entities.identity;
 
-import com.google.common.base.Preconditions;
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.MappingException;
+import org.hibernate.Session;
+import org.hibernate.TransientObjectException;
 import org.hibernate.cfg.Environment;
 import org.hibernate.cfg.ObjectNameNormalizer;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.internal.ForeignKeys;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jdbc.spi.SqlStatementLogger;
 import org.hibernate.engine.spi.SessionEventListenerManager;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.Configurable;
+import org.hibernate.id.IdentifierGenerationException;
 import org.hibernate.id.IdentifierGeneratorHelper;
 import org.hibernate.id.IntegralDataTypeHolder;
 import org.hibernate.id.PersistentIdentifierGenerator;
@@ -25,15 +27,13 @@ import org.hibernate.id.enhanced.StandardOptimizerDescriptor;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.hibernate.jdbc.AbstractReturningWork;
+import org.hibernate.loader.PropertyPath;
 import org.hibernate.mapping.Table;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -41,18 +41,19 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collections;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Properties;
 
 /**
  * The {@code FKSegmentedIdentifierGenerator} can be used for generating an auto incremented
  * part of a composite primary key. The {@code FKSegmentedIdentifierGenerator} is largely
- * based on the {@link org.hibernate.id.enhanced.TableGenerator}.
+ * based on the {@link org.hibernate.id.enhanced.TableGenerator} and the
+ * {@link org.hibernate.id.ForeignGenerator}.
  *
  * Usage example:
  *
  * {@code <pre>
  *     class Entity {
+ *
  *        @Id
  *        @ManyToOne(optional = false)
  *        @JoinColumn(name = "course_edition_id")
@@ -60,12 +61,13 @@ import java.util.Properties;
  *
  *        @Id
  *        @GenericGenerator(name = "seq_group_number", strategy = "nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator", parameters = {
- *        @Parameter(name = FKSegmentedIdentifierGenerator.TABLE_PARAM, value = "seq_group_number"),
- *        @Parameter(name = FKSegmentedIdentifierGenerator.CLUSER_COLUMN, value = "course_edition_id")
+ *          @Parameter(name = FKSegmentedIdentifierGenerator.TABLE_PARAM, value = "seq_group_number"),
+ *          @Parameter(name = FKSegmentedIdentifierGenerator.PROPERTY_PARAM, value = "courseEdition")
  *        })
  *        @GeneratedValue(generator = "seq_group_number")
  *        @Column(name = "group_number", nullable = false)
  *        private long groupNumber;
+ *
  *    }
  * </pre>}
  *
@@ -74,26 +76,36 @@ import java.util.Properties;
  * <table>
  *    <tr>
  *        <td>{@link FKSegmentedIdentifierGenerator#TABLE_PARAM}</td>
- *        <td>The name for the table in which to store the next values for the keys</td>
+ *        <td><strong>Required.</strong>
+ *        The name for the table in which to store the next values for the keys.</td>
  *    </tr>
  *    <tr>
- *        <td>{@link FKSegmentedIdentifierGenerator#CLUSER_COLUMN}</td>
- *        <td>The {@link JoinColumn @JoinColumn} to use in the entity, as well as the used column name
- 	*        for the segment in the generated table.</td>
+ *        <td>{@link FKSegmentedIdentifierGenerator#PROPERTY_PARAM}</td>
+ *        <td><strong>Required.</strong>
+ *        The property of the to-one relation to use for the foreign key.</td>
+ *    </tr>
+ *    <tr>
+ *        <td>{@link FKSegmentedIdentifierGenerator#CLUSER_COLUMN_PARAM}</td>
+ *        <td>The used column name for the segment in the generated table.
+ *        Defaults to {@link FKSegmentedIdentifierGenerator#DEFAULT_CLUSER_COLUMN}</td>
  *    </tr>
  *    <tr>
  *        <td>{@link FKSegmentedIdentifierGenerator#INCREMENT_PARAM}</td>
- *        <td>Amount to increment. Defaults to {@code 1}.</td>
+ *        <td>Amount to increment.
+ *        Defaults to {@link FKSegmentedIdentifierGenerator#DEFAULT_INCREMENT_SIZE}.</td>
  *    </tr>
  *	  <tr>
  *	      <td>{@link FKSegmentedIdentifierGenerator#INITIAL_PARAM}</td>
- *	      <td>Initial value for the generator. Defaults to {@code 1}.</td>
+ *	      <td>Initial value for the generator.
+ *	      Defaults to {@link FKSegmentedIdentifierGenerator#DEFAULT_INITIAL_VALUE}.</td>
  *	  </tr>
  * </table>
+ *
+ * @author Jan-Willem Gmelig Meyling
+ * @see org.hibernate.id.enhanced.TableGenerator
+ * @see org.hibernate.id.ForeignGenerator
  */
-@Slf4j
 public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGenerator, Configurable {
-
 
 	/**
 	 * Configures the name of the table to use.  The default value is {@link #DEF_TABLE}
@@ -131,30 +143,43 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 	public static final String INCREMENT_PARAM = "increment_size";
 
 	/**
-	 * The default {@link #INCREMENT_PARAM} value
+	 * The default {@link #INCREMENT_PARAM} value.
 	 */
 	public static final int DEFAULT_INCREMENT_SIZE = 1;
 
 	/**
 	 * Indicates the optimizer to use, either naming a {@link Optimizer} implementation class or by naming
-	 * a {@link StandardOptimizerDescriptor} by name
+	 * a {@link StandardOptimizerDescriptor} by name.
 	 */
 	public static final String OPT_PARAM = "optimizer";
 
-	public static final String CLUSER_COLUMN = "cluster_column";
+	/**
+	 * Cluster cloumn property.
+	 */
+	public static final String CLUSER_COLUMN_PARAM = "cluster_column";
 
+	/**
+	 * Default cluster column name.
+	 */
+	public static final String DEFAULT_CLUSER_COLUMN = "cluster";
+
+	/**
+	 * Property name for the to-one relationship.
+	 */
+	public static final String PROPERTY_PARAM = "property";
 
 	private Type identifierType;
 	private String tableName;
 	private String valueColumnName;
-	private int initialValue;
+	private String entityName;
+	private String propertyName;
+	private long initialValue;
 	private int incrementSize;
 	private String selectQuery;
 	private String insertQuery;
 	private String updateQuery;
 	private Optimizer optimizer;
 	private String targetTableName;
-	private String targetColumn;
 	private String clusterColumn;
 
 	@Override
@@ -163,26 +188,27 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 	}
 
 	@Override
-	public void configure(Type type, Properties params, Dialect dialect) throws MappingException {
+	public void configure(final Type type, final Properties params, final Dialect dialect) throws MappingException {
 		identifierType = type;
 
 		tableName = determineGeneratorTableName(params, dialect);
 		valueColumnName = determineValueColumnName(params, dialect);
+		entityName = params.getProperty(ENTITY_NAME);
+		propertyName = params.getProperty(PROPERTY_PARAM);
 
 		initialValue = determineInitialValue(params);
 		incrementSize = determineIncrementSize(params);
 
 		targetTableName = ConfigurationHelper.getString(PersistentIdentifierGenerator.TABLE, params);
-		targetColumn = ConfigurationHelper.getString(PersistentIdentifierGenerator.PK, params);
-		clusterColumn = ConfigurationHelper.getString(CLUSER_COLUMN, params);
+		clusterColumn = ConfigurationHelper.getString(CLUSER_COLUMN_PARAM, params, DEFAULT_CLUSER_COLUMN);
 
-		assert targetTableName != null; // Hibernate default, no need to enforce preconditions
-		assert targetColumn != null;
-		Preconditions.checkNotNull(clusterColumn);
+		if (propertyName == null) {
+			throw new MappingException("param named \"property\" is required for foreign id generation strategy");
+		}
 
-		this.selectQuery = buildSelectQuery(dialect);
-		this.updateQuery = buildUpdateQuery();
-		this.insertQuery = buildInsertQuery();
+		selectQuery = buildSelectQuery(dialect);
+		updateQuery = buildUpdateQuery();
+		insertQuery = buildInsertQuery();
 
 		// if the increment size is greater than one, we prefer pooled optimization; but we
 		// need to see if the user prefers POOL or POOL_LO...
@@ -210,7 +236,7 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 	 * @param dialect The dialect in effect
 	 * @return The table name to use.
 	 */
-	protected String determineGeneratorTableName(Properties params, Dialect dialect) {
+	protected String determineGeneratorTableName(final Properties params, final Dialect dialect) {
 		String name = ConfigurationHelper.getString(TABLE_PARAM, params, DEF_TABLE);
 		final boolean isGivenNameUnqualified = name.indexOf('.') < 0;
 		if (isGivenNameUnqualified) {
@@ -246,15 +272,15 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 		return dialect.quote(normalizer.normalizeIdentifierQuoting(name));
 	}
 
-	protected int determineInitialValue(Properties params) {
+	protected int determineInitialValue(final Properties params) {
 		return ConfigurationHelper.getInt(INITIAL_PARAM, params, DEFAULT_INITIAL_VALUE);
 	}
 
-	protected int determineIncrementSize(Properties params) {
+	protected int determineIncrementSize(final Properties params) {
 		return ConfigurationHelper.getInt(INCREMENT_PARAM, params, DEFAULT_INCREMENT_SIZE);
 	}
 
-	protected String buildSelectQuery(Dialect dialect) {
+	protected String buildSelectQuery(final Dialect dialect) {
 		final String alias = "tbl";
 		final String query = "select " + StringHelper.qualify(alias, valueColumnName) +
 			" from " + tableName + ' ' + alias +
@@ -284,50 +310,62 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 		return IdentifierGeneratorHelper.getIntegralDataTypeHolder(identifierType.getReturnedClass());
 	}
 
-	private long retrieveSegmentValue(Object obj) {
-		for(Field field : obj.getClass().getDeclaredFields()) {
-			if(field.isAnnotationPresent(Id.class)) {
-				if(field.isAnnotationPresent(JoinColumn.class)) {
-					JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
-					if(joinColumn.name().equals(clusterColumn)) {
-						for(Field referencedField : field.getType().getDeclaredFields()) {
-							if(referencedField.isAnnotationPresent(Id.class) &&
-								(joinColumn.referencedColumnName().equals("") ||
-									referencedField.getAnnotation(Column.class).name()
-										.equals(joinColumn.referencedColumnName()))) {
-								Object ref = getFieldValue(obj, field);
-								return getFieldValue(ref, referencedField);
-							}
-						}
-					}
+	/**
+	 * Retrieve the foreign key value from the related object
+	 * @param sessionImplementor Session implementer
+	 * @param object Object to persist
+	 * @return Id for the object
+	 * @see org.hibernate.id.ForeignGenerator#generate(SessionImplementor, Object)
+	 */
+	protected long retrieveSegmentValue(final SessionImplementor sessionImplementor, final Object object) {
+		Session session = (Session) sessionImplementor;
 
-				}
-			}
+		final EntityPersister persister = sessionImplementor.getFactory().getEntityPersister(entityName);
+		Object associatedObject = persister.getPropertyValue(object, propertyName);
+		if (associatedObject == null) {
+			throw new IdentifierGenerationException("attempted to assign id from null one-to-one property [" + entityName + "." + propertyName + "]");
 		}
-		throw new NoSuchElementException();
-	}
 
-	@SuppressWarnings("unchecked")
-	private <T> T getFieldValue(Object obj, Field field) {
+		final EntityType foreignValueSourceType;
+		final Type propertyType = persister.getPropertyType(propertyName);
+		if (propertyType.isEntityType()) {
+			// the normal case
+			foreignValueSourceType = (EntityType) propertyType;
+		}
+		else {
+			// try identifier mapper
+			foreignValueSourceType = (EntityType) persister.getPropertyType(PropertyPath.IDENTIFIER_MAPPER_PROPERTY + "." + propertyName);
+		}
+
+		Serializable id;
 		try {
-			try {
-				String potentialGetter = "get" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
-				return (T) obj.getClass().getDeclaredMethod(potentialGetter).invoke(obj);
-			}
-			catch (NoSuchMethodException | InvocationTargetException e) {
-				if(!field.isAccessible())
-					field.setAccessible(true);
-				return (T) field.get(obj);
+			id = ForeignKeys.getEntityIdentifierIfNotUnsaved(
+				foreignValueSourceType.getAssociatedEntityName(),
+				associatedObject,
+				sessionImplementor
+			);
+		}
+		catch (TransientObjectException toe) {
+			id = session.save(foreignValueSourceType.getAssociatedEntityName(), associatedObject);
+			if (session.contains(object)) {
+				throw new IdentifierGenerationException("save associated object first, or disable cascade for inverse association");
 			}
 		}
-		catch (IllegalAccessException e) {
-			throw new IllegalStateException(e);
-		}
+
+		return (Long) id;
 	}
 
 	@Override
 	public Serializable generate(final SessionImplementor session, final Object obj) {
-		final long segmentValue = retrieveSegmentValue(obj);
+		final long segmentValue;
+		try {
+			segmentValue = retrieveSegmentValue(session, obj);
+		}
+		catch (IdentifierGenerationException e) {
+			//abort the save (the object is already saved by a circular cascade)
+			return IdentifierGeneratorHelper.SHORT_CIRCUIT_INDICATOR;
+		}
+
 		final SqlStatementLogger statementLogger = session.getFactory().getServiceRegistry()
 			.getService(JdbcServices.class)
 			.getSqlStatementLogger();
@@ -350,10 +388,10 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 	}
 
 	private PreparedStatement prepareStatement(
-		Connection connection,
-		String sql,
-		SqlStatementLogger statementLogger,
-		SessionEventListenerManager statsCollector) throws SQLException {
+		final Connection connection,
+		final String sql,
+		final SqlStatementLogger statementLogger,
+		final SessionEventListenerManager statsCollector) throws SQLException {
 		statementLogger.logStatement(sql, FormatStyle.BASIC.getFormatter());
 		try {
 			statsCollector.jdbcPrepareStatementStart();
@@ -364,7 +402,7 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 		}
 	}
 
-	private int executeUpdate(PreparedStatement ps, SessionEventListenerManager statsCollector) throws SQLException {
+	protected int executeUpdate(final PreparedStatement ps, final SessionEventListenerManager statsCollector) throws SQLException {
 		try {
 			statsCollector.jdbcExecuteStatementStart();
 			return ps.executeUpdate();
@@ -375,7 +413,7 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 
 	}
 
-	private ResultSet executeQuery(PreparedStatement ps, SessionEventListenerManager statsCollector) throws SQLException {
+	protected ResultSet executeQuery(final PreparedStatement ps, final SessionEventListenerManager statsCollector) throws SQLException {
 		try {
 			statsCollector.jdbcExecuteStatementStart();
 			return ps.executeQuery();
@@ -386,7 +424,7 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 	}
 
 	@Override
-	public String[] sqlCreateStrings(Dialect dialect) throws HibernateException {
+	public String[] sqlCreateStrings(final Dialect dialect) throws HibernateException {
 		return new String[] {
 			dialect.getCreateTableString() + ' ' + tableName + " ("
 				+ clusterColumn + ' ' + dialect.getTypeName(Types.BIGINT) + " not null "
@@ -396,16 +434,16 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 	}
 
 	@Override
-	public String[] sqlDropStrings(Dialect dialect) throws HibernateException {
+	public String[] sqlDropStrings(final Dialect dialect) throws HibernateException {
 		return new String[] { dialect.getDropTableString(tableName) };
 	}
 
-	private class IntegralDataTypeHolderAbstractReturningWork extends AbstractReturningWork<IntegralDataTypeHolder> {
+	protected class IntegralDataTypeHolderAbstractReturningWork extends AbstractReturningWork<IntegralDataTypeHolder> {
 
-		private final IntegralDataTypeHolder value;
-		private final SqlStatementLogger statementLogger;
-		private final SessionEventListenerManager statsCollector;
-		private final long segmentValue;
+		protected final IntegralDataTypeHolder value;
+		protected final SqlStatementLogger statementLogger;
+		protected final SessionEventListenerManager statsCollector;
+		protected final long segmentValue;
 
 		public IntegralDataTypeHolderAbstractReturningWork(SqlStatementLogger statementLogger, SessionEventListenerManager statsCollector, long segmentValue) {
 			this.statementLogger = statementLogger;
@@ -415,7 +453,7 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 		}
 
 		@Override
-		public IntegralDataTypeHolder execute(Connection connection) throws SQLException {
+		public IntegralDataTypeHolder execute(final Connection connection) throws SQLException {
 			int rows;
 			do {
 				try(final PreparedStatement selectPS = prepareStatement(connection, selectQuery, statementLogger, statsCollector)) {
@@ -436,7 +474,7 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 			return value;
 		}
 
-		private void createInitialValue(Connection connection) throws SQLException {
+		protected void createInitialValue(final Connection connection) throws SQLException {
 			try(final PreparedStatement initValStmt = prepareStatement(connection, buildFetchCurValueQuery(), statementLogger, statsCollector)) {
 				initValStmt.setLong(1, segmentValue);
 				try(final ResultSet initValRes = executeQuery(initValStmt, statsCollector)) {
@@ -451,7 +489,7 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 			}
 		}
 
-		private int incrementAndUpdateValue(Connection connection) throws SQLException {
+		protected int incrementAndUpdateValue(final Connection connection) throws SQLException {
 			try(final PreparedStatement updatePS = prepareStatement(connection, updateQuery, statementLogger, statsCollector)) {
 				final IntegralDataTypeHolder updateValue = value.copy();
 				if (optimizer.applyIncrementSizeToSourceValues()) {
@@ -467,7 +505,7 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 			}
 		}
 
-		private void persistInitialValue(Connection connection) throws SQLException {
+		protected void persistInitialValue(final Connection connection) throws SQLException {
 			try(final PreparedStatement insertPS = prepareStatement(connection, insertQuery, statementLogger, statsCollector)) {
 				insertPS.setLong(1, segmentValue);
 				value.bind(insertPS, 2);
@@ -477,4 +515,5 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 			}
 		}
 	}
+
 }

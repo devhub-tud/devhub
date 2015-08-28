@@ -19,7 +19,7 @@ import javax.validation.constraints.NotNull;
 @Entity
 @ToString(exclude="commit")
 @Table(name = "commit_comment")
-@EqualsAndHashCode(of="commentId")
+@EqualsAndHashCode(callSuper = true)
 public class CommitComment extends Comment {
 
     /**

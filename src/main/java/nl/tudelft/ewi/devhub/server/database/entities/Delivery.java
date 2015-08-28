@@ -5,6 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JoinColumnOrFormula;
+import org.hibernate.annotations.JoinColumnsOrFormulas;
+import org.hibernate.annotations.JoinFormula;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Basic;
@@ -91,13 +94,16 @@ public class Delivery implements Event {
     private long deliveryId;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "assignment_id")
+    @JoinColumnsOrFormulas({
+		@JoinColumnOrFormula(formula = @JoinFormula(value = "course_edition_id", referencedColumnName = "course_edition_id")),
+		@JoinColumnOrFormula(column = @JoinColumn(name = "assignment_id", referencedColumnName = "assignment_id", nullable = false))
+	})
     private Assignment assignment;
 
     @ManyToOne(optional = false)
     @JoinColumns({
-		@JoinColumn(name = "course_edition_id", referencedColumnName = "course_edition_id"),
-		@JoinColumn(name = "group_number", referencedColumnName = "group_number")
+		@JoinColumn(name = "course_edition_id", referencedColumnName = "course_edition_id", nullable = false),
+		@JoinColumn(name = "group_number", referencedColumnName = "group_number", nullable = false)
 	})
     private Group group;
 

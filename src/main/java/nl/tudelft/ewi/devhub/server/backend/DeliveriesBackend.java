@@ -233,7 +233,7 @@ public class DeliveriesBackend {
      */
     public AssignmentStats getAssignmentStats(Assignment assignment) {
         List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
-        return new AssignmentStats(deliveries, assignment.getCourse().getGroups());
+        return new AssignmentStats(deliveries, assignment.getCourseEdition().getGroups());
     }
 
 }

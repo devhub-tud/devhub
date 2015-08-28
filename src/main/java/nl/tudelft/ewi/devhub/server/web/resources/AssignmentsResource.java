@@ -136,7 +136,7 @@ public class AssignmentsResource extends Resource {
         }
 
         Assignment assignment = new Assignment();
-        assignment.setCourse(course);
+        assignment.setCourseEdition(course);
         assignment.setAssignmentId(assignmentId);
         assignment.setName(name);
         assignment.setSummary(summary);

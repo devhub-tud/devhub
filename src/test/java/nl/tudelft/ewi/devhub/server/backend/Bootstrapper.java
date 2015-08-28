@@ -168,7 +168,7 @@ public class Bootstrapper {
 
             for(BAssignment assignment : course.getAssignments()) {
                 Assignment assignmentEntity = new Assignment();
-                assignmentEntity.setCourse(entity);
+                assignmentEntity.setCourseEdition(entity);
                 assignmentEntity.setName(assignment.getName());
                 assignmentEntity.setAssignmentId(assignment.getId());
                 assignments.merge(assignmentEntity);

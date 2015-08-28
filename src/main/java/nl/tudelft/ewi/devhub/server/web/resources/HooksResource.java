@@ -80,7 +80,7 @@ public class HooksResource extends Resource {
 	private final PullRequestBackend pullRequestBackend;
 	private final Commits commits;
 	private final Warnings warnings;
-	private final Set<CommitPushWarningGenerator<?>> pushWarningGenerators;
+	private final Set<CommitPushWarningGenerator> pushWarningGenerators;
 	private final PMDWarningGenerator pmdWarningGenerator;
 	private final CheckstyleWarningGenerator checkstyleWarningGenerator;
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
@@ -91,7 +91,7 @@ public class HooksResource extends Resource {
 		    RepositoriesController repositoriesController, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
 			Commits commits, Warnings warnings, PMDWarningGenerator pmdWarningGenerator, CheckstyleWarningGenerator checkstyleWarningGenerator,
 			FindBugsWarningGenerator findBugsWarningGenerator, SuccessiveBuildFailureGenerator successiveBuildFailureGenerator,
-			Set<CommitPushWarningGenerator<?>> pushWarningGenerators) {
+			Set<CommitPushWarningGenerator> pushWarningGenerators) {
 
 		this.buildBackend = buildBackend;
 		this.client = client;

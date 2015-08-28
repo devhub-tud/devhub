@@ -124,7 +124,7 @@ public class CommitsTest {
 		group = groups.persist(group);
 
 		GroupRepository groupRepository = new GroupRepository();
-		groupRepository.setRepositoryName(course.createRepositoryName(group).toASCIIString());
+		groupRepository.setRepositoryName(course.createRepositoryName(group).toString());
 		group.setRepository(groupRepository);
 		return groups.merge(group);
 	}

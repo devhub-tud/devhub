@@ -3,13 +3,20 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import com.sun.istack.Nullable;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.Type;
+import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
+import org.hibernate.annotations.*;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Parameter;
+import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -19,17 +26,35 @@ import java.util.Date;
 @Entity
 @Table(name= "assignments")
 @ToString(exclude = "summary")
-@EqualsAndHashCode(of = { "assignmentId" })
+@IdClass(Assignment.AssignmentId.class)
+@EqualsAndHashCode(of = {"courseEdition", "assignmentId" })
 public class Assignment implements Comparable<Assignment> {
 
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long assignmentId;
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class AssignmentId implements Serializable {
 
+		private long courseEdition;
+
+		private long assignmentId;
+
+	}
+
+	@Id
     @ManyToOne(optional = false)
     @JoinColumn(name = "course_edition_id")
-    private CourseEdition course;
+    private CourseEdition courseEdition;
+
+    @Id
+    @Column(name = "assignment_id")
+	@GeneratedValue(generator = "seq_group_number", strategy = GenerationType.AUTO)
+	@GenericGenerator(name = "seq_group_number", strategy = "nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator", parameters = {
+		@org.hibernate.annotations.Parameter(name = FKSegmentedIdentifierGenerator.TABLE_PARAM, value = "seq_assignment_id"),
+		@org.hibernate.annotations.Parameter(name = FKSegmentedIdentifierGenerator.CLUSER_COLUMN_PARAM, value = "course_edition_id"),
+		@org.hibernate.annotations.Parameter(name = FKSegmentedIdentifierGenerator.PROPERTY_PARAM, value = "courseEdition")
+	})
+    private long assignmentId;
 
     @NotEmpty(message = "assignment.name.should-be-given")
     @Column(name = "name")
@@ -50,6 +75,7 @@ public class Assignment implements Comparable<Assignment> {
         return ComparisonChain.start()
             .compare(getDueDate(), o.getDueDate(), Ordering.natural().nullsFirst())
             .compare(getName(), o.getName())
+			.compare(getCourseEdition(), o.getCourseEdition())
 			.compare(getAssignmentId(), o.getAssignmentId())
             .result();
     }

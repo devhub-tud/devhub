@@ -65,7 +65,7 @@
                     </span>
                 </div>
                 <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
-                <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                <div class="committer">${delivery.createdUser.getName()} on ${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
             </a>
           </td>
         </tr>

@@ -40,7 +40,7 @@
         <dt>${i18n.translate("delivery.submitted-by")}</dt>
         <dd>${delivery.createdUser.getName()}</dd>
         <dt>${i18n.translate("delivery.date")}</dt>
-        <dd>${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</dd>
+        <dd>${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</dd>
         [#if delivery.commitId?? && delivery.commitId?has_content]
             <dt>${i18n.translate("assignment.commit")}</dt>
             <dd><a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/commits/${delivery.commitId}/diff">${delivery.commitId?substring(0, 8)}</a></dd>

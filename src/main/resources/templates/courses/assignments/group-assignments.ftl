@@ -68,10 +68,10 @@
                         </td>
                         <td>
                             [#if delivery?has_content]
-                                [#assign commitId = delivery.getCommitId()!]
-                                [#if commitId?? && commitId?has_content && states?? && states.hasStarted(commitId)]
-                                    [#if states.hasFinished(commitId)]
-                                        [#if states.hasSucceeded(commitId)]
+                                [#assign commit = delivery.getCommit()!]
+                                [#if commit?? && commit?has_content && commit.buildResult?? && commit.buildResult?has_content]
+                                    [#if commit.buildResult.hasFinished()]
+                                        [#if commit.buildResult.hasSucceeded()]
                                             <span class="label label-success">${i18n.translate("build.state.succeeded")}</span>
                                         [#else]
                                             <span class="label label-success">${i18n.translate("build.state.failed")}</span>

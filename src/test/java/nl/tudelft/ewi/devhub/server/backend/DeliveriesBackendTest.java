@@ -341,7 +341,7 @@ public class DeliveriesBackendTest extends BackendTest {
 	
 	@Test
 	public void assignmentStatsFromLatestDeliveries() {
-		when(assignment.getCourse()).thenReturn(course);
+		when(assignment.getCourseEdition()).thenReturn(course);
 		when(deliveriesDAO.getLastDeliveries(Matchers.eq(assignment))).thenReturn(deliveries);
 		
 		assertNotNull(this.deliveriesBackend.getAssignmentStats(assignment));

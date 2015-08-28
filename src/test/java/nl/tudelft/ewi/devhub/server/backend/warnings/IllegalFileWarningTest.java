@@ -1,6 +1,8 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
@@ -25,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -38,11 +41,13 @@ public class IllegalFileWarningTest {
     private final Map<String,EntryType> directory1 = new HashMap<>();
 
 
-	@Mock private GroupRepository groupRepository;
-	@Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
-    @Mock private Group group;
-    @Mock private CourseEdition course;
-    @Mock private Commit commit;
+
+    private Group group;
+	private GroupRepository groupRepository;
+    private CourseEdition course;
+    private Commit commit;
+	private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
+
     @Mock private Repository repository;
     @Mock private Repositories repositories;
     @Mock private GitServerClient gitServerClient;
@@ -54,15 +59,20 @@ public class IllegalFileWarningTest {
 
     @Before
     public void beforeTest() throws Exception {
-        when(commitEntity.getCommitId()).thenReturn(COMMIT_ID);
-		when(commitEntity.getRepository()).thenReturn(groupRepository);
-		when(group.getRepository()).thenReturn(groupRepository);
-		when(groupRepository.getRepositoryName()).thenReturn("");
-        when(group.getCourse()).thenReturn(course);
-        when(course.getProperties()).thenReturn(Maps.newHashMap());
+		course = new CourseEdition();
+		group = new Group();
+		group.setCourseEdition(course);
+		groupRepository = new GroupRepository();
+		groupRepository.setRepositoryName("");
+		groupRepository.setGroup(group);
+		group.setRepository(groupRepository);
+		commitEntity = new nl.tudelft.ewi.devhub.server.database.entities.Commit();
+		commitEntity.setCommitId(COMMIT_ID);
+		commitEntity.setRepository(groupRepository);
+
         when(gitServerClient.repositories()).thenReturn(repositories);
         when(repositories.retrieve(anyString())).thenReturn(repository);
-        when(repository.listDirectoryEntries(COMMIT_ID,"")).thenReturn(directory1);
+        when(repository.listDirectoryEntries(COMMIT_ID, "")).thenReturn(directory1);
 
         directory1.clear();
 

@@ -54,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -135,7 +136,7 @@ public class ProjectAssignmentsResource extends Resource {
     @Transactional
     @Path("{assignmentId : \\d+}")
     public Response getAssignmentView(@Context HttpServletRequest request,
-                                      @PathParam("assignmentId") Long assignmentId)
+                                      @PathParam("assignmentId") long assignmentId)
             throws IOException, ApiError, GitClientException {
 
         Assignment assignment = assignments.find(group.getCourse(), assignmentId);
@@ -154,8 +155,8 @@ public class ProjectAssignmentsResource extends Resource {
 
         Collection<String> commitIds = myDeliveries.stream()
                 .map(Delivery::getCommit)
+				.filter(Objects::nonNull)
 				.map(Commit::getCommitId)
-				.filter(Predicates.notNull()::apply)
                 .collect(Collectors.toSet());
 
 	        parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
@@ -177,7 +178,7 @@ public class ProjectAssignmentsResource extends Resource {
     @Path("{assignmentId : \\d+}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postAssignment(@Context HttpServletRequest request,
-                                   @PathParam("assignmentId") Long assignmentId,
+                                   @PathParam("assignmentId") long assignmentId,
                                    MultipartFormDataInput formData) throws IOException, ApiError, GitClientException {
 
         Map<String, List<InputPart>> formDataMap = formData.getFormDataMap();

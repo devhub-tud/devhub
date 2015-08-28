@@ -149,7 +149,7 @@
                 </div>
                 <table class="table">
                     <tbody>
-	[#if course.buildInstruction?? && course.buildInstruction.buildTimeout]
+	[#if course.buildInstruction?? && course.buildInstruction.buildTimeout??]
 						<tr>
 							<th>${i18n.translate("course.control.build-timeout")}</th>
 							<td>${course.buildInstruction.buildTimeout} seconds</td>

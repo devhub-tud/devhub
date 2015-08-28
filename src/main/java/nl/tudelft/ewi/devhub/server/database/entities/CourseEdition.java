@@ -62,7 +62,7 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	private Set<User> assistants;
 
     @OrderBy("dueDate ASC, name ASC")
-    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "courseEdition", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Assignment> assignments;
 
 	@ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
@@ -96,7 +96,7 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	public URI createRepositoryName(Group group) {
 		Preconditions.checkNotNull(group);
 
-		URI base = URI.create("courses");
+		URI base = URI.create("courses/");
 		String coursePart = getCourse().getCode().toLowerCase();
 
 		TimeSpan timeSpan = getTimeSpan();
@@ -104,9 +104,7 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 			coursePart += String.format("-%02d%02d", timeSpan.getStart().getYear() % 100, timeSpan.getEnd().getYear() % 100);
 		}
 
-		Long groupNumber = group.getGroupNumber();
-		Preconditions.checkNotNull(groupNumber);
-		return base.resolve(coursePart).resolve("group-" + groupNumber);
+		return base.resolve(coursePart + "/").resolve("group-" + group.getGroupNumber());
 	}
 
 }

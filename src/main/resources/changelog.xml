@@ -677,8 +677,6 @@
         <dropColumn tableName="pull_requests" columnName="repository_name"/>
         <dropColumn tableName="pull_request_comments" columnName="repository_name"/>
 
-        <renameColumn tableName="assignments" oldColumnName="assignment_id" newColumnName="id"/>
-
         <renameColumn tableName="assignment_deliveries" oldColumnName="course_id" newColumnName="course_edition_id"/>
         <addColumn tableName="assignment_deliveries">
                 <column name="group_number" type="bigint"></column>
@@ -693,6 +691,7 @@
              baseColumnNames="course_edition_id, group_number"/>
 
         <renameColumn tableName="assignment_deliveries" oldColumnName="group_id" newColumnName="repository_id"/>
+        <dropNotNullConstraint tableName="assignment_deliveries" columnName="repository_id" columnDataType="bigint"/>
 
         <addUniqueConstraint tableName="users" columnNames="student_number"/>
 
@@ -765,6 +764,22 @@
              referencedColumnNames="id" onDelete="CASCADE"/>
 
         <sql>insert into seq_issue_id (repository_id, next_val) select repository_id, (MAX(issue_id) + 1) as next_val from pull_requests group by repository_id;</sql>
+
+        <createTable tableName="seq_assignment_id">
+            <column name="course_edition_id" type="bigint">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="next_val" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="seq_assignment_id" baseColumnNames="course_edition_id"
+             constraintName="assignment_id_seq_course_edition_unique"
+             referencedTableName="course_edition"
+             referencedColumnNames="id" onDelete="CASCADE"/>
+
+        <sql>insert into seq_assignment_id (course_edition_id, next_val) select course_edition_id, (MAX(assignment_id) + 1) as next_val from assignments group by course_edition_id;</sql>
 
     </changeSet>
 

@@ -53,8 +53,8 @@ public class PullRequestMailer {
         RepositoryEntity repository = pullRequest.getRepository();
 
         URI uri = URI.create(config.getHttpUrl())
-                .resolve(repository.getDevHubURI())
-                .resolve("pull")
+                .resolve(repository.getURI())
+                .resolve("pull/")
                 .resolve(Long.toString(pullRequest.getIssueId()));
 
         String link = uri.toASCIIString();

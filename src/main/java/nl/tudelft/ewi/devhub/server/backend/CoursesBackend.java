@@ -2,7 +2,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class CoursesBackend {
 
     @Inject
-    private Courses courses;
+    private CourseEditions courses;
 
     @Inject
     private Users users;

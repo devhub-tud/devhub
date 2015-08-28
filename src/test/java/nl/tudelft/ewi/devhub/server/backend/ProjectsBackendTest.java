@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import lombok.Getter;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.TestDatabaseModule;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -69,7 +69,7 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 	}
 
 	@Inject private ProjectsBackend projectsBackend;
-	@Inject @Getter private Courses courses;
+	@Inject @Getter private CourseEditions courses;
 	@Inject @Getter private Users users;
 	@Inject @Getter private Groups groups;
 
@@ -79,7 +79,7 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 	@Before
 	public void beforeTest() {
 		reset(repositoriesMock, gitUsers, gitGroups);
-		course = createCourse();
+		course = createCourseEdition();
 		user = createUser();
 	}
 

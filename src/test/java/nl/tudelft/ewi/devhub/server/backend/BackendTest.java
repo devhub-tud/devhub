@@ -8,20 +8,27 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import org.mockito.Mockito;
+
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Random;
 
 public class BackendTest {
 
-	private static final Random random = new Random();
+	protected static final Random random = new Random();
 
-	protected CourseEdition createCourse() {
-		CourseEdition courseEdition = new CourseEdition();
+	protected Course createCourse() {
 		Course course = new Course();
 		course.setCode(randomString().substring(0, 4));
 		course.setName(randomString());
-		courseEdition.setCourse(course);
+		return course;
+	}
+
+	protected CourseEdition createCourseEdition() {
+		CourseEdition courseEdition = new CourseEdition();
+		courseEdition.setCourse(createCourse());
+		courseEdition.setCode(randomString().substring(0, 4));
 		courseEdition.setTimeSpan(new TimeSpan(new Date(), null));
 		courseEdition.setMinGroupSize(2);
 		courseEdition.setMaxGroupSize(2);

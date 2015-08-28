@@ -5,7 +5,8 @@
 [#macro renderBreadcrumb course]
     <ol class="breadcrumb hidden-xs">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
-        <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li>
+        <li><a href="${courseEdition.course.getURI()}">${courseEdition.course.code} - ${courseEdition.course.name}</a></li>
+        <li><a href="${courseEdition.getURI()}">${courseEdition.timeSpan.start?string["yyyy"]}[#if courseEdition.timeSpan.end??] - ${courseEdition.timeSpan.end?string["yyyy"]}[/#if]</a></li>
     </ol>
 [/#macro]
 
@@ -17,7 +18,7 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     ${i18n.translate("course.control.groups")}
-                    <a href="/courses/${course.getCode()}/enroll" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}/enroll" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
@@ -32,7 +33,7 @@
         [#if groups?has_content]
             [#list groups as group]
                             <tr>
-                                <td><a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}">${group.getGroupName()}</a></td>
+                                <td><a href="${group.getURI()}">${group.getGroupName()}</a></td>
                             </tr>
             [/#list]
         [#else]
@@ -49,7 +50,7 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     ${i18n.translate("course.control.assignments")}
-                    <a href="/courses/${course.getCode()}/assignments/create" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}/assignments/create" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
@@ -67,23 +68,23 @@
         [#list assignments as assignment]
                     <tr>
                         <td>
-                            <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
+                            <a href="${course.getURI()}assignments/${assignment.getAssignmentId()}">
                                 ${assignment_index + 1}
                             </a>
                         </td>
                         <td>
-                            <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
+                            <a href="${course.getURI()}assignments/${assignment.getAssignmentId()}">
                                 ${assignment.getName()}
                             </a>
                         </td>
                         <td>
                     [#if assignment.getDueDate()??]
-                            <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}">
+                            <a href="${course.getURI()}assignments/${assignment.getAssignmentId()}">
                                 ${assignment.getDueDate()?string["EEE, d MMM yyyy HH:mm"]}
                             </a>
                     [#else]-
                     [/#if]
-                            <a href="/courses/${course.getCode()}/assignments/${assignment.getAssignmentId()}/edit" class="btn btn-default btn-xs pull-right">
+                            <a href="${course.getURI()}assignments/${assignment.getAssignmentId()}/edit" class="btn btn-default btn-xs pull-right">
                                 <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                             </a>
                         </td>
@@ -102,7 +103,7 @@
                 <div class="panel-heading">
                 ${i18n.translate("course.control.assistants")}
         [#if user.isAdmin() ]
-                    <a href="/courses/${course.getCode()}/assistants" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}/assistants" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                     </a>
         [/#if]
@@ -142,7 +143,7 @@
                 <div class="panel-heading">
                     ${i18n.translate("course.control.details")}
     [#if user.isAdmin()]
-                    <a href="/courses/${course.getCode()}/edit" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}/edit" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
     [/#if]

@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import nl.tudelft.ewi.devhub.server.backend.CoursesBackend;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -40,20 +40,20 @@ import java.util.Set;
  * Created by jgmeligmeyling on 03/03/15.
  * @author Jan-Willem Gmelig Meyling
  */
-@Path("courses/{courseCode}/assistants")
+@Path("courses/{courseCode}/{editionCode}/assistants")
 @RequestScoped
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class CourseAssistantsResource extends Resource {
 
     private final TemplateEngine templateEngine;
-    private final Courses courses;
+    private final CourseEditions courses;
     private final User currentUser;
     private final Users users;
     private final CoursesBackend coursesBackend;
 
     @Inject
     public CourseAssistantsResource(TemplateEngine templateEngine,
-                                    Courses courses,
+                                    CourseEditions courses,
                                     Users users,
                                     @Named("current.user") User currentUser,
                                     final CoursesBackend coursesBackend) {
@@ -68,6 +68,7 @@ public class CourseAssistantsResource extends Resource {
     @Transactional
     public Response showProjectSetupPage(@Context HttpServletRequest request,
                                          @PathParam("courseCode") String courseCode,
+                                         @PathParam("editionCode") String editionCode,
                                          @QueryParam("error") String error,
                                          @QueryParam("step") Integer step) throws IOException {
 
@@ -77,10 +78,10 @@ public class CourseAssistantsResource extends Resource {
 
         if (step != null) {
             if (step == 1) {
-                return showCourseAssistantsPageStep1(request, courseCode, error);
+                return showCourseAssistantsPageStep1(request, courseCode, editionCode, error);
             }
             else if (step == 2) {
-                return showCourseAssistantsPageStep2(request, courseCode, error);
+                return showCourseAssistantsPageStep2(request, courseCode, editionCode, error);
             }
         }
         return redirect("/courses/" + courseCode + "/assistants?step=1");
@@ -88,11 +89,12 @@ public class CourseAssistantsResource extends Resource {
 
     private Response showCourseAssistantsPageStep1(@Context HttpServletRequest request,
                                                    @PathParam("courseCode") String courseCode,
+												   @PathParam("editionCode") String editionCode,
                                                    @QueryParam("error") String error) throws IOException {
 
 
         HttpSession session = request.getSession();
-        CourseEdition course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
 
         String previousCourseCode = String.valueOf(session.getAttribute("courses.setup.course"));
         session.setAttribute("courses.setup.course", courseCode);
@@ -121,10 +123,11 @@ public class CourseAssistantsResource extends Resource {
     @SuppressWarnings("unchecked")
     private Response showCourseAssistantsPageStep2(@Context HttpServletRequest request,
                                                    @PathParam("courseCode") String courseCode,
+												   @PathParam("editionCode") String editionCode,
                                                    @QueryParam("error") String error) throws IOException {
 
         HttpSession session = request.getSession();
-        CourseEdition course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
         Collection<User> members = (Collection<User>) session.getAttribute("courses.course.assistants");
 
         Map<String, Object> parameters = Maps.newHashMap();
@@ -143,6 +146,7 @@ public class CourseAssistantsResource extends Resource {
     @SuppressWarnings("unchecked")
     public Response processProjectSetup(@Context HttpServletRequest request,
                                         @PathParam("courseCode") String courseCode,
+										@PathParam("editionCode") String editionCode,
                                         @QueryParam("step") int step)
             throws IOException, GitClientException {
 
@@ -151,7 +155,7 @@ public class CourseAssistantsResource extends Resource {
         }
 
         HttpSession session = request.getSession();
-        CourseEdition course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
 
         if (step == 1) {
             Collection<User> courseAssistants = getCourseAssistants(request);

@@ -12,6 +12,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.net.URI;
 import java.util.List;
 
 @Data
@@ -45,5 +46,10 @@ public class PullRequest extends AbstractIssue {
 	@OrderBy("time ASC")
 	@OneToMany(mappedBy = "pullRequest", fetch = FetchType.LAZY)
 	private List<PullRequestComment> comments;
+
+	@Override
+	public URI getURI() {
+		return getRepository().getURI().resolve("pull/" + getIssueId() + "/");
+	}
 
 }

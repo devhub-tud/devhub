@@ -1,7 +1,8 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import lombok.Getter;
+import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 
 import org.jukito.JukitoRunner;
@@ -10,136 +11,108 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-import java.math.BigInteger;
-import java.util.Date;
-import java.util.Random;
+import javax.persistence.PersistenceException;
+import javax.validation.ConstraintViolationException;
 
+import java.util.Date;
+
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
-public class CoursesTest {
+public class CoursesTest extends PersistedBackendTest {
+
+
+	@Inject @Getter private Groups groups;
+	@Inject @Getter private CourseEditions courses;
+	@Inject @Getter private Users users;
 	
-	@Inject
-	private Random random;
-	
-	@Inject
-	private Courses courses;
-	
-//	@Test(expected=ConstraintViolationException.class)
-//	public void testCourseShouldHaveCode() {
-//		CourseEdition course = new CourseEdition();
-//		course.setName(randomString());
-//		course.setStart(new Date());
-//		course.setMinGroupSize(2);
-//		course.setMaxGroupSize(2);
-//		courses.persist(course);
-//	}
-//
-//	@Test(expected=ConstraintViolationException.class)
-//	public void testCourseShouldHaveName() {
-//		CourseEdition course = new CourseEdition();
-//		course.setCode(randomString().substring(0,4));
-//		course.setStart(new Date());
-//		course.setMinGroupSize(2);
-//		course.setMaxGroupSize(2);
-//		courses.persist(course);
-//	}
-//
-//	@Test(expected=ConstraintViolationException.class)
-//	public void testCourseShouldHaveStart() {
-//		CourseEdition course = new CourseEdition();
-//		course.setCode(randomString().substring(0,4));
-//		course.setName(randomString());
-//		course.setMinGroupSize(2);
-//		course.setMaxGroupSize(2);
-//		courses.persist(course);
-//	}
-//
-//	@Test(expected=ConstraintViolationException.class)
-//	public void testCourseShouldHaveMinSize() {
-//		CourseEdition course = new CourseEdition();
-//		course.setCode(randomString().substring(0,4));
-//		course.setName(randomString());
-//		course.setStart(new Date());
-//		course.setMaxGroupSize(2);
-//		courses.persist(course);
-//	}
-//
-//	@Test(expected=ConstraintViolationException.class)
-//	public void testCourseShouldHaveMaxSize() {
-//		CourseEdition course = new CourseEdition();
-//		course.setCode(randomString().substring(0,4));
-//		course.setName(randomString());
-//		course.setStart(new Date());
-//		course.setMinGroupSize(2);
-//		courses.persist(course);
-//	}
+	@Test(expected=ConstraintViolationException.class)
+	public void testCourseShouldHaveCode() {
+		CourseEdition courseEdition = new CourseEdition();
+		courseEdition.setCourse(createCourse());
+		courseEdition.setTimeSpan(new TimeSpan(new Date(), null));
+		courseEdition.setMinGroupSize(2);
+		courseEdition.setMaxGroupSize(2);
+		courses.persist(courseEdition);
+	}
+
+	@Test(expected=ConstraintViolationException.class)
+	public void testCourseShouldHaveStart() {
+		CourseEdition courseEdition = new CourseEdition();
+		courseEdition.setCode(randomString().substring(0,4));
+		courseEdition.setCourse(createCourse());
+		courseEdition.setTimeSpan(new TimeSpan(null, null));
+		courseEdition.setMinGroupSize(2);
+		courseEdition.setMaxGroupSize(2);
+		courses.persist(courseEdition);
+	}
+
+	@Test(expected=ConstraintViolationException.class)
+	public void testCourseShouldHaveMinSize() {
+		CourseEdition courseEdition = new CourseEdition();
+		courseEdition.setCode(randomString().substring(0, 4));
+		courseEdition.setCourse(createCourse());
+		courseEdition.setTimeSpan(new TimeSpan(new Date(), null));
+		courseEdition.setMaxGroupSize(2);
+		courses.persist(courseEdition);
+	}
+
+	@Test(expected=ConstraintViolationException.class)
+	public void testCourseShouldHaveMaxSize() {
+		CourseEdition courseEdition = new CourseEdition();
+		courseEdition.setCode(randomString().substring(0,4));
+		courseEdition.setCourse(createCourse());
+		courseEdition.setTimeSpan(new TimeSpan(new Date(), null));
+		courseEdition.setMinGroupSize(2);
+		courses.persist(courseEdition);
+	}
 	
 	@Test
 	public void testCreateCourse() {
-		CourseEdition course = createCourse();
-		courses.persist(course);
+		createCourseEdition();
 	}
 	
 	@Test
 	public void testFindCourseById() {
-		CourseEdition course = createCourse();
-		courses.persist(course);
+		CourseEdition course = createCourseEdition();
 		assertEquals(course, courses.find(course.getId()));
 	}
 	
 	@Test
 	public void testFindCourseByCode() {
-		CourseEdition course = createCourse();
-		courses.persist(course);
-		assertEquals(course, courses.find(course.getCode()));
+		CourseEdition course = createCourseEdition();
+		assertEquals(course, courses.find(course.getCourse().getCode(), course.getCode()));
 	}
 
-//	@Test(expected=PersistenceException.class)
-//	public void testInsertSameCodeTwice() {
-//		CourseEdition course = createCourse();
-//		courses.persist(course);
-//
-//		CourseEdition other = createCourse();
-//		other.setCode(course.getCode());
-//		courses.persist(other);
-//	}
-//
-//	@Test(expected=PersistenceException.class)
-//	public void testCourseCodeCaseInsensitive() {
-//		CourseEdition course = createCourse();
-//		course.setCode(course.getCode().toLowerCase());
-//		courses.persist(course);
-//
-//		CourseEdition other = createCourse();
-//		other.setCode(course.getCode().toUpperCase());
-//		courses.persist(other);
-//	}
+	@Test(expected=PersistenceException.class)
+	public void testInsertSameCodeTwice() {
+		CourseEdition course = createCourseEdition();
+		courses.persist(course);
+
+		CourseEdition other = createCourseEdition();
+		other.setCode(course.getCode());
+		courses.persist(other);
+	}
+
+	@Test(expected=PersistenceException.class)
+	public void testCourseCodeCaseInsensitive() {
+		CourseEdition course = createCourseEdition();
+		course.setCode(course.getCode().toLowerCase());
+		courses.persist(course);
+
+		CourseEdition other = createCourseEdition();
+		other.setCode(course.getCode().toUpperCase());
+		courses.persist(other);
+	}
 
 	@Test
 	public void testListActiveCourses() {
-		CourseEdition course = createCourse();
-		courses.persist(course);
+		CourseEdition course = createCourseEdition();
 		assertThat(courses.listActiveCourses(), hasItem(course));
-	}
-	
-	protected CourseEdition createCourse() {
-		CourseEdition courseEdition = new CourseEdition();
-		Course course = new Course();
-		course.setCode(randomString().substring(0, 4));
-		course.setName(randomString());
-		courseEdition.setCourse(course);
-		courseEdition.setTimeSpan(new TimeSpan(new Date(), null));
-		courseEdition.setMinGroupSize(2);
-		courseEdition.setMaxGroupSize(2);
-		return courseEdition;
-	}
-	
-	protected String randomString() {
-		return new BigInteger(130, random).toString(32);
 	}
 
 }

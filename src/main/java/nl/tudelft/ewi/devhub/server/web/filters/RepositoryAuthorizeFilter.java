@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.filters;
 
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -45,7 +45,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 
 	private final TemplateEngine templateEngine;
 	private final Provider<Groups> groupsProvider;
-	private final Provider<Courses> coursesProvider;
+	private final Provider<CourseEditions> coursesProvider;
 	private final Provider<User> currentUserProvider;
 	private final Pattern pattern;
 	
@@ -54,12 +54,12 @@ public class RepositoryAuthorizeFilter implements Filter {
 			final @Named("current.user") Provider<User> currentUserProvider,
 			final TemplateEngine templateEngine,
 			final Provider<Groups> groupsProvider,
-			final Provider<Courses> coursesProvider) {
+			final Provider<CourseEditions> coursesProvider) {
 		this.currentUserProvider = currentUserProvider;
 		this.templateEngine = templateEngine;
 		this.coursesProvider = coursesProvider;
 		this.groupsProvider = groupsProvider;
-		this.pattern = Pattern.compile("^/courses/([^/]+)/groups/(\\d+)(/.*)?");
+		this.pattern = Pattern.compile("^/courses/([^/]+)/([^/]+)/groups/(\\d+)(/.*)?");
 	}
 	
 	@Override
@@ -97,8 +97,8 @@ public class RepositoryAuthorizeFilter implements Filter {
 		Matcher matcher = pattern.matcher(uri);
 		
 		if(matcher.matches()) {
-			CourseEdition course = coursesProvider.get().find(matcher.group(1));
-			Group group = groupsProvider.get().find(course, Long.parseLong(matcher.group(2)));
+			CourseEdition course = coursesProvider.get().find(matcher.group(1), matcher.group(2));
+			Group group = groupsProvider.get().find(course, Long.parseLong(matcher.group(3)));
 			if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 				throw new UnauthorizedException();
 			}

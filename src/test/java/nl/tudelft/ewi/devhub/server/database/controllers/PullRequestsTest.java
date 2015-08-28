@@ -1,37 +1,28 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import lombok.Getter;
+import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 
 import com.google.inject.Inject;
 
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
-public class PullRequestsTest {
+public class PullRequestsTest extends PersistedBackendTest {
 
-	@Inject
-	private Random random;
-	
-	@Inject
-	private Groups groups;
-	
-	@Inject
-	private Courses courses;
-	
-	@Inject
-	private Users users;
+	@Inject @Getter private Groups groups;
+	@Inject @Getter private CourseEditions courses;
+	@Inject @Getter private Users users;
 	
 	@Inject
 	private PullRequests pullRequests;
@@ -39,9 +30,15 @@ public class PullRequestsTest {
 	private final static String COMMIT_A = "65191cfaca61fe538612122151a7297e34f01178";
 	private final static String COMMIT_B = "55c4656b98bf694c288918a82c8193eb83a33353";
 
+	private Group group;
+
+	@Before
+	public void setUpGroup() {
+		group = createGroup(createCourseEdition(), createUser());
+	}
+
 	@Test
 	public void testCreatePullRequest() {
-		Group group = createGroup();
 		GroupRepository groupRepository = group.getRepository();
 		PullRequest pr = new PullRequest();
 		pr.setIssueId(random.nextLong());
@@ -65,26 +62,6 @@ public class PullRequestsTest {
 			throw new AssertionError(String.format("Expected %s but was %s",
 					expected, actual), e);
 		}
-	}
-
-	protected Group createGroup() {
-		Group group = new Group();
-		CourseEdition course = getTestCourse();
-		group.setCourseEdition(course);
-		group = groups.persist(group);
-
-		GroupRepository groupRepository = new GroupRepository();
-		groupRepository.setRepositoryName(course.createRepositoryName(group).toASCIIString());
-		group.setRepository(groupRepository);
-		return groups.merge(group);
-	}
-
-	protected CourseEdition getTestCourse() {
-		return courses.find("TI1705");
-	}
-	
-	protected User student1() {
-		return users.find(1);
 	}
 	
 }

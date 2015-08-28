@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.server.web.resources;
+package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,6 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
@@ -20,6 +19,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
+import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.Branch;
@@ -37,12 +37,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
 
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
-import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -73,44 +71,36 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RequestScoped
-@Path("courses/{courseCode}/groups/{groupNumber}")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-public class ProjectResource extends Resource {
-	
+public abstract class AbstractProjectResource extends Resource {
+
 	private static final int PAGE_SIZE = 25;
 
-	private final TemplateEngine templateEngine;
-	private final User currentUser;
-	private final BuildResults buildResults;
-	private final Group group;
-	private final RepositoryEntity repositoryEntity;
-	private final PullRequests pullRequests;
-	private final CommentBackend commentBackend;
-    private final BuildsBackend buildBackend;
-	private final GitServerClient gitClient;
-	private final CommitComments comments;
-	private final CommentMailer commentMailer;
-	private final Commits commits;
-	private final Warnings warnings;
+	protected final TemplateEngine templateEngine;
+	protected final User currentUser;
+	protected final BuildResults buildResults;
+	protected final PullRequests pullRequests;
+	protected final CommentBackend commentBackend;
+	protected final BuildsBackend buildBackend;
+	protected final GitServerClient gitClient;
+	protected final CommitComments comments;
+	protected final CommentMailer commentMailer;
+	protected final Commits commits;
+	protected final Warnings warnings;
 
-	@Inject
-	ProjectResource(final TemplateEngine templateEngine,
-			final @Named("current.user") User currentUser,
-			final @Named("current.group") Group group,
-			final CommentBackend commentBackend,
-			final BuildResults buildResults,
-			final PullRequests pullRequests,
-			final GitServerClient gitClient,
-			final BuildsBackend buildBackend,
-			final CommitComments comments,
-			final CommentMailer commentMailer,
-			final Commits commits,
-			final Warnings warnings) {
+	protected AbstractProjectResource(final TemplateEngine templateEngine,
+							final @Named("current.user") User currentUser,
+							final CommentBackend commentBackend,
+							final BuildResults buildResults,
+							final PullRequests pullRequests,
+							final GitServerClient gitClient,
+							final BuildsBackend buildBackend,
+							final CommitComments comments,
+							final CommentMailer commentMailer,
+							final Commits commits,
+							final Warnings warnings) {
 
 		this.templateEngine = templateEngine;
-		this.group = group;
-		this.repositoryEntity = group.getRepository();
 		this.currentUser = currentUser;
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
@@ -121,6 +111,15 @@ public class ProjectResource extends Resource {
 		this.commentMailer = commentMailer;
 		this.commits = commits;
 		this.warnings = warnings;
+	}
+
+	protected abstract RepositoryEntity getRepositoryEntity();
+
+	protected Map<String, Object> getBaseParameters() {
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("repositoryEntity", getRepositoryEntity());
+		return parameters;
 	}
 
 	@GET
@@ -139,6 +138,7 @@ public class ProjectResource extends Resource {
 									   @QueryParam("page") @DefaultValue("1") int page,
 									   @QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 
 		Map<String, Object> parameters = getBaseParameters();
@@ -167,13 +167,6 @@ public class ProjectResource extends Resource {
 		return display(templateEngine.process("project-view.ftl", locales, parameters));
 	}
 
-	protected Map<String, Object> getBaseParameters() {
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("group", group);
-		return parameters;
-	}
-
 	protected List<String> getCommitIds(CommitSubList commits) {
 		return commits.getCommits().stream()
 				.map(CommitModel::getCommit)
@@ -185,6 +178,7 @@ public class ProjectResource extends Resource {
 	@Transactional
 	public Response showContributors(@Context HttpServletRequest request) throws IOException, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 
 		Map<String, Object> parameters = getBaseParameters();
@@ -209,6 +203,7 @@ public class ProjectResource extends Resource {
 										 @FormParam("source-file-name") String sourceFileName)
 		throws IOException, ApiError {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		CommitComment comment = new CommitComment();
 		comment.setContent(message);
 		comment.setCommit(commits.ensureExists(repositoryEntity, linkCommitId));
@@ -245,11 +240,9 @@ public class ProjectResource extends Resource {
 	@Path("/commits/{commitId}/build")
 	@Transactional
 	public Response showCommitBuild(@Context HttpServletRequest request,
-									@PathParam("courseCode") String courseCode,
-									@PathParam("groupNumber") String groupNumber,
-									@PathParam("commitId") String commitId,
-									@QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
+									@PathParam("commitId") String commitId) throws IOException, ApiError, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		Commit commit = repository.retrieveCommit(commitId);
 
@@ -272,11 +265,10 @@ public class ProjectResource extends Resource {
     @Path("/commits/{commitId}/rebuild")
     @Transactional
     public Response rebuildCommit(@Context HttpServletRequest request,
-                                  @PathParam("courseCode") String courseCode,
-                                  @PathParam("groupNumber") String groupNumber,
                                   @PathParam("commitId") String commitId)
 			throws URISyntaxException, UnsupportedEncodingException, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		nl.tudelft.ewi.devhub.server.database.entities.Commit commit = commits.ensureExists(repositoryEntity, commitId);
 		buildBackend.rebuildCommit(commit);
         URI responseUri = new URI(request.getRequestURI()).resolve("./diff");
@@ -290,8 +282,9 @@ public class ProjectResource extends Resource {
 									  @PathParam("commitId") String commitId)
 			throws IOException, ApiError, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
-		nl.tudelft.ewi.git.client.Commit commit = repository.retrieveCommit(commitId);
+		Commit commit = repository.retrieveCommit(commitId);
 		DiffBlameModel diffBlameModel = commit.diffBlame();
 
 		Map<String, Object> parameters = getBaseParameters();
@@ -319,19 +312,20 @@ public class ProjectResource extends Resource {
     @GET
 	@Path("/commits/{commitId}/tree")
 	@Transactional
-	public Response getTree(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
-			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId)
+	public Response getTree(@Context HttpServletRequest request,
+							@PathParam("commitId") String commitId)
 					throws ApiError, IOException, GitClientException {
-		return getTree(request, courseCode, groupNumber, commitId, "");
+		return getTree(request, commitId, "");
 	}
 	
 	@GET
 	@Path("/commits/{commitId}/tree/{path:.+}")
 	@Transactional
-	public Response getTree(@Context HttpServletRequest request, @PathParam("courseCode") String courseCode,
-			@PathParam("groupNumber") long groupNumber, @PathParam("commitId") String commitId,
-			@PathParam("path") String path) throws ApiError, IOException, GitClientException {
+	public Response getTree(@Context HttpServletRequest request,
+							@PathParam("commitId") String commitId,
+							@PathParam("path") String path) throws ApiError, IOException, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
 
@@ -374,11 +368,10 @@ public class ProjectResource extends Resource {
 	@Path("/commits/{commitId}/raw/{path:.+}")
 	@Transactional
 	public Response getRawFile(@Context HttpServletRequest request,
-							@PathParam("courseCode") String courseCode,
-							@PathParam("groupNumber") long groupNumber,
 							@PathParam("commitId") String commitId,
 							@PathParam("path") String path) throws ApiError, IOException, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		return Response.ok(repository.showBinFile(commitId, path))
 				.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
@@ -389,8 +382,6 @@ public class ProjectResource extends Resource {
 	@Path("/commits/{commitId}/blob/{path:.+}")
 	@Transactional
 	public Response getBlob(@Context HttpServletRequest request,
-                            @PathParam("courseCode") String courseCode,
-                            @PathParam("groupNumber") long groupNumber,
                             @PathParam("commitId") String commitId,
                             @PathParam("path") String path) throws ApiError, IOException, GitClientException {
 
@@ -401,6 +392,7 @@ public class ProjectResource extends Resource {
 			fileName = path.substring(path.lastIndexOf('/') + 1);
 		}
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 		Commit commit = repository.retrieveCommit(commitId);
 		Map<String, EntryType> entries = repository.listDirectoryEntries(commitId, folderPath);

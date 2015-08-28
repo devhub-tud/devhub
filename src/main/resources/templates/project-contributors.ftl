@@ -36,7 +36,7 @@
                     </tr>
                 </thead>
                 <tbody>
-            [#list group.getMembers() as member]
+            [#list repositoryEntity.getCollaborators() as member]
                     <tr>
                         <td>${member.getNetId()}</td>
                         <td>${member.getName()}</td>

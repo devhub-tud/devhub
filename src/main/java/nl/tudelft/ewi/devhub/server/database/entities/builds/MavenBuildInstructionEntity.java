@@ -103,4 +103,12 @@ public class MavenBuildInstructionEntity extends BuildInstructionEntity {
 		return pmd;
 	}
 
+	public static MavenBuildInstructionEntity mavenTestInstruction(Integer buildTimeout) {
+		MavenBuildInstructionEntity mavenBuildInstructionEntity = new MavenBuildInstructionEntity();
+		mavenBuildInstructionEntity.setWithDisplay(true);
+		mavenBuildInstructionEntity.setCommand("test");
+		mavenBuildInstructionEntity.setBuildTimeout(buildTimeout);
+		return mavenBuildInstructionEntity;
+	}
+
 }

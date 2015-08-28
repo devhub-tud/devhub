@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
@@ -26,9 +27,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,9 +40,9 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "course_edition")
-@ToString(of = {"id", "course"})
+@ToString(of = {"id", "course", "code"})
 @EqualsAndHashCode(of = { "id" })
-public class CourseEdition implements Comparable<CourseEdition>, Configurable {
+public class CourseEdition implements Comparable<CourseEdition>, Configurable, Base {
 
 	@Id
 	@Column(name = "id")
@@ -48,6 +52,15 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	@JoinColumn(name = "course_id")
 	@ManyToOne(optional = false, cascade = CascadeType.PERSIST)
 	private Course course;
+
+	/**
+	 * The course code for the course edition. For example: {@code 1516}.
+	 * The code should be unique, as it is part of the provisioned
+	 * repository path.
+	 */
+	@NotNull
+	@Column(name = "code", unique = true, nullable = false)
+	private String code;
 
 	@NotNull
 	@Embedded
@@ -90,13 +103,18 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 	private Map<String, String> properties;
 
 	@Deprecated
-	public String getCode() {
-		return getCourse().getCode();
-	}
-
-	@Deprecated
 	public String getName() {
 		return getCourse().getName();
+	}
+
+	/**
+	 * Set the course code for this course. The course code will be converted
+	 * into uppercase to ensure uniqueness across database implementations.
+	 *
+	 * @param code
+	 */
+	public void setCode(String code) {
+		this.code = code.toUpperCase();
 	}
 
 	@Override
@@ -107,18 +125,15 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable {
 			.result();
 	}
 
-	public URI createRepositoryName(Group group) {
+	@Override
+	public URI getURI() {
+		// courses/ti1706/1516/
+		return getCourse().getURI().resolve(getCode() + "/");
+	}
+
+	public URI createRepositoryName(final Group group) {
 		Preconditions.checkNotNull(group);
-
-		URI base = URI.create("courses/");
-		String coursePart = getCourse().getCode().toLowerCase();
-
-		TimeSpan timeSpan = getTimeSpan();
-		if(timeSpan.getEnd() != null) {
-			coursePart += String.format("-%02d%02d", timeSpan.getStart().getYear() % 100, timeSpan.getEnd().getYear() % 100);
-		}
-
-		return base.resolve(coursePart + "/").resolve("group-" + group.getGroupNumber());
+		return getURI().resolve("group-" + group.getGroupNumber());
 	}
 
 }

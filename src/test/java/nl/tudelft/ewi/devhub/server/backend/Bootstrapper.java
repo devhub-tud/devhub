@@ -3,7 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -101,7 +101,7 @@ public class Bootstrapper {
 	}
 	
 	private final Users users;
-	private final Courses courses;
+	private final CourseEditions courses;
 	private final Groups groups;
 	private final MockedAuthenticationBackend authBackend;
 	private final ObjectMapper mapper;
@@ -111,7 +111,7 @@ public class Bootstrapper {
     private final Assignments assignments;
 
 	@Inject
-	Bootstrapper(Users users, Courses courses, Groups groups,
+	Bootstrapper(Users users, CourseEditions courses, Groups groups,
 			MockedAuthenticationBackend authBackend, ObjectMapper mapper,
 			GitServerClient gitClient, ProjectsBackend projects, Assignments assignments,
 			Deliveries deliveries) {
@@ -150,7 +150,7 @@ public class Bootstrapper {
 			CourseEdition entity;
 
 			try {
-				entity = courses.find(course.getCode());
+				entity = courses.find(course.getCode(), "1415");
 				log.debug("CourseEdition already existing in database: " + entity.getCode());
 			}
 			catch (Exception e) {

@@ -16,7 +16,7 @@
         [#list administratingCourses as course ]
         <tr>
             <td>
-                <a href="/courses/${course.getCode()}/">${course.getCode()} - ${course.getName()}</a>
+                <a href="${course.getURI()}">${course.course.code} (${course.code}) - ${course.course.name}</a>
             </td>
         </tr>
         [/#list]
@@ -36,7 +36,7 @@
                 [#list groups as group]
                 <tr>
                     <td>
-                        <a href="/courses/${group.course.code}/groups/${group.groupNumber?c}">${group.getGroupName()}</a>
+                        <a href="${group.getURI()}">${group.getGroupName()}</a>
                     </td>
                 </tr>
                 [/#list]
@@ -58,7 +58,7 @@
                 [#list assistingCourses as course ]
                 <tr>
                     <td>
-                        <a href="/courses/${course.getCode()}/">${course.getCode()} - ${course.getName()}</a>
+                        <a href="${course.getURI()}">${course.course.code} (${course.code}) - ${course.course.name}</a>
                     </td>
                 </tr>
                 [/#list]
@@ -75,7 +75,7 @@
                 <tr>
                     <td>
                         ${course.getCode()} - ${course.getName()}
-                        <a href="/courses/${course.getCode()}/enroll" class="btn btn-primary pull-right btn-xs">Enroll</a>
+                        <a href="${course.getURI()}/enroll" class="btn btn-primary pull-right btn-xs">Enroll</a>
                     </td>
                 </tr>
                 [/#list]

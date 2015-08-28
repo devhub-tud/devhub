@@ -568,13 +568,13 @@
         <sql>
             insert into course (id, code, name) select id, code, name from course_edition;
             update course_edition set course_id = id;
+            update course_edition set code = CONCAT(YEAR(start_date) % 100, (YEAR(start_date) % 100) + 1);
         </sql>
 
         <addNotNullConstraint tableName="course_edition" columnName="course_id" columnDataType="bigint"/>
         <addForeignKeyConstraint referencedTableName="course" referencedColumnNames="id" constraintName="course_edition_course_id"
              baseTableName="course_edition" baseColumnNames="course_id"/>
 
-        <dropColumn tableName="course_edition" columnName="code"/>
         <dropColumn tableName="course_edition" columnName="name"/>
 
         <renameColumn tableName="course_properties" oldColumnName="course_id" newColumnName="course_edition_id"/>

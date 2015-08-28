@@ -1,7 +1,7 @@
-package nl.tudelft.ewi.devhub.server.web.resources;
+package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
+
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
@@ -10,7 +10,6 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
@@ -21,6 +20,8 @@ import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.devhub.server.web.models.PullCloseResponse;
+import nl.tudelft.ewi.devhub.server.web.resources.HooksResource;
+import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.client.Commit;
@@ -36,9 +37,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -65,44 +64,36 @@ import java.util.stream.Stream;
  * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
-@RequestScoped
-@Path("courses/{courseCode}/groups/{groupNumber}")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-public class ProjectPullResource extends Resource {
+public abstract class AbstractProjectPullResource extends Resource {
 
-    private final TemplateEngine templateEngine;
-    private final User currentUser;
-    private final BuildResults buildResults;
-    private final Group group;
-	private final RepositoryEntity repositoryEntity;
-    private final PullRequests pullRequests;
-    private final CommentBackend commentBackend;
-    private final PullRequestBackend pullRequestBackend;
-    private final GitServerClient gitClient;
-    private final CommentMailer commentMailer;
-    private final PullRequestComments pullRequestComments;
-    private final PullRequestMailer pullRequestMailer;
-    private final HooksResource hooksResource;
-    private final Warnings warnings;
+	protected final TemplateEngine templateEngine;
+	protected final User currentUser;
+	protected final BuildResults buildResults;
+	protected final PullRequests pullRequests;
+	protected final CommentBackend commentBackend;
+	protected final PullRequestBackend pullRequestBackend;
+	protected final GitServerClient gitClient;
+	protected final CommentMailer commentMailer;
+	protected final PullRequestComments pullRequestComments;
+	protected final PullRequestMailer pullRequestMailer;
+	protected final HooksResource hooksResource;
+	protected final Warnings warnings;
 
-    @Inject
-    ProjectPullResource(final TemplateEngine templateEngine,
-                    final @Named("current.user") User currentUser,
-                    final @Named("current.group") Group group,
-                    final CommentBackend commentBackend,
-                    final BuildResults buildResults,
-                    final PullRequests pullRequests,
-                    final PullRequestBackend pullRequestBackend,
-                    final GitServerClient gitClient,
-                    final CommentMailer commentMailer,
-                    final PullRequestMailer pullRequestMailer,
-                    final PullRequestComments pullRequestComments,
-                    final HooksResource hooksResource,
-                    final Warnings warnings) {
+    protected AbstractProjectPullResource(final TemplateEngine templateEngine,
+								final @Named("current.user") User currentUser,
+								final CommentBackend commentBackend,
+								final BuildResults buildResults,
+								final PullRequests pullRequests,
+								final PullRequestBackend pullRequestBackend,
+								final GitServerClient gitClient,
+								final CommentMailer commentMailer,
+								final PullRequestMailer pullRequestMailer,
+								final PullRequestComments pullRequestComments,
+								final HooksResource hooksResource,
+								final Warnings warnings) {
 
         this.templateEngine = templateEngine;
-        this.group = group;
-		this.repositoryEntity = group.getRepository();
         this.currentUser = currentUser;
         this.commentBackend = commentBackend;
         this.buildResults = buildResults;
@@ -116,7 +107,16 @@ public class ProjectPullResource extends Resource {
         this.warnings = warnings;
     }
 
-    @POST
+	protected abstract RepositoryEntity getRepositoryEntity();
+
+	protected Map<String, Object> getBaseParameters() {
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("repositoryEntity", getRepositoryEntity());
+		return parameters;
+	}
+
+	@POST
     @Path("/pull")
     @Transactional
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -126,7 +126,8 @@ public class ProjectPullResource extends Resource {
 
         Preconditions.checkNotNull(branchName);
 
-        if(pullRequests.findOpenPullRequest(repositoryEntity, branchName) != null) {
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		if(pullRequests.findOpenPullRequest(repositoryEntity, branchName) != null) {
             throw new IllegalArgumentException("There already is an open pull request for " + branchName);
         }
 
@@ -146,6 +147,7 @@ public class ProjectPullResource extends Resource {
     @Transactional
     @Path("/pulls")
     public Response getPullRequests(@Context HttpServletRequest request) throws IOException, GitClientException {
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 
         List<PullRequest> openPullRequests = pullRequests.findOpenPullRequests(repositoryEntity);
@@ -155,13 +157,10 @@ public class ProjectPullResource extends Resource {
             .map(PullRequest::getDestination)
             .collect(Collectors.toSet());
 
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
-        parameters.put("course", group.getCourseEdition());
+        Map<String, Object> parameters = getBaseParameters();
         parameters.put("repository", repository);
-        parameters.put("openPullRequests", pullRequests.findOpenPullRequests(repositoryEntity));
-        parameters.put("closedPullRequests", pullRequests.findClosedPullRequests(repositoryEntity));
+        parameters.put("openPullRequests", openPullRequests);
+        parameters.put("closedPullRequests", closedPullReqeusts);
         parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());
@@ -175,20 +174,19 @@ public class ProjectPullResource extends Resource {
                                    @PathParam("pullId") long pullId)
             throws ApiError, IOException, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
         pullRequestBackend.updatePullRequest(repository, pullRequest);
         Commit commit = repository.retrieveCommit(pullRequest.getDestination());
 
-        val destinationId = pullRequest.getDestination();
-        val mergeBaseId = pullRequest.getMergeBase();
-        val diffBlameModel = repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
+        String destinationId = pullRequest.getDestination();
+        String mergeBaseId = pullRequest.getMergeBase();
+        DiffBlameModel diffBlameModel = repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
         List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
-        val resolver = pullRequestBackend.getEventResolver(pullRequest, diffBlameModel, repositoryEntity);
+        PullRequestBackend.EventResolver resolver = pullRequestBackend.getEventResolver(pullRequest, diffBlameModel, repositoryEntity);
 
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
+        Map<String, Object> parameters = getBaseParameters();
         parameters.put("commit", commit);
         parameters.put("pullRequest", pullRequest);
         parameters.put("events", resolver.getEvents());
@@ -218,6 +216,7 @@ public class ProjectPullResource extends Resource {
                                                 @PathParam("pullId") long pullId,
                                                 String content) {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         PullRequestComment comment = new PullRequestComment();
 
@@ -232,10 +231,7 @@ public class ProjectPullResource extends Resource {
         response.setDate(comment.getTimestamp().toString());
         response.setCommentId(comment.getCommentId());
 
-        String redirect = String.format("/courses/%s/groups/%d/pull/%d",
-                group.getCourseEdition().getCode(),
-                group.getGroupNumber(),
-                pullId);
+        String redirect = pullRequest.getURI().toASCIIString();
         commentMailer.sendCommentMail(comment, redirect);
 
         return response;
@@ -248,6 +244,7 @@ public class ProjectPullResource extends Resource {
                                        @PathParam("pullId") long pullId)
             throws ApiError, IOException, GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
         pullRequestBackend.updatePullRequest(repository, pullRequest);
@@ -255,9 +252,7 @@ public class ProjectPullResource extends Resource {
         Commit commit = repository.retrieveCommit(pullRequest.getDestination());
         List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
 
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
+        Map<String, Object> parameters = getBaseParameters();
         parameters.put("commit", commit);
         parameters.put("commentChecker", commentBackend.getCommentChecker(commitIds));
         parameters.put("pullRequest", pullRequest);
@@ -284,6 +279,7 @@ public class ProjectPullResource extends Resource {
     public PullCloseResponse closePullRequest(@Context HttpServletRequest request,
                                               @PathParam("pullId") long pullId) {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         pullRequest.setOpen(false);
         log.debug("Closing pull request {}", pullRequest);
@@ -301,6 +297,7 @@ public class ProjectPullResource extends Resource {
                                              @PathParam("pullId") long pullId)
             throws GitClientException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 
@@ -327,6 +324,7 @@ public class ProjectPullResource extends Resource {
     public MergeResponse mergePullRequest(@Context HttpServletRequest request,
                                           @PathParam("pullId") long pullId) throws GitClientException, IOException {
 
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
         pullRequestBackend.updatePullRequest(repository, pullRequest);

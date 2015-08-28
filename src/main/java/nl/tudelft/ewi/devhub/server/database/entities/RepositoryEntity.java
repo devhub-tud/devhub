@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 
@@ -46,7 +47,7 @@ import java.util.Map;
 @EqualsAndHashCode(of = {"id"})
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(discriminatorType = DiscriminatorType.INTEGER)
-public abstract class RepositoryEntity implements Configurable {
+public abstract class RepositoryEntity implements Configurable, Base {
 
     @Id
     @Column(name = "id")
@@ -71,18 +72,5 @@ public abstract class RepositoryEntity implements Configurable {
      * @return the title for the repository. This may be editable or managed.
      */
     public abstract String getTitle();
-
-    /**
-     * @return the base path for URI's within Devhub
-     */
-    public abstract URI getDevHubURI();
-
-    /**
-     * @return the custom properties for this repository. The properties may
-     * be inherited from the {@link Course}.
-     */
-    public Map<String, String> getProperties() {
-        return ImmutableMap.of();
-    }
 
 }

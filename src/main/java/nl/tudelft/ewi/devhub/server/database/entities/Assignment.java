@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 
 import com.google.common.collect.ComparisonChain;
@@ -27,6 +28,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.Date;
 
 /**
@@ -38,7 +40,9 @@ import java.util.Date;
 @ToString(exclude = "summary")
 @IdClass(Assignment.AssignmentId.class)
 @EqualsAndHashCode(of = {"courseEdition", "assignmentId" })
-public class Assignment implements Comparable<Assignment> {
+public class Assignment implements Comparable<Assignment>, Base {
+
+	public static final String ASSIGNMENTS_PATH_BASE = "assignments/";
 
 	@Data
 	@NoArgsConstructor
@@ -89,4 +93,10 @@ public class Assignment implements Comparable<Assignment> {
 			.compare(getAssignmentId(), o.getAssignmentId())
             .result();
     }
+
+	@Override
+	public URI getURI() {
+		return getCourseEdition().getURI().resolve(ASSIGNMENTS_PATH_BASE).resolve(getAssignmentId() + "/");
+	}
+
 }

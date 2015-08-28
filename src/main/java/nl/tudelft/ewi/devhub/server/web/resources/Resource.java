@@ -12,8 +12,11 @@ public class Resource {
 
 	@SneakyThrows
 	public Response redirect(String path) {
-		return Response.seeOther(new URI(path))
-			.build();
+		return redirect(new URI(path));
+	}
+
+	public Response redirect(URI path) {
+		return Response.seeOther(path).build();
 	}
 
 	public Response display(String html) {

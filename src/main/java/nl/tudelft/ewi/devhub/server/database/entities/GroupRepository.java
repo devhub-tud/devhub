@@ -1,18 +1,19 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.Data;
+import lombok.Delegate;
 import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
-import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 
 /**
- * Created by Jan-Willem on 8/11/2015.
+ * A {@code GroupRepository} is a {@link RepositoryEntity} connected to a {@link Group}.
  */
 @Data
 @Entity
@@ -20,7 +21,8 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class GroupRepository extends RepositoryEntity {
 
-    @OneToOne(mappedBy = "repository")
+    @OneToOne(mappedBy = "repository", optional = false)
+	@Delegate(types = {Base.class})
     private Group group;
 
     @Override
@@ -37,26 +39,18 @@ public class GroupRepository extends RepositoryEntity {
         return buildInstructionEntity;
     }
 
-    @Override
+	@Override
+	public Map<String, String> getProperties() {
+		return getCourseEdition().getProperties();
+	}
+
+	@Override
     public String getTitle() {
         return group.getGroupName();
     }
 
     protected CourseEdition getCourseEdition() {
         return getGroup().getCourseEdition();
-    }
-
-    @Override
-    public URI getDevHubURI() {
-        return URI.create("courses")
-            .resolve(getCourseEdition().getCode())
-            .resolve("group")
-            .resolve(Long.toString(getGroup().getGroupNumber()));
-    }
-
-    @Override
-    public Map<String, String> getProperties() {
-        return getCourseEdition().getProperties();
     }
 
 }

@@ -8,7 +8,11 @@
 
     <ol class="breadcrumb hidden-xs">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
-        <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li>
+        <li><a href="${course.course.getURI()}">${course.course.code} - ${course.course.name}</a></li>
+        <li><a href="${course.getURI()}">${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+        <li><a href="${course.getURI()}">${ i18n.translate("assignments.title") }</a></li>
+        [#-- <li><a href="/courses">${ i18n.translate("section.courses") }</a></li> --]
+        [#-- <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li> --]
         <li>${assignment.getName()}</li>
     </ol>
 
@@ -48,7 +52,7 @@
             [#assign group = delivery.getGroup()]
         <tr class="delivery ${delivery.getState().toString()?lower_case}">
           <td class="commit">
-            <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+            <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                 <div class="pull-right">
                 [#if delivery.isLate()]
                     <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>

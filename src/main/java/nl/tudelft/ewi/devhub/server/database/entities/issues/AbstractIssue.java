@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
@@ -30,7 +31,7 @@ import java.util.Date;
 @MappedSuperclass
 @EqualsAndHashCode(of = {"repository", "issueId"})
 @IdClass(AbstractIssue.IssueId.class)
-public abstract class AbstractIssue implements Event {
+public abstract class AbstractIssue implements Event, Base {
 
     @Data
     @NoArgsConstructor

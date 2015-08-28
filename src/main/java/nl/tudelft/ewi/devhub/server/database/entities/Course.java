@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.Base;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -15,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -25,7 +27,9 @@ import java.util.List;
 @Table(name = "course")
 @ToString(of = {"id", "code"})
 @EqualsAndHashCode(of = {"id"})
-public class Course implements Comparable<Course> {
+public class Course implements Comparable<Course>, Base {
+
+	public static String COURSE_BASE_PATH = "/courses/";
 
     @Id
     @Column(name = "id")
@@ -68,5 +72,10 @@ public class Course implements Comparable<Course> {
     public int compareTo(Course o) {
         return getCode().compareTo(o.getCode());
     }
+
+	@Override
+	public URI getURI() {
+		return URI.create(COURSE_BASE_PATH).resolve(getCode().toLowerCase() + "/");
+	}
 
 }

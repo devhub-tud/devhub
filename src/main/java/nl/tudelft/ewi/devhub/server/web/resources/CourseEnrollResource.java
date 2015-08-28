@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import nl.tudelft.ewi.devhub.server.backend.ProjectsBackend;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -41,7 +41,7 @@ import java.util.Set;
  * Created by jgmeligmeyling on 03/03/15.
  * @author Jan-Willem Gmelig Meyling
  */
-@Path("courses/{courseCode}/enroll")
+@Path("courses/{courseCode}/{editionCode}/enroll")
 @RequestScoped
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class CourseEnrollResource extends Resource {
@@ -55,7 +55,7 @@ public class CourseEnrollResource extends Resource {
     private TemplateEngine templateEngine;
 
     @Inject
-    private Courses courses;
+    private CourseEditions courses;
 
     @Inject
     @Named("current.user")
@@ -68,15 +68,16 @@ public class CourseEnrollResource extends Resource {
     @Transactional
     public Response showProjectSetupPage(@Context HttpServletRequest request,
                                          @PathParam("courseCode") String courseCode,
+										 @PathParam("editionCode") String editionCode,
                                          @QueryParam("error") String error,
                                          @QueryParam("step") Integer step) throws IOException {
 
         if (step != null) {
             if (step == 1) {
-                return showProjectSetupPageStep1(request, courseCode, error);
+                return showProjectSetupPageStep1(request, courseCode, editionCode, error);
             }
             else if (step == 2) {
-                return showProjectSetupPageStep2(request, courseCode, error);
+                return showProjectSetupPageStep2(request, courseCode, editionCode, error);
             }
         }
         return redirect("/courses/" + courseCode + "/enroll?step=1");
@@ -84,10 +85,11 @@ public class CourseEnrollResource extends Resource {
 
     private Response showProjectSetupPageStep1(@Context HttpServletRequest request,
                                                @PathParam("courseCode") String courseCode,
+											   @PathParam("editionCode") String editionCode,
                                                @QueryParam("error") String error) throws IOException {
 
         HttpSession session = request.getSession();
-        CourseEdition course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
 
         String previousCourseCode = String.valueOf(session.getAttribute("projects.setup.course"));
         session.setAttribute("projects.setup.course", courseCode);
@@ -119,10 +121,11 @@ public class CourseEnrollResource extends Resource {
     @SuppressWarnings("unchecked")
     private Response showProjectSetupPageStep2(@Context HttpServletRequest request,
                                                @PathParam("courseCode") String courseCode,
+											   @PathParam("editionCode") String editionCode,
                                                @QueryParam("error") String error) throws IOException {
 
         HttpSession session = request.getSession();
-        CourseEdition course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
         Collection<User> members = (Collection<User>) session.getAttribute("projects.setup.members");
 
         Map<String, Object> parameters = Maps.newHashMap();
@@ -141,11 +144,12 @@ public class CourseEnrollResource extends Resource {
     @SuppressWarnings("unchecked")
     public Response processProjectSetup(@Context HttpServletRequest request,
                                         @PathParam("courseCode") String courseCode,
+										@PathParam("editionCode") String editionCode,
                                         @QueryParam("step") int step)
             throws IOException {
 
         HttpSession session = request.getSession();
-        CourseEdition course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
 
         if (step == 1) {
             Collection<User> groupMembers = getGroupMembers(request);

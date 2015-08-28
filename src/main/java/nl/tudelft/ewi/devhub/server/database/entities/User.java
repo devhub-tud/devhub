@@ -23,6 +23,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -34,22 +35,6 @@ import java.util.stream.Collectors;
 @ToString(of = { "netId" })
 @Table(name = "users")
 public class User {
-
-	private static final Comparator<Group> GROUP_COMPARATOR = new Comparator<Group>() {
-		@Override
-		public int compare(Group group1, Group group2) {
-			CourseEdition course1 = group1.getCourseEdition();
-			CourseEdition course2 = group2.getCourseEdition();
-			String code1 = course1.getCode();
-			String code2 = course2.getCode();
-			int compare = code1.compareTo(code2);
-			if (compare != 0) {
-				return compare;
-			}
-			
-			return (int) (group1.getGroupNumber() - group2.getGroupNumber());
-		}
-	};
 
 	@Id
 	@Column(name = "id")
@@ -95,8 +80,9 @@ public class User {
 	
 	public List<Group> listAssistedGroups() {
 		return getAssists().stream()
-			.flatMap(edition -> edition.getGroups().stream())
-			.sorted(GROUP_COMPARATOR)
+			.map(CourseEdition::getGroups)
+			.flatMap(Collection::stream)
+			.sorted(Comparator.naturalOrder())
 			.collect(Collectors.toList());
 	}
 

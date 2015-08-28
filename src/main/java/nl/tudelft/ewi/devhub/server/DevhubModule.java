@@ -71,7 +71,7 @@ public class DevhubModule extends ServletModule {
 
 		filter("/*").through(PersistFilter.class);
 		filter("/accounts*", "/build-servers*", "/projects*", "/validation*", "/courses*").through(UserAuthorizeFilter.class);
-		filterRegex("^/courses/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
+		filterRegex("^/courses/[^/]+/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
 
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);

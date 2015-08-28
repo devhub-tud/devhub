@@ -44,18 +44,18 @@
                     [#assign delivery = deliveries.getLastDelivery(assignment, group)!]
                     <tr>
                         <td>
-                            <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                            <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                             ${assignment_index + 1}
                             </a>
                         </td>
                         <td>
-                            <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                            <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                             ${assignment.getName()!"-"}
                             </a>
                         </td>
                         <td>
                             [#if assignment.getDueDate()??]
-                                <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                                <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                                 ${assignment.getDueDate()?string["EEE, d MMM yyyy HH:mm"]}
                                 </a>
                             [/#if]

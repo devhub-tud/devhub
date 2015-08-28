@@ -149,7 +149,7 @@ public class GroupIdentifierGenerationTest {
 		private Groups groups;
 
 		@Inject
-		private Courses courses;
+		private CourseEditions courses;
 
 		@SneakyThrows
 		@Transactional

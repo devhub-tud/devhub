@@ -1,6 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -41,7 +41,7 @@ public class CourseBackendTest extends BackendTest {
 	private nl.tudelft.ewi.git.client.Users users;
 	
 	@Mock
-	private Courses courses;
+	private CourseEditions courses;
 	
 	@Mock
 	private GitServerClient gitServerClient;
@@ -63,7 +63,7 @@ public class CourseBackendTest extends BackendTest {
 	
 	@Before
 	public void setUp() throws GitClientException {
-		course = createCourse();
+		course = createCourseEdition();
 		oldAssistants = Sets.newHashSet(createUser(), createUser());
 		newAssistants = Sets.newHashSet(createUser(), createUser());
 		course.setAssistants(oldAssistants);

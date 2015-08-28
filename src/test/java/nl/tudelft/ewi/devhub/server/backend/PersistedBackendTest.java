@@ -1,6 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -17,15 +17,15 @@ import java.util.Arrays;
  */
 public abstract class PersistedBackendTest extends BackendTest {
 
-	protected abstract Courses getCourses();
+	protected abstract CourseEditions getCourses();
 
 	protected abstract Users getUsers();
 
 	protected abstract Groups getGroups();
 
 	@Override
-	protected CourseEdition createCourse() {
-		CourseEdition courseEdition = super.createCourse();
+	protected CourseEdition createCourseEdition() {
+		CourseEdition courseEdition = super.createCourseEdition();
 		return getCourses().persist(courseEdition);
 	}
 

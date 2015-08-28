@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 
 import com.google.common.collect.ComparisonChain;
@@ -26,6 +27,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.Set;
 
 @Data
@@ -34,7 +36,9 @@ import java.util.Set;
 @IdClass(Group.GroupId.class)
 @ToString(of = {"courseEdition", "groupNumber"})
 @EqualsAndHashCode(of = {"courseEdition", "groupNumber" })
-public class Group implements Comparable<Group>, Serializable {
+public class Group implements Comparable<Group>, Serializable, Base {
+
+	public static final String GROUPS_PATH_PART = "groups/";
 
 	@Data
 	@NoArgsConstructor
@@ -83,9 +87,10 @@ public class Group implements Comparable<Group>, Serializable {
 	private Set<User> members;
 
 	public String getGroupName() {
-		return String.format("%s - %s (Group %d)",
+		return String.format("%s %s - %s (Group %d)",
+			getCourseEdition().getCourse().getCode(),
 			getCourseEdition().getCode(),
-			getCourseEdition().getName(),
+			getCourseEdition().getCourse().getName(),
 			getGroupNumber());
 	}
 
@@ -101,4 +106,10 @@ public class Group implements Comparable<Group>, Serializable {
 			.compare(getGroupNumber(), o.getGroupNumber())
 			.result();
 	}
+
+	@Override
+	public URI getURI() {
+		return getCourseEdition().getURI().resolve(GROUPS_PATH_PART).resolve(getGroupNumber() + "/");
+	}
+
 }

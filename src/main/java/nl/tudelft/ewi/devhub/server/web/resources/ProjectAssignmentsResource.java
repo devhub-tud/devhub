@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RequestScoped
-@Path("courses/{courseCode}/groups/{groupNumber : \\d+}/assignments")
+@Path("courses/{courseCode}/{editionCode}/groups/{groupNumber : \\d+}/assignments")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class ProjectAssignmentsResource extends Resource {
 
@@ -104,7 +104,17 @@ public class ProjectAssignmentsResource extends Resource {
 		this.commits = commits;
     }
 
-    /**
+	protected Map<String, Object> getBaseParameters() {
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("group", group);
+		parameters.put("course", group.getCourseEdition());
+		parameters.put("repositoryEntity", repositoryEntity);
+		return parameters;
+	}
+
+
+	/**
      * Get assignment overview for project
      * @param request the current HttpServletRequest
      * @return rendered assignment overview
@@ -114,10 +124,7 @@ public class ProjectAssignmentsResource extends Resource {
     @Transactional
     public Response getAssignmentsOverview(@Context HttpServletRequest request) throws IOException, ApiError, GitClientException {
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
-        parameters.put("course", group.getCourse());
+        Map<String, Object> parameters = getBaseParameters();
         parameters.put("repository", repository);
         parameters.put("deliveries", deliveries);
 
@@ -144,10 +151,7 @@ public class ProjectAssignmentsResource extends Resource {
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
 
         List<Delivery> myDeliveries = deliveries.getDeliveries(assignment, group);
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
-        parameters.put("course", group.getCourse());
+        Map<String, Object> parameters = getBaseParameters();
         parameters.put("repository", repository);
         parameters.put("assignment", assignment);
         parameters.put("myDeliveries", myDeliveries);
@@ -301,16 +305,14 @@ public class ProjectAssignmentsResource extends Resource {
 
         Delivery delivery = deliveries.find(group, deliveryId);
 
-        Map<String, Object> parameters = Maps.newLinkedHashMap();
-        parameters.put("user", currentUser);
-        parameters.put("group", group);
-        parameters.put("course", group.getCourse());
+        Map<String, Object> parameters = getBaseParameters();
         parameters.put("delivery", delivery);
         parameters.put("assignment", delivery.getAssignment());
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("repository", gitClient.repositories().retrieve(repositoryEntity.getRepositoryName()));
 
-        List<String> commitIds = Lists.newArrayList(delivery.getCommit().getCommitId());
+        List<String> commitIds = delivery.getCommit() != null ?
+			Lists.newArrayList(delivery.getCommit().getCommitId()) : Collections.emptyList();
         parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());

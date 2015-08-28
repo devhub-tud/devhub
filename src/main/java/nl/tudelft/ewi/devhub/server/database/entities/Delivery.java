@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.Base;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JoinColumnOrFormula;
@@ -31,6 +32,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 
@@ -43,7 +45,7 @@ import java.util.List;
 @Table(name = "assignment_deliveries")
 @ToString(exclude = {"notes", "attachments"})
 @EqualsAndHashCode(of={"deliveryId"}, callSuper = false)
-public class Delivery implements Event {
+public class Delivery implements Event, Base {
 
     /**
      * The State for the Delivery
@@ -192,4 +194,12 @@ public class Delivery implements Event {
         return dueDate != null && getTimestamp().after(dueDate);
     }
 
+	@Override
+	public URI getURI() {
+		return getGroup().getURI()
+			.resolve(Assignment.ASSIGNMENTS_PATH_BASE)
+			.resolve(getAssignment().getAssignmentId() + "/")
+			.resolve("deliveries/")
+			.resolve(getDeliveryId() + "/");
+	}
 }

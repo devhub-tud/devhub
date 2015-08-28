@@ -25,7 +25,7 @@ public class BuildResultsTest extends PersistedBackendTest {
 
 	@Inject private BuildResults buildResults;
 	@Inject private Commits commits;
-	@Inject @Getter private Courses courses;
+	@Inject @Getter private CourseEditions courses;
 	@Inject @Getter private Users users;
 	@Inject @Getter private Groups groups;
 
@@ -38,7 +38,7 @@ public class BuildResultsTest extends PersistedBackendTest {
 
 	@Before
 	public void before() {
-		courseEdition = createCourse();
+		courseEdition = createCourseEdition();
 		group = createGroup(courseEdition, createUser(), createUser());
 		repository = group.getRepository();
 		commit = commits.ensureExists(repository, COMMIT_ID);

@@ -1,13 +1,14 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 import com.mysema.query.jpa.impl.JPAQuery;
-import lombok.extern.slf4j.Slf4j;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 
 @Slf4j
 public class Controller<T> {

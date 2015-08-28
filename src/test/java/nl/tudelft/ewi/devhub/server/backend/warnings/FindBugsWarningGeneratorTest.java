@@ -1,11 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.fasterxml.jackson.databind.AnnotationIntrospector;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.JacksonXmlAnnotationIntrospector;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.collect.ImmutableMap;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
@@ -18,6 +12,14 @@ import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
 import nl.tudelft.ewi.git.models.EntryType;
+
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.JacksonXmlAnnotationIntrospector;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.collect.ImmutableMap;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

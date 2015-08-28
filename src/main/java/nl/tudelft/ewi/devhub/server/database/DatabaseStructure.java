@@ -1,19 +1,19 @@
 package nl.tudelft.ewi.devhub.server.database;
 
-import javax.inject.Inject;
-
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Properties;
-
-import com.google.inject.persist.PersistService;
 import liquibase.Liquibase;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import lombok.extern.slf4j.Slf4j;
+
+import com.google.inject.persist.PersistService;
+
+import javax.inject.Inject;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  * This class is responsible for running Liquibase database migrations at start-up.

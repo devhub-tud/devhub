@@ -1,18 +1,5 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.TypeLiteral;
-import com.google.inject.persist.Transactional;
-import com.google.inject.persist.UnitOfWork;
-import com.google.inject.persist.jpa.JpaPersistModule;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.PersistenceConfiguration;
@@ -21,16 +8,24 @@ import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import org.jukito.JukitoRunner;
-import org.jukito.UseModules;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
+import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
+import com.google.inject.persist.jpa.JpaPersistModule;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.math.BigInteger;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
 import java.util.List;

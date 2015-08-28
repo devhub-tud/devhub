@@ -1,12 +1,7 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
@@ -19,8 +14,6 @@ import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 
-import org.hibernate.exception.ConstraintViolationException;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -30,7 +23,10 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
+import org.hibernate.exception.ConstraintViolationException;
+
 import javax.persistence.PersistenceException;
+import java.util.Collection;
 
 @Slf4j
 @Singleton

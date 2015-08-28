@@ -1,15 +1,5 @@
 package nl.tudelft.ewi.devhub.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
-import com.google.inject.Provides;
-import com.google.inject.TypeLiteral;
-import com.google.inject.multibindings.Multibinder;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
-import com.google.inject.persist.PersistFilter;
-import com.google.inject.servlet.RequestScoped;
-import com.google.inject.servlet.ServletModule;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackendImpl;
@@ -21,7 +11,6 @@ import nl.tudelft.ewi.devhub.server.backend.warnings.CommitPushWarningGenerator;
 import nl.tudelft.ewi.devhub.server.database.DbModule;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;
@@ -30,6 +19,17 @@ import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.GitServerClientImpl;
 import nl.tudelft.ewi.git.client.Repositories;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
+import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
+import com.google.inject.persist.PersistFilter;
+import com.google.inject.servlet.RequestScoped;
+import com.google.inject.servlet.ServletModule;
+
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.reflections.Reflections;
 

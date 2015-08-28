@@ -1,23 +1,22 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
-import com.google.common.base.Strings;
 import lombok.Data;
-
 import nl.tudelft.ewi.git.models.ChangeType;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
-import nl.tudelft.ewi.git.models.DiffModel;
-import nl.tudelft.ewi.git.models.DiffModel.DiffContext;
-import nl.tudelft.ewi.git.models.DiffModel.DiffLine;
+
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class DiffView extends View {
 	

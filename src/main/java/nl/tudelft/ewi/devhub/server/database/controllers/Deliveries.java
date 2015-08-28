@@ -1,10 +1,11 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.Comparator;
@@ -68,7 +69,7 @@ public class Deliveries extends Controller<Delivery> {
     public List<Delivery> getDeliveries(Assignment assignment, Group group) {
         return query().from(delivery)
 			.where(delivery.assignment.eq(assignment)
-			.and(delivery.group.eq(group)))
+				.and(delivery.group.eq(group)))
 			.orderBy(delivery.timestamp.desc())
 			.list(delivery);
     }

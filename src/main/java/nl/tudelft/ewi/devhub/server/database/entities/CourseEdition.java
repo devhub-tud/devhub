@@ -1,20 +1,34 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
-import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.persistence.*;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ComparisonChain;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

@@ -1,10 +1,5 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
@@ -16,11 +11,11 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
-import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -37,6 +32,13 @@ import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.CommitSubList;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 import nl.tudelft.ewi.git.models.EntryType;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
+
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
@@ -63,7 +65,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;

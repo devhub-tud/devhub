@@ -1,16 +1,17 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-
-import java.util.List;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import java.util.List;
+
 import static nl.tudelft.ewi.devhub.server.database.entities.QGroup.group;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 
 

@@ -1,15 +1,27 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
-import org.hibernate.annotations.DiscriminatorFormula;
-import org.hibernate.annotations.DiscriminatorOptions;
+
+import com.google.common.collect.ImmutableMap;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;

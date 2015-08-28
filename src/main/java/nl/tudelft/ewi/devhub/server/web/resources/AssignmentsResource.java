@@ -1,10 +1,5 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
@@ -16,6 +11,13 @@ import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+
 import org.jboss.resteasy.spi.NotImplementedYetException;
 
 import javax.servlet.http.HttpServletRequest;

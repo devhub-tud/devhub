@@ -1,12 +1,13 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 
-import static nl.tudelft.ewi.devhub.server.database.entities.QRepositoryEntity.repositoryEntity;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 import javax.persistence.EntityManager;
+
+import static nl.tudelft.ewi.devhub.server.database.entities.QRepositoryEntity.repositoryEntity;
 
 /**
  * Created by Jan-Willem on 8/15/2015.

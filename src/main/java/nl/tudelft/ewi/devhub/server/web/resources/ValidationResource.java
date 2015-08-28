@@ -1,6 +1,9 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.net.URISyntaxException;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
 
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.GET;
@@ -8,11 +11,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
+import java.net.URISyntaxException;
 
 @Path("validation")
 @RequestScoped

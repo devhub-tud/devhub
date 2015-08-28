@@ -1,13 +1,16 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import org.junit.Test;
-
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationProvider.AuthenticationProviderUnavailable;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationProvider.AuthenticationSession;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationProvider.InvalidCredentialsException;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class AuthenticationBackendImplTest {
 	

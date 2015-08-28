@@ -1,8 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 
-import com.google.common.collect.Lists;
-import com.google.inject.persist.UnitOfWork;
 import nl.tudelft.ewi.build.client.BuildServerBackend;
 import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.devhub.server.Config;
@@ -12,6 +10,10 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitServerClient;
+
+import com.google.common.collect.Lists;
+import com.google.inject.persist.UnitOfWork;
+
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;

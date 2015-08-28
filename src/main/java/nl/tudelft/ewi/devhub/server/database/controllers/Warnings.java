@@ -1,17 +1,18 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
-import com.mysema.query.jpa.JPASubQuery;
-import com.mysema.query.types.query.ListSubQuery;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
+import com.mysema.query.jpa.JPASubQuery;
+import com.mysema.query.types.query.ListSubQuery;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;

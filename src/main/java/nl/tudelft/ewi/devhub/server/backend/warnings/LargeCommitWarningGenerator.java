@@ -1,8 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
@@ -11,6 +8,10 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.LargeCommitWarnin
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.DiffModel.DiffFile;
+
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
 
 import java.util.Collections;
 import java.util.List;

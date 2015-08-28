@@ -1,19 +1,21 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.inject.AbstractModule;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
-import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
+
+import com.google.inject.AbstractModule;
+
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Test;

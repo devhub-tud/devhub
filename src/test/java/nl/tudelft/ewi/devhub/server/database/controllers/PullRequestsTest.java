@@ -1,11 +1,13 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
+
+import com.google.inject.Inject;
+
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Test;

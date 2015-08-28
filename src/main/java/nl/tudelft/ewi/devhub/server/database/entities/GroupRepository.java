@@ -4,7 +4,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 
-import javax.persistence.*;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;

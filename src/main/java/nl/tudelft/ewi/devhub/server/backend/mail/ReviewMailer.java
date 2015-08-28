@@ -1,7 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -9,6 +7,9 @@ import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;

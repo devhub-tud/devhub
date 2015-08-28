@@ -1,9 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +15,11 @@ import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Collection;

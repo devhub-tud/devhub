@@ -1,21 +1,13 @@
 package nl.tudelft.ewi.devhub.server;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
-
-import java.io.File;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.util.Modules;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -29,6 +21,13 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.ServletContext;
+import java.io.File;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This class bootstraps a DevHub server.

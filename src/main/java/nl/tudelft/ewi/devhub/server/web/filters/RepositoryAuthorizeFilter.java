@@ -1,14 +1,23 @@
 package nl.tudelft.ewi.devhub.server.web.filters;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
+import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Key;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
+
+import org.eclipse.jetty.http.HttpStatus;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.Filter;
@@ -20,25 +29,15 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.NotFoundException;
-
-import org.eclipse.jetty.http.HttpStatus;
-
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import lombok.extern.slf4j.Slf4j;
-
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Key;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Singleton

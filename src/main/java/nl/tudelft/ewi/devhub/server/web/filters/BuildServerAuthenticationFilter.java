@@ -1,24 +1,23 @@
 package nl.tudelft.ewi.devhub.server.web.filters;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
+import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
+
+import com.google.common.base.Strings;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+
+import org.jboss.resteasy.core.ResourceMethodInvoker;
+import org.jboss.resteasy.core.interception.PostMatchContainerRequestContext;
+import org.jboss.resteasy.util.Base64;
 
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
-
-import org.jboss.resteasy.core.ResourceMethodInvoker;
-import org.jboss.resteasy.core.interception.PostMatchContainerRequestContext;
-import org.jboss.resteasy.util.Base64;
-
-import com.google.common.base.Strings;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
 @Singleton
 @javax.ws.rs.ext.Provider

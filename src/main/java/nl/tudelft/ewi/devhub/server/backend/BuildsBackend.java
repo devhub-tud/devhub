@@ -1,10 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Queues;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
-import com.google.inject.persist.UnitOfWork;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.client.BuildServerBackend;
@@ -13,10 +8,19 @@ import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
-import nl.tudelft.ewi.devhub.server.database.entities.*;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Queues;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;

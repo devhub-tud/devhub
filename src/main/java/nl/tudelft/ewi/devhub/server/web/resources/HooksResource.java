@@ -1,11 +1,5 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
@@ -41,6 +35,14 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BranchModel;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
+
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 

@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;

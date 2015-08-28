@@ -1,9 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.util.ArrayList;
-import java.util.Set;
-
-import com.google.common.collect.Sets;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -14,6 +10,8 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.GroupMembers;
 import nl.tudelft.ewi.git.client.Groups;
 
+import com.google.common.collect.Sets;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,11 +20,11 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

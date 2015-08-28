@@ -1,13 +1,13 @@
 package nl.tudelft.ewi.devhub.server;
 
+import lombok.extern.slf4j.Slf4j;
+
+import com.google.inject.Singleton;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
-
-import lombok.extern.slf4j.Slf4j;
-
-import com.google.inject.Singleton;
 
 /**
  * The {@link Config} class can be used to retrieve configuration settings from the

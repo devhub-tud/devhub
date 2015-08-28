@@ -3,12 +3,11 @@ package nl.tudelft.ewi.devhub.webtests;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.AuthenticatedView;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
-
-import static org.junit.Assert.assertTrue;
-
 import nl.tudelft.ewi.git.client.GitClientException;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class CoursesTest extends WebTest {
 	

@@ -1,13 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
-
 import lombok.extern.slf4j.Slf4j;
-
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
@@ -17,10 +10,15 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
+
 import org.apache.commons.lang.StringUtils;
 
 import javax.ws.rs.NotFoundException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

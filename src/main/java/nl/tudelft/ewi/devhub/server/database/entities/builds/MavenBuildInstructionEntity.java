@@ -1,6 +1,5 @@
 package nl.tudelft.ewi.devhub.server.database.entities.builds;
 
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -10,6 +9,8 @@ import nl.tudelft.ewi.build.jaxrs.models.MavenBuildInstruction;
 import nl.tudelft.ewi.build.jaxrs.models.plugins.MavenBuildPlugin;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+
+import com.google.common.collect.Lists;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;

@@ -1,6 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.collect.ImmutableMap;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -10,6 +9,9 @@ import nl.tudelft.ewi.git.client.Commit;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
+
+import com.google.common.collect.ImmutableMap;
+
 import org.junit.Before;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.Theories;

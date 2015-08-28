@@ -1,10 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.fasterxml.jackson.databind.AnnotationIntrospector;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.JacksonXmlAnnotationIntrospector;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDReport;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
@@ -16,6 +12,13 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
+
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.JacksonXmlAnnotationIntrospector;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,14 +30,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.hasItems;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
-
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDReport;
 
 /**
  * @author Jan-Willem Gmelig Meyling

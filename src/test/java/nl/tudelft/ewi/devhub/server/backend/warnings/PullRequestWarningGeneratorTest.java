@@ -9,6 +9,7 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CommitModel;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,10 +21,10 @@ import java.util.Collections;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Jan-Willem Gmelig Meyling

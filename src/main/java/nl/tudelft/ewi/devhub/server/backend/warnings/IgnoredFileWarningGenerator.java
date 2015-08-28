@@ -1,7 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
@@ -9,6 +7,9 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.IgnoredFileWarnin
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.DiffModel;
+
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
 
 import java.util.Set;
 import java.util.stream.Collectors;

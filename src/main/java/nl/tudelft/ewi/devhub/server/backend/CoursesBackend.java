@@ -1,10 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
@@ -18,6 +13,12 @@ import nl.tudelft.ewi.git.client.GroupMembers;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
 import nl.tudelft.ewi.git.models.UserModel;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
 
 import java.util.Collection;
 import java.util.Iterator;

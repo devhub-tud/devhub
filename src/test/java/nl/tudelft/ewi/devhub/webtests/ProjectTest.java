@@ -1,21 +1,30 @@
 package nl.tudelft.ewi.devhub.webtests;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
-import com.google.common.collect.ImmutableList;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.DiffView;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView.Commit;
-import nl.tudelft.ewi.git.client.*;
-import nl.tudelft.ewi.git.models.*;
+import nl.tudelft.ewi.git.client.BranchMock;
+import nl.tudelft.ewi.git.client.CommitMock;
+import nl.tudelft.ewi.git.client.GitClientException;
+import nl.tudelft.ewi.git.client.GitServerClientMock;
+import nl.tudelft.ewi.git.client.RepositoryMock;
+import nl.tudelft.ewi.git.models.ChangeType;
+import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.models.DiffBlameModel;
+import nl.tudelft.ewi.git.models.UserModel;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ProjectTest extends WebTest {
 

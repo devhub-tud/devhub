@@ -1,24 +1,9 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
@@ -27,11 +12,24 @@ import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
 
-import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-
 import org.apache.directory.api.ldap.model.exception.LdapException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Slf4j
 @Path("/")

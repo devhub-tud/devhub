@@ -1,22 +1,22 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import java.util.Random;
-
-import javax.inject.Inject;
-import javax.persistence.PersistenceException;
-import javax.validation.ConstraintViolationException;
-
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
+
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.inject.Inject;
+import javax.persistence.PersistenceException;
+import java.util.Random;
+
+import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)

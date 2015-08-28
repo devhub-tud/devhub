@@ -1,12 +1,13 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.SuccessiveBuildFailure;
 import nl.tudelft.ewi.git.client.GitServerClient;
+
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 import java.util.Collection;
 import java.util.Collections;

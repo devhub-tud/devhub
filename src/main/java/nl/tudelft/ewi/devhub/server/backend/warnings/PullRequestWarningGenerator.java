@@ -1,7 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.GitUsageWarning;
@@ -11,6 +9,9 @@ import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CommitModel;
+
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 import java.util.Set;
 

@@ -1,15 +1,15 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.persistence.EntityManager;
-
-import com.google.inject.Inject;
-
-import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
-import static nl.tudelft.ewi.devhub.server.database.entities.issues.QPullRequest.pullRequest;
 
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
+
+import javax.persistence.EntityManager;
 import java.util.List;
+
+import static nl.tudelft.ewi.devhub.server.database.entities.issues.QPullRequest.pullRequest;
 
 /**
  * PullRequest data access object

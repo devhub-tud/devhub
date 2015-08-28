@@ -1,9 +1,9 @@
 package nl.tudelft.ewi.devhub.server.web.templating;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.Reader;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is responsible for wrapping all FreeMarker template files with an HTML escaping

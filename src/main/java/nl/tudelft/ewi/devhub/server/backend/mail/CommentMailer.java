@@ -1,14 +1,15 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
+import nl.tudelft.ewi.devhub.server.Config;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
+import nl.tudelft.ewi.devhub.server.web.templating.Translator;
+import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.templating.Translator;
-import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;

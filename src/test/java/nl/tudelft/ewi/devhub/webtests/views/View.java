@@ -1,14 +1,16 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import com.google.common.collect.Lists;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import java.util.List;
 
 @Slf4j
 public class View {

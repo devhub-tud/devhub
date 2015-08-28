@@ -1,11 +1,12 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.inject.Inject;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repository;
+
+import com.google.inject.Inject;
 
 /**
  * @author Liam Clark

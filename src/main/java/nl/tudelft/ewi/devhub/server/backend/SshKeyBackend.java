@@ -1,9 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitClientException;
@@ -15,6 +11,10 @@ import nl.tudelft.ewi.git.models.UserModel;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class SshKeyBackend {
 

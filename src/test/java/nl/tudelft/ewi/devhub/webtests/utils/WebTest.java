@@ -1,22 +1,18 @@
 package nl.tudelft.ewi.devhub.webtests.utils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
-
-import com.google.inject.AbstractModule;
-
 import nl.tudelft.ewi.build.client.BuildServerBackend;
 import nl.tudelft.ewi.build.client.MockedBuildServerBackend;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.Bootstrapper;
-import nl.tudelft.ewi.devhub.server.backend.mail.MailBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedAuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.MockedMailBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.MailBackend;
 import nl.tudelft.ewi.devhub.webtests.views.LoginView;
-import nl.tudelft.ewi.git.client.*;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.GitServerClientMock;
+
+import com.google.inject.AbstractModule;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -29,6 +25,11 @@ import org.junit.runner.Description;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
 
 public abstract class WebTest {
 

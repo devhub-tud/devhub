@@ -1,17 +1,20 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import nl.tudelft.ewi.git.client.GitClientException;
-import org.junit.Before;
-import org.junit.Test;
-
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.client.SshKeys;
 import nl.tudelft.ewi.git.models.SshKeyModel;
 import nl.tudelft.ewi.git.models.UserModel;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class SshKeyBackendTest extends BackendTest {
 

@@ -1,13 +1,14 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;

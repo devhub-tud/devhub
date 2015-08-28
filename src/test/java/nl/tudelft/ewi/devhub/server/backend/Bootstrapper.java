@@ -1,13 +1,27 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
+import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
+import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
+import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
+import nl.tudelft.ewi.git.client.GitClientException;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.models.GroupModel;
+import nl.tudelft.ewi.git.models.IdentifiableModel;
+import nl.tudelft.ewi.git.models.UserModel;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -16,18 +30,13 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.*;
-import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
-import nl.tudelft.ewi.devhub.server.database.entities.*;
-import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
-import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.models.GroupModel;
-import nl.tudelft.ewi.git.models.IdentifiableModel;
-import nl.tudelft.ewi.git.models.UserModel;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class Bootstrapper {

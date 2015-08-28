@@ -1,11 +1,10 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.net.URI;
-import java.net.URLEncoder;
+import lombok.SneakyThrows;
 
 import javax.ws.rs.core.Response;
-
-import lombok.SneakyThrows;
+import java.net.URI;
+import java.net.URLEncoder;
 
 public class Resource {
 	

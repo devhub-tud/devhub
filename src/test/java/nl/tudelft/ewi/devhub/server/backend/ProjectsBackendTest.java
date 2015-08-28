@@ -1,15 +1,7 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.util.Map;
-
-import com.google.common.collect.ImmutableMap;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.TestDatabaseModule;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -19,32 +11,34 @@ import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.client.GitClientException;
 import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.GitServerClientMock;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.RepositoriesMock;
-import nl.tudelft.ewi.git.client.UsersMock;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel;
-
 import nl.tudelft.ewi.git.models.UserModel;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
+
 import org.hamcrest.Matchers;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import java.util.Map;
 
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(JukitoRunner.class)
 @UseModules(ProjectsBackendTest.ProjectsBackendTestModule.class)

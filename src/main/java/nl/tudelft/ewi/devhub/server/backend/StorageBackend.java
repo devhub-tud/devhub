@@ -1,8 +1,10 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.Config;
+
+import com.google.inject.Inject;
+
 import org.apache.commons.io.FileUtils;
 
 import javax.ws.rs.NotFoundException;

@@ -1,29 +1,27 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.BugInstance;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsFile;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsReport;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
+import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.client.Repository;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.inject.Inject;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
+import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsReport;
-import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsFile;
-import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.BugInstance;
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
-
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
-
-import javax.ws.rs.NotFoundException;
 
 /**
  * Convert FindBugs violations into Warnings

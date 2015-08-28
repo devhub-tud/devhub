@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.Column;

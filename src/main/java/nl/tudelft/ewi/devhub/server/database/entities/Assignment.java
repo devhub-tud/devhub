@@ -1,21 +1,31 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Ordering;
-import com.sun.istack.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
-import org.hibernate.annotations.*;
+
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Ordering;
+import com.sun.istack.Nullable;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.persistence.*;
+import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Parameter;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 

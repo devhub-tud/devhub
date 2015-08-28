@@ -1,12 +1,12 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.persist.Transactional;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;

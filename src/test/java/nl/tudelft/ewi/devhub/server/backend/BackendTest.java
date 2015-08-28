@@ -1,16 +1,16 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.math.BigInteger;
-import java.util.Date;
-import java.util.Random;
-
-import com.google.common.collect.Lists;
-
-import com.google.common.collect.Sets;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import java.math.BigInteger;
+import java.util.Date;
+import java.util.Random;
 
 public class BackendTest {
 

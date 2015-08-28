@@ -20,9 +20,9 @@
     <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
         [#if pullRequest??]
             <span>${i18n.translate("group.branch.pull-request-message")}</span>
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.getIssueId()}" class="btn btn-default pull-right">${i18n.translate("group.branch.go-to-pull-request")}</a>
+            <a href="${pullRequest.getURI()}" class="btn btn-default pull-right">${i18n.translate("group.branch.go-to-pull-request")}</a>
         [#else]
-            <form method="POST" action="/courses/${group.course.code}/groups/${group.groupNumber}/pull" target="_self">
+            <form method="POST" action="${repositoryEntity.getURI()}pull" target="_self">
                 <span>${i18n.translate("group.branch.ahead-message")}</span>
                 <input type="hidden" name="branchName" value="${branch.getName()}"/>
                 <button type="submit" class="btn btn-default pull-right">${i18n.translate("group.branch.create-pull-request")}</button>
@@ -52,7 +52,7 @@
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     [#list repository.getBranches() as b ]
-                        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/branch/${b.getSimpleName()}" style="text-align:right;">
+                        <li><a href="${repositoryEntity.getURI()}branch/${b.getSimpleName()}" style="text-align:right;">
                         ${b.getSimpleName()}
                             [#if b.behind?? && b.ahead?? && b.behind > 0 || b.ahead > 0 ]
                                 <span class="text-success octicon octicon-arrow-up"></span>
@@ -82,7 +82,7 @@
                     [#if commits?? && commits?has_content]
                         [#list commits.commits as commit]
                             [#assign buildResult = builds[commit.commit]![]]
-                            [@commitRow.render group buildResult commit.commit "/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff"]
+                            [@commitRow.render group buildResult commit.commit "${repositoryEntity.getURI()}commits/${commit.commit}/diff"]
                                 <span class="pull-right">
                                   [#if comments??]
                                       [#assign numComments = comments[commit.commit]!0]
@@ -135,9 +135,9 @@
                 <ul class="pagination pagination-lg">
                     [#list max(1, currentPage-4)..min(pageCount, currentPage+4) as pageNumber ]
                         [#if pageNumber == currentPage ]
-                            <li class="active"><a href="/courses/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
+                            <li class="active"><a href="${repositoryEntity.getURI()}branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
                         [#else]
-                            <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
+                            <li><a href="${repositoryEntity.getURI()}branch/${branch.getSimpleName()}?page=${pageNumber}">${pageNumber}</a></li>
                         [/#if]
                     [/#list]
                 </ul>

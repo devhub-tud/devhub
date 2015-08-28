@@ -40,7 +40,7 @@ public class CoursesTest extends PersistedBackendTest {
 		courses.persist(courseEdition);
 	}
 
-	@Test(expected=ConstraintViolationException.class)
+	@Test(expected=PersistenceException.class)
 	public void testCourseShouldHaveStart() {
 		CourseEdition courseEdition = new CourseEdition();
 		courseEdition.setCode(randomString().substring(0,4));

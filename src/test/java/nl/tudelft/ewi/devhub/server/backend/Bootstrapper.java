@@ -213,9 +213,7 @@ public class Bootstrapper {
 				groupEntity.setGroupNumber(group.getGroupNumber());
 
 				GroupRepository groupRepository = new GroupRepository();
-				groupRepository.setRepositoryName("courses/"
-					+ entity.getCode().toLowerCase() + "/group-"
-					+ group.getGroupNumber());
+				groupRepository.setRepositoryName(entity.createRepositoryName(groupEntity).toASCIIString());
 				groupEntity.setRepository(groupRepository);
 
 				groups.persist(groupEntity);

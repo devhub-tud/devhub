@@ -133,7 +133,9 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable, B
 
 	public URI createRepositoryName(final Group group) {
 		Preconditions.checkNotNull(group);
-		return getURI().resolve("group-" + group.getGroupNumber());
+		URI uri = getURI().resolve("group-" + group.getGroupNumber());
+		// Relativize to "/" because repository names do not start with "/"
+		return URI.create("/").relativize(uri);
 	}
 
 }

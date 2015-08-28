@@ -5,7 +5,7 @@ import org.openqa.selenium.WebDriver;
 
 public class AuthenticatedView extends View {
 
-	private static final By COURSES_VIEW = By.xpath("//div[@class='container']//a[text()='CourseEditions']");
+	private static final By COURSES_VIEW = By.xpath("//div[@class='container']//a[text()='Courses']");
 	
 	public AuthenticatedView(WebDriver driver) {
 		super(driver);

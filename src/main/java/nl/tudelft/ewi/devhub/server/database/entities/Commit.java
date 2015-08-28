@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 
 import javax.persistence.CascadeType;
@@ -22,6 +23,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 
@@ -31,7 +33,7 @@ import java.util.List;
 @IdClass(Commit.CommitId.class)
 @ToString(exclude = "comments")
 @EqualsAndHashCode(of = {"repository", "commitId"}, callSuper = false)
-public class Commit implements Event {
+public class Commit implements Event, Base {
 
 	@Data
 	@NoArgsConstructor
@@ -79,4 +81,8 @@ public class Commit implements Event {
 		return getPushTime();
 	}
 
+	@Override
+	public URI getURI() {
+		return getRepository().getURI().resolve("commits/" + getCommitId() + "/");
+	}
 }

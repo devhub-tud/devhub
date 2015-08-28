@@ -28,11 +28,10 @@ import java.util.List;
 public class TimeSpan implements Serializable, Comparable<TimeSpan>, TemporalAmount {
 
     @NotNull
-    @Column(name="start_date")
+    @Column(name="start_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date start;
 
-    @NotNull
     @Column(name="end_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date end;

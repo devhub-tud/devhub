@@ -47,7 +47,7 @@ public class FolderTest extends WebTest {
 	public static void setUpRepository() throws Exception {
 		gitServerClient = getGitServerClient();
 		user = gitServerClient.users().ensureExists(NET_ID);
-		repository = gitServerClient.repositories().retrieve("courses/ti1705/group-1");
+		repository = gitServerClient.repositories().retrieve("courses/ti1705/1415/group-1");
 		commit = createInitialCommit(repository);
 
         entries = ImmutableMap.<String, EntryType> of(

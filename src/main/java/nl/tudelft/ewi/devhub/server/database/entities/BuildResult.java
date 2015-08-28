@@ -2,31 +2,34 @@ package nl.tudelft.ewi.devhub.server.database.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumns;
 import javax.persistence.OneToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.PrimaryKeyJoinColumns;
 import javax.persistence.Table;
 import java.io.Serializable;
 
 @Data
 @Entity
-@IdClass(BuildResult.BuildResultId.class)
 @Table(name = "build_results")
+@ToString(exclude = "log")
+@EqualsAndHashCode(of = "commit")
+@IdClass(BuildResult.BuildResultId.class)
 public class BuildResult {
 
-	public static BuildResult newBuildResult(Commit commit) {
+	public static BuildResult newBuildResult(final Commit commit) {
 		BuildResult result = new BuildResult();
 		result.setCommit(commit);
 		result.setSuccess(null);
@@ -39,26 +42,16 @@ public class BuildResult {
 	@AllArgsConstructor
 	public static class BuildResultId implements Serializable {
 
-		private long repository;
-
-		private String commitId;
+		private Commit.CommitId commit;
 
 	}
 
 	@Id
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
-	@JoinColumn(name = "repository_id")
-	private RepositoryEntity repository;
-
-	@Id
-	@Column(name = "commit_id")
-	private String commitId;
-
-	@PrimaryKeyJoinColumns({
-		@PrimaryKeyJoinColumn(name = "commit_id", referencedColumnName = "commit_id"),
-		@PrimaryKeyJoinColumn(name = "repository_id", referencedColumnName = "repository_id")
+	@JoinColumns({
+		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id"),
+		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id")
 	})
-	@OneToOne(optional = false)
+	@OneToOne(optional = false, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	private Commit commit;
 
 	@Column(name = "success")

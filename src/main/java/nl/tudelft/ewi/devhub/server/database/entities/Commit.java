@@ -71,7 +71,7 @@ public class Commit implements Event {
 	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<CommitComment> comments;
 
-	@OneToOne(optional = true, mappedBy = "commit")
+	@OneToOne(optional = true, mappedBy = "commit", cascade = CascadeType.REMOVE)
 	private BuildResult buildResult;
 
 	@Override

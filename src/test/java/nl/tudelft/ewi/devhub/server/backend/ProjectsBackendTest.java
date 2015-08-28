@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.TestDatabaseModule;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -70,6 +71,7 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 	@Inject private ProjectsBackend projectsBackend;
 	@Inject @Getter private Courses courses;
 	@Inject @Getter private Users users;
+	@Inject @Getter private Groups groups;
 
 	private CourseEdition course;
 	private User user;

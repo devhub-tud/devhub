@@ -28,7 +28,7 @@ import java.util.Date;
  */
 @Data
 @MappedSuperclass
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"repository", "issueId"})
 @IdClass(AbstractIssue.IssueId.class)
 public abstract class AbstractIssue implements Event {
 

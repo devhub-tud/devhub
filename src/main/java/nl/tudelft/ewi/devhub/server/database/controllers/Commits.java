@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
@@ -16,6 +17,7 @@ import java.util.Date;
 
 import static nl.tudelft.ewi.devhub.server.database.entities.QCommit.commit;
 
+@Slf4j
 public class Commits extends Controller<Commit> {
 
 	private final Repositories repositories;
@@ -46,15 +48,22 @@ public class Commits extends Controller<Commit> {
 	}
 
 	protected Commit createCommit(RepositoryEntity repositoryEntity, String commitId) {
-		final nl.tudelft.ewi.git.client.Commit gitCommit = retrieveCommit(repositoryEntity, commitId);
 		final Commit commit = new Commit();
 		commit.setCommitId(commitId);
 		commit.setRepository(repositoryEntity);
 		commit.setComments(Lists.<CommitComment> newArrayList());
-		commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
 		commit.setPushTime(new Date());
-		commit.setAuthor(gitCommit.getAuthor());
-		commit.setMerge(gitCommit.getParents().length > 1);
+
+		try {
+			final nl.tudelft.ewi.git.client.Commit gitCommit = retrieveCommit(repositoryEntity, commitId);
+			commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
+			commit.setAuthor(gitCommit.getAuthor());
+			commit.setMerge(gitCommit.getParents().length > 1);
+		}
+		catch (Exception e) {
+			log.warn("Failed to retrieve commit details", e);
+		}
+
 		return persist(commit);
 	}
 

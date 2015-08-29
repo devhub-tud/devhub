@@ -34,7 +34,7 @@ import java.util.List;
 @Entity
 @Table(name = "commit")
 @IdClass(Commit.CommitId.class)
-@ToString(exclude = "comments")
+@ToString(exclude = {"comments", "buildResult"})
 @EqualsAndHashCode(of = {"repository", "commitId"}, callSuper = false)
 public class Commit implements Event, Base {
 
@@ -77,7 +77,7 @@ public class Commit implements Event, Base {
 	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<CommitComment> comments;
 
-	@OneToOne(optional = true, cascade = CascadeType.DETACH)
+	@OneToOne(optional = true, cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
 	@PrimaryKeyJoinColumns({
 		@PrimaryKeyJoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
 		@PrimaryKeyJoinColumn(name = "commit_id", referencedColumnName = "commit_id")

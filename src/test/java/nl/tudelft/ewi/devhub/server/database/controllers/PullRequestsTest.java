@@ -23,7 +23,8 @@ public class PullRequestsTest extends PersistedBackendTest {
 	@Inject @Getter private Groups groups;
 	@Inject @Getter private CourseEditions courses;
 	@Inject @Getter private Users users;
-	
+	@Inject private Commits commits;
+
 	@Inject
 	private PullRequests pullRequests;
 
@@ -45,8 +46,8 @@ public class PullRequestsTest extends PersistedBackendTest {
 		pr.setRepository(groupRepository);
 		pr.setBranchName("super-branch");
 		pr.setOpen(true);
-		pr.setDestination(COMMIT_A);
-		pr.setMergeBase(COMMIT_B);
+		pr.setDestination(commits.ensureExists(groupRepository, COMMIT_A));
+		pr.setMergeBase(commits.ensureExists(groupRepository, COMMIT_B));
 
 		pullRequests.persist(pr);
 		pullRequestEquals(pr, pullRequests.findOpenPullRequest(groupRepository, "super-branch"));

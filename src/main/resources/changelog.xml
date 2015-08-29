@@ -524,13 +524,6 @@
 	</changeSet>
 	
 	<changeSet id="date_for_commits" author="Jan-Willem Gmelig Meyling">
-
-        <dropForeignKeyConstraint baseTableName="pull_requests" constraintName="pr_repository_name_in_groups"/>
-        <dropForeignKeyConstraint baseTableName="commit" constraintName="commit_repository_name_in_groups"/>
-        <dropForeignKeyConstraint baseTableName="commit_comment" constraintName="commit_comment_commit_in_commits"/>
-        <dropForeignKeyConstraint baseTableName="commit_comment" constraintName="source_commit_comments_in_commits"/>
-        <dropForeignKeyConstraint baseTableName="pull_request_comments" constraintName="pr_commit_pr_in_prs"/>
-
 		<addColumn tableName="commit">
 			<column name="author" type="varchar(255)"></column>
 			<column name="committed" type="datetime"/>
@@ -540,6 +533,12 @@
 	</changeSet>
     
     <changeSet id="database_refactor" author="Jan-Willem Gmelig Meyling">
+
+		<dropForeignKeyConstraint baseTableName="pull_requests" constraintName="pr_repository_name_in_groups"/>
+		<dropForeignKeyConstraint baseTableName="commit" constraintName="commit_repository_name_in_groups"/>
+		<dropForeignKeyConstraint baseTableName="commit_comment" constraintName="commit_comment_commit_in_commits"/>
+		<dropForeignKeyConstraint baseTableName="commit_comment" constraintName="source_commit_comments_in_commits"/>
+		<dropForeignKeyConstraint baseTableName="pull_request_comments" constraintName="pr_commit_pr_in_prs"/>
 
         <addColumn tableName="build_instructions">
             <column name="build_timeout" type="int" value="300" defaultValue="300"/>
@@ -568,7 +567,6 @@
         <sql>
             insert into course (id, code, name) select id, code, name from course_edition;
             update course_edition set course_id = id;
-            update course_edition set code = CONCAT(YEAR(start_date) % 100, (YEAR(start_date) % 100) + 1);
         </sql>
 
         <addNotNullConstraint tableName="course_edition" columnName="course_id" columnDataType="bigint"/>
@@ -582,6 +580,15 @@
         <renameColumn tableName="course_assistants" oldColumnName="course_id" newColumnName="course_edition_id"/>
         <renameColumn tableName="assignments" oldColumnName="course_id" newColumnName="course_edition_id"/>
         <renameColumn tableName="groups" oldColumnName="course_id" newColumnName="course_edition_id"/>
+
+		<dropForeignKeyConstraint baseTableName="group_memberships" constraintName="group_ref_in_groupmemberships"/>
+		<dropForeignKeyConstraint baseTableName="build_results" constraintName="repository_ref_in_build_results"/>
+		<dropForeignKeyConstraint baseTableName="assignment_deliveries" constraintName="assignment_deliveries_group"/>
+
+		<dropPrimaryKey tableName="groups"/>
+		<addPrimaryKey tableName="groups" columnNames="course_edition_id, group_number"/>
+
+		<!--<dropUniqueConstraint tableName="groups" constraintName="groups_course_id_group_number_key"/>-->
 
         <createTable tableName="repository">
             <column name="id" type="bigint" autoIncrement="true">
@@ -645,12 +652,6 @@
         <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_pull_requests" baseTableName="pull_requests" baseColumnNames="repository_id"/>
         <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_commit" baseTableName="commit" baseColumnNames="repository_id"/>
         <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id"/>
-        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id"/>
-
-        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id" constraintName="commit_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id, commit_id"/>
-        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"  constraintName="commit_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id, commit_id"/>
-        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"  constraintName="source_commit_id_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id, source_commit_id"/>
-        <addForeignKeyConstraint referencedTableName="pull_requests" referencedColumnNames="repository_id, issue_id" constraintName="pull_request_for_comment" baseTableName="pull_request_comments" baseColumnNames="repository_id, issue_id"/>
 
         <sql>
             update commit set repository_id = (select id from repository where repository.repository_name = commit.repository_name);
@@ -677,12 +678,19 @@
         <dropColumn tableName="pull_requests" columnName="repository_name"/>
         <dropColumn tableName="pull_request_comments" columnName="repository_name"/>
 
-        <renameColumn tableName="assignment_deliveries" oldColumnName="course_id" newColumnName="course_edition_id"/>
+		<addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id" constraintName="commit_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id, commit_id"/>
+		<addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id" constraintName="source_commit_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id, source_commit_id"/>
+		<addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"  constraintName="commit_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id, commit_id"/>
+		<addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"  constraintName="source_commit_id_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id, source_commit_id"/>
+		<addForeignKeyConstraint referencedTableName="pull_requests" referencedColumnNames="repository_id, issue_id" constraintName="pull_request_for_comment" baseTableName="pull_request_comments" baseColumnNames="repository_id, issue_id"/>
+		
+		<renameColumn tableName="assignment_deliveries" oldColumnName="course_id" newColumnName="course_edition_id"/>
         <addColumn tableName="assignment_deliveries">
                 <column name="group_number" type="bigint"></column>
         </addColumn>
 
         <sql>update assignment_deliveries set group_number = (select group_number from groups where groups.id = assignment_deliveries.group_id);</sql>
+
         <addNotNullConstraint tableName="assignment_deliveries" columnName="group_number" columnDataType="bigint"/>
 
         <addForeignKeyConstraint referencedTableName="groups" referencedColumnNames="course_edition_id, group_number"
@@ -700,25 +708,37 @@
         <renameColumn tableName="assignment_deliveries" oldColumnName="created" newColumnName="created_date"/>
 
         <dropColumn tableName="build_results" columnName="id"/>
+		<!--<dropUniqueConstraint tableName="build_results" constraintName="build_results_repository_id_commit_id_key"/>-->
         <addPrimaryKey tableName="build_results" columnNames="repository_id, commit_id"/>
-        <dropForeignKeyConstraint baseTableName="build_results" constraintName="repository_ref_in_build_results"/>
 
         <sql>insert into commit (repository_id, commit_id) select build_results.repository_id, build_results.commit_id from build_results where not exists ( select * from commit where commit.repository_id = build_results.repository_id and  commit.commit_id = build_results.commit_id);</sql>
+        <sql>insert into commit (repository_id, commit_id) select pull_requests.repository_id, pull_requests.merge_commit_id as commit_id from pull_requests where not exists ( select * from commit where commit.repository_id = pull_requests.repository_id and  commit.commit_id = pull_requests.merge_commit_id);</sql>
+        <sql>insert into commit (repository_id, commit_id) select pull_requests.repository_id, pull_requests.destination_commit_id as commit_id from pull_requests where not exists ( select * from commit where commit.repository_id = pull_requests.repository_id and  commit.commit_id = pull_requests.destination_commit_id);</sql>
+        <sql>insert into commit (repository_id, commit_id) select assignment_deliveries.repository_id, assignment_deliveries.commit_id from assignment_deliveries where not exists ( select * from commit where commit.repository_id = assignment_deliveries.repository_id and  commit.commit_id = assignment_deliveries.commit_id);</sql>
 
         <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"
              constraintName="commit_for_build_result"
              baseTableName="build_results"
              baseColumnNames="repository_id, commit_id"/>
 
-        <dropForeignKeyConstraint baseTableName="group_memberships" constraintName="group_ref_in_groupmemberships"/>
+		<addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="repository_id, merge_commit_id"
+			 constraintName="pull_requests_merge_commit"
+			 referencedTableName="commit"
+			 referencedColumnNames="repository_id, commit_id"/>
+
+		<addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="repository_id, destination_commit_id"
+			 constraintName="pull_requests_destination_commit"
+			 referencedTableName="commit"
+			 referencedColumnNames="repository_id, commit_id"/>
+
+		<addForeignKeyConstraint baseTableName="assignment_deliveries" baseColumnNames="repository_id, commit_id"
+			 constraintName="assignment_deliveries_commit"
+			 referencedTableName="commit"
+			 referencedColumnNames="repository_id, commit_id"/>
 
         <addColumn tableName="group_memberships">
-            <column name="course_edition_id" type="bigint">
-                <constraints nullable="false" />
-            </column>
-            <column name="group_number" type="bigint">
-                <constraints nullable="false" />
-            </column>
+            <column name="course_edition_id" type="bigint"/>
+            <column name="group_number" type="bigint"/>
         </addColumn>
 
         <addForeignKeyConstraint constraintName="group_ref_in_groupmemberships"
@@ -727,6 +747,9 @@
 
         <sql>update group_memberships set course_edition_id = (select course_edition_id from groups where groups.id = group_memberships.group_id);</sql>
         <sql>update group_memberships set group_number = (select group_number from groups where groups.id = group_memberships.group_id);</sql>
+
+		<addNotNullConstraint tableName="group_memberships" columnName="course_edition_id" columnDataType="bigint"/>
+		<addNotNullConstraint tableName="group_memberships" columnName="group_number" columnDataType="bigint"/>
 
         <dropPrimaryKey tableName="group_memberships"/>
         <addPrimaryKey tableName="group_memberships" columnNames="course_edition_id, group_number, user_id"/>
@@ -781,6 +804,8 @@
 
         <sql>insert into seq_assignment_id (course_edition_id, next_val) select course_edition_id, (MAX(assignment_id) + 1) as next_val from assignments group by course_edition_id;</sql>
 
-    </changeSet>
+		<dropColumn tableName="groups" columnName="id"/>
+
+	</changeSet>
 
 </databaseChangeLog>

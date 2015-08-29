@@ -4,8 +4,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
@@ -35,12 +37,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PullRequestBackend {
 
+    private final Commits commits;
     private final PullRequests pullRequests;
     private final CommitComments commentsDAO;
 
     @Inject
-    public PullRequestBackend(final CommitComments commentsDAO,
+    public PullRequestBackend(final Commits commits,
+                              final CommitComments commentsDAO,
                               final PullRequests pullRequests) {
+        this.commits = commits;
         this.commentsDAO = commentsDAO;
         this.pullRequests = pullRequests;
     }
@@ -120,19 +125,19 @@ public class PullRequestBackend {
 
     private void updateMergeBase(PullRequest pullRequest, Branch branch) throws GitClientException {
         CommitModel mergeBase = branch.mergeBase();
-        String mergeBaseId = mergeBase.getCommit();
-        if(!mergeBaseId.equals(pullRequest.getMergeBase())) {
-            pullRequest.setMergeBase(mergeBaseId);
-            log.info("Merge-base set to {} for {}", mergeBaseId, pullRequest);
+        Commit mergeBaseCommit = commits.ensureExists(pullRequest.getRepository(), mergeBase.getCommit());
+        if(!mergeBaseCommit.equals(pullRequest.getMergeBase())) {
+            pullRequest.setMergeBase(mergeBaseCommit);
+            log.info("Merge-base set to {} for {}", mergeBaseCommit, pullRequest);
         }
     }
 
     private void updateDestinationCommit(PullRequest pullRequest, Branch branch) {
         CommitModel destination = branch.getCommit();
-        String destinationId = destination.getCommit();
-        if(!destinationId.equals(pullRequest.getDestination())) {
-            pullRequest.setDestination(destinationId);
-            log.info("Destination set to {} for {}", destinationId, pullRequest);
+        Commit destinationCommit = commits.ensureExists(pullRequest.getRepository(), destination.getCommit());
+        if(!destinationCommit.equals(pullRequest.getDestination())) {
+            pullRequest.setDestination(destinationCommit);
+            log.info("Destination set to {} for {}", destinationCommit, pullRequest);
         }
     }
 

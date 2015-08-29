@@ -155,6 +155,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 
         Collection<String> commitIds = Stream.concat(openPullRequests.stream(), closedPullReqeusts.stream())
             .map(PullRequest::getDestination)
+            .map(nl.tudelft.ewi.devhub.server.database.entities.Commit::getCommitId)
             .collect(Collectors.toSet());
 
         Map<String, Object> parameters = getBaseParameters();
@@ -178,10 +179,11 @@ public abstract class AbstractProjectPullResource extends Resource {
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
         pullRequestBackend.updatePullRequest(repository, pullRequest);
-        Commit commit = repository.retrieveCommit(pullRequest.getDestination());
 
-        String destinationId = pullRequest.getDestination();
-        String mergeBaseId = pullRequest.getMergeBase();
+        String destinationId = pullRequest.getDestination().getCommitId();
+        String mergeBaseId = pullRequest.getMergeBase().getCommitId();
+        Commit commit = repository.retrieveCommit(destinationId);
+
         DiffBlameModel diffBlameModel = repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
         List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
         PullRequestBackend.EventResolver resolver = pullRequestBackend.getEventResolver(pullRequest, diffBlameModel, repositoryEntity);
@@ -249,7 +251,7 @@ public abstract class AbstractProjectPullResource extends Resource {
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
         pullRequestBackend.updatePullRequest(repository, pullRequest);
         DiffBlameModel diffBlameModel = getDiffBlameModelForPull(pullRequest, repository);
-        Commit commit = repository.retrieveCommit(pullRequest.getDestination());
+        Commit commit = repository.retrieveCommit(pullRequest.getDestination().getCommitId());
         List<String> commitIds = Lists.transform(diffBlameModel.getCommits(), CommitModel::getCommit);
 
         Map<String, Object> parameters = getBaseParameters();
@@ -268,8 +270,8 @@ public abstract class AbstractProjectPullResource extends Resource {
     }
 
     private static DiffBlameModel getDiffBlameModelForPull(PullRequest pullRequest, Repository repository) throws GitClientException {
-        String destinationId = pullRequest.getDestination();
-        String mergeBaseId = pullRequest.getMergeBase();
+        String destinationId = pullRequest.getDestination().getCommitId();
+        String mergeBaseId = pullRequest.getMergeBase().getCommitId();
         return repository.retrieveCommit(destinationId).diffBlame(mergeBaseId);
     }
 

@@ -5,7 +5,7 @@
 [/#macro]
 
 [#macro buildLabel delivery group builds]
-    [#assign commitId = delivery.getCommitId()!]
+    [#assign commitId = delivery.getCommit().getCommitId()!]
     [#if commitId?? && commitId?has_content]
     [#assign buildResult = builds[commitId]![]]
         [#if buildResult?? && buildResult?has_content && buildResult.hasFinished()]

@@ -23,7 +23,7 @@
                 <tbody>
                 [#if openPullRequests?? && openPullRequests?has_content]
                     [#list openPullRequests as pullRequest]
-                        [#assign commit = repository.retrieveCommit(pullRequest.destination)]
+                        [#assign commit = repository.retrieveCommit(pullRequest.destination.commitId)]
                         [#assign buildResult = builds[commit.commit]![]]
                         [@commitRow.render group buildResult pullRequest.destination "${pullRequest.getURI()}"]
                             <span class="pull-right">
@@ -52,7 +52,7 @@
                 <tbody>
                 [#if closedPullRequests?? && closedPullRequests?has_content]
                     [#list closedPullRequests as pullRequest]
-                        [#assign commit = repository.retrieveCommit(pullRequest.destination)]
+                        [#assign commit = repository.retrieveCommit(pullRequest.destination.commitId)]
                         [#assign buildResult = builds[commit.commit]![]]
                         [@commitRow.render group buildResult commit.getCommit() "${pullRequest.getURI()}"]
                         <span class="pull-right">

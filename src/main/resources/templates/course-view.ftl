@@ -29,7 +29,7 @@
                         </tr>
                     </thead>
                     <tbody>
-        [#assign groups=course.getGroups()]
+        [#--[#assign groups=course.getGroups()]--]
         [#if groups?has_content]
             [#list groups as group]
                             <tr>

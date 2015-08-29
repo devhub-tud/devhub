@@ -8,6 +8,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEnt
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import java.util.Collection;
 import java.util.Map;
@@ -21,7 +22,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class GroupRepository extends RepositoryEntity {
 
-    @OneToOne(mappedBy = "repository", optional = false)
+    @OneToOne(mappedBy = "repository", optional = false, fetch = FetchType.LAZY)
 	@Delegate(types = {Base.class})
     private Group group;
 

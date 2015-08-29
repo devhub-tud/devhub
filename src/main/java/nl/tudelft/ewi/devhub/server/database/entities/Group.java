@@ -16,6 +16,7 @@ import org.hibernate.annotations.Parameter;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
@@ -53,7 +54,7 @@ public class Group implements Comparable<Group>, Serializable, Base {
 
 	@Id
 	@ManyToOne(optional = false)
-	@JoinColumn(name = "course_edition_id")
+	@JoinColumn(name = "course_edition_id", referencedColumnName = "id", nullable = false)
 	private CourseEdition courseEdition;
 
 	@Id
@@ -66,11 +67,11 @@ public class Group implements Comparable<Group>, Serializable, Base {
 	@Column(name = "group_number", nullable = false)
 	private long groupNumber;
 
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "repository_id", referencedColumnName = "id", unique = true)
 	private GroupRepository repository;
 
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(
 		name="group_memberships",
 		joinColumns={

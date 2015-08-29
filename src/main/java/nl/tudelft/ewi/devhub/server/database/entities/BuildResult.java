@@ -52,7 +52,7 @@ public class BuildResult implements Base {
 		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id"),
 		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id")
 	})
-	@OneToOne(optional = false, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@OneToOne(optional = false, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
 	private Commit commit;
 
 	@Column(name = "success")

@@ -45,7 +45,7 @@
 <script>
     $(function() {
         $('#pull-comment-form').submit(function(event) {
-            $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
+            $.post('${repositoryEntity.getURI()}comment', {
                 "link-commit": "${commit.commit}",
                 "content": $('[name="content"]', '#pull-comment-form').val(),
                 "redirect": window.location.pathname

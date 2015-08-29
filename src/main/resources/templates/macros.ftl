@@ -106,7 +106,8 @@
 			<ol class="breadcrumb hidden-xs">
 
                 <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
-                <li><a href="${group.course.getURI()}">${group.course.getCode()} - ${group.course.getName()}</a></li>
+				<li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
+				<li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
 				<li><a href="${group.getURI()}">Group ${group.getGroupNumber()}</a></li>
 	[#if commit.getMessage()?length > 30 ]		
 				<li class="active">${commit.getMessage()?substring(0,30)}...</li>

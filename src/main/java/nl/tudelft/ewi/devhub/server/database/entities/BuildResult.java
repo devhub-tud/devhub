@@ -1,33 +1,32 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import nl.tudelft.ewi.devhub.server.database.Base;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit.CommitId;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.MapsId;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
+import java.net.URI;
 
 @Data
 @Entity
 @Table(name = "build_results")
 @ToString(exclude = "log")
 @EqualsAndHashCode(of = "commit")
-@IdClass(BuildResult.BuildResultId.class)
-public class BuildResult {
+public class BuildResult implements Base {
 
 	public static BuildResult newBuildResult(final Commit commit) {
 		BuildResult result = new BuildResult();
@@ -37,17 +36,19 @@ public class BuildResult {
 		return result;
 	}
 
-	@Data
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class BuildResultId implements Serializable {
+	/*
+	 * Technically it should have been enough to annotate BuildResult#commit with @Id,
+	 * but due to a bug this did not work:
+	  *
+	 *    https://hibernate.atlassian.net/browse/HHH-3993
+	 *
+	 * Using the Commit.CommitId as @EmbeddedId combined with a @MapsId works just fine.
+	 */
+	@EmbeddedId
+	private CommitId commitId;
 
-		private Commit.CommitId commit;
-
-	}
-
-	@Id
-	@JoinColumns({
+	@MapsId
+	@JoinColumns(value = {
 		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id"),
 		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id")
 	})
@@ -88,6 +89,11 @@ public class BuildResult {
 
 	public RepositoryEntity getRepository() {
 		return getCommit().getRepository();
+	}
+
+	@Override
+	public URI getURI() {
+		return getCommit().getURI().resolve("build/");
 	}
 
 }

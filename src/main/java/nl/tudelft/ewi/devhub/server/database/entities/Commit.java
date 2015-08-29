@@ -10,6 +10,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -18,6 +19,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.PrimaryKeyJoinColumns;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -36,6 +39,7 @@ import java.util.List;
 public class Commit implements Event, Base {
 
 	@Data
+	@Embeddable
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class CommitId implements Serializable {
@@ -73,7 +77,11 @@ public class Commit implements Event, Base {
 	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<CommitComment> comments;
 
-	@OneToOne(optional = true, mappedBy = "commit", cascade = CascadeType.REMOVE)
+	@OneToOne(optional = true, cascade = CascadeType.DETACH)
+	@PrimaryKeyJoinColumns({
+		@PrimaryKeyJoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
+		@PrimaryKeyJoinColumn(name = "commit_id", referencedColumnName = "commit_id")
+	})
 	private BuildResult buildResult;
 
 	@Override
@@ -85,4 +93,9 @@ public class Commit implements Event, Base {
 	public URI getURI() {
 		return getRepository().getURI().resolve("commits/" + getCommitId() + "/");
 	}
+
+	public URI getDiffURI() {
+		return getURI().resolve("diff/");
+	}
+
 }

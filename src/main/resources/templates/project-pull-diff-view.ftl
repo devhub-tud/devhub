@@ -10,7 +10,8 @@
 
     <ol class="breadcrumb">
         <li><a href="/courses">${i18n.translate("section.projects")}</a></li>
-        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
+	    <li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
+	    <li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
         <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/pulls">${i18n.translate("section.pull-requests")}</a></li>
         <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
     </ol>

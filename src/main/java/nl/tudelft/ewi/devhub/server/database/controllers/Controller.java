@@ -37,6 +37,12 @@ public class Controller<T> {
 	}
 
 	@Transactional
+	public <V extends T> V refresh(V entity) {
+		entityManager.refresh(entity);
+		return entity;
+	}
+
+	@Transactional
 	public T delete(T entity) {
 		entityManager.remove(entity);
 		entityManager.flush();

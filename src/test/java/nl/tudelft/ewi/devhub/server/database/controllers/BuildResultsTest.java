@@ -16,6 +16,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * Created by Jan-Willem on 8/28/2015.
  */
@@ -48,6 +50,8 @@ public class BuildResultsTest extends PersistedBackendTest {
 	public void testPersistBuildResult() {
 		BuildResult buildResult = BuildResult.newBuildResult(commit);
 		buildResults.persist(buildResult);
+		commits.refresh(commit);
+		assertEquals(commit.getBuildResult(), buildResult);
 	}
 
 }

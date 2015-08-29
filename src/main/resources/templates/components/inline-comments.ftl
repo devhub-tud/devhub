@@ -40,7 +40,7 @@
 
                 if(content) {
 	                var lineData = this.line.data();
-	                $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
+	                $.post('${repositoryEntity.getURI()}comment', {
 		                "link-commit": lineData.linkCommit || "${commit.commit}",
 		                "content": content,
 		                "source-commit": lineData.sourceCommit,

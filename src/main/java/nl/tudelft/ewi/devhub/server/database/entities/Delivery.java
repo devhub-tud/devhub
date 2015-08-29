@@ -110,7 +110,7 @@ public class Delivery implements Event, Base {
 	})
     private Group group;
 
-	@ManyToOne(optional = true)
+	@ManyToOne(optional = true, fetch = FetchType.LAZY)
 	@JoinColumns({
 		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
 		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id")

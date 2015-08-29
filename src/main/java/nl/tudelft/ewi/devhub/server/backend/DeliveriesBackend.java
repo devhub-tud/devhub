@@ -230,8 +230,12 @@ public class DeliveriesBackend {
      * @return statistics for the assignment
      */
     public AssignmentStats getAssignmentStats(Assignment assignment) {
-        List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
-        return new AssignmentStats(deliveries, assignment.getCourseEdition().getGroups());
+        List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+        return getAssignmentStats(assignment, lastDeliveries);
+    }
+
+    public AssignmentStats getAssignmentStats(Assignment assignment, List<Delivery> lastDeliveries) {
+        return new AssignmentStats(lastDeliveries, assignment.getCourseEdition().getGroups());
     }
 
 }

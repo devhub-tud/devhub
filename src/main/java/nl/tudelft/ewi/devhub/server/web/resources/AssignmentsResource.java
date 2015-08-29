@@ -199,7 +199,7 @@ public class AssignmentsResource extends Resource {
 
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
         List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
-        AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment);
+        AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment, lastDeliveries);
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);

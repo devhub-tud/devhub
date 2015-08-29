@@ -18,7 +18,7 @@
                 this.$form =  $('<div class="panel panel-default panel-comment-form">' +
                     '<div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>' +
                     '<div class="panel-body">' +
-                    '<form class="form-horizontal" action="/courses/${group.course.code}/groups/${group.groupNumber}/comment" method="POST">' +
+                    '<form class="form-horizontal" action="${repositoryEntity.getURI()}comment" method="POST">' +
                     '<textarea rows="5" class="form-control" name="content"></textarea>' +
                     '<button type="submit" class="btn btn-primary">${i18n.translate("button.label.comment")}</button>' +
                     '<button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>' +

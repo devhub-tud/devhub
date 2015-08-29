@@ -99,13 +99,12 @@ public class ProjectsBackend {
 	}
 	
 	public void  provisionRepository(Group group, Collection<User> members) throws ApiError {
-		String courseCode = group.getCourse().getCode();
 		String repositoryName = group.getRepository().getRepositoryName();
 		String templateRepositoryUrl = group.getCourse()
 			.getTemplateRepositoryUrl();
 		
 		try {
-			provisionRepository(courseCode, repositoryName, templateRepositoryUrl, members);
+			provisionRepository(group.getCourseEdition(), repositoryName, templateRepositoryUrl, members);
 		}
 		catch (Throwable e) {
 			log.error(e.getMessage(), e);
@@ -115,7 +114,7 @@ public class ProjectsBackend {
 		}
 	}
 
-	private void provisionRepository(String courseCode, String repoName, String templateUrl, Collection<User> members) throws GitClientException {
+	private void provisionRepository(CourseEdition courseEdition, String repoName, String templateUrl, Collection<User> members) throws GitClientException {
 		log.info("Provisioning new Git repository: {}", repoName);
 		nl.tudelft.ewi.git.client.Users gitUsers = client.users();
 
@@ -125,7 +124,7 @@ public class ProjectsBackend {
 			permissions.put(member.getNetId(), Level.READ_WRITE);
 		}
 
-		permissions.put("@" + courseCode.toLowerCase(), Level.ADMIN);
+		permissions.put(gitoliteAssistantGroupName(courseEdition), Level.ADMIN);
 
 		CreateRepositoryModel repoModel = new CreateRepositoryModel();
 		repoModel.setName(repoName);
@@ -135,6 +134,12 @@ public class ProjectsBackend {
 		Repositories repositories = client.repositories();
 		repositories.create(repoModel);
 		log.info("Finished provisioning Git repository: {}", repoName);
+	}
+
+	private String gitoliteAssistantGroupName(CourseEdition courseEdition) {
+		return String.format("@%s-%s",
+			courseEdition.getCourse().getCode(),
+			courseEdition.getCode()).toLowerCase();
 	}
 
 }

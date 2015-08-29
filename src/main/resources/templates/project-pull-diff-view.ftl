@@ -10,10 +10,12 @@
 
     <ol class="breadcrumb">
         <li><a href="/courses">${i18n.translate("section.projects")}</a></li>
+    [#-- <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li> --]
 	    <li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
 	    <li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
-        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/pulls">${i18n.translate("section.pull-requests")}</a></li>
-        <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
+	    <li><a href="${group.getURI()}">Group ${group.getGroupNumber()}</a></li>
+	    <li><a href="${group.getURI()}pulls">${i18n.translate("section.pull-requests")}</a></li>
+      <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
     </ol>
 
 [#assign buildResult = builds[pullRequest.destination]![]]
@@ -37,8 +39,8 @@
 
     <span class="view-picker">
         <div class="btn-group">
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}" class="btn btn-default">${i18n.translate("pull-request.overview")}</a>
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/diff" class="btn btn-default active">${i18n.translate("pull-request.view-diff")}</a>
+            <a href="${pullRequest.getURI()}" class="btn btn-default">${i18n.translate("pull-request.overview")}</a>
+            <a href="${pullRequest.getURI()}diff" class="btn btn-default active">${i18n.translate("pull-request.view-diff")}</a>
         </div>
     </span>
 
@@ -49,7 +51,7 @@
             <ul class="list-unstyled">
             [#list diffViewModel.commits as commit]
                 <li style="line-height:30px;">
-                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/diff">
+                    <a href="${repositoryEntity.getURI()}commits/${commit.commit}/diff">
                         <span class="octicon octicon-git-commit"></span>
                         <span class="label label-default">${commit.getCommit()?substring(0,7)?upper_case }</span>
                         <span>${commit.getMessage()}</span>
@@ -57,11 +59,11 @@
                     [#assign buildResult = builds[commit.commit]![]]
                     [#if buildResult?? && buildResult?has_content && buildResult.hasFinished()]
                     	[#if buildResult.hasSucceeded()]
-		                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${pullRequest.destination}/build">
+		                    <a href="${repositoryEntity.getURI()}commits/${pullRequest.destination}/build">
                                 <span class="octicon octicon-check text-success"></span>
                             </a>
                         [#else]
-                            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${pullRequest.destination}/build">
+                            <a href="${repositoryEntity.getURI()}commits/${pullRequest.destination}/build">
 	                            <span class="octicon octicon-x text-danger"></span>
                             </a>
                         [/#if]
@@ -111,7 +113,7 @@
     <script>
         $(function() {
             $('#pull-comment-form').submit(function(event) {
-                $.post('/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/comment',
+                $.post('${pullRequest.getURI()}comment',
                     $('[name="content"]', '#pull-comment-form').val()).done(function(res) {
                         // Add comment block
                         $('<div class="panel panel-default panel-comment">' +

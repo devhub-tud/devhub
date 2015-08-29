@@ -43,7 +43,7 @@ public class PullRequest extends AbstractIssue {
 	@Column(name="behind")
 	private Integer behind;
 
-	@OrderBy("time ASC")
+	@OrderBy("timestamp ASC")
 	@OneToMany(mappedBy = "pullRequest", fetch = FetchType.LAZY)
 	private List<PullRequestComment> comments;
 

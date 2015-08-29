@@ -5,13 +5,13 @@
             [#if buildResult.hasFinished()]
                 [#if buildResult.hasSucceeded()]
                 <td class="commit succeeded" id="${commitId}">
-                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
+                    <a href="${buildResult.getURI()}">
                         <span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("build.state.succeeded")}"></span>
                     </a>
                     [#if href?? && href?has_content]<a href="${href}">[/#if]
                 [#else]
                 <td class="commit failed" id="${commitId}">
-                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commitId}/build">
+                    <a href="${buildResult.getURI()}">
                         <span class="state glyphicon glyphicon-remove-circle" title="${i18n.translate("build.state.failed")}"></span>
                     </a>
                     [#if href?? && href?has_content]<a href="${href}">[/#if]

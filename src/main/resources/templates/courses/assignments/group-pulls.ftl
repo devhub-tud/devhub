@@ -25,7 +25,7 @@
                     [#list openPullRequests as pullRequest]
                         [#assign commit = repository.retrieveCommit(pullRequest.destination)]
                         [#assign buildResult = builds[commit.commit]![]]
-                        [@commitRow.render group buildResult pullRequest.destination "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
+                        [@commitRow.render group buildResult pullRequest.destination "${pullRequest.getURI()}"]
                             <span class="pull-right">
                                 <span class="text-success octicon octicon-arrow-up"></span>
                                 <span class="text-muted">${pullRequest.ahead}</span>
@@ -54,7 +54,7 @@
                     [#list closedPullRequests as pullRequest]
                         [#assign commit = repository.retrieveCommit(pullRequest.destination)]
                         [#assign buildResult = builds[commit.commit]![]]
-                        [@commitRow.render group buildResult commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
+                        [@commitRow.render group buildResult commit.getCommit() "${pullRequest.getURI()}"]
                         <span class="pull-right">
                             [#if pullRequest.merged]
                                 <span class="label label-success"><i class="octicon octicon-git-merge"></i> Merged</span>

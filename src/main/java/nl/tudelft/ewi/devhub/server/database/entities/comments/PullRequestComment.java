@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @Entity
-@ToString(exclude="pullRequest")
+@ToString(exclude="pullRequest", callSuper = true)
 @Table(name = "pull_request_comments")
 @EqualsAndHashCode(callSuper = true)
 public class PullRequestComment extends Comment  {

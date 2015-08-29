@@ -25,7 +25,7 @@ public class Resource {
 	}
 
 	@SneakyThrows
-	String encode(String value) {
+	static String encode(String value) {
 		return URLEncoder.encode(value, "UTF-8");
 	}
 	

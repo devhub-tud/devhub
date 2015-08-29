@@ -43,7 +43,7 @@
         <dd>${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</dd>
         [#if delivery.commitId?? && delivery.commitId?has_content]
             <dt>${i18n.translate("assignment.commit")}</dt>
-            <dd><a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/commits/${delivery.commitId}/diff">${delivery.commitId?substring(0, 8)}</a></dd>
+            <dd><a href="${delivery.commit.getDiffURI()}">${delivery.commitId?substring(0, 8)}</a></dd>
         [/#if]
         [#if delivery.getNotes()?? && delivery.getNotes()?has_content]
             <dt>${i18n.translate("delivery.notes")}</dt>
@@ -56,7 +56,7 @@
     <ul class="list-inline">
         [#list attachments as attachment]
             <li>
-                <a class="btn btn-link btn-sm" target="_blank" href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}/attachment/${attachment.getPath()?url('ISO-8859-1')}">
+                <a class="btn btn-link btn-sm" target="_blank" href="${attachment.getURI()}">
                     <span class="glyphicon glyphicon-file aria-hidden="true"></span>
                     ${attachment.getFileName()}
                 </a>

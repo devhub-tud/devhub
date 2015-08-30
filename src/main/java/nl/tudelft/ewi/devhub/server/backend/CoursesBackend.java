@@ -20,11 +20,13 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 
+import javax.ws.rs.NotFoundException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -60,7 +62,7 @@ public class CoursesBackend {
         Collection<IdentifiableModel> admins = getAdmins();
 
         GroupModel groupModel = new GroupModel();
-        groupModel.setName(getGitoliteGroupName(course));
+        groupModel.setName(gitoliteAssistantGroupName(course));
         groupModel.setMembers(admins);
         gitServerClient.groups().ensureExists(groupModel);
 
@@ -105,8 +107,6 @@ public class CoursesBackend {
         Preconditions.checkNotNull(newAssistants);
         checkAdmin();
 
-        GroupModel group = getGitoliteGroup(course);
-        GroupMembers groupMembersApi = gitServerClient.groups().groupMembers(group);
         Set<User> assistants = course.getAssistants();
 
         Set<User> toBeAdded = Sets.newHashSet();
@@ -114,13 +114,27 @@ public class CoursesBackend {
 
         retain(assistants, newAssistants, toBeAdded, toBeRemoved);
 
-        courses.merge(course);
-        // Apply changes only to Git config after DB merge
-        for(User user : toBeAdded)
-            groupMembersApi.removeMember(retrieveUser(user));
-        for(User user : toBeRemoved)
-            groupMembersApi.addMember(retrieveUser(user));
 
+        try {
+            GroupModel group = getGitoliteGroup(course);
+            GroupMembers groupMembersApi = gitServerClient.groups().groupMembers(group);
+            // Apply changes only to Git config after DB merge
+            for(User user : toBeAdded)
+                groupMembersApi.addMember(retrieveUser(user));
+            for(User user : toBeRemoved)
+                groupMembersApi.removeMember(retrieveUser(user));
+        }
+        catch (NotFoundException e) {
+            GroupModel group = new GroupModel();
+            group.setName(gitoliteAssistantGroupName(course));
+            group.setMembers(Stream.concat(assistants.stream(), users.listAdministrators().stream())
+               .distinct()
+               .map(this::retrieveUser)
+               .collect(Collectors.toList()));
+            gitServerClient.groups().create(group);
+        }
+
+        courses.merge(course);
         log.info("{} set the assistants for {} to {}", currentUser, course, assistants);
     }
 
@@ -158,12 +172,14 @@ public class CoursesBackend {
         return gitServerClient.users().ensureExists(user.getNetId());
     }
 
-    private String getGitoliteGroupName(CourseEdition course) {
-        return "@" + course.getCode().toLowerCase();
+    private String gitoliteAssistantGroupName(CourseEdition courseEdition) {
+        return String.format("@%s-%s",
+           courseEdition.getCourse().getCode(),
+           courseEdition.getCode()).toLowerCase();
     }
 
     private GroupModel getGitoliteGroup(CourseEdition course) throws GitClientException {
-        String groupName = getGitoliteGroupName(course);
+        String groupName = gitoliteAssistantGroupName(course);
         return gitServerClient.groups().retrieve(groupName);
     }
 

@@ -72,6 +72,8 @@ public class CourseAssistantsResource extends Resource {
                                          @QueryParam("error") String error,
                                          @QueryParam("step") Integer step) throws IOException {
 
+        CourseEdition courseEdition = courses.find(courseCode, editionCode);
+
         if(!currentUser.isAdmin()) {
             throw new UnauthorizedException();
         }
@@ -84,12 +86,12 @@ public class CourseAssistantsResource extends Resource {
                 return showCourseAssistantsPageStep2(request, courseCode, editionCode, error);
             }
         }
-        return redirect("/courses/" + courseCode + "/assistants?step=1");
+        return redirect(courseEdition.getURI().resolve("assistants?step=1"));
     }
 
     private Response showCourseAssistantsPageStep1(@Context HttpServletRequest request,
                                                    @PathParam("courseCode") String courseCode,
-												   @PathParam("editionCode") String editionCode,
+                                                   @PathParam("editionCode") String editionCode,
                                                    @QueryParam("error") String error) throws IOException {
 
 
@@ -123,7 +125,7 @@ public class CourseAssistantsResource extends Resource {
     @SuppressWarnings("unchecked")
     private Response showCourseAssistantsPageStep2(@Context HttpServletRequest request,
                                                    @PathParam("courseCode") String courseCode,
-												   @PathParam("editionCode") String editionCode,
+                                                   @PathParam("editionCode") String editionCode,
                                                    @QueryParam("error") String error) throws IOException {
 
         HttpSession session = request.getSession();
@@ -160,14 +162,14 @@ public class CourseAssistantsResource extends Resource {
         if (step == 1) {
             Collection<User> courseAssistants = getCourseAssistants(request);
             session.setAttribute("courses.course.assistants", courseAssistants);
-            return redirect("/courses/" + courseCode + "/assistants?step=2");
+            return redirect(course.getURI().resolve("assistants?step=2"));
         }
 
         Collection<User> courseAssistants = (Collection<User>) session.getAttribute("courses.course.assistants");
         coursesBackend.setAssistants(course, courseAssistants);
 
         session.removeAttribute("courses.course.assistants");
-        return redirect("/courses/" + courseCode);
+        return redirect(course.getURI());
     }
 
     private Collection<User> getCourseAssistants(HttpServletRequest request) {

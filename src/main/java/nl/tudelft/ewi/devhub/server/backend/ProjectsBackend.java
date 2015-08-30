@@ -12,6 +12,7 @@ import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
+import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 
 import com.google.common.base.Preconditions;
@@ -25,7 +26,9 @@ import com.google.inject.persist.Transactional;
 
 import org.hibernate.exception.ConstraintViolationException;
 
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceException;
+import javax.ws.rs.NotFoundException;
 import java.util.Collection;
 
 @Slf4j
@@ -124,7 +127,14 @@ public class ProjectsBackend {
 			permissions.put(member.getNetId(), Level.READ_WRITE);
 		}
 
-		permissions.put(gitoliteAssistantGroupName(courseEdition), Level.ADMIN);
+		String groupName = gitoliteAssistantGroupName(courseEdition);
+		try {
+			client.groups().retrieve(groupName);
+			permissions.put(groupName, Level.ADMIN);
+		}
+		catch (NotFoundException e) {
+			log.warn("Expected group {} to be available on the git server!", groupName);
+		}
 
 		CreateRepositoryModel repoModel = new CreateRepositoryModel();
 		repoModel.setName(repoName);

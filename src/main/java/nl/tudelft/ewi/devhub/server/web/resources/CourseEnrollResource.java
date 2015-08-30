@@ -68,9 +68,11 @@ public class CourseEnrollResource extends Resource {
     @Transactional
     public Response showProjectSetupPage(@Context HttpServletRequest request,
                                          @PathParam("courseCode") String courseCode,
-										 @PathParam("editionCode") String editionCode,
+                                         @PathParam("editionCode") String editionCode,
                                          @QueryParam("error") String error,
                                          @QueryParam("step") Integer step) throws IOException {
+
+        CourseEdition courseEdition = courses.find(courseCode, editionCode);
 
         if (step != null) {
             if (step == 1) {
@@ -80,12 +82,12 @@ public class CourseEnrollResource extends Resource {
                 return showProjectSetupPageStep2(request, courseCode, editionCode, error);
             }
         }
-        return redirect("/courses/" + courseCode + "/enroll?step=1");
+        return redirect(courseEdition.getURI().resolve("enroll?step=1"));
     }
 
     private Response showProjectSetupPageStep1(@Context HttpServletRequest request,
                                                @PathParam("courseCode") String courseCode,
-											   @PathParam("editionCode") String editionCode,
+                                               @PathParam("editionCode") String editionCode,
                                                @QueryParam("error") String error) throws IOException {
 
         HttpSession session = request.getSession();
@@ -132,6 +134,7 @@ public class CourseEnrollResource extends Resource {
         parameters.put("user", currentUser);
         parameters.put("course", course);
         parameters.put("members", members);
+
         if (!Strings.isNullOrEmpty(error)) {
             parameters.put("error", error);
         }
@@ -157,20 +160,20 @@ public class CourseEnrollResource extends Resource {
             int minGroupSize = getMinGroupSize(course);
 
             if (!groupMembers.contains(currentUser) && !currentUser.isAdmin() && !currentUser.isAssisting(course)) {
-                return redirect("/courses/" + courseCode + "/enroll?step=2&error=error.must-be-group-member");
+                return redirect(course.getURI().resolve("enroll?step=1&error=error.must-be-group-member"));
             }
             if (groupMembers.size() < minGroupSize || groupMembers.size() > maxGroupSize) {
-                return redirect("/courses/" + courseCode + "/enroll?step=2&error=error.invalid-group-size");
+                return redirect(course.getURI().resolve("enroll?step=1&error=error.invalid-group-size"));
             }
 
             for (User user : groupMembers) {
                 if (user.isParticipatingInCourse(course)) {
-                    return redirect("/courses/" + courseCode + "/enroll?step=2&error=error.already-registered-for-course");
+                    return redirect(course.getURI().resolve("enroll?step=1&error=error.already-registered-for-course"));
                 }
             }
 
             session.setAttribute("projects.setup.members", groupMembers);
-            return redirect("/courses/" + courseCode + "/enroll?step=2");
+            return redirect(course.getURI().resolve("enroll?step=2"));
         }
 
         try {
@@ -179,11 +182,11 @@ public class CourseEnrollResource extends Resource {
 
             session.removeAttribute("projects.setup.course");
             session.removeAttribute("projects.setup.members");
-            return redirect("/courses/" + courseCode);
+            return redirect(course.getURI());
         }
         catch (ApiError e) {
             String error = UrlEncoded.encodeString(e.getResourceKey());
-            return redirect("/courses/" + courseCode + "/enroll?step=2&error=" + error);
+            return redirect(course.getURI().resolve("enroll?step=2&error=" + error));
         }
     }
 

@@ -18,7 +18,7 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     ${i18n.translate("course.control.groups")}
-                    <a href="${course.getURI()}/enroll" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}enroll" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
@@ -50,7 +50,7 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     ${i18n.translate("course.control.assignments")}
-                    <a href="${course.getURI()}/assignments/create" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}assignments/create" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
@@ -103,7 +103,7 @@
                 <div class="panel-heading">
                 ${i18n.translate("course.control.assistants")}
         [#if user.isAdmin() ]
-                    <a href="${course.getURI()}/assistants" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}assistants" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                     </a>
         [/#if]
@@ -143,7 +143,7 @@
                 <div class="panel-heading">
                     ${i18n.translate("course.control.details")}
     [#if user.isAdmin()]
-                    <a href="${course.getURI()}/edit" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}edit" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
     [/#if]

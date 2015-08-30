@@ -140,7 +140,7 @@ public class AssignmentsResource extends Resource {
         }
 
         if(assignmentsDAO.exists(course, assignmentId)) {
-            return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-number-exists");
+            return redirect(course.getURI().resolve("assignments/create?error=error.assignment-number-exists"));
         }
 
         Assignment assignment = new Assignment();
@@ -155,7 +155,7 @@ public class AssignmentsResource extends Resource {
                 assignment.setDueDate(simpleDateFormat.parse(dueDate));
             }
             catch (ParseException e) {
-                return redirect("/courses/" + courseCode + "/assignments/create?error=error.invalid-date-format");
+                return redirect(course.getURI().resolve("assignments/create?error=error.invalid-date-format"));
             }
         }
 
@@ -165,15 +165,15 @@ public class AssignmentsResource extends Resource {
         catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
             if(violations.isEmpty()) {
-                return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-create-error");
+                return redirect(course.getURI().resolve("assignments/create?error=error.assignment-create-error"));
             }
-            return redirect("/courses/" + courseCode + "/assignments/create?error=" + violations.iterator().next().getMessage());
+            return redirect(course.getURI().resolve("assignments/create?error=" + violations.iterator().next().getMessage()));
         }
         catch (Exception e) {
-            return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-create-error");
+            return redirect(course.getURI().resolve("assignments/create?error=error.assignment-create-error"));
         }
 
-        return redirect("/courses/" + courseCode);
+        return redirect(course.getURI());
     }
 
     /**
@@ -331,7 +331,7 @@ public class AssignmentsResource extends Resource {
                 assignment.setDueDate(simpleDateFormat.parse(dueDate));
             }
             catch (ParseException e) {
-                return redirect("/courses/" + courseCode + "/assignments/create?error=error.invalid-date-format");
+                return redirect(course.getURI().resolve("assignments/create?error=error.invalid-date-format"));
             }
         }
         else {
@@ -344,15 +344,15 @@ public class AssignmentsResource extends Resource {
         catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
             if(violations.isEmpty()) {
-                return redirect("/courses/" + courseCode + "/assignments/\" + assignmentId + \"/edit?error=error.assignment-create-error");
+                return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=error.assignment-create-error"));
             }
-            return redirect("/courses/" + courseCode + "/assignments/" + assignmentId + "/edit?error=" + violations.iterator().next().getMessage());
+            return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=" + violations.iterator().next().getMessage()));
         }
         catch (Exception e) {
-            return redirect("/courses/" + courseCode + "/assignments/" + assignmentId + "/edit?error=error.assignment-create-error");
+            return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=error.assignment-create-error"));
         }
 
-        return redirect("/courses/" + courseCode);
+        return redirect(course.getURI());
     }
 
 }

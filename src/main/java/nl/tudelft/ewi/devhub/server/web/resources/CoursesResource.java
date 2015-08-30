@@ -25,6 +25,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -80,6 +81,14 @@ public class CoursesResource extends Resource {
         parameters.put("courses", courseEditions);
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses.ftl", locales, parameters));
+    }
+
+    @GET
+    @Path("{courseCode}")
+    public Response getCourse(@PathParam("courseCode") String courseCode) {
+        Course course = courses.find(courseCode);
+        CourseEdition courseEdition = courseEditions.getActiveCourseEdition(course);
+        return redirect(courseEdition.getURI());
     }
 
     /**

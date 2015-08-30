@@ -49,7 +49,7 @@
 [#macro renderFileTreeExplorer group commit repository path entries]
 	<div class="diff box">
 		<div class="header">
-			<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
+			<h5>[@macros.renderTreeBreadcrumb group![] commit repository path /]</h5>
 		</div>
 		[#if entries?? && entries?has_content]
 			<div class="scrollable">
@@ -92,7 +92,7 @@
 
 [#macro renderTreeBreadcrumb group commit repository path]
 	[#assign pathParts=path?split("/")]
-	<a href="${repositoryEntity.getURI()}commits/${commit.commit}/tree">group-${group.groupNumber}</a> /
+	<a href="${repositoryEntity.getURI()}commits/${commit.commit}/tree">${repositoryEntity.getRepositoryName()}</a> /
 	[#list pathParts as pathPart]
 		[#if pathPart_has_next]
 					<a href="${repositoryEntity.getURI()}commits/${commit.commit}/tree/[#list 0..pathPart_index as i]${pathParts[i]}[#if i_has_next]/[/#if][/#list]">${pathPart}</a> /
@@ -103,6 +103,7 @@
 [/#macro]
 
 [#macro renderCommitHeader i18n group commit currentView]
+	[#if group?? && group?has_content]
 			<ol class="breadcrumb hidden-xs">
 
                 <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
@@ -115,6 +116,7 @@
 				<li class="active">${commit.getMessage()}</li>
 	[/#if]
 			</ol>
+	[/#if]
 
 	[#if buildResult?? && buildResult?has_content]
 		[#if buildResult.hasFinished()]

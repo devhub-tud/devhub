@@ -6,13 +6,13 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n group commit i18n.translate("commit.view-files") /]
+[@macros.renderCommitHeader i18n group![] commit i18n.translate("commit.view-files") /]
 			<div class="diff box">
 				<div class="header">
 				  	<span class="pull-right hidden-xs buttons">
-						<a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${path?url('UTF8')}" class="btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
+						<a href="${repositoryEntity.getURI()}commits/${commit.commit}/raw/${path?url('UTF8')}" class="btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> Download</a>
 					</span>
-					<h5>[@macros.renderTreeBreadcrumb group commit repository path /]</h5>
+					<h5>[@macros.renderTreeBreadcrumb group![] commit repository path /]</h5>
 				</div>
 			[#if contents?? && contents?has_content]
 				<div class="scrollable">
@@ -76,5 +76,5 @@
 		});
 	</script>
 
-[@inlineComments.renderScripts group i18n commit/]
+[@inlineComments.renderScripts group![] i18n commit/]
 [@macros.renderFooter /]

@@ -14,7 +14,9 @@
 [@macros.renderMenu i18n user /]
 <div class="container">
 
+[#if group?? && group?has_content]
 [@projectFrameset.renderBreadcrumb i18n group/]
+[/#if]
 
 [#if branch?? && branch.isAhead() ]
     <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
@@ -72,7 +74,7 @@
 
     <div class="row">
         <div class="col-md-2">
-        [@projectFrameset.renderSidemenu "commits" i18n group repository/]
+        [@projectFrameset.renderSidemenu "commits" i18n group![] repository/]
         </div>
         <div class="col-md-10">
 
@@ -82,7 +84,7 @@
                     [#if commits?? && commits?has_content]
                         [#list commits.commits as commit]
                             [#assign buildResult = builds[commit.commit]![]]
-                            [@commitRow.render group buildResult commit.commit "${repositoryEntity.getURI()}commits/${commit.commit}/diff"]
+                            [@commitRow.render group![] buildResult commit.commit "${repositoryEntity.getURI()}commits/${commit.commit}/diff"]
                                 <span class="pull-right">
                                   [#if comments??]
                                       [#assign numComments = comments[commit.commit]!0]

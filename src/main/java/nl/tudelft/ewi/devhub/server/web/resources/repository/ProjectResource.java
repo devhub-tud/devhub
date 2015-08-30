@@ -53,6 +53,7 @@ public class ProjectResource extends AbstractProjectResource {
 	protected Map<String, Object> getBaseParameters() {
 		Map<String, Object> params = super.getBaseParameters();
 		params.put("group", group);
+		params.put("courseEdition", group.getCourseEdition());
 		return params;
 	}
 

@@ -52,7 +52,7 @@ public class ProjectPullResource extends AbstractProjectPullResource {
 	protected Map<String, Object> getBaseParameters() {
 		Map<String, Object> params = super.getBaseParameters();
 		params.put("group", group);
-		params.put("course", group.getCourseEdition());
+		params.put("courseEdition", group.getCourseEdition());
 		return params;
 	}
 

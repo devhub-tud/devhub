@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
+import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -30,6 +31,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -101,7 +103,8 @@ public class Bootstrapper {
 	}
 	
 	private final Users users;
-	private final CourseEditions courses;
+	private final Courses courses;
+	private final CourseEditions courseEditions;
 	private final Groups groups;
 	private final MockedAuthenticationBackend authBackend;
 	private final ObjectMapper mapper;
@@ -111,20 +114,21 @@ public class Bootstrapper {
     private final Assignments assignments;
 
 	@Inject
-	Bootstrapper(Users users, CourseEditions courses, Groups groups,
+	Bootstrapper(Users users, Courses courses, CourseEditions courseEditions, Groups groups,
 			MockedAuthenticationBackend authBackend, ObjectMapper mapper,
 			GitServerClient gitClient, ProjectsBackend projects, Assignments assignments,
 			Deliveries deliveries) {
 		
 		this.users = users;
 		this.courses = courses;
+		this.courseEditions = courseEditions;
 		this.groups = groups;
 		this.authBackend = authBackend;
 		this.mapper = mapper;
 		this.gitClient = gitClient;
 		this.projects = projects;
-        this.assignments = assignments;
-        this.deliveries = deliveries;
+		this.assignments = assignments;
+		this.deliveries = deliveries;
 	}
 	
 	@Transactional
@@ -147,19 +151,21 @@ public class Bootstrapper {
 		}
 		
 		for (BCourse course : state.getCourses()) {
+			Course courseEntity;
 			CourseEdition entity;
 
 			try {
-				entity = courses.find(course.getCode(), "1415");
-				log.debug("CourseEdition already existing in database: " + entity.getCode());
+				courseEntity = courses.find(course.getCode());
+				entity = courseEditions.getActiveCourseEdition(courseEntity);
+				log.debug("CourseEdition already existing in database: {}", entity);
 			}
-			catch (Exception e) {
-				entity = new CourseEdition();
-				Course courseEntity = new Course();
+			catch (EntityNotFoundException e) {
+				courseEntity = new Course();
 				courseEntity.setCode(course.getCode().toLowerCase());
 				courseEntity.setName(course.getName());
-				entity.setCourse(courseEntity);
 
+				entity = new CourseEdition();
+				entity.setCourse(courseEntity);
 				entity.setTemplateRepositoryUrl(course.getTemplateRepositoryUrl());
 				entity.setTimeSpan(new TimeSpan(
 					course.isStarted() ? new Date() : null,
@@ -168,7 +174,7 @@ public class Bootstrapper {
 				entity.setMinGroupSize(course.getMinGroupSize());
 				entity.setMaxGroupSize(course.getMaxGroupSize());
 				entity.setAssistants(Sets.newHashSet());
-				courses.persist(entity);
+				courseEditions.persist(entity);
 
 				log.debug("Persisted course: " + entity.getCode());
 			}
@@ -194,7 +200,7 @@ public class Bootstrapper {
 			for (String assistantNetId : course.getAssistants()) {
 				User assistantUser = userMapping.get(assistantNetId);
 				entity.getAssistants().add(assistantUser);
-				courses.merge(entity);
+				courseEditions.merge(entity);
 				
 				UserModel userModel = gitClient.users()
 						.ensureExists(assistantNetId);

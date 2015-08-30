@@ -11,7 +11,7 @@
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
         [#if user.isAdmin() || user.isAssisting(course)]
-            <a href="/courses/${course.code}/assignments/${assignment.assignmentId}" class="btn btn-default pull-right">
+            <a href="${course.getURI()}assignments/${assignment.assignmentId}" class="btn btn-default pull-right">
                 <span class="glyphicon glyphicon-chevron-left"></span>
                 ${i18n.translate("assignment.go-back-to-assignment")}
             </a>

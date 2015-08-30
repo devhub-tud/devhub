@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -146,7 +147,8 @@ public class ProjectsBackend {
 		log.info("Finished provisioning Git repository: {}", repoName);
 	}
 
-	private String gitoliteAssistantGroupName(CourseEdition courseEdition) {
+	@VisibleForTesting
+	String gitoliteAssistantGroupName(CourseEdition courseEdition) {
 		return String.format("@%s-%s",
 			courseEdition.getCourse().getCode(),
 			courseEdition.getCode()).toLowerCase();

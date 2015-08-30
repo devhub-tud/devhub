@@ -6,7 +6,9 @@
 [@macros.renderMenu i18n user /]
 <div class="container">
 
-    [@projectFrameset.renderBreadcrumb i18n group/]
+  [#if group?? && group?has_content]
+      [@projectFrameset.renderBreadcrumb i18n group/]
+  [/#if]
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
@@ -16,7 +18,7 @@
 
     <div class="row">
         <div class="col-md-2">
-            [@projectFrameset.renderSidemenu "pull-requests" i18n group repository/]
+            [@projectFrameset.renderSidemenu "pull-requests" i18n group![] repository/]
         </div>
         <div class="col-md-10">
             <table class="table table-bordered">
@@ -24,8 +26,8 @@
                 [#if openPullRequests?? && openPullRequests?has_content]
                     [#list openPullRequests as pullRequest]
                         [#assign commit = repository.retrieveCommit(pullRequest.destination.commitId)]
-                        [#assign buildResult = builds[commit.commit]![]]
-                        [@commitRow.render group buildResult pullRequest.destination "${pullRequest.getURI()}"]
+                        [#assign buildResult = pullRequest.destination.getBuildResult()]
+                        [@commitRow.render group![] buildResult pullRequest.destination "${pullRequest.getURI()}"]
                             <span class="pull-right">
                                 <span class="text-success octicon octicon-arrow-up"></span>
                                 <span class="text-muted">${pullRequest.ahead}</span>
@@ -53,8 +55,8 @@
                 [#if closedPullRequests?? && closedPullRequests?has_content]
                     [#list closedPullRequests as pullRequest]
                         [#assign commit = repository.retrieveCommit(pullRequest.destination.commitId)]
-                        [#assign buildResult = builds[commit.commit]![]]
-                        [@commitRow.render group buildResult commit.getCommit() "${pullRequest.getURI()}"]
+                        [#assign buildResult = pullRequest.destination.getBuildResult()]
+                        [@commitRow.render group![] buildResult commit.getCommit() "${pullRequest.getURI()}"]
                         <span class="pull-right">
                             [#if pullRequest.merged]
                                 <span class="label label-success"><i class="octicon octicon-git-merge"></i> Merged</span>

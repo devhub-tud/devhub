@@ -102,8 +102,7 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 	private void verifyProvisionRepository(Group group) throws GitClientException {
 		Map<String, RepositoryModel.Level> expectedPermissions =
 			ImmutableMap.of(
-				user.getNetId(), RepositoryModel.Level.READ_WRITE,
-				"@" + course.getCode().toLowerCase(), RepositoryModel.Level.ADMIN);
+				user.getNetId(), RepositoryModel.Level.READ_WRITE);
 
 		CreateRepositoryModel expectedRepoModel = new CreateRepositoryModel();
 		expectedRepoModel.setName(group.getRepository().getRepositoryName());

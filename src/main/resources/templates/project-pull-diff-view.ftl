@@ -8,6 +8,7 @@
 [@macros.renderMenu i18n user /]
 <div class="container">
 
+[#if group?? && group?has_content]
     <ol class="breadcrumb">
         <li><a href="/courses">${i18n.translate("section.projects")}</a></li>
     [#-- <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li> --]
@@ -17,6 +18,7 @@
 	    <li><a href="${group.getURI()}pulls">${i18n.translate("section.pull-requests")}</a></li>
       <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
     </ol>
+[/#if]
 
 [#assign buildResult = builds[pullRequest.destination]![]]
 [#if buildResult?? && buildResult?has_content]
@@ -132,5 +134,5 @@
     </script>
 
 [@diffbox.renderScripts/]
-[@inlineComments.renderScripts group i18n commit/]
+[@inlineComments.renderScripts group![] i18n commit/]
 [@macros.renderFooter /]

@@ -20,11 +20,13 @@
                     ${i18n.translate("section.pull-requests")}
                 </a>
             </li>
+    [#if group?? && group?has_content]
             <li role="presentation" [#if currentTab == "assignments"]class="active"[/#if]>
                 <a href="${repositoryEntity.getURI()}assignments">
                     ${i18n.translate("section.assignments")}
                 </a>
             </li>
+    [/#if]
             <li role="presentation" [#if currentTab == "contributors"]class="active"[/#if]>
                 <a href="${repositoryEntity.getURI()}contributors">
                 ${i18n.translate("section.contributors")}

@@ -14,7 +14,9 @@
 [@macros.renderMenu i18n user /]
 <div class="container">
 
+[#if group?? && group?has_content]
 [@projectFrameset.renderBreadcrumb i18n group/]
+[/#if]
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
@@ -24,7 +26,7 @@
 
     <div class="row">
         <div class="col-md-2">
-        [@projectFrameset.renderSidemenu "contributors" i18n group repository/]
+        [@projectFrameset.renderSidemenu "contributors" i18n group![] repository/]
         </div>
         <div class="col-md-10">
             <table class="table table-bordered" id="table-commits">

@@ -75,7 +75,7 @@
                 <tr>
                     <td>
                         ${course.getCode()} - ${course.getName()}
-                        <a href="${course.getURI()}/enroll" class="btn btn-primary pull-right btn-xs">Enroll</a>
+                        <a href="${course.getURI()}enroll" class="btn btn-primary pull-right btn-xs">Enroll</a>
                     </td>
                 </tr>
                 [/#list]

@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 
@@ -85,6 +86,13 @@ public class CourseEditions extends Controller<CourseEdition> {
 		return activeCoursesBaseQuery()
 			.orderBy(courseOrdering())
 			.list(courseEdition);
+	}
+
+	@Transactional
+	public CourseEdition getActiveCourseEdition(Course course) {
+		return ensureNotNull(activeCoursesBaseQuery()
+			.where(courseEdition.course.eq(course))
+			.singleResult(courseEdition), "Could not find active course edition for " + course);
 	}
 
 	@Transactional

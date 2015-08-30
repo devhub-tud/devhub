@@ -153,16 +153,10 @@ public abstract class AbstractProjectPullResource extends Resource {
         List<PullRequest> openPullRequests = pullRequests.findOpenPullRequests(repositoryEntity);
         List<PullRequest> closedPullReqeusts = pullRequests.findClosedPullRequests(repositoryEntity);
 
-        Collection<String> commitIds = Stream.concat(openPullRequests.stream(), closedPullReqeusts.stream())
-            .map(PullRequest::getDestination)
-            .map(nl.tudelft.ewi.devhub.server.database.entities.Commit::getCommitId)
-            .collect(Collectors.toSet());
-
         Map<String, Object> parameters = getBaseParameters();
         parameters.put("repository", repository);
         parameters.put("openPullRequests", openPullRequests);
         parameters.put("closedPullRequests", closedPullReqeusts);
-        parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-pulls.ftl", locales, parameters));
@@ -175,7 +169,7 @@ public abstract class AbstractProjectPullResource extends Resource {
                                    @PathParam("pullId") long pullId)
             throws ApiError, IOException, GitClientException {
 
-		RepositoryEntity repositoryEntity = getRepositoryEntity();
+        RepositoryEntity repositoryEntity = getRepositoryEntity();
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
         pullRequestBackend.updatePullRequest(repository, pullRequest);

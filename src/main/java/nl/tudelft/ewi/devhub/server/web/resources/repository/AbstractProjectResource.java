@@ -292,7 +292,7 @@ public abstract class AbstractProjectResource extends Resource {
 		parameters.put("repository", repository);
 		parameters.put("diffViewModel", diffBlameModel);
 		parameters.put("comments", comments.getCommentsFor(repositoryEntity, commitId));
-		parameters.put("commentChecker", commentBackend.getCommentChecker(Lists.newArrayList(commitId)));
+		parameters.put("commentChecker", commentBackend.getCommentChecker(repositoryEntity, Lists.newArrayList(commitId)));
 
 		try {
 			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));
@@ -424,7 +424,7 @@ public abstract class AbstractProjectResource extends Resource {
 		}
 
 		Set<String> blameCommits = getCommitsForBlame(blame);
-        parameters.put("comments", commentBackend.getCommentChecker(blameCommits));
+        parameters.put("comments", commentBackend.getCommentChecker(repositoryEntity, blameCommits));
 		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, blameCommits);
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 

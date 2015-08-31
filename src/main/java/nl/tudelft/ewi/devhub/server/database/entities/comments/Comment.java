@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.database.entities.comments;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -50,5 +51,7 @@ public abstract class Comment implements Event {
 	@Column(name = "created_date")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date timestamp;
+
+    public abstract RepositoryEntity getRepository();
 
 }

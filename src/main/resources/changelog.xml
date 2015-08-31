@@ -808,4 +808,52 @@
 
 	</changeSet>
 
+	<changeSet id="add_private_repositories" author="Jan-Willem">
+		<addColumn tableName="repository">
+			<column name="owner_id" type="bigint"></column>
+			<column name="repository_title" type="varchar(255)"></column>
+		</addColumn>
+
+		<addForeignKeyConstraint baseTableName="repository" baseColumnNames="owner_id"
+			 constraintName="private_repository_owner"
+			 referencedTableName="users"
+			 referencedColumnNames="id"/>
+
+		<createTable tableName="private_repository_properties">
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="property_key" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="property_value" type="varchar(40)"></column>
+		</createTable>
+
+
+		<addForeignKeyConstraint baseTableName="private_repository_properties" baseColumnNames="repository_id"
+			 constraintName="properties_private_repository"
+			 referencedTableName="repository"
+			 referencedColumnNames="id"/>
+
+		<createTable tableName="private_repository_collaborators">
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="user_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+		</createTable>
+
+		<addForeignKeyConstraint baseTableName="private_repository_collaborators" baseColumnNames="repository_id"
+			 constraintName="collaborators_repository"
+			 referencedTableName="repository"
+			 referencedColumnNames="id"/>
+
+		<addForeignKeyConstraint baseTableName="private_repository_collaborators" baseColumnNames="user_id"
+			 constraintName="private_repository_collaborator"
+			 referencedTableName="users"
+			 referencedColumnNames="id"/>
+
+	</changeSet>
+
 </databaseChangeLog>

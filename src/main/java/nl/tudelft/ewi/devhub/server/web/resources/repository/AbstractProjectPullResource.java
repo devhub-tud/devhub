@@ -250,7 +250,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 
         Map<String, Object> parameters = getBaseParameters();
         parameters.put("commit", commit);
-        parameters.put("commentChecker", commentBackend.getCommentChecker(commitIds));
+        parameters.put("commentChecker", commentBackend.getCommentChecker(repositoryEntity, commitIds));
         parameters.put("pullRequest", pullRequest);
         parameters.put("repository", repository);
         parameters.put("diffViewModel", diffBlameModel);

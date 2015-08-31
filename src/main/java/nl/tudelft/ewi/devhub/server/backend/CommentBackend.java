@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
@@ -30,10 +31,6 @@ public class CommentBackend {
     private User currentUser;
 
     @Inject
-    @Named("current.group")
-    private Group group;
-
-    @Inject
     private CommitComments commentsDAO;
 
     @Inject
@@ -52,11 +49,6 @@ public class CommentBackend {
      */
     public void post(Comment comment) throws UnauthorizedException, ApiError {
         Preconditions.checkNotNull(comment);
-
-        if (!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse())
-        		|| group.getMembers().contains(currentUser))) {
-            throw new UnauthorizedException();
-        }
 
         comment.setUser(currentUser);
 
@@ -77,8 +69,8 @@ public class CommentBackend {
      * 		commits to look for
      * @return a CommitChecker
      */
-    public CommentChecker getCommentChecker(Collection<String> commitIds) {
-        return new CommentChecker(commitIds);
+    public CommentChecker getCommentChecker(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+        return new CommentChecker(repositoryEntity, commitIds);
     }
 
     /**
@@ -88,12 +80,12 @@ public class CommentBackend {
     public class CommentChecker {
 
     	/**
-    	 * All the comments for all commits for the {@link CommentBackend#group}.
+    	 * All the comments for all commits for the {@link RepositoryEntity}.
     	 */
         public final List<CommitComment> comments;
 
-        public CommentChecker(Collection<String> commitIds) {
-            comments = commentsDAO.getInlineCommentsFor(group.getRepository(), commitIds);
+        public CommentChecker(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+            comments = commentsDAO.getInlineCommentsFor(repositoryEntity, commitIds);
         }
 
         /**

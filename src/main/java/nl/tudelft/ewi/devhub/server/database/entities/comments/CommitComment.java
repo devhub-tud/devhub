@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -43,4 +44,8 @@ public class CommitComment extends Comment {
     @Embedded
     private Source source;
 
+	@Override
+	public RepositoryEntity getRepository() {
+		return getCommit().getRepository();
+	}
 }

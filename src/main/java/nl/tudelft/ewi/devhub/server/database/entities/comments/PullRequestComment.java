@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.database.entities.comments;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 
 import javax.persistence.Entity;
@@ -28,4 +29,8 @@ public class PullRequestComment extends Comment  {
 	})
 	private PullRequest pullRequest;
 
+	@Override
+	public RepositoryEntity getRepository() {
+		return getPullRequest().getRepository();
+	}
 }

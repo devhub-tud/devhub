@@ -56,6 +56,7 @@ public class DevhubModule extends ServletModule {
 	protected void configureServlets() {
 		install(new DbModule());
 		install(new JaxrsModule());
+		install(new GitServerClientModule(config));
 		bind(JacksonJaxbXMLProvider.class);
 		requireBinding(ObjectMapper.class);
 
@@ -63,7 +64,6 @@ public class DevhubModule extends ServletModule {
 		bind(TranslatorFactory.class).toInstance(new TranslatorFactory("i18n.devhub"));
 		bind(Config.class).toInstance(config);
 
-		bind(GitServerClient.class).toInstance(new GitServerClientImpl(config.getGitServerHost()));
 		bind(AuthenticationBackend.class).to(AuthenticationBackendImpl.class);
 		bind(AuthenticationProvider.class).to(LdapAuthenticationProvider.class);
 		bind(LdapUserProcessor.class).to(PersistingLdapUserProcessor.class);
@@ -92,11 +92,6 @@ public class DevhubModule extends ServletModule {
 			log.info("Registering resource {}", clasz);
 			bind(clasz);
 		}
-	}
-
-	@Provides
-	public Repositories provideRepositories(final GitServerClient gitServerClient) {
-		return gitServerClient.repositories();
 	}
 	
 	@Provides

@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
@@ -22,6 +23,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Map;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -36,6 +38,12 @@ public class PrivateRepositoryOverview extends Resource {
 	@Inject @Named("current.user") private User currentUser;
 	@Inject private Repositories repositories;
 	@Context private HttpServletRequest request;
+
+	protected Map<String, Object> getBaseParameters() {
+		Map<String, Object> parameters = Maps.newLinkedHashMap();
+		parameters.put("user", currentUser);
+		return parameters;
+	}
 
 	@GET
 	@Transactional

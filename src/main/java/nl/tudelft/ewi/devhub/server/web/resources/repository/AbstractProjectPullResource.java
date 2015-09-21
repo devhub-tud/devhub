@@ -240,7 +240,7 @@ public abstract class AbstractProjectPullResource extends Resource {
                                        @PathParam("pullId") long pullId)
             throws ApiError, IOException, GitClientException {
 
-		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		  RepositoryEntity repositoryEntity = getRepositoryEntity();
         PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
         Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
         pullRequestBackend.updatePullRequest(repository, pullRequest);

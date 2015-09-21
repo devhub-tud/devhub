@@ -28,5 +28,5 @@ public class Resource {
 	static String encode(String value) {
 		return URLEncoder.encode(value, "UTF-8");
 	}
-	
+
 }

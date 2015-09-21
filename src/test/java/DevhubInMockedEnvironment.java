@@ -19,17 +19,17 @@ public class DevhubInMockedEnvironment {
 		final DevhubServer server = new DevhubServer(new AbstractModule() {
 			@Override
 			protected void configure() {
-//				bind(AuthenticationBackend.class).to(MockedAuthenticationBackend.class);
-				bind(AuthenticationProvider.class).to(BasicAuthenticationProvider.class);
+				bind(AuthenticationBackend.class).to(MockedAuthenticationBackend.class);
+//				bind(AuthenticationProvider.class).to(BasicAuthenticationProvider.class);
 
 				bind(MailBackend.class).to(MockedMailBackend.class);
-//				bind(GitServerClient.class).to(GitServerClientMock.class);
-//				bind(GitServerClientMock.class).asEagerSingleton();
+				bind(GitServerClient.class).to(GitServerClientMock.class);
+				bind(GitServerClientMock.class).asEagerSingleton();
 			}
 		});
 		
 		server.startServer();
-//		server.getInstance(Bootstrapper.class).prepare("/simple-environment.json");
+		server.getInstance(Bootstrapper.class).prepare("/simple-environment.json");
 		server.joinThread();
 	}
 

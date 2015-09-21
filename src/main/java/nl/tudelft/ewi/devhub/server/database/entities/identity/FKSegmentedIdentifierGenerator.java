@@ -4,19 +4,16 @@ import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.MappingException;
-import org.hibernate.Session;
-import org.hibernate.TransientObjectException;
 import org.hibernate.cfg.Environment;
 import org.hibernate.cfg.ObjectNameNormalizer;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.engine.internal.ForeignKeys;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jdbc.spi.SqlStatementLogger;
 import org.hibernate.engine.spi.SessionEventListenerManager;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.Configurable;
-import org.hibernate.id.IdentifierGenerationException;
+import org.hibernate.id.ForeignGenerator;
 import org.hibernate.id.IdentifierGeneratorHelper;
 import org.hibernate.id.IntegralDataTypeHolder;
 import org.hibernate.id.PersistentIdentifierGenerator;
@@ -27,10 +24,7 @@ import org.hibernate.id.enhanced.StandardOptimizerDescriptor;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.hibernate.jdbc.AbstractReturningWork;
-import org.hibernate.loader.PropertyPath;
 import org.hibernate.mapping.Table;
-import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
 import java.io.Serializable;
@@ -171,8 +165,6 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 	private Type identifierType;
 	private String tableName;
 	private String valueColumnName;
-	private String entityName;
-	private String propertyName;
 	private long initialValue;
 	private int incrementSize;
 	private String selectQuery;
@@ -182,6 +174,8 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 	private String targetTableName;
 	private String clusterColumn;
 
+	private final ForeignGenerator foreignGenerator = new ForeignGenerator();
+
 	@Override
 	public Object generatorKey() {
 		return tableName;
@@ -189,22 +183,18 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 
 	@Override
 	public void configure(final Type type, final Properties params, final Dialect dialect) throws MappingException {
+		foreignGenerator.configure(type, params, dialect);
+
 		identifierType = type;
 
 		tableName = determineGeneratorTableName(params, dialect);
 		valueColumnName = determineValueColumnName(params, dialect);
-		entityName = params.getProperty(ENTITY_NAME);
-		propertyName = params.getProperty(PROPERTY_PARAM);
 
 		initialValue = determineInitialValue(params);
 		incrementSize = determineIncrementSize(params);
 
 		targetTableName = ConfigurationHelper.getString(PersistentIdentifierGenerator.TABLE, params);
 		clusterColumn = ConfigurationHelper.getString(CLUSER_COLUMN_PARAM, params, DEFAULT_CLUSER_COLUMN);
-
-		if (propertyName == null) {
-			throw new MappingException("param named \"property\" is required for foreign id generation strategy");
-		}
 
 		selectQuery = buildSelectQuery(dialect);
 		updateQuery = buildUpdateQuery();
@@ -310,62 +300,16 @@ public class FKSegmentedIdentifierGenerator implements PersistentIdentifierGener
 		return IdentifierGeneratorHelper.getIntegralDataTypeHolder(identifierType.getReturnedClass());
 	}
 
-	/**
-	 * Retrieve the foreign key value from the related object
-	 * @param sessionImplementor Session implementer
-	 * @param object Object to persist
-	 * @return Id for the object
-	 * @see org.hibernate.id.ForeignGenerator#generate(SessionImplementor, Object)
-	 */
-	protected long retrieveSegmentValue(final SessionImplementor sessionImplementor, final Object object) {
-		Session session = (Session) sessionImplementor;
-
-		final EntityPersister persister = sessionImplementor.getFactory().getEntityPersister(entityName);
-		Object associatedObject = persister.getPropertyValue(object, propertyName);
-		if (associatedObject == null) {
-			throw new IdentifierGenerationException("attempted to assign id from null one-to-one property [" + entityName + "." + propertyName + "]");
-		}
-
-		final EntityType foreignValueSourceType;
-		final Type propertyType = persister.getPropertyType(propertyName);
-		if (propertyType.isEntityType()) {
-			// the normal case
-			foreignValueSourceType = (EntityType) propertyType;
-		}
-		else {
-			// try identifier mapper
-			foreignValueSourceType = (EntityType) persister.getPropertyType(PropertyPath.IDENTIFIER_MAPPER_PROPERTY + "." + propertyName);
-		}
-
-		Serializable id;
-		try {
-			id = ForeignKeys.getEntityIdentifierIfNotUnsaved(
-				foreignValueSourceType.getAssociatedEntityName(),
-				associatedObject,
-				sessionImplementor
-			);
-		}
-		catch (TransientObjectException toe) {
-			id = session.save(foreignValueSourceType.getAssociatedEntityName(), associatedObject);
-			if (session.contains(object)) {
-				throw new IdentifierGenerationException("save associated object first, or disable cascade for inverse association");
-			}
-		}
-
-		return (Long) id;
-	}
-
 	@Override
 	public Serializable generate(final SessionImplementor session, final Object obj) {
-		final long segmentValue;
-		try {
-			segmentValue = retrieveSegmentValue(session, obj);
-		}
-		catch (IdentifierGenerationException e) {
-			//abort the save (the object is already saved by a circular cascade)
+		Serializable segmentValueSerialized = foreignGenerator.generate(session, obj);
+		
+		if(segmentValueSerialized.equals(IdentifierGeneratorHelper.SHORT_CIRCUIT_INDICATOR)) {
 			return IdentifierGeneratorHelper.SHORT_CIRCUIT_INDICATOR;
 		}
-
+		
+		final long segmentValue = (Long) segmentValueSerialized;
+		
 		final SqlStatementLogger statementLogger = session.getFactory().getServiceRegistry()
 			.getService(JdbcServices.class)
 			.getSqlStatementLogger();

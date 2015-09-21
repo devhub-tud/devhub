@@ -188,6 +188,7 @@ public class GroupIdentifierGenerationTest {
 			course.setName(randomString());
 			CourseEdition courseEdition = new CourseEdition();
 			courseEdition.setCourse(course);
+			courseEdition.setCode(randomString().substring(0, 6));
 			courseEdition.setTemplateRepositoryUrl(randomString());
 			courseEdition.setMinGroupSize(1);
 			courseEdition.setMaxGroupSize(8);

@@ -67,6 +67,10 @@ public abstract class AbstractIssue implements Event, Base {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date timestamp;
 
+	@Column(name = "closed_date")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date closed;
+
     /**
      * @return true if the pull request is closed
      */

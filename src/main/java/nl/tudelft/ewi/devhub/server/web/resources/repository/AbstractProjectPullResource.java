@@ -55,6 +55,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -290,6 +291,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
 		pullRequest.setOpen(false);
+		pullRequest.setClosed(new Date());
 		log.debug("Closing pull request {}", pullRequest);
 		pullRequests.merge(pullRequest);
 
@@ -347,6 +349,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		if (response.isSuccess()) {
 			pullRequest.setOpen(false);
 			pullRequest.setMerged(true);
+			pullRequest.setClosed(new Date());
 			pullRequests.merge(pullRequest);
 			// Currently the git server fails to correctly trigger the push hook
 			// Therefore, we invoke the githook manually

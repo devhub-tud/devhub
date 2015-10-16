@@ -631,6 +631,7 @@
 
         <addColumn tableName="pull_requests">
             <column name="created_date" type="datetime"></column>
+			<column name="closed_date" type="timestamp"></column>
         </addColumn>
 
         <addColumn tableName="commit_comment">

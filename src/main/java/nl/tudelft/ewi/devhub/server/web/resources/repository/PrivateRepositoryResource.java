@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
@@ -16,9 +15,8 @@ import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Path;
@@ -40,10 +38,10 @@ public class PrivateRepositoryResource extends AbstractProjectResource {
 	@Inject
 	public PrivateRepositoryResource(TemplateEngine templateEngine, @Named("current.user") User currentUser,
 	                                 CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests,
-	                                 GitServerClient gitClient, BuildsBackend buildBackend, CommitComments comments,
+	                                 RepositoriesApi repositoriesApi, BuildsBackend buildBackend, CommitComments comments,
 	                                 CommentMailer commentMailer, Commits commits, Warnings warnings,
 	                                 PrivateRepositories privateRepositories) {
-		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, gitClient, buildBackend, comments, commentMailer, commits, warnings);
+		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, repositoriesApi, buildBackend, comments, commentMailer, commits, warnings);
 		this.privateRepositories = privateRepositories;
 	}
 

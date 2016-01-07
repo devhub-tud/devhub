@@ -93,17 +93,4 @@ public class PullRequests extends Controller<PullRequest> {
 			.exists();
 	}
 
-	/**
-	 * @param repositoryEntity Group
-	 * @return the next pull request number
-	 */
-	@Transactional
-	public long getNextPullRequestNumber(final RepositoryEntity repositoryEntity) {
-		Long val = query().from(pullRequest)
-			.where(pullRequest.repository.eq(repositoryEntity))
-			.orderBy(pullRequest.issueId.desc())
-			.singleResult(pullRequest.issueId);
-		return val == null ? 1l : val.longValue() + 1;
-	}
-
 }

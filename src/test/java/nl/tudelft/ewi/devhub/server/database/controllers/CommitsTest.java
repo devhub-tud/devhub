@@ -1,7 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import lombok.Getter;
-import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
@@ -9,14 +8,17 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Repository;
 
 import com.google.inject.AbstractModule;
 
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -32,19 +34,25 @@ import static org.junit.Assert.assertNotNull;
 @UseModules({TestDatabaseModule.class, CommitsTest.CommitsTestModule.class})
 public class CommitsTest extends PersistedBackendTest {
 
+	private static RepositoriesApi repositories = Mockito.mock(RepositoriesApi.class);
+	private static RepositoryApi repository = Mockito.mock(RepositoryApi.class);
+	private static  CommitApi commitApi = Mockito.mock(CommitApi.class);
+	private static  DetailedCommitModel commit = Mockito.mock(DetailedCommitModel.class);
+
+	@BeforeClass
+	private static void before() {
+
+		Mockito.when(repositories.getRepository(Mockito.anyString())).thenReturn(repository);
+		Mockito.when(repository.getCommit(Mockito.anyString())).thenReturn(commitApi);
+		Mockito.when(commitApi.get()).thenReturn(commit);
+		Mockito.when(commit.getParents()).thenReturn(new String[] {});
+	}
+
 	public static class CommitsTestModule extends AbstractModule {
 
 		@Override
-		@SneakyThrows
 		protected void configure() {
-			Repositories repositories = Mockito.mock(Repositories.class);
-			Repository repository = Mockito.mock(Repository.class);
-			nl.tudelft.ewi.git.client.Commit commit = Mockito.mock(nl.tudelft.ewi.git.client.Commit.class);
-
-			bind(Repositories.class).toInstance(repositories);
-			Mockito.when(repositories.retrieve(Mockito.anyString())).thenReturn(repository);
-			Mockito.when(repository.retrieveCommit(Mockito.anyString())).thenReturn(commit);
-			Mockito.when(commit.getParents()).thenReturn(new String[] {});
+			bind(RepositoriesApi.class).toInstance(repositories);
 		}
 
 	}

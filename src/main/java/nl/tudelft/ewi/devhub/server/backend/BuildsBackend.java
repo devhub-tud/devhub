@@ -13,14 +13,14 @@ import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Queues;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import com.google.inject.persist.UnitOfWork;
+import nl.tudelft.ewi.git.models.RepositoryModel;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class BuildsBackend {
 
-	private final GitServerClient gitServerClient;
+	private final RepositoriesApi repositoriesApi;
 	private final BuildServers buildServers;
 	private final Provider<BuildSubmitter> submitters;
 	private final ConcurrentLinkedQueue<BuildRequest> buildQueue;
@@ -50,14 +50,14 @@ public class BuildsBackend {
 
 	@Inject
 	BuildsBackend(BuildServers buildServers, Provider<BuildSubmitter> submitters,
-				  BuildResults buildResults, GitServerClient gitServerClient, Config config) {
+				  BuildResults buildResults, RepositoriesApi repositoriesApi, Config config) {
 		this.buildServers = buildServers;
 		this.submitters = submitters;
 		this.buildQueue = Queues.newConcurrentLinkedQueue();
 		this.executor = new ScheduledThreadPoolExecutor(1);
 		this.running = new AtomicBoolean(false);
 		this.buildResults = buildResults;
-		this.gitServerClient = gitServerClient;
+		this.repositoriesApi = repositoriesApi;
 		this.config = config;
 	}
 	
@@ -169,7 +169,7 @@ public class BuildsBackend {
 	@SneakyThrows
 	protected void createBuildRequest(final Commit commit) {
 		RepositoryEntity repositoryEntity = commit.getRepository();
-		Repository repository = gitServerClient.repositories().retrieve(repositoryEntity.getRepositoryName());
+		RepositoryModel repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName()).getRepositoryModel();
 		BuildRequest buildRequest = repositoryEntity.getBuildInstruction().createBuildRequest(config, commit, repository);
 		log.info("Submitting a build for commit: {} of repository: {}", commit, repository);
 		offerBuild(buildRequest);

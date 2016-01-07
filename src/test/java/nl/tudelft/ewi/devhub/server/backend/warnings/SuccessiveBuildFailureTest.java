@@ -5,13 +5,13 @@ import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.SuccessiveBuildFailure;
-import nl.tudelft.ewi.git.client.Commit;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Repository;
 
 import com.google.common.collect.ImmutableMap;
 
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.junit.Before;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.Theories;
@@ -45,10 +45,10 @@ public class SuccessiveBuildFailureTest {
 	@Mock private GroupRepository groupRepository;
 	@Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
     @Mock private Group group;
-    @Mock private Commit commit;
-    @Mock private Repository repository;
-    @Mock private Repositories repositories;
-    @Mock private GitServerClient gitServerClient;
+    @Mock private RepositoriesApi repositories;
+    @Mock private RepositoryApi repository;
+    @Mock private CommitApi commitApi;
+    @Mock private DetailedCommitModel repoCommit;
     @Mock private BuildResults buildResults;
     @InjectMocks private SuccessiveBuildFailureGenerator generator;
 
@@ -63,10 +63,11 @@ public class SuccessiveBuildFailureTest {
         when(commitEntity.getCommitId()).thenReturn(COMMIT_ID);
 		when(commitEntity.getRepository()).thenReturn(groupRepository);
 		when(group.getRepository()).thenReturn(groupRepository);
-        when(gitServerClient.repositories()).thenReturn(repositories);
-        when(repositories.retrieve(anyString())).thenReturn(repository);
-        when(repository.retrieveCommit(COMMIT_ID)).thenReturn(commit);
-        when(commit.getParents()).thenReturn(new String[0]);
+
+        when(repositories.getRepository(anyString())).thenReturn(repository);
+        when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
+        when(commitApi.get()).thenReturn(repoCommit);
+        when(repoCommit.getParents()).thenReturn(new String[0]);
 
         warning = new SuccessiveBuildFailure();
         warning.setCommit(commitEntity);
@@ -125,7 +126,6 @@ public class SuccessiveBuildFailureTest {
      * Commit, parent not failing
      * @param current commit
      * @param parent parent commit
-     * @param parent
      */
     @Theory
     public void testNotSuccessiveBuildFailure(BuildResult current, BuildResult parent) {

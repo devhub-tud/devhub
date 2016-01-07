@@ -11,7 +11,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitClientException;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
@@ -137,7 +136,7 @@ public class CoursesResource extends Resource {
                                 @FormParam("template") String templateRepository,
                                 @FormParam("min") Integer minGroupSize,
                                 @FormParam("max") Integer maxGroupSize,
-                                @FormParam("timeout") Integer buildTimeout) throws GitClientException {
+                                @FormParam("timeout") Integer buildTimeout) {
 
         if(!currentUser.isAdmin()) {
             throw new UnauthorizedException();

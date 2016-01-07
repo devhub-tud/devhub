@@ -13,10 +13,10 @@
         <tbody>
 [#assign administratingCourses = courses.listAdministratingCourses(user)]
     [#if administratingCourses?has_content ]
-        [#list administratingCourses as course ]
+        [#list administratingCourses as courseEdition ]
         <tr>
             <td>
-                <a href="${course.getURI()}">${course.course.code} (${course.code}) - ${course.course.name}</a>
+                <a href="${courseEdition.getURI()}">${courseEdition.getName()}</a>
             </td>
         </tr>
         [/#list]
@@ -55,10 +55,10 @@
         <h2>${i18n.translate("block.assisting-projects.title")}</h2>
         <table class="table table-bordered">
             <tbody>
-                [#list assistingCourses as course ]
+                [#list assistingCourses as courseEdition ]
                 <tr>
                     <td>
-                        <a href="${course.getURI()}">${course.course.code} (${course.code}) - ${course.course.name}</a>
+                        <a href="${courseEdition.getURI()}">${courseEdition.getName()}</a>
                     </td>
                 </tr>
                 [/#list]
@@ -71,11 +71,11 @@
         <h2>Available courses</h2>
         <table class="table table-bordered">
             <tbody>
-                [#list availableCourses as course ]
+                [#list availableCourses as courseEdition ]
                 <tr>
                     <td>
-                        ${course.getCode()} - ${course.getName()}
-                        <a href="${course.getURI()}enroll" class="btn btn-primary pull-right btn-xs">Enroll</a>
+                        ${courseEdition.getName()}
+                        <a href="${courseEdition.getURI()}enroll" class="btn btn-primary pull-right btn-xs">Enroll</a>
                     </td>
                 </tr>
                 [/#list]

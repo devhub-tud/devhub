@@ -25,18 +25,24 @@
                 <tbody>
                 [#if openPullRequests?? && openPullRequests?has_content]
                     [#list openPullRequests as pullRequest]
-                        [#assign commit = repository.retrieveCommit(pullRequest.destination.commitId)]
-                        [#assign buildResult = pullRequest.destination.getBuildResult()]
-                        [@commitRow.render group![] buildResult pullRequest.destination "${pullRequest.getURI()}"]
+                        [#assign commit = pullRequest.destination]
+                        [#assign buildResult = commit.getBuildResult()![]]
+                        [@commitRow.render group![] buildResult![] pullRequest.destination "${pullRequest.getURI()}"]
                             <span class="pull-right">
+                              <div>
                                 <span class="text-success octicon octicon-arrow-up"></span>
                                 <span class="text-muted">${pullRequest.ahead}</span>
                                 <span class="text-danger octicon octicon-arrow-down"></span>
                                 <span class="text-muted">${pullRequest.behind}</span>
+                              </div>
+                                [#assign numComments = pullRequest.comments?size]
+                                [#if numComments > 0]
+                                    <div class="pull-right"><i class="glyphicon glyphicon-comment"></i> ${numComments} </div>
+                                [/#if]
                             </span>
                             <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
-                            <div class="committer">${commit.getMessage()}</div>
-                            <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                            <div class="committer">${pullRequest.destination.author}</div>
+                            <div class="timestamp" data-value="${pullRequest.destination.pushTime?date}">on ${pullRequest.destination.pushTime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
                         [/@commitRow.render]
                     [/#list]
                 [#else]
@@ -54,9 +60,9 @@
                 <tbody>
                 [#if closedPullRequests?? && closedPullRequests?has_content]
                     [#list closedPullRequests as pullRequest]
-                        [#assign commit = repository.retrieveCommit(pullRequest.destination.commitId)]
-                        [#assign buildResult = pullRequest.destination.getBuildResult()]
-                        [@commitRow.render group![] buildResult commit.getCommit() "${pullRequest.getURI()}"]
+                        [#assign commit = pullRequest.destination]
+                        [#assign buildResult = commit.getBuildResult()![]]
+                        [@commitRow.render group![] buildResult![] commit.getCommit() "${pullRequest.getURI()}"]
                         <span class="pull-right">
                             [#if pullRequest.merged]
                                 <span class="label label-success"><i class="octicon octicon-git-merge"></i> Merged</span>
@@ -65,8 +71,8 @@
                             [/#if]
                         </span>
                         <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
-                        <div class="committer">${commit.getMessage()}</div>
-                        <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                        <div class="committer">${pullRequest.destination.author}</div>
+                        <div class="timestamp" data-value="${pullRequest.destination.pushTime?date}">on ${pullRequest.destination.pushTime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
                         [/@commitRow.render]
                     [/#list]
                 [#else]

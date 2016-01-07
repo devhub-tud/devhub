@@ -7,10 +7,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
 
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
@@ -19,6 +15,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlAnnotationIntrospector;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,34 +46,34 @@ public class PMDWarningGeneratorTest {
     private final static String EXPECTED_PATH = "src/test/java/nl/tudelft/jpacman/board/DirectionTest.java";
     private final static String COMMIT_ID = "234345345345";
 
-	@Mock private GroupRepository groupRepository;
+	 @Mock private GroupRepository groupRepository;
     @Mock private Group group;
     @Mock private Commit commit;
     @InjectMocks private PMDWarningGenerator pmdWarningGenerator;
     @Mock private Commits commits;
-    @Mock private GitServerClient gitServerClient;
-    @Mock private Repositories repositories;
-    @Mock private Repository repository;
-    @Mock private nl.tudelft.ewi.git.client.Commit repoCommit;
+    @Mock private RepositoriesApi repositories;
+    @Mock private RepositoryApi repository;
+    @Mock private CommitApi commitApi;
+    @Mock private DetailedCommitModel repoCommit;
     @Mock private BlameModel blameModel;
     @Mock private BlameModel.BlameBlock blameBlock;
 
     @Before
-    public void initializeMocks() throws GitClientException {
+    public void initializeMocks() {
         when(commit.getCommitId()).thenReturn(COMMIT_ID);
         when(commit.getRepository()).thenReturn(groupRepository);
 		when(group.getRepository()).thenReturn(groupRepository);
         when(groupRepository.getRepositoryName()).thenReturn("");
         when(commits.ensureExists(any(), any())).thenReturn(commit);
 
-        when(gitServerClient.repositories()).thenReturn(repositories);
-        when(repositories.retrieve(anyString())).thenReturn(repository);
-        when(repository.retrieveCommit(COMMIT_ID)).thenReturn(repoCommit);
+        when(repositories.getRepository(anyString())).thenReturn(repository);
+        when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
+        when(commitApi.get()).thenReturn(repoCommit);
         blameCurrentCommit();
     }
 
-    public void blameCurrentCommit() throws GitClientException {
-        when(repoCommit.blame(EXPECTED_PATH)).thenReturn(blameModel);
+    public void blameCurrentCommit() {
+        when(commitApi.blame(EXPECTED_PATH)).thenReturn(blameModel);
         when(blameModel.getBlameBlock(anyInt())).thenReturn(blameBlock);
         when(blameBlock.getFromCommitId()).thenReturn(COMMIT_ID);
         when(blameBlock.getFromFilePath()).thenReturn(EXPECTED_PATH);

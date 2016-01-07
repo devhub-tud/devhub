@@ -6,7 +6,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitClientException;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
@@ -106,7 +105,7 @@ public class AccountResource extends Resource {
 	@POST
 	@Path("{netId}/setup")
 	public Response addNewKey(@PathParam("netId") String netId, @FormParam("name") String name,
-			@FormParam("contents") String contents) throws URISyntaxException, GitClientException {
+			@FormParam("contents") String contents) throws URISyntaxException {
 
 		User account = verifyCanAccessPage(netId);
 
@@ -125,7 +124,7 @@ public class AccountResource extends Resource {
 	@POST
 	@Path("{netId}/delete")
 	public Response deleteExistingKey(@PathParam("netId") String netId, @FormParam("name") String name)
-			throws URISyntaxException, GitClientException  {
+			throws URISyntaxException  {
 
 		User account = verifyCanAccessPage(netId);
 

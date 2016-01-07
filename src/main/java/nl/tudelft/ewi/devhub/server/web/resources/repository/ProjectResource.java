@@ -14,10 +14,10 @@ import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitServerClient;
 
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -36,9 +36,9 @@ public class ProjectResource extends AbstractProjectResource {
 	@Inject
 	public ProjectResource(TemplateEngine templateEngine, @Named("current.user") User currentUser,
 						   final @Named("current.group") Group group, CommentBackend commentBackend,
-		   BuildResults buildResults, PullRequests pullRequests, GitServerClient gitClient, BuildsBackend buildBackend,
+		   BuildResults buildResults, PullRequests pullRequests, RepositoriesApi repositoriesApi, BuildsBackend buildBackend,
 						   CommitComments comments, CommentMailer commentMailer, Commits commits, Warnings warnings) {
-		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, gitClient, buildBackend,
+		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, repositoriesApi, buildBackend,
 			comments, commentMailer, commits, warnings);
 		this.group = group;
 	}

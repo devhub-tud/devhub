@@ -8,7 +8,6 @@ import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDViol
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
-import nl.tudelft.ewi.git.client.GitServerClient;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -16,6 +15,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.google.inject.Inject;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -74,8 +74,8 @@ public class PMDWarningGenerator extends AbstractLineWarningGenerator<PMDReport,
 	}
 
 	@Inject
-	public PMDWarningGenerator(final GitServerClient gitServerClient, final Commits commits) {
-		super(gitServerClient, commits);
+	public PMDWarningGenerator(final RepositoriesApi repositoriesApi, final Commits commits) {
+		super(repositoriesApi, commits);
 	}
 
 	@Override

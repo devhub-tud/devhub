@@ -5,12 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Repository;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.persistence.EntityManager;
 import java.util.Date;
@@ -20,10 +20,10 @@ import static nl.tudelft.ewi.devhub.server.database.entities.QCommit.commit;
 @Slf4j
 public class Commits extends Controller<Commit> {
 
-	private final Repositories repositories;
+	private final RepositoriesApi repositories;
 
 	@Inject
-	public Commits(final EntityManager entityManager, final Repositories repositories) {
+	public Commits(final EntityManager entityManager, final RepositoriesApi repositories) {
 		super(entityManager);
 		this.repositories = repositories;
 	}
@@ -55,7 +55,7 @@ public class Commits extends Controller<Commit> {
 		commit.setPushTime(new Date());
 
 		try {
-			final nl.tudelft.ewi.git.client.Commit gitCommit = retrieveCommit(repositoryEntity, commitId);
+			final CommitModel gitCommit = retrieveCommit(repositoryEntity, commitId);
 			commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
 			commit.setAuthor(gitCommit.getAuthor());
 			commit.setMerge(gitCommit.getParents().length > 1);
@@ -68,9 +68,10 @@ public class Commits extends Controller<Commit> {
 	}
 
 	@SneakyThrows
-	protected nl.tudelft.ewi.git.client.Commit retrieveCommit(RepositoryEntity repositoryEntity, String commitId) {
-		Repository repository = repositories.retrieve(repositoryEntity.getRepositoryName());
-		return repository.retrieveCommit(commitId);
+	protected CommitModel retrieveCommit(RepositoryEntity repositoryEntity, String commitId) {
+		return repositories.getRepository(repositoryEntity.getRepositoryName())
+			.getCommit(commitId)
+			.get();
 	}
 
 	/**

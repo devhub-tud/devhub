@@ -16,10 +16,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.RepositoryModel;
 import nl.tudelft.ewi.git.models.TagModel;
 
 import com.google.common.base.Preconditions;
@@ -31,11 +29,14 @@ import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.util.GenericType;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -71,9 +72,9 @@ public class ProjectAssignmentsResource extends Resource {
     private final User currentUser;
     private final BuildResults buildResults;
     private final Group group;
-	private final Commits commits;
+    private final Commits commits;
     private final RepositoryEntity repositoryEntity;
-    private final GitServerClient gitClient;
+    private final RepositoriesApi repositoriesApi;
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
     private final Assignments assignments;
@@ -85,10 +86,10 @@ public class ProjectAssignmentsResource extends Resource {
                                       final @Named("current.group") Group group,
                                       final BuildResults buildResults,
                                       final Deliveries deliveries,
-                                      final GitServerClient gitClient,
+                                      final RepositoriesApi repositoriesApi,
                                       final DeliveriesBackend deliveriesBackend,
                                       final Assignments assignments,
-									  final Commits commits,
+                                      final Commits commits,
                                       final ReviewMailer reviewMailer) {
 
         this.templateEngine = templateEngine;
@@ -97,11 +98,11 @@ public class ProjectAssignmentsResource extends Resource {
         this.currentUser = currentUser;
         this.buildResults = buildResults;
         this.deliveries = deliveries;
-        this.gitClient = gitClient;
+        this.repositoriesApi = repositoriesApi;
         this.deliveriesBackend = deliveriesBackend;
         this.assignments = assignments;
         this.reviewMailer = reviewMailer;
-		this.commits = commits;
+        this.commits = commits;
     }
 
 	protected Map<String, Object> getBaseParameters() {
@@ -122,10 +123,12 @@ public class ProjectAssignmentsResource extends Resource {
      */
     @GET
     @Transactional
-    public Response getAssignmentsOverview(@Context HttpServletRequest request) throws IOException, ApiError, GitClientException {
-        Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
+    public Response getAssignmentsOverview(@Context HttpServletRequest request) throws IOException, ApiError {
+        RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+        RepositoryModel repositoryModel = repositoryApi.getRepositoryModel();
+
         Map<String, Object> parameters = getBaseParameters();
-        parameters.put("repository", repository);
+        parameters.put("repository", repositoryModel);
         parameters.put("deliveries", deliveries);
 
         List<Locale> locales = Collections.list(request.getLocales());
@@ -145,18 +148,19 @@ public class ProjectAssignmentsResource extends Resource {
     @Path("{assignmentId : \\d+}")
     public Response getAssignmentView(@Context HttpServletRequest request,
                                       @PathParam("assignmentId") long assignmentId)
-            throws IOException, ApiError, GitClientException {
+            throws IOException, ApiError {
 
         Assignment assignment = assignments.find(group.getCourse(), assignmentId);
-        Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
+        RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+        RepositoryModel repositoryModel = repositoryApi.getRepositoryModel();
 
         List<Delivery> myDeliveries = deliveries.getDeliveries(assignment, group);
         Map<String, Object> parameters = getBaseParameters();
-        parameters.put("repository", repository);
+        parameters.put("repository", repositoryModel);
         parameters.put("assignment", assignment);
         parameters.put("myDeliveries", myDeliveries);
         parameters.put("canSubmit", !deliveries.lastDeliveryIsApprovedOrDisapproved(assignment, group));
-        parameters.put("recentCommits", repository.retrieveBranch("master").retrieveCommits(0, 25).getCommits());
+        parameters.put("recentCommits", repositoryApi.getBranch("master").retrieveCommitsInBranch(0, 25).getCommits());
 
         Collection<String> commitIds = myDeliveries.stream()
                 .map(Delivery::getCommit)
@@ -184,7 +188,7 @@ public class ProjectAssignmentsResource extends Resource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postAssignment(@Context HttpServletRequest request,
                                    @PathParam("assignmentId") long assignmentId,
-                                   MultipartFormDataInput formData) throws IOException, ApiError, GitClientException {
+                                   MultipartFormDataInput formData) throws IOException, ApiError {
 
         Map<String, List<InputPart>> formDataMap = formData.getFormDataMap();
         String commitId = extractString(formDataMap, "commit-id");
@@ -220,7 +224,7 @@ public class ProjectAssignmentsResource extends Resource {
 
     private void tagAssignmentDelivery(String commitId, Assignment assignment, Delivery delivery) {
         try {
-            Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
+            RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
             CommitModel commitModel = new CommitModel();
             commitModel.setCommit(commitId);
 
@@ -229,9 +233,9 @@ public class ProjectAssignmentsResource extends Resource {
             int deliveryNumber = deliveryNumber(assignment);
             tagModel.setName(String.format("Assignment-%d.%d", assignmentNumber, deliveryNumber));
             tagModel.setCommit(commitModel);
-            repository.tag(tagModel);
+            repositoryApi.addTag(tagModel);
         }
-        catch (GitClientException e) {
+        catch (ClientErrorException e) {
             log.warn("Failed to tag delivery {}", e, delivery);
         }
     }
@@ -297,19 +301,20 @@ public class ProjectAssignmentsResource extends Resource {
     @Path("deliveries/{deliveryId}/review")
     public Response getReviewView(@Context HttpServletRequest request,
                                   @PathParam("deliveryId") Long deliveryId)
-            throws ApiError, IOException, GitClientException {
+            throws ApiError, IOException {
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()))) {
             throw new UnauthorizedException();
         }
 
+        RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
         Delivery delivery = deliveries.find(group, deliveryId);
 
         Map<String, Object> parameters = getBaseParameters();
         parameters.put("delivery", delivery);
         parameters.put("assignment", delivery.getAssignment());
         parameters.put("deliveryStates", Delivery.State.values());
-        parameters.put("repository", gitClient.repositories().retrieve(repositoryEntity.getRepositoryName()));
+        parameters.put("repository", repositoryApi.getRepositoryModel());
 
         List<String> commitIds = delivery.getCommit() != null ?
 			Lists.newArrayList(delivery.getCommit().getCommitId()) : Collections.emptyList();

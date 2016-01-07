@@ -44,13 +44,11 @@ import java.util.List;
 public class LdapAuthenticationProvider implements AuthenticationProvider {
 	
 	private final Config config;
-	private final Provider<Users> userProvider;
 	private final BasicAuthenticationProvider basicAuthenticationProvider;
 	
 	@Inject
-	public LdapAuthenticationProvider(Config config, Provider<Users> userProvider, BasicAuthenticationProvider basicAuthenticationProvider) {
+	public LdapAuthenticationProvider(Config config, BasicAuthenticationProvider basicAuthenticationProvider) {
 		this.config = config;
-		this.userProvider = userProvider;
 		this.basicAuthenticationProvider = basicAuthenticationProvider;
 	}
 

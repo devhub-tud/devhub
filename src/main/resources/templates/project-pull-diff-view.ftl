@@ -47,7 +47,7 @@
     </span>
 
     <div class="headers" style="display: inline-block;">
-        <h2 class="header">${commit.getTitle()}</h2>
+        <h2 class="header">${commit.getMessage()}</h2>
         <h5 class="subheader">${commit.getAuthor()}</h5>
         <div>
             <ul class="list-unstyled">
@@ -74,8 +74,8 @@
             [/#list]
             </ul>
         </div>
-    [#if commit.getMessage()?has_content]
-        <div class="description">${commit.getMessage()}</div>
+    [#if commit.getMessageTail()?has_content]
+        <div class="description">${commit.getMessageTail()}</div>
     [/#if]
     </div>
 </div>

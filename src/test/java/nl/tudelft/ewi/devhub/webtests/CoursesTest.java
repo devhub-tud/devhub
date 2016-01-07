@@ -3,7 +3,6 @@ package nl.tudelft.ewi.devhub.webtests;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.AuthenticatedView;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
-import nl.tudelft.ewi.git.client.GitClientException;
 
 import org.junit.Test;
 
@@ -53,7 +52,7 @@ public class CoursesTest extends WebTest {
 	 * </ol>
 	 */
 	@Test
-	public void testThatICanOpenProject() throws GitClientException {
+	public void testThatICanOpenProject() {
 		ProjectView view = openLoginScreen()
 				.login(NET_ID, PASSWORD)
 				.toCoursesView()

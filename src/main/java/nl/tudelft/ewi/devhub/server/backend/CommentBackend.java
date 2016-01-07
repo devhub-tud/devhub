@@ -2,7 +2,6 @@ package nl.tudelft.ewi.devhub.server.backend;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;

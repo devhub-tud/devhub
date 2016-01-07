@@ -13,10 +13,10 @@ import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.resources.HooksResource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitServerClient;
 
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -35,11 +35,11 @@ public class ProjectPullResource extends AbstractProjectPullResource {
 	public ProjectPullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser,
 				final @Named("current.group") Group group,
 			   CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests,
-			   PullRequestBackend pullRequestBackend, GitServerClient gitClient,
+			   PullRequestBackend pullRequestBackend, RepositoriesApi repositoriesApi,
 			   CommentMailer commentMailer, PullRequestMailer pullRequestMailer,
 			   PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings) {
 		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend,
-			gitClient, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings);
+			repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings);
 		this.group = group;
 	}
 

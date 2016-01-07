@@ -88,10 +88,8 @@ public class Group implements Comparable<Group>, Serializable, Base {
 	private Set<User> members;
 
 	public String getGroupName() {
-		return String.format("%s %s - %s (Group %d)",
-			getCourseEdition().getCourse().getCode(),
-			getCourseEdition().getCode(),
-			getCourseEdition().getCourse().getName(),
+		return String.format("%s (Group %d)",
+			getCourseEdition().getName(),
 			getGroupNumber());
 	}
 

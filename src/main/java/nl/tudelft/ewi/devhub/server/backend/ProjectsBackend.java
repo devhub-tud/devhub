@@ -8,12 +8,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
-import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 
 import com.google.common.base.Preconditions;
@@ -25,9 +20,10 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
+import nl.tudelft.ewi.git.web.api.GroupsApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import org.hibernate.exception.ConstraintViolationException;
 
-import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceException;
 import javax.ws.rs.NotFoundException;
 import java.util.Collection;
@@ -36,17 +32,19 @@ import java.util.Collection;
 @Singleton
 public class ProjectsBackend {
 
-	private static final String ALREADY_REGISTERED_FOR_COURSE = "error.already-registered-for-course";
 	private static final String COULD_NOT_CREATE_GROUP = "error.could-not-create-group";
 	private static final String GIT_SERVER_UNAVAILABLE = "error.git-server-unavailable";
 
 	private final Provider<Groups> groupsProvider;
-	private final GitServerClient client;
+	private final RepositoriesApi repositoriesApi;
+	private final GroupsApi groupsApi;
 
 	@Inject
-	ProjectsBackend(Provider<Groups> groupsProvider, GitServerClient client) {
+	ProjectsBackend(Provider<Groups> groupsProvider, RepositoriesApi repositoriesApi,
+	                GroupsApi groupsApi) {
 		this.groupsProvider = groupsProvider;
-		this.client = client;
+		this.repositoriesApi = repositoriesApi;
+		this.groupsApi = groupsApi;
 	}
 
 	public Group setupProject(CourseEdition course, Collection<User> members) throws ApiError {
@@ -69,10 +67,7 @@ public class ProjectsBackend {
 		try {
 			String repositoryName = group.getRepository().getRepositoryName();
 			log.info("Deleting repository from Git server: {}", repositoryName);
-
-			Repositories repositories = client.repositories();
-			Repository repo = repositories.retrieve(repositoryName);
-			repo.delete();
+			repositoriesApi.getRepository(repositoryName).deleteRepository();
 		}
 		catch (Throwable e) {
 			log.warn(e.getMessage());
@@ -118,19 +113,18 @@ public class ProjectsBackend {
 		}
 	}
 
-	private void provisionRepository(CourseEdition courseEdition, String repoName, String templateUrl, Collection<User> members) throws GitClientException {
+	private void provisionRepository(CourseEdition courseEdition, String repoName, String templateUrl, Collection<User> members) {
 		log.info("Provisioning new Git repository: {}", repoName);
-		nl.tudelft.ewi.git.client.Users gitUsers = client.users();
 
 		Builder<String, Level> permissions = ImmutableMap.<String, Level> builder();
+
 		for (User member : members) {
-			gitUsers.ensureExists(member.getNetId());
 			permissions.put(member.getNetId(), Level.READ_WRITE);
 		}
 
 		String groupName = gitoliteAssistantGroupName(courseEdition);
 		try {
-			client.groups().retrieve(groupName);
+			groupsApi.getGroup(groupName).getGroup();
 			permissions.put(groupName, Level.ADMIN);
 		}
 		catch (NotFoundException e) {
@@ -142,8 +136,7 @@ public class ProjectsBackend {
 		repoModel.setTemplateRepository(templateUrl);
 		repoModel.setPermissions(permissions.build());
 
-		Repositories repositories = client.repositories();
-		repositories.create(repoModel);
+		repositoriesApi.createRepository(repoModel);
 		log.info("Finished provisioning Git repository: {}", repoName);
 	}
 

@@ -134,4 +134,8 @@ public class DevhubServer {
 		return injector.get().getInstance(type);
 	}
 
+	public Injector getInjector() {
+		return injector.get();
+	}
+
 }

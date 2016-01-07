@@ -27,12 +27,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
-import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -102,9 +99,8 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable, B
 	@Column(name="property_value")
 	private Map<String, String> properties;
 
-	@Deprecated
 	public String getName() {
-		return getCourse().getName();
+		return String.format("%s %s - %s", course.getCode(), getCode(), course.getName());
 	}
 
 	/**

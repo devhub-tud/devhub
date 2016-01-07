@@ -101,9 +101,16 @@ public class Config {
 	 * @return return the LDAP port, for example 636
 	 */
 	public int getLDAPPort() {
-		return Integer.parseInt(properties.getProperty("ldap-server.port", " 636"));
+		return Integer.parseInt(properties.getProperty("ldap-server.port", "636"));
 	}
-	
+
+	/**
+	 * @return git server connection pool size
+	 */
+	public int getGitServerConnectionPoolSize() {
+		return Integer.parseInt(properties.getProperty("git-server.connection.pool-size", "25"));
+	}
+
 	/**
 	 * @return whether or not to use SSL for this LDAP connection
 	 */

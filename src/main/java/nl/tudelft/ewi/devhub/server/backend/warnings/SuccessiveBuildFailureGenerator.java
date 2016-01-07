@@ -4,10 +4,10 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.SuccessiveBuildFailure;
-import nl.tudelft.ewi.git.client.GitServerClient;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,8 +27,8 @@ extends AbstractCommitWarningGenerator<SuccessiveBuildFailure, BuildResult> {
     private final BuildResults buildResults;
 
     @Inject
-    public SuccessiveBuildFailureGenerator(GitServerClient gitServerClient, BuildResults buildResults) {
-        super(gitServerClient);
+    public SuccessiveBuildFailureGenerator(RepositoriesApi repositoriesApi, BuildResults buildResults) {
+        super(repositoriesApi);
         this.buildResults = buildResults;
     }
 
@@ -38,7 +38,7 @@ extends AbstractCommitWarningGenerator<SuccessiveBuildFailure, BuildResult> {
             return Collections.emptySet();
         }
 
-        Collection<String> commitIds = Lists.newArrayList(getGitCommit(commit).getParents());
+        Collection<String> commitIds = Lists.newArrayList(getGitCommit(commit).get().getParents());
         Map<?, BuildResult> builds = buildResults.findBuildResults(commit.getRepository(), commitIds);
         return mapToWarnings(commit, builds);
     }

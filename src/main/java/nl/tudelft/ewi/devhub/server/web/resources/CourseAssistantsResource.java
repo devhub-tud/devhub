@@ -7,7 +7,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitClientException;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
@@ -150,7 +149,7 @@ public class CourseAssistantsResource extends Resource {
                                         @PathParam("courseCode") String courseCode,
 										@PathParam("editionCode") String editionCode,
                                         @QueryParam("step") int step)
-            throws IOException, GitClientException {
+            throws IOException {
 
         if(!currentUser.isAdmin()) {
             throw new UnauthorizedException();

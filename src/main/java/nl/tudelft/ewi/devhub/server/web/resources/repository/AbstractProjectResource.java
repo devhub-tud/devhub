@@ -22,12 +22,8 @@ import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.Branch;
-import nl.tudelft.ewi.git.client.Commit;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
+import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.CommitSubList;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
@@ -38,6 +34,10 @@ import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 
+import nl.tudelft.ewi.git.web.api.BranchApi;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
@@ -82,7 +82,7 @@ public abstract class AbstractProjectResource extends Resource {
 	protected final PullRequests pullRequests;
 	protected final CommentBackend commentBackend;
 	protected final BuildsBackend buildBackend;
-	protected final GitServerClient gitClient;
+	protected final RepositoriesApi repositoriesApi;
 	protected final CommitComments comments;
 	protected final CommentMailer commentMailer;
 	protected final Commits commits;
@@ -93,7 +93,7 @@ public abstract class AbstractProjectResource extends Resource {
 							final CommentBackend commentBackend,
 							final BuildResults buildResults,
 							final PullRequests pullRequests,
-							final GitServerClient gitClient,
+							final RepositoriesApi repositoriesApi,
 							final BuildsBackend buildBackend,
 							final CommitComments comments,
 							final CommentMailer commentMailer,
@@ -105,8 +105,8 @@ public abstract class AbstractProjectResource extends Resource {
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
-        this.buildBackend = buildBackend;
-		this.gitClient = gitClient;
+      this.buildBackend = buildBackend;
+		this.repositoriesApi = repositoriesApi;
 		this.comments = comments;
 		this.commentMailer = commentMailer;
 		this.commits = commits;
@@ -125,7 +125,7 @@ public abstract class AbstractProjectResource extends Resource {
 	@GET
 	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request,
-										@QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
+										@QueryParam("fatal") String fatal) throws IOException, ApiError {
 
 		return showBranchOverview(request, "master", 1, fatal);
 	}
@@ -136,17 +136,19 @@ public abstract class AbstractProjectResource extends Resource {
 	public Response showBranchOverview(@Context HttpServletRequest request,
 									   @PathParam("branchName") String branchName,
 									   @QueryParam("page") @DefaultValue("1") int page,
-									   @QueryParam("fatal") String fatal) throws IOException, ApiError, GitClientException {
+									   @QueryParam("fatal") String fatal) throws IOException, ApiError {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 
 		Map<String, Object> parameters = getBaseParameters();
-		parameters.put("repository", repository);
+		parameters.put("repository", repository.getRepositoryModel());
 
 		try {
-			Branch branch = repository.retrieveBranch(branchName);
-			CommitSubList commits = branch.retrieveCommits((page - 1) * PAGE_SIZE, PAGE_SIZE);
+			BranchApi branchApi = repository.getBranch(branchName);
+			BranchModel branch = branchApi.get();
+			CommitSubList commits = branchApi.retrieveCommitsInBranch((page - 1) * PAGE_SIZE, PAGE_SIZE);
+
 			parameters.put("commits", commits);
 			parameters.put("branch", branch);
 			parameters.put("pagination", new Pagination(page, commits.getTotal()));
@@ -176,13 +178,13 @@ public abstract class AbstractProjectResource extends Resource {
 	@GET
 	@Path("/contributors")
 	@Transactional
-	public Response showContributors(@Context HttpServletRequest request) throws IOException, GitClientException {
+	public Response showContributors(@Context HttpServletRequest request) throws IOException {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 
 		Map<String, Object> parameters = getBaseParameters();
-		parameters.put("repository", repository);
+		parameters.put("repository", repository.getRepositoryModel());
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-contributors.ftl", locales, parameters));
@@ -191,8 +193,8 @@ public abstract class AbstractProjectResource extends Resource {
     @POST
     @Transactional
     @Path("/comment")
-	@ValidateRequest
-	@Produces(MediaType.APPLICATION_JSON)
+    @ValidateRequest
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public CommentResponse commentOnPull(@Context HttpServletRequest request,
 										 @NotEmpty @FormParam("link-commit") String linkCommitId,
@@ -240,15 +242,15 @@ public abstract class AbstractProjectResource extends Resource {
 	@Path("/commits/{commitId}/build")
 	@Transactional
 	public Response showCommitBuild(@Context HttpServletRequest request,
-									@PathParam("commitId") String commitId) throws IOException, ApiError, GitClientException {
+									@PathParam("commitId") String commitId) throws IOException, ApiError {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
-		Commit commit = repository.retrieveCommit(commitId);
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+		CommitApi commit = repository.getCommit(commitId);
 
 		Map<String, Object> parameters = getBaseParameters();
-		parameters.put("commit", commit);
-		parameters.put("repository", repository);
+		parameters.put("commit", commit.get());
+		parameters.put("repository", repository.getRepositoryModel());
 
 		try {
 			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));
@@ -266,7 +268,7 @@ public abstract class AbstractProjectResource extends Resource {
     @Transactional
     public Response rebuildCommit(@Context HttpServletRequest request,
                                   @PathParam("commitId") String commitId)
-			throws URISyntaxException, UnsupportedEncodingException, GitClientException {
+			throws URISyntaxException, UnsupportedEncodingException {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		nl.tudelft.ewi.devhub.server.database.entities.Commit commit = commits.ensureExists(repositoryEntity, commitId);
@@ -280,16 +282,17 @@ public abstract class AbstractProjectResource extends Resource {
 	@Transactional
 	public Response showCommitChanges(@Context HttpServletRequest request,
 									  @PathParam("commitId") String commitId)
-			throws IOException, ApiError, GitClientException {
+			throws IOException, ApiError {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
-		Commit commit = repository.retrieveCommit(commitId);
-		DiffBlameModel diffBlameModel = commit.diffBlame();
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+		CommitApi commitApi = repository.getCommit(commitId);
+		CommitModel commit = commitApi.get();
+		DiffBlameModel diffBlameModel = commitApi.diffBlame();
 
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("commit", commit);
-		parameters.put("repository", repository);
+		parameters.put("repository", repository.getRepositoryModel());
 		parameters.put("diffViewModel", diffBlameModel);
 		parameters.put("comments", comments.getCommentsFor(repositoryEntity, commitId));
 		parameters.put("commentChecker", commentBackend.getCommentChecker(repositoryEntity, Lists.newArrayList(commitId)));
@@ -314,7 +317,7 @@ public abstract class AbstractProjectResource extends Resource {
 	@Transactional
 	public Response getTree(@Context HttpServletRequest request,
 							@PathParam("commitId") String commitId)
-					throws ApiError, IOException, GitClientException {
+					throws ApiError, IOException {
 		return getTree(request, commitId, "");
 	}
 	
@@ -323,10 +326,10 @@ public abstract class AbstractProjectResource extends Resource {
 	@Transactional
 	public Response getTree(@Context HttpServletRequest request,
 							@PathParam("commitId") String commitId,
-							@PathParam("path") String path) throws ApiError, IOException, GitClientException {
+							@PathParam("path") String path) throws ApiError, IOException {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
 
 			@Override
@@ -342,15 +345,17 @@ public abstract class AbstractProjectResource extends Resource {
 				}
 				return 1;
 			}
-			
+
 		});
 
-		entries.putAll(repository.listDirectoryEntries(commitId, path));
+		CommitApi commitApi = repository.getCommit(commitId);
+		CommitModel commit = commitApi.get();
+		entries.putAll(commitApi.showTree(path));
 		
 		Map<String, Object> parameters = getBaseParameters();
-		parameters.put("commit", repository.retrieveCommit(commitId));
+		parameters.put("commit", commit);
 		parameters.put("path", path);
-		parameters.put("repository", repository);
+		parameters.put("repository", repository.getRepositoryModel());
 		parameters.put("entries", entries);
 
 		try {
@@ -369,11 +374,11 @@ public abstract class AbstractProjectResource extends Resource {
 	@Transactional
 	public Response getRawFile(@Context HttpServletRequest request,
 							@PathParam("commitId") String commitId,
-							@PathParam("path") String path) throws ApiError, IOException, GitClientException {
+							@PathParam("path") String path) throws ApiError, IOException {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
-		return Response.ok(repository.showBinFile(commitId, path))
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+		return Response.ok(repository.getCommit(commitId).showFile(path))
 				.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
 				.build();
 	}
@@ -383,7 +388,7 @@ public abstract class AbstractProjectResource extends Resource {
 	@Transactional
 	public Response getBlob(@Context HttpServletRequest request,
                             @PathParam("commitId") String commitId,
-                            @PathParam("path") String path) throws ApiError, IOException, GitClientException {
+                            @PathParam("path") String path) throws ApiError, IOException {
 
 		String folderPath = "";
 		String fileName = path;
@@ -393,28 +398,29 @@ public abstract class AbstractProjectResource extends Resource {
 		}
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		Repository repository = gitClient.repositories().retrieve(repositoryEntity.getRepositoryName());
-		Commit commit = repository.retrieveCommit(commitId);
-		Map<String, EntryType> entries = repository.listDirectoryEntries(commitId, folderPath);
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+		CommitApi commitApi = repository.getCommit(commitId);
+		CommitModel commit = commitApi.get();
+		Map<String, EntryType> entries = commitApi.showTree(folderPath);
 
 		EntryType type = entries.get(fileName);
 
 		if (type == EntryType.BINARY) {
-			return Response.ok(repository.showBinFile(commitId, path))
+			return Response.ok(commitApi.showFile(path))
 					.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
 					.build();
 		}
 
-		String[] contents = repository.showFile(commitId, path).split("\\r?\\n");
-        BlameModel blame = commit.blame(path);
+		String[] contents = commitApi.showTextFile(path).split("\\r?\\n");
+		BlameModel blame = commitApi.blame(path);
 
 		Map<String, Object> parameters  = getBaseParameters();
 		parameters.put("commit", commit);
-        parameters.put("blame", blame);
+		parameters.put("blame", blame);
 		parameters.put("path", path);
 		parameters.put("contents", contents);
 		parameters.put("highlight", Highlight.forFileName(path));
-		parameters.put("repository", repository);
+		parameters.put("repository", repository.getRepositoryModel());
 
 		try {
 			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));

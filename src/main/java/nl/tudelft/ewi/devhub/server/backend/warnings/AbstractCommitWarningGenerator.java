@@ -1,36 +1,41 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
 
-import com.google.inject.Inject;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
 /**
  * @author Liam Clark
  */
 public abstract class AbstractCommitWarningGenerator<T extends CommitWarning, A> implements CommitWarningGenerator<T, A> {
 
-    protected final GitServerClient gitServerClient;
+    protected final RepositoriesApi repositoriesApi;
 
-    @Inject
-    public AbstractCommitWarningGenerator(GitServerClient gitServerClient) {
-        this.gitServerClient = gitServerClient;
+    protected AbstractCommitWarningGenerator(RepositoriesApi repositoriesApi) {
+        this.repositoriesApi = repositoriesApi;
     }
 
-    @SneakyThrows
-    protected nl.tudelft.ewi.git.client.Commit getGitCommit(Commit commit) {
-        return gitServerClient.repositories()
-            .retrieve(commit.getRepository().getRepositoryName())
-            .retrieveCommit(commit.getCommitId());
+    /**
+     * Get CommitApi for commit.
+     * @param commit Commit to interact with.
+     * @return a CommitApi for the Commit.
+     */
+    protected CommitApi getGitCommit(Commit commit) {
+        return getRepository(commit)
+            .getCommit(commit.getCommitId());
     }
 
-    @SneakyThrows
-    protected Repository getRepository(Commit commit) {
-        return  gitServerClient.repositories()
-            .retrieve(commit.getRepository().getRepositoryName());
+    /**
+     * Get the RepositoryApi for the repository of a Commit.
+     * @param commit Commit to get the RepositoryApi for.
+     * @return The RepositoryApi.
+     */
+    protected RepositoryApi getRepository(Commit commit) {
+        return repositoriesApi
+           .getRepository(commit.getRepository().getRepositoryName());
     }
 
 }

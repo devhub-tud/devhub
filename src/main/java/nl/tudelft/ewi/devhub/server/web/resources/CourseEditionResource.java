@@ -9,7 +9,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
 import com.google.common.collect.Maps;

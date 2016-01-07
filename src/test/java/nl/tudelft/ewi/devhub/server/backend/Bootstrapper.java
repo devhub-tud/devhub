@@ -18,8 +18,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
 import nl.tudelft.ewi.git.models.UserModel;
@@ -30,6 +28,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.git.web.api.GroupsApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
@@ -57,11 +57,17 @@ public class Bootstrapper {
 		private String password;
 		private boolean admin;
 	}
-	
+
 	@Data
 	static class BCourse {
 		private String code;
 		private String name;
+		private List<BCourseEdition> editions;
+	}
+	
+	@Data
+	static class BCourseEdition {
+		private String code;
 		private String templateRepositoryUrl;
 		private boolean started;
 		private boolean ended;
@@ -70,7 +76,7 @@ public class Bootstrapper {
 		private Integer buildTimeout;
 		private List<String> assistants;
 		private List<BGroup> groups;
-        private List<BAssignment> assignments;
+		private List<BAssignment> assignments;
 	}
 
     @Data
@@ -108,7 +114,8 @@ public class Bootstrapper {
 	private final Groups groups;
 	private final MockedAuthenticationBackend authBackend;
 	private final ObjectMapper mapper;
-	private final GitServerClient gitClient;
+	private final RepositoriesApi repositoriesApi;
+	private final GroupsApi groupsApi;
 	private final ProjectsBackend projects;
 	private final Deliveries deliveries;
     private final Assignments assignments;
@@ -116,8 +123,8 @@ public class Bootstrapper {
 	@Inject
 	Bootstrapper(Users users, Courses courses, CourseEditions courseEditions, Groups groups,
 			MockedAuthenticationBackend authBackend, ObjectMapper mapper,
-			GitServerClient gitClient, ProjectsBackend projects, Assignments assignments,
-			Deliveries deliveries) {
+			RepositoriesApi repositoriesApi, ProjectsBackend projects, Assignments assignments,
+			Deliveries deliveries, GroupsApi groupsApi) {
 		
 		this.users = users;
 		this.courses = courses;
@@ -125,14 +132,15 @@ public class Bootstrapper {
 		this.groups = groups;
 		this.authBackend = authBackend;
 		this.mapper = mapper;
-		this.gitClient = gitClient;
+		this.repositoriesApi = repositoriesApi;
 		this.projects = projects;
 		this.assignments = assignments;
 		this.deliveries = deliveries;
+		this.groupsApi = groupsApi;
 	}
 	
 	@Transactional
-	public void prepare(String path) throws IOException, ApiError, GitClientException {
+	public void prepare(String path) throws IOException, ApiError {
 		InputStream inputStream = Bootstrapper.class.getResourceAsStream(path);
 		BState state = mapper.readValue(inputStream, BState.class);
 		
@@ -152,122 +160,137 @@ public class Bootstrapper {
 		
 		for (BCourse course : state.getCourses()) {
 			Course courseEntity;
-			CourseEdition entity;
 
 			try {
 				courseEntity = courses.find(course.getCode());
-				entity = courseEditions.getActiveCourseEdition(courseEntity);
-				log.debug("CourseEdition already existing in database: {}", entity);
+				log.debug("Course already existing in database: {}", courseEntity);
 			}
 			catch (EntityNotFoundException e) {
 				courseEntity = new Course();
 				courseEntity.setCode(course.getCode().toLowerCase());
 				courseEntity.setName(course.getName());
+				courses.persist(courseEntity);
 
-				entity = new CourseEdition();
-				entity.setCourse(courseEntity);
-				entity.setTemplateRepositoryUrl(course.getTemplateRepositoryUrl());
-				entity.setTimeSpan(new TimeSpan(
-					course.isStarted() ? new Date() : null,
-					course.isEnded() ? new Date() : null));
-
-				entity.setMinGroupSize(course.getMinGroupSize());
-				entity.setMaxGroupSize(course.getMaxGroupSize());
-				entity.setAssistants(Sets.newHashSet());
-				courseEditions.persist(entity);
-
-				log.debug("Persisted course: " + entity.getCode());
+				log.debug("Persisted course: " + courseEntity.getCode());
 			}
-			
-			Map<Long, Assignment> assignmentEntities = new HashMap<Long, Assignment>();
 
-            for(BAssignment assignment : course.getAssignments()) {
-                Assignment assignmentEntity = new Assignment();
-                assignmentEntity.setCourseEdition(entity);
-                assignmentEntity.setName(assignment.getName());
-                assignmentEntity.setAssignmentId(assignment.getId());
-                assignments.merge(assignmentEntity);
-                log.debug("Persistted assignment {} in {}", assignmentEntity.getName(), course.getCode());
-                
-                // Store for later use to insert deliveries
-                assignmentEntities.put(assignmentEntity.getAssignmentId(), assignmentEntity);
-            }
+			for (BCourseEdition bCourseEdition : course.getEditions()) {
+				CourseEdition entity;
 
-			GroupModel courseGroupModel = new GroupModel();
-			courseGroupModel.setName("@" + entity.getCode().toLowerCase());
-			courseGroupModel.setMembers(Lists.<IdentifiableModel>newArrayList());
-
-			for (String assistantNetId : course.getAssistants()) {
-				User assistantUser = userMapping.get(assistantNetId);
-				entity.getAssistants().add(assistantUser);
-				courseEditions.merge(entity);
-				
-				UserModel userModel = gitClient.users()
-						.ensureExists(assistantNetId);
-				
-				courseGroupModel.getMembers().add(userModel);
-				
-				log.debug("    Persisted assistant: " + assistantUser.getNetId());
-			}
-			
-			courseGroupModel = gitClient.groups().ensureExists(courseGroupModel);
-			
-			for (BGroup group : course.getGroups()) {
-				Group groupEntity = new Group();
-				groupEntity.setCourseEdition(entity);
-				groupEntity.setMembers(Sets.newHashSet());
-				groupEntity.setGroupNumber(group.getGroupNumber());
-
-				GroupRepository groupRepository = new GroupRepository();
-				groupRepository.setRepositoryName(entity.createRepositoryName(groupEntity).toASCIIString());
-				groupEntity.setRepository(groupRepository);
-
-				groups.persist(groupEntity);
-
-				log.debug("    Persisted group: " + groupEntity.getGroupName());
-
-				Set<User> members = groupEntity.getMembers();
-				
-				for (String member : group.getMembers()) {
-					User memberUser = userMapping.get(member);
-					members.add(memberUser);
-
-					groups.merge(groupEntity);
-					log.debug("        Persisted member: " + memberUser.getNetId());
-				}
-				
 				try {
-					// Allow cached versions of the repository
-					gitClient.repositories().retrieve(groupRepository.getRepositoryName());
-					log.info("Repository {} already exists", groupRepository.getRepositoryName());
+					entity = courseEditions.getActiveCourseEdition(courseEntity);
+					log.debug("CourseEdition already existing in database: {}", entity);
 				}
-				catch (Exception e) {
-					projects.provisionRepository(groupEntity, members);
+				catch (EntityNotFoundException e) {
+					entity = new CourseEdition();
+					entity.setCourse(courseEntity);
+					entity.setCode(bCourseEdition.getCode());
+					entity.setTemplateRepositoryUrl(bCourseEdition.getTemplateRepositoryUrl());
+					entity.setTimeSpan(new TimeSpan(
+						bCourseEdition.isStarted() ? new Date() : null,
+						bCourseEdition.isEnded() ? new Date() : null));
+
+					entity.setMinGroupSize(bCourseEdition.getMinGroupSize());
+					entity.setMaxGroupSize(bCourseEdition.getMaxGroupSize());
+					entity.setAssistants(Sets.newHashSet());
+					courseEditions.persist(entity);
+
+					log.debug("Persisted course: " + entity.getCode());
 				}
-				
-				for (BDelivery delivery : group.getDeliveries()) {
-					Delivery deliveryEntity = new Delivery();
-					deliveryEntity.setAssignment(assignmentEntities.get(delivery.getAssignmentId()));
-					deliveryEntity.setGroup(groupEntity);
-					deliveryEntity.setCreatedUser(userMapping.get(delivery.getCreatedUserName()));
-					
-					BReview review;
-					if ((review = delivery.getReview()) != null) {
-						Review reviewEntity = new Review();
-						reviewEntity.setState(Delivery.State.valueOf(review.getState()));
-						reviewEntity.setGrade(review.getGrade());
-						reviewEntity.setReviewUser(userMapping.get(review.getReviewedUserName()));
-						reviewEntity.setReviewTime(new Date(System.currentTimeMillis()));
-						deliveryEntity.setReview(reviewEntity);
-						
-						log.info("                Set review for delivery: " + groupEntity.getGroupNumber());
-					}
-					
-					deliveries.persist(deliveryEntity);
-					
-					log.debug("        Persisted delivery for group: " + groupEntity.getGroupNumber());
+
+				Map<Long, Assignment> assignmentEntities = new HashMap<Long, Assignment>();
+
+				for(BAssignment assignment : bCourseEdition.getAssignments()) {
+					Assignment assignmentEntity = new Assignment();
+					assignmentEntity.setCourseEdition(entity);
+					assignmentEntity.setName(assignment.getName());
+					assignmentEntity.setAssignmentId(assignment.getId());
+					assignments.merge(assignmentEntity);
+					log.debug("Persistted assignment {} in {}", assignmentEntity.getName(), course.getCode());
+
+					// Store for later use to insert deliveries
+					assignmentEntities.put(assignmentEntity.getAssignmentId(), assignmentEntity);
+				}
+
+				GroupModel courseGroupModel = new GroupModel();
+				courseGroupModel.setName(projects.gitoliteAssistantGroupName(entity));
+				courseGroupModel.setMembers(Lists.<IdentifiableModel>newArrayList());
+
+				for (String assistantNetId : bCourseEdition.getAssistants()) {
+					User assistantUser = userMapping.get(assistantNetId);
+					entity.getAssistants().add(assistantUser);
+					courseEditions.merge(entity);
+
+					UserModel userModel = new UserModel();
+					userModel.setName(assistantNetId);
+					courseGroupModel.getMembers().add(userModel);
+
+					log.debug("    Persisted assistant: " + assistantUser.getNetId());
+				}
+
+				groupsApi.create(courseGroupModel);
+
+				for (BGroup group : bCourseEdition.getGroups()) {
+					prepareGroup(userMapping, entity, assignmentEntities, group);
 				}
 			}
+		}
+	}
+
+	private void prepareGroup(Map<String, User> userMapping, CourseEdition entity, Map<Long, Assignment> assignmentEntities, BGroup group) throws ApiError {
+		Group groupEntity = new Group();
+		groupEntity.setCourseEdition(entity);
+		groupEntity.setMembers(Sets.newHashSet());
+		groupEntity.setGroupNumber(group.getGroupNumber());
+
+		GroupRepository groupRepository = new GroupRepository();
+		groupRepository.setRepositoryName(entity.createRepositoryName(groupEntity).toASCIIString());
+		groupEntity.setRepository(groupRepository);
+
+		groups.persist(groupEntity);
+
+		log.debug("    Persisted group: " + groupEntity.getGroupName());
+
+		Set<User> members = groupEntity.getMembers();
+
+		for (String member : group.getMembers()) {
+			User memberUser = userMapping.get(member);
+			members.add(memberUser);
+
+			groups.merge(groupEntity);
+			log.debug("        Persisted member: " + memberUser.getNetId());
+		}
+
+		try {
+			// Allow cached versions of the repository
+			repositoriesApi.getRepository(groupRepository.getRepositoryName());
+			log.info("Repository {} already exists", groupRepository.getRepositoryName());
+		}
+		catch (Exception e) {
+			projects.provisionRepository(groupEntity, members);
+		}
+
+		for (BDelivery delivery : group.getDeliveries()) {
+			Delivery deliveryEntity = new Delivery();
+			deliveryEntity.setAssignment(assignmentEntities.get(delivery.getAssignmentId()));
+			deliveryEntity.setGroup(groupEntity);
+			deliveryEntity.setCreatedUser(userMapping.get(delivery.getCreatedUserName()));
+
+			BReview review;
+			if ((review = delivery.getReview()) != null) {
+				Review reviewEntity = new Review();
+				reviewEntity.setState(Delivery.State.valueOf(review.getState()));
+				reviewEntity.setGrade(review.getGrade());
+				reviewEntity.setReviewUser(userMapping.get(review.getReviewedUserName()));
+				reviewEntity.setReviewTime(new Date(System.currentTimeMillis()));
+				deliveryEntity.setReview(reviewEntity);
+
+				log.info("                Set review for delivery: " + groupEntity.getGroupNumber());
+			}
+
+			deliveries.persist(deliveryEntity);
+
+			log.debug("        Persisted delivery for group: " + groupEntity.getGroupNumber());
 		}
 	}
 }

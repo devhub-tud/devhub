@@ -5,14 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IllegalFileWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.EntryType;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -32,33 +33,33 @@ implements CommitPushWarningGenerator<IllegalFileWarning> {
     private static final String[] DEFAULT_FOLDERS = { ".idea/", ".metadata/", ".settings/",
         ".project/", ".classpath/", "target/", "bin/", ".metadata/"};
 
-    private Repository repository;
+    private RepositoryApi repositoryApi;
     private Commit commit;
     private String[] illegalExtensions;
     private String[] illegalFolders;
 
     @Inject
-    public IllegalFileWarningGenerator(GitServerClient gitServerClient) {
-        super(gitServerClient);
+    public IllegalFileWarningGenerator(RepositoriesApi repositoriesApi) {
+        super(repositoriesApi);
     }
 
     @Override
     @SneakyThrows
     public Set<IllegalFileWarning> generateWarnings(Commit commit, GitPush attachment) {
         log.debug("Start generating warnings for {} in {}", commit, this);
-        this.repository = getRepository(commit);
+        this.repositoryApi = getRepository(commit);
         this.commit = commit;
         this.illegalExtensions = commit.getRepository().getCommaSeparatedValues(DEFAULT_EXTENSIONS_PROPERTY_KEY, DEFAULT_EXTENSIONS);
         this.illegalFolders = commit.getRepository().getCommaSeparatedValues(DEFAULT_FOLDERS_PROPERTY_KEY, DEFAULT_FOLDERS);
 
         Set<IllegalFileWarning> warnings = Sets.newHashSet();
-        walkCommitStructure("",commit.getCommitId(),warnings);
+        walkCommitStructure("",commit.getCommitId(), warnings);
         log.debug("Finished generating warnings for {} in {}", commit, this);
         return warnings;
     }
 
     @SneakyThrows
-    public void walkCommitStructure(String path, String commitId, Set<IllegalFileWarning> warnings){
+    public void walkCommitStructure(String path, String commitId, Collection<? super IllegalFileWarning> warnings){
 
         if(folderViolation(path)){
             IllegalFileWarning warning = new IllegalFileWarning();
@@ -67,7 +68,7 @@ implements CommitPushWarningGenerator<IllegalFileWarning> {
             warnings.add(warning);
         }
 
-        Map<String,EntryType> directory = repository.listDirectoryEntries(commitId, path);
+        Map<String,EntryType> directory = repositoryApi.getCommit(commitId).showTree(path);
         directory.entrySet().stream()
                 .filter(entry -> entry.getValue().equals(EntryType.FOLDER))
                 .forEach(entry-> walkCommitStructure(path+entry.getKey(),commitId, warnings));

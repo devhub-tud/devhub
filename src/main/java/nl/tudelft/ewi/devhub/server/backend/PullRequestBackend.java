@@ -12,16 +12,19 @@ import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
-import nl.tudelft.ewi.git.client.Branch;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.Repository;
-import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
+import nl.tudelft.ewi.git.models.DiffBlameModel.DiffBlameLine;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffFile;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffContext;
+import nl.tudelft.ewi.git.models.CommitModel;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.git.web.api.BranchApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Collection;
@@ -54,10 +57,9 @@ public class PullRequestBackend {
      * Persist a new PullRequest
      * @param repository Repository that contains the pull request
      * @param pullRequest PullRequest to update
-     * @throws GitClientException if a GitClientException occurs
      */
     @Transactional
-    public void createPullRequest(Repository repository, PullRequest pullRequest) throws GitClientException {
+    public void createPullRequest(RepositoryApi repository, PullRequest pullRequest) {
         updateCommitPointers(repository, pullRequest);
         log.info("Persisisting pull-request {}", pullRequest);
         pullRequests.persist(pullRequest);
@@ -73,10 +75,9 @@ public class PullRequestBackend {
      *
      * @param repository Repository that contains the pull request
      * @param pullRequest PullRequest to update
-     * @throws GitClientException if a GitClientException occurs
      */
     @Transactional
-    public void updatePullRequest(Repository repository, PullRequest pullRequest) throws GitClientException {
+    public void updatePullRequest(RepositoryApi repository, PullRequest pullRequest) {
         if(pullRequest.isClosed()) {
             // No-op for closed pull requests
             return;
@@ -86,11 +87,13 @@ public class PullRequestBackend {
         pullRequests.merge(pullRequest);
     }
 
-    private void updateCommitPointers(Repository repository, PullRequest pullRequest) throws GitClientException {
-        Branch branch;
+    private void updateCommitPointers(RepositoryApi repository, PullRequest pullRequest) {
+        BranchApi branchApi;
+        BranchModel branch;
 
         try {
-            branch = repository.retrieveBranch(pullRequest.getBranchName());
+            branchApi = repository.getBranch(pullRequest.getBranchName());
+            branch = branchApi.get();
         }
         catch (NotFoundException e) {
             pullRequest.setOpen(false);
@@ -119,12 +122,12 @@ public class PullRequestBackend {
              * Therefore we rely on frequent calls to the update function,
              * for example triggered by git pushes.
              */
-            updateMergeBase(pullRequest, branch);
+            updateMergeBase(pullRequest, branchApi);
         }
     }
 
-    private void updateMergeBase(PullRequest pullRequest, Branch branch) throws GitClientException {
-        CommitModel mergeBase = branch.mergeBase();
+    private void updateMergeBase(PullRequest pullRequest, BranchApi branch) {
+        CommitModel mergeBase = branch.mergeBase().get();
         Commit mergeBaseCommit = commits.ensureExists(pullRequest.getRepository(), mergeBase.getCommit());
         if(!mergeBaseCommit.equals(pullRequest.getMergeBase())) {
             pullRequest.setMergeBase(mergeBaseCommit);
@@ -132,7 +135,7 @@ public class PullRequestBackend {
         }
     }
 
-    private void updateDestinationCommit(PullRequest pullRequest, Branch branch) {
+    private void updateDestinationCommit(PullRequest pullRequest, BranchModel branch) {
         CommitModel destination = branch.getCommit();
         Commit destinationCommit = commits.ensureExists(pullRequest.getRepository(), destination.getCommit());
         if(!destinationCommit.equals(pullRequest.getDestination())) {
@@ -226,9 +229,9 @@ public class PullRequestBackend {
     public static class CommentContextEvent extends Event {
 
         private final SortedSet<CommitComment> comments;
-        private final DiffBlameModel.DiffBlameFile diffBlameFile;
+        private final DiffFile<DiffContext<DiffBlameLine>> diffBlameFile;
 
-        public CommentContextEvent(SortedSet<CommitComment> comments, DiffBlameModel.DiffBlameFile diffBlameFile) {
+        public CommentContextEvent(SortedSet<CommitComment> comments, DiffFile<DiffContext<DiffBlameLine>> diffBlameFile) {
             super(EventType.COMMENT_CONTEXT);
             this.comments = comments;
             this.diffBlameFile = diffBlameFile;
@@ -294,15 +297,15 @@ public class PullRequestBackend {
                 .entrySet().stream().map(entry -> {
                     Source source = entry.getKey();
                     SortedSet<CommitComment> comments = Sets.newTreeSet(entry.getValue());
-                    DiffBlameModel.DiffBlameFile subModel = findSubModel(source);
+                    DiffFile<DiffContext<DiffBlameLine>> subModel = findSubModel(source);
                     return new CommentContextEvent(comments, subModel);
                 })
                 .collect(Collectors.toList());
         }
 
-        private DiffBlameModel.DiffBlameFile findSubModel(Source source) {
-            for(DiffBlameModel.DiffBlameFile diffFile : diffModel.getDiffs()) {
-                for(DiffBlameModel.DiffBlameContext diffContext : diffFile.getContexts()) {
+        private DiffFile<DiffContext<DiffBlameLine>>  findSubModel(Source source) {
+            for(DiffFile<DiffContext<DiffBlameLine>>  diffFile : diffModel.getDiffs()) {
+                for(DiffContext<DiffBlameLine> diffContext : diffFile.getContexts()) {
                     List<DiffBlameModel.DiffBlameLine> lines = diffContext.getLines();
                     for(int i = 0, s = lines.size(); i < s; i++) {
                         DiffBlameModel.DiffBlameLine line = lines.get(i);
@@ -317,16 +320,16 @@ public class PullRequestBackend {
             return null;
         }
 
-        private DiffBlameModel.DiffBlameFile createSubModel(DiffBlameModel.DiffBlameFile diffFile,
-                                              DiffBlameModel.DiffBlameContext diffContext,
-                                              int lineOfInterest) {
+        private DiffFile<DiffContext<DiffBlameLine>> createSubModel(DiffFile<DiffContext<DiffBlameLine>> diffFile,
+                                                                    DiffContext<DiffBlameLine> diffContext,
+                                                                    int lineOfInterest) {
             List<DiffBlameModel.DiffBlameLine> sublist =
                     diffContext.getLines().subList(Math.max(0, lineOfInterest - 4), lineOfInterest + 1);
 
-            DiffBlameModel.DiffBlameContext contextCopy = new DiffBlameModel.DiffBlameContext();
+            DiffContext<DiffBlameLine> contextCopy = new DiffContext<>();
             contextCopy.setLines(sublist);
 
-            DiffBlameModel.DiffBlameFile fileCopy = new DiffBlameModel.DiffBlameFile();
+            DiffFile<DiffContext<DiffBlameLine>> fileCopy = new DiffFile<>();
             fileCopy.setContexts(Lists.newArrayList(contextCopy));
             fileCopy.setNewPath(diffFile.getNewPath());
             fileCopy.setOldPath(diffFile.getOldPath());

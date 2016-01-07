@@ -16,9 +16,6 @@ import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.GitServerClientImpl;
-import nl.tudelft.ewi.git.client.Repositories;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;

@@ -5,13 +5,11 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.GroupMembers;
-import nl.tudelft.ewi.git.client.Groups;
 
 import com.google.common.collect.Sets;
 
+import nl.tudelft.ewi.git.web.api.GroupApi;
+import nl.tudelft.ewi.git.web.api.GroupsApi;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,41 +36,33 @@ public class CourseBackendTest extends BackendTest {
 	private Users currentUsers;
 	
 	@Mock
-	private nl.tudelft.ewi.git.client.Users users;
-	
-	@Mock
 	private CourseEditions courses;
-	
-	@Mock
-	private GitServerClient gitServerClient;
+
 	
 	@InjectMocks
 	private CoursesBackend courseBackend;
 	
 	@Mock
-	private Groups groups;
-	
+	private GroupsApi groups;
+
 	@Mock
-	private GroupMembers groupMembers;
+	private GroupApi groupApi;
 
 	private Set<User> newAssistants;
 
 	private Set<User> oldAssistants;
-	
+
 	private CourseEdition course;
 	
 	@Before
-	public void setUp() throws GitClientException {
+	public void setUp() {
 		course = createCourseEdition();
 		oldAssistants = Sets.newHashSet(createUser(), createUser());
 		newAssistants = Sets.newHashSet(createUser(), createUser());
 		course.setAssistants(oldAssistants);
 		
 		when(currentUser.isAdmin()).thenReturn(true);
-		when(groups.ensureExists(Matchers.any())).thenReturn(null);
-		when(gitServerClient.groups()).thenReturn(groups);
-		when(gitServerClient.users()).thenReturn(users);
-		when(groups.groupMembers(Matchers.any())).thenReturn(groupMembers);
+		when(groups.getGroup(Matchers.any())).thenReturn(groupApi);
 
 	}
 
@@ -88,14 +78,14 @@ public class CourseBackendTest extends BackendTest {
 	}
 	
 	@Test(expected=UnauthorizedException.class)
-	public void mustBeAdminToCreateGroup() throws GitClientException {
+	public void mustBeAdminToCreateGroup() {
 		when(currentUser.isAdmin()).thenReturn(false);
 		
 		courseBackend.createCourse(course);
 	}
 	
 	@Test
-	public void courseIsStored() throws GitClientException {
+	public void courseIsStored() {
 		courseBackend.createCourse(course);
 		
 		verify(courses).persist(course);
@@ -103,42 +93,42 @@ public class CourseBackendTest extends BackendTest {
 	
 	@SuppressWarnings("unchecked")
 	@Test(expected=Exception.class)
-	public void courseIsRemovedWhenFailedToStore() throws GitClientException {
+	public void courseIsRemovedWhenFailedToStore() {
 		when(courses.persist(Matchers.eq(course))).thenThrow(Exception.class);
 		
 		courseBackend.createCourse(course);
 	}
 	
 	@Test(expected=UnauthorizedException.class)
-	public void mustBeAdminToMergeGroup() throws GitClientException {
+	public void mustBeAdminToMergeGroup() {
 		when(currentUser.isAdmin()).thenReturn(false);
 		
 		courseBackend.mergeCourse(course);
 	}
 	
 	@Test
-	public void courseIsMerged() throws GitClientException {
+	public void courseIsMerged() {
 		courseBackend.mergeCourse(course);
 		
 		verify(courses).merge(course);
 	}
 	
 	@Test(expected=UnauthorizedException.class)
-	public void mustBeAdminToSetAssistants() throws GitClientException {
+	public void mustBeAdminToSetAssistants() {
 		when(currentUser.isAdmin()).thenReturn(false);
 		
 		courseBackend.setAssistants(course, new ArrayList<User>());
 	}
 
 	@Test
-	public void assistantsAreAddedToCourse() throws GitClientException {
+	public void assistantsAreAddedToCourse() {
 		courseBackend.setAssistants(course, newAssistants);
 
 		assertEquals(newAssistants, course.getAssistants());
 	}
 	
 	@Test
-	public void assistantsAreRemovedFromCourseWhenNotInNewList() throws GitClientException {
+	public void assistantsAreRemovedFromCourseWhenNotInNewList() {
 		courseBackend.setAssistants(course, newAssistants);
 
 		User removedAssistant = newAssistants.iterator().next();

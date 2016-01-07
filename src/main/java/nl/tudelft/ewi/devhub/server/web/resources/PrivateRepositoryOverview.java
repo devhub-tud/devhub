@@ -10,11 +10,9 @@ import nl.tudelft.ewi.devhub.server.database.controllers.PrivateRepositories;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Users;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -36,7 +34,7 @@ public class PrivateRepositoryOverview extends Resource {
 	@Inject private TemplateEngine templateEngine;
 	@Inject private PrivateRepositories privateRepositories;
 	@Inject @Named("current.user") private User currentUser;
-	@Inject private Repositories repositories;
+	@Inject private RepositoriesApi repositories;
 	@Context private HttpServletRequest request;
 
 	protected Map<String, Object> getBaseParameters() {
@@ -47,7 +45,7 @@ public class PrivateRepositoryOverview extends Resource {
 
 	@GET
 	@Transactional
-	public Response getPrivateRepositoryOverview() throws GitClientException {
+	public Response getPrivateRepositoryOverview() {
 		PrivateRepository privateRepository = new PrivateRepository();
 		privateRepository.setOwner(currentUser);
 		privateRepository.setTitle("test");
@@ -57,7 +55,7 @@ public class PrivateRepositoryOverview extends Resource {
 		CreateRepositoryModel createRepositoryModel = new CreateRepositoryModel();
 		createRepositoryModel.setName(privateRepository.getRepositoryName());
 		createRepositoryModel.setPermissions(ImmutableMap.of(currentUser.getNetId(), Level.ADMIN));
-		repositories.create(createRepositoryModel);
+		repositories.createRepository(createRepositoryModel);
 
 		return redirect(privateRepository.getURI());
 	}

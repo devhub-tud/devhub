@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IgnoredFileWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
-import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.DiffModel;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,6 +20,7 @@ import java.util.stream.Stream;
  */
 @Slf4j
 @RequestScoped
+@SuppressWarnings("unused")
 public class IgnoredFileWarningGenerator extends AbstractCommitWarningGenerator<IgnoredFileWarning, GitPush>
 implements CommitPushWarningGenerator<IgnoredFileWarning> {
 
@@ -29,8 +30,8 @@ implements CommitPushWarningGenerator<IgnoredFileWarning> {
     private String[] ext;
 
     @Inject
-    public IgnoredFileWarningGenerator(GitServerClient gitServerClient) {
-        super(gitServerClient);
+    public IgnoredFileWarningGenerator(RepositoriesApi repositoriesApi) {
+        super(repositoriesApi);
     }
 
     @Override

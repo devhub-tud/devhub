@@ -8,7 +8,7 @@ import nl.tudelft.ewi.build.jaxrs.models.BuildRequest;
 import nl.tudelft.ewi.build.jaxrs.models.GitSource;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.git.client.Repository;
+import nl.tudelft.ewi.git.models.RepositoryModel;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -51,11 +51,11 @@ public abstract class BuildInstructionEntity {
 	 * @param config {@link Config Configuration} to use. The config is used to determine
 	 * 	the callback URL for the build response.
 	 * @param commit {@link Commit} to build
-	 * @param repository {@link Repository} to use. The repository is used to determine the
+	 * @param repository {@link RepositoryModel} to use. The repository is used to determine the
 	 * 	clone URL for the repository.
 	 * @return BuildRequest to be made
 	 */
-	public BuildRequest createBuildRequest(final Config config, final Commit commit, final Repository repository) {
+	public BuildRequest createBuildRequest(final Config config, final Commit commit, final RepositoryModel repository) {
 		BuildRequest buildRequest = new BuildRequest();
 		buildRequest.setInstruction(getBuildInstruction(config, commit));
 		buildRequest.setSource(createGitSource(repository, commit));
@@ -88,7 +88,7 @@ public abstract class BuildInstructionEntity {
 	 * @param commit Commit to be build
 	 * @return GitSource
 	 */
-	protected GitSource createGitSource(final Repository repository, final Commit commit) {
+	protected GitSource createGitSource(final RepositoryModel repository, final Commit commit) {
 		GitSource gitSource = new GitSource();
 		gitSource.setCommitId(commit.getCommitId());
 		gitSource.setRepositoryUrl(repository.getUrl());

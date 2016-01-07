@@ -1,6 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
@@ -8,11 +7,11 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.BlameModel;
 
 import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Collections;
@@ -34,13 +33,14 @@ import static java.util.stream.Collectors.toSet;
  * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
-public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarning> implements CommitWarningGenerator<T, A> {
+public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarning>
+extends AbstractCommitWarningGenerator<T, A>
+implements CommitWarningGenerator<T, A> {
 
-    protected final GitServerClient gitServerClient;
     protected final Commits commits;
 
-    protected AbstractLineWarningGenerator(final GitServerClient gitServerClient, final Commits commits) {
-        this.gitServerClient = gitServerClient;
+    protected AbstractLineWarningGenerator(final RepositoriesApi repositoriesApi, final Commits commits) {
+        super(repositoriesApi);
         this.commits = commits;
     }
 
@@ -62,7 +62,7 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
 
         private final Commit commit;
         private final RepositoryEntity repositoryEntity;
-        private final Repository repository;
+        private final RepositoryApi repositoryApi;
 
         /**
          * The {@code ScopedWarningGenerator} is used by the
@@ -72,7 +72,7 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
         public ScopedWarningGenerator(Commit commit) {
             this.commit = commit;
             this.repositoryEntity = commit.getRepository();
-            this.repository = retrieveRepository(repositoryEntity);
+            this.repositoryApi = getRepository(commit);
         }
 
         /**
@@ -86,7 +86,7 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
 
             try {
                 String filePath = filePathFor(file, commit);
-                blameModel = retrieveBlameModel(repository, commit.getCommitId(), filePath);
+                blameModel = getBlameModel(filePath);
             }
             catch (NotFoundException e) {
                 log.warn(e.getMessage());
@@ -95,6 +95,15 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
 
             BlameSourceScope blameSourceGenerator = new BlameSourceScope(blameModel);
             return getViolations(file).map(blameSourceGenerator::map);
+        }
+
+        /**
+         * Hook to get the current blame model.
+         * @param filePath Path for the file to blame.
+         * @return The BlameModel.
+         */
+        protected BlameModel getBlameModel(String filePath) {
+            return repositoryApi.getCommit(commit.getCommitId()).blame(filePath);
         }
 
         /**
@@ -157,28 +166,6 @@ public abstract class AbstractLineWarningGenerator<A, F, V, T extends LineWarnin
      */
     protected static String getRelativePath(final String path) {
         return path.substring(path.indexOf("/src/") + 1);
-    }
-
-    /**
-     * Retrieve the repository for this repositoryEntity
-     * @param group The current repositoryEntity
-     * @return Repository for the repositoryEntity
-     */
-    @SneakyThrows
-    protected Repository retrieveRepository(final RepositoryEntity group) {
-        return gitServerClient.repositories().retrieve(group.getRepositoryName());
-    }
-
-    /**
-     * Retrieve the {@code BlameModel} for a file at a certain commit
-     * @param repository repository to use
-     * @param commitId commit to use
-     * @param path path of the file
-     * @return BlameModel for the file
-     */
-    @SneakyThrows
-    protected static BlameModel retrieveBlameModel(final Repository repository, final String commitId, final String path) {
-        return repository.retrieveCommit(commitId).blame(path);
     }
 
     /**

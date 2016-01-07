@@ -58,7 +58,7 @@ public class PrivateRepository extends RepositoryEntity {
 
 	@Override
 	public URI getURI() {
-		return URI.create("projects/").resolve(getOwner().getNetId() + "/").resolve(getTitle() + "/");
+		return URI.create("/projects/").resolve(getOwner().getNetId() + "/").resolve(getTitle() + "/");
 	}
 
 }

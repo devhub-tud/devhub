@@ -56,7 +56,7 @@
                     [#list repository.getBranches() as b ]
                         <li><a href="${repositoryEntity.getURI()}branch/${b.getSimpleName()}" style="text-align:right;">
                         ${b.getSimpleName()}
-                            [#if b.behind?? && b.ahead?? && b.behind > 0 || b.ahead > 0 ]
+                            [#if b.isBehind() || b.isAhead() ]
                                 <span class="text-success octicon octicon-arrow-up"></span>
                                 <span class="text-muted">${b.getAhead()}</span>
                                 <span class="text-danger octicon octicon-arrow-down"></span>

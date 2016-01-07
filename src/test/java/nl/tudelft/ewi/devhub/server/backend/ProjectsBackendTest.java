@@ -9,9 +9,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.GitServerClientMock;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel;
 import nl.tudelft.ewi.git.models.UserModel;
@@ -22,11 +19,12 @@ import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.UsersApi;
 import org.hamcrest.Matchers;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -37,37 +35,26 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(JukitoRunner.class)
 @UseModules(ProjectsBackendTest.ProjectsBackendTestModule.class)
 public class ProjectsBackendTest extends PersistedBackendTest {
 
-	private static GitServerClientMock gitClient = mock(GitServerClientMock.class);
-	private static nl.tudelft.ewi.git.client.UsersMock gitUsers = spy(new nl.tudelft.ewi.git.client.UsersMock());
-	private static nl.tudelft.ewi.git.client.RepositoriesMock repositoriesMock = spy(new nl.tudelft.ewi.git.client.RepositoriesMock());
-	private static nl.tudelft.ewi.git.client.GroupsMock gitGroups = spy(new nl.tudelft.ewi.git.client.GroupsMock());
+	private static RepositoriesApi repositoriesApi = mock(RepositoriesApi.class);
+	private static UsersApi usersApi = mock(UsersApi.class);
 
 	public static class ProjectsBackendTestModule extends AbstractModule {
 
 		@Override
 		protected void configure() {
 			install(new TestDatabaseModule());
-			bind(GitServerClient.class).to(GitServerClientMock.class);
-			bind(GitServerClientMock.class).toInstance(gitClient);
+			bind(RepositoriesApi.class).toInstance(repositoriesApi);
+			bind(UsersApi.class).toInstance(usersApi);
 		}
 
 	}
-
-	@BeforeClass
-	public static void beforeClass() {
-		when(gitClient.repositories()).thenReturn(repositoriesMock);
-		when(gitClient.users()).thenReturn(gitUsers);
-		when(gitClient.groups()).thenReturn(gitGroups);
-	}
-
+	
 	@Inject private ProjectsBackend projectsBackend;
 	@Inject @Getter private CourseEditions courses;
 	@Inject @Getter private Users users;
@@ -78,7 +65,7 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 
 	@Before
 	public void beforeTest() {
-		reset(repositoriesMock, gitUsers, gitGroups);
+		reset(repositoriesApi, usersApi);
 		course = createCourseEdition();
 		user = createUser();
 	}
@@ -88,18 +75,18 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 		User user = super.createUser();
 		UserModel userModel = new UserModel();
 		userModel.setName(user.getNetId());
-		gitUsers.create(userModel);
+		usersApi.createNewUser(userModel);
 		return user;
 	}
 
 	@Test
-	public void testCreateProject() throws ApiError, GitClientException {
+	public void testCreateProject() throws ApiError {
 		Group group = projectsBackend.setupProject(course, Lists.newArrayList(user));
 		verifyPersistedGroup(group, course, user);
 		verifyProvisionRepository(group);
 	}
 
-	private void verifyProvisionRepository(Group group) throws GitClientException {
+	private void verifyProvisionRepository(Group group) {
 		Map<String, RepositoryModel.Level> expectedPermissions =
 			ImmutableMap.of(
 				user.getNetId(), RepositoryModel.Level.READ_WRITE);
@@ -108,7 +95,7 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 		expectedRepoModel.setName(group.getRepository().getRepositoryName());
 		expectedRepoModel.setTemplateRepository(course.getTemplateRepositoryUrl());
 		expectedRepoModel.setPermissions(expectedPermissions);
-		verify(gitClient.repositories()).create(expectedRepoModel);
+		verify(repositoriesApi).createRepository(expectedRepoModel);
 	}
 
 	@Test(expected=ApiError.class)

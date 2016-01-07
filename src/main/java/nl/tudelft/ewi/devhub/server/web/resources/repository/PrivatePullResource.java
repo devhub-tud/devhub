@@ -17,7 +17,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.resources.HooksResource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Path;
@@ -36,8 +36,8 @@ public class PrivatePullResource extends AbstractProjectPullResource {
 	@Context @Getter private UriInfo uriInfo;
 
 	@Inject
-	public PrivatePullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser, CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests, PullRequestBackend pullRequestBackend, GitServerClient gitClient, CommentMailer commentMailer, PullRequestMailer pullRequestMailer, PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings, PrivateRepositories privateRepositories) {
-		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend, gitClient, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings);
+	public PrivatePullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser, CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests, PullRequestBackend pullRequestBackend, RepositoriesApi repositoriesApi, CommentMailer commentMailer, PullRequestMailer pullRequestMailer, PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings, PrivateRepositories privateRepositories) {
+		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend, repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings);
 		this.privateRepositories = privateRepositories;
 	}
 

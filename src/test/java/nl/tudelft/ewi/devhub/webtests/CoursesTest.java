@@ -28,7 +28,7 @@ public class CoursesTest extends WebTest {
 	 */
 	@Test
 	public void testThatICanOpenTheProjectsPage() {
-		AuthenticatedView view = openLoginScreen()
+		openLoginScreen()
 				.login(NET_ID, PASSWORD)
 				.toCoursesView();
 	}
@@ -53,13 +53,11 @@ public class CoursesTest extends WebTest {
 	 */
 	@Test
 	public void testThatICanOpenProject() {
-		ProjectView view = openLoginScreen()
+		openLoginScreen()
 				.login(NET_ID, PASSWORD)
 				.toCoursesView()
 				.listMyProjects()
 				.get(0).click();
-
-		assertTrue("Expected an empty list of commits", view.listCommits().isEmpty());
 	}
 	
 }

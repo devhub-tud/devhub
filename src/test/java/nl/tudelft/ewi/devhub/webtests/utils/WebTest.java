@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.webtests.utils;
 
 import nl.tudelft.ewi.build.client.BuildServerBackend;
 import nl.tudelft.ewi.build.client.MockedBuildServerBackend;
+import nl.tudelft.ewi.devhub.modules.MockedGitoliteGitServerModule;
 import nl.tudelft.ewi.devhub.server.DevhubServer;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.Bootstrapper;
@@ -34,7 +35,7 @@ public abstract class WebTest {
 
 			@Override
 			protected void configure() {
-				install(new CucumberModule());
+				install(new MockedGitoliteGitServerModule());
 				bind(AuthenticationBackend.class).to(MockedAuthenticationBackend.class);
 				bind(BuildServerBackend.class).to(MockedBuildServerBackend.class);
 				bind(MockedBuildServerBackend.class).toInstance(new MockedBuildServerBackend(null, null));

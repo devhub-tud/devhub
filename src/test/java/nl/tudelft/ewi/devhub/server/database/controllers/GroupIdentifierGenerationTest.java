@@ -82,7 +82,7 @@ public class GroupIdentifierGenerationTest {
 
 
 	@Test
-	@Ignore
+	@Ignore("Intensive test, should only be ran to test changes to identifier generator")
 	public void test() throws Exception {
 		List<User> users = performInTransaction(TaskInTransaction::createUsers).get();
 		List<CourseEdition> courseEditions = performInTransaction(TaskInTransaction::createCourseEditions).get();

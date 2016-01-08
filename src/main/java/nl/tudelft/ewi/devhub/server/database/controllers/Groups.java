@@ -42,6 +42,15 @@ public class Groups extends Controller<Group> {
 	}
 
 	@Transactional
+	public List<Group> listFor(User user) {
+		Preconditions.checkNotNull(user);
+		return query().from(group)
+			.where(group.members.contains(user))
+			.orderBy(group.groupNumber.asc())
+			.list(group);
+	}
+
+	@Transactional
 	public Group find(CourseEdition course, long groupNumber) {
 		Preconditions.checkNotNull(course);
 		Group res = query().from(group)

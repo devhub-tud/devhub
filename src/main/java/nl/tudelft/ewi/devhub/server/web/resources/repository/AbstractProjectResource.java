@@ -320,7 +320,20 @@ public abstract class AbstractProjectResource extends Resource {
 					throws ApiError, IOException {
 		return getTree(request, commitId, "");
 	}
-	
+
+	public static Comparator<String> FOLDER_TREE_COMPARATOR = (o1, o2) -> {
+		if (o1.endsWith("/") && o2.endsWith("/")) {
+			return o1.compareTo(o2);
+		}
+		else if (!o1.endsWith("/") && !o2.endsWith("/")) {
+			return o1.compareTo(o2);
+		}
+		else if (o1.endsWith("/")) {
+			return -1;
+		}
+		return 1;
+	};
+
 	@GET
 	@Path("/commits/{commitId}/tree/{path:.+}")
 	@Transactional
@@ -330,23 +343,7 @@ public abstract class AbstractProjectResource extends Resource {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
-		Map<String, EntryType> entries = new TreeMap<>(new Comparator<String>() {
-
-			@Override
-			public int compare(String o1, String o2) {
-				if (o1.endsWith("/") && o2.endsWith("/")) {
-					return o1.compareTo(o2);
-				}
-				else if (!o1.endsWith("/") && !o2.endsWith("/")) {
-					return o1.compareTo(o2);
-				}
-				else if (o1.endsWith("/")) {
-					return -1;
-				}
-				return 1;
-			}
-
-		});
+		Map<String, EntryType> entries = new TreeMap<>(FOLDER_TREE_COMPARATOR);
 
 		CommitApi commitApi = repository.getCommit(commitId);
 		CommitModel commit = commitApi.get();

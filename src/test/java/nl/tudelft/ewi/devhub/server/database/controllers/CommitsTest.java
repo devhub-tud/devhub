@@ -40,8 +40,7 @@ public class CommitsTest extends PersistedBackendTest {
 	private static  DetailedCommitModel commit = Mockito.mock(DetailedCommitModel.class);
 
 	@BeforeClass
-	private static void before() {
-
+	public static void before() {
 		Mockito.when(repositories.getRepository(Mockito.anyString())).thenReturn(repository);
 		Mockito.when(repository.getCommit(Mockito.anyString())).thenReturn(commitApi);
 		Mockito.when(commitApi.get()).thenReturn(commit);

@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
@@ -65,6 +66,9 @@ public class DeliveriesBackendTest extends BackendTest {
 	
 	@Mock
 	private Group group;
+
+	@Mock
+	private Course course;
 	
 	@Mock
 	private CourseEdition courseEdition;
@@ -98,7 +102,9 @@ public class DeliveriesBackendTest extends BackendTest {
 		
 		when(delivery.getGroup()).thenReturn(group);
 		when(delivery.getAssignment()).thenReturn(assignment);
-		
+
+		when(courseEdition.getCourse()).thenReturn(course);
+
 		when(group.getCourseEdition()).thenReturn(courseEdition);
 		when(group.getMembers()).thenReturn(groupMembers);
 		

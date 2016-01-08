@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
@@ -52,7 +53,7 @@ public class BuildsBackendTest {
 		when(buildServers.listAll()).thenReturn(Lists.newArrayList(buildServer));
 		when(buildServers.findByCredentials("buildname", "secret")).thenReturn(buildServer);
 		when(buildServers.findById(1l)).thenReturn(buildServer);
-//		when(buildBackend.offerBuildRequest(any(BuildRequest.class))).thenReturn(true);
+		when(buildBackend.offerBuildRequest(Mockito.any(BuildRequest.class))).thenReturn(true);
 		buildsBackend = new BuildsBackend(buildServers,
 			new ValueProvider<BuildSubmitter>(new MockedBuildSubmitter()), buildResults, repositoriesApi, config);;
 	}

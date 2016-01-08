@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ProjectTest extends WebTest {
@@ -88,7 +89,7 @@ public class ProjectTest extends WebTest {
 			String expectedMessage = expectedModel.getMessage();
 
 			assertEquals(expectedModel.getAuthor(), commit.getAuthor());
-			assertEquals(expectedMessage.substring(0, Math.min(expectedMessage.length(), 30)), commit.getMessage());
+			assertTrue(expectedMessage.startsWith(commit.getMessage()));
 		}
 	}
 

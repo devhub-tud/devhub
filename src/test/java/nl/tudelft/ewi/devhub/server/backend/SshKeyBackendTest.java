@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import com.google.common.collect.ImmutableList;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.models.SshKeyModel;
@@ -16,6 +17,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+import java.util.Collection;
+import java.util.Collections;
+
+import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -48,7 +55,12 @@ public class SshKeyBackendTest extends BackendTest {
 	
 	@Test(expected=ApiError.class)
 	public void testCreateInvalidKey() throws ApiError {
-		backend.createNewSshKey(user, "keyname", "ss-rsa AAAA1242342 ");
+		SshKeyModel model = new SshKeyModel();
+		model.setContents("ssh-rsa AAAA1242342");
+		model.setName("keyname");
+
+		Mockito.doThrow(new BadRequestException()).when(keysApi).addNewKey(model);
+		backend.createNewSshKey(user, model.getName(), model.getContents());
 	}
 	
 	@Test
@@ -65,7 +77,9 @@ public class SshKeyBackendTest extends BackendTest {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
-		backend.createNewSshKey(user, model.getName(), model.getContents());
+
+		userModel.setKeys(Collections.singleton(model));
+
 		backend.createNewSshKey(user, model.getName(), model.getContents());
 	}
 	
@@ -74,7 +88,7 @@ public class SshKeyBackendTest extends BackendTest {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
-		backend.createNewSshKey(user, model.getName(), model.getContents());
+		userModel.setKeys(Collections.singleton(model));
 		backend.createNewSshKey(user, model.getName().concat("A"), model.getContents());
 	}
 	
@@ -83,25 +97,35 @@ public class SshKeyBackendTest extends BackendTest {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
-		backend.createNewSshKey(user, model.getName(), model.getContents());
-		assertThat(userModel.getKeys(), contains(model));
+
 		backend.deleteSshKey(user, model.getName());
-		assertTrue(userModel.getKeys().isEmpty());
+		Mockito.verify(keysApi).deleteSshKey(model.getName());
 	}
 	
 	@Test
 	public void testListEmptyKeys() throws ApiError {
 		assertTrue(backend.listKeys(user).isEmpty());
+
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
+
+		Mockito.when(keysApi.addNewKey(model)).then(answer -> {
+			userModel.setKeys(Collections.singleton(model));
+			return model;
+		});
+
 		backend.createNewSshKey(user, model.getName(), model.getContents());
+
 		assertThat(backend.listKeys(user), contains(model));
 	}
 	
 	@Test(expected=ApiError.class)
 	public void testDeleteNonExistingSshKey() throws ApiError {
-		backend.deleteSshKey(user, "abcd");
+		String name = "abcd";
+		Mockito.doThrow(new NotFoundException()).when(keysApi).deleteSshKey(name);
+		backend.deleteSshKey(user, name);
+
 	}
 	
 }

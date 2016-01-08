@@ -115,7 +115,8 @@ public class DeliveriesBackend {
         }
 
         String folderName = StringUtils.join(new Object[] {
-            group.getCourse().getCode(),
+            group.getCourseEdition().getCourse().getCode(),
+            group.getCourseEdition().getCode(),
             group.getGroupNumber(),
             delivery.getDeliveryId()
         }, File.separatorChar);
@@ -151,7 +152,7 @@ public class DeliveriesBackend {
         assert group != null : "Group should not be null";
 
         if (!(currentUser.isAdmin()
-        		|| currentUser.isAssisting(group.getCourse())
+        		|| currentUser.isAssisting(group.getCourseEdition())
         		|| group.getMembers().contains(currentUser))) {
             throw new UnauthorizedException();
         }
@@ -174,7 +175,7 @@ public class DeliveriesBackend {
     		throws ApiError, UnauthorizedException {
         Group group = delivery.getGroup();
         
-        if (!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourseEdition()))) {
             throw new UnauthorizedException();
         }
 

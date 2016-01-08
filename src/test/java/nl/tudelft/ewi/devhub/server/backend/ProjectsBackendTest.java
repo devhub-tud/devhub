@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
+import nl.tudelft.ewi.git.web.api.GroupsApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.UsersApi;
 import org.hamcrest.Matchers;
@@ -27,12 +28,17 @@ import org.jukito.UseModules;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
+import javax.ws.rs.NotFoundException;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -59,6 +65,7 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 	@Inject @Getter private CourseEditions courses;
 	@Inject @Getter private Users users;
 	@Inject @Getter private Groups groups;
+	@Inject GroupsApi groupsApi;
 
 	private CourseEdition course;
 	private User user;
@@ -68,6 +75,8 @@ public class ProjectsBackendTest extends PersistedBackendTest {
 		reset(repositoriesApi, usersApi);
 		course = createCourseEdition();
 		user = createUser();
+
+		Mockito.doThrow(new NotFoundException()).when(groupsApi).getGroup(anyString());
 	}
 
 	@Override

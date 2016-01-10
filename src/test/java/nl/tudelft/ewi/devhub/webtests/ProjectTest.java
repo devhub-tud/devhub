@@ -17,6 +17,7 @@ import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -89,7 +90,8 @@ public class ProjectTest extends WebTest {
 			String expectedMessage = expectedModel.getMessage();
 
 			assertEquals(expectedModel.getAuthor(), commit.getAuthor());
-			assertTrue(expectedMessage.startsWith(commit.getMessage()));
+			// TODO Starts with instead of equals, because tags may be included in string: v6.2.0
+			assertThat(commit.getMessage(), Matchers.startsWith(expectedMessage));
 		}
 	}
 

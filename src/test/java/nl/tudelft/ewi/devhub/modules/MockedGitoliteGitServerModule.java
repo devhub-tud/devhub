@@ -2,8 +2,6 @@ package nl.tudelft.ewi.devhub.modules;
 
 import com.google.common.io.Files;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import lombok.SneakyThrows;
@@ -32,23 +30,19 @@ import nl.tudelft.ewi.git.web.api.di.Factory;
 import nl.tudelft.ewi.git.web.api.di.GroupApiFactory;
 import nl.tudelft.ewi.git.web.api.di.RepositoryApiFactory;
 import nl.tudelft.ewi.gitolite.ManagedConfig;
-import nl.tudelft.ewi.gitolite.ManagedConfigFactory;
 import nl.tudelft.ewi.gitolite.config.Config;
 import nl.tudelft.ewi.gitolite.config.ConfigImpl;
 import nl.tudelft.ewi.gitolite.git.GitException;
 import nl.tudelft.ewi.gitolite.git.GitManager;
-import nl.tudelft.ewi.gitolite.git.JGitManagerFactory;
 import nl.tudelft.ewi.gitolite.keystore.KeyStore;
 import nl.tudelft.ewi.gitolite.keystore.KeyStoreImpl;
 import nl.tudelft.ewi.gitolite.repositories.PathRepositoriesManager;
 import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
@@ -114,7 +108,6 @@ public class MockedGitoliteGitServerModule extends AbstractModule {
 		// Bind folders so tests can prepare them
 		bind(File.class).annotatedWith(Names.named("mirrors.folder")).toInstance(mirrorsFolder);
 		bind(File.class).annotatedWith(Names.named("repositories.folder")).toInstance(repositoriesFolder);
-		bind(LifeCycle.class).toInstance(Mockito.mock(LifeCycle.class));
 
 		// Clean up folders on shutdown
 		Runtime.getRuntime().addShutdownHook(new Thread(this::removeFolders));

@@ -27,6 +27,7 @@ import com.google.inject.persist.PersistFilter;
 import com.google.inject.servlet.RequestScoped;
 import com.google.inject.servlet.ServletModule;
 
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.reflections.Reflections;
 
@@ -43,19 +44,22 @@ public class DevhubModule extends ServletModule {
 
 	private final File rootFolder;
 	private final Config config;
+	private final LifeCycle lifeCycle;
 
-	public DevhubModule(Config config, File rootFolder) {
+	public DevhubModule(Config config, File rootFolder, LifeCycle lifeCycle) {
 		this.config = config;
 		this.rootFolder = rootFolder;
+		this.lifeCycle = lifeCycle;
 	}
 
 	@Override
 	protected void configureServlets() {
 		install(new DbModule());
 		install(new JaxrsModule());
-		install(new GitServerClientModule(config));
-		bind(JacksonJaxbXMLProvider.class);
+		install(new GitServerClientModule(config, lifeCycle));
+
 		requireBinding(ObjectMapper.class);
+		requireBinding(JacksonJaxbXMLProvider.class);
 
 		bind(File.class).annotatedWith(Names.named("directory.templates")).toInstance(new File(rootFolder, "templates"));
 		bind(TranslatorFactory.class).toInstance(new TranslatorFactory("i18n.devhub"));

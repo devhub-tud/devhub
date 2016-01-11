@@ -37,15 +37,18 @@ import javax.ws.rs.ext.Provider;
 public class GitServerClientModule extends AbstractModule {
 
 	private final Config config;
+	private final LifeCycle lifeCycle;
 
-	public GitServerClientModule(Config config) {
+	public GitServerClientModule(Config config, LifeCycle lifeCycle) {
 		this.config = config;
+		this.lifeCycle = lifeCycle;
 	}
 
 	@Override
 	protected void configure() {
 		bind(Config.class).annotatedWith(Names.named("git.server.config")).toInstance(config);
 		bind(GitServerClientInitializer.class).asEagerSingleton();
+		bind(LifeCycle.class).toInstance(lifeCycle);
 	}
 
 	/**

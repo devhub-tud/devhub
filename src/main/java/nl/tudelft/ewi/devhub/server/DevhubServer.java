@@ -114,7 +114,7 @@ public class DevhubServer {
 			addEventListener(new GuiceResteasyBootstrapServletContextListener() {
 				@Override
 				protected List<Module> getModules(ServletContext context) {
-					DevhubModule module = new DevhubModule(config, rootFolder);
+					DevhubModule module = new DevhubModule(config, rootFolder, server);
 					return ImmutableList.<Module> of(Modules.override(module).with(overrides));
 				}
 

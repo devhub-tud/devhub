@@ -14,6 +14,9 @@ git submodules init
 git submodules update
 ```
 
+### Dependencies
+* Requires Maven 3.2 or higher, tested on Apache Maven 3.2.1 and 3.3.3.
+
 ### Setting up your IDE
 *These steps were only tested for Eclipse and IntelliJ.*
 To succesfully run and test Devhub, a couple of steps should be followed to setup various dependencies and configurations.

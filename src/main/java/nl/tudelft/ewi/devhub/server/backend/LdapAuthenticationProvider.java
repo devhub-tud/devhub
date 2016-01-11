@@ -125,7 +125,14 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 					config.getLDAPPort(), config.isLDAPSSL());
 			BindRequest request = new BindRequestImpl();
 			request.setSimple(true);
-			request.setName(netId + config.getLDAPExtension());
+
+			if (config.isActiveDirectory()) {
+				request.setName(netId + config.getLDAPExtension());
+			}
+			else {
+				request.setDn(new Dn("cn", netId, config.getLDAPPrimaryDomain()));
+			}
+
 			request.setCredentials(password);
 	
 			BindResponse response = conn.bind(request);

@@ -126,6 +126,16 @@ public class Config {
 	public String getLDAPExtension() {
 		return properties.getProperty("ldap.extension", "");
 	}
+
+	/**
+	 * When false, we use the username plus the primary domain as DN for the bind request (LDAP).
+	 * When true, we use the username + extension as name for the bind request (Active Directory) .
+	 *
+	 * @return Whether the LDAP directory is AD.
+	 */
+	public boolean isActiveDirectory() {
+		return properties.getProperty("ldap.active-directory", "false").equalsIgnoreCase("true");
+	}
 	
 	/**
 	 * @return the LDAP tree in which users can be found

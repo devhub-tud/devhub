@@ -8,7 +8,11 @@
 
     <ol class="breadcrumb hidden-xs">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
-        <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li>
+        <li><a href="${course.course.getURI()}">${course.course.code} - ${course.course.name}</a></li>
+        <li><a href="${course.getURI()}">${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+        <li><a href="${course.getURI()}">${ i18n.translate("assignments.title") }</a></li>
+        [#-- <li><a href="/courses">${ i18n.translate("section.courses") }</a></li> --]
+        [#-- <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li> --]
         <li>${assignment.getName()}</li>
     </ol>
 
@@ -48,7 +52,7 @@
             [#assign group = delivery.getGroup()]
         <tr class="delivery ${delivery.getState().toString()?lower_case}">
           <td class="commit">
-            <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+            <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                 <div class="pull-right">
                 [#if delivery.isLate()]
                     <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
@@ -65,7 +69,7 @@
                     </span>
                 </div>
                 <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
-                <div class="committer">${delivery.createdUser.getName()} on ${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                <div class="committer">${delivery.createdUser.getName()} on ${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
             </a>
           </td>
         </tr>
@@ -78,7 +82,7 @@
     </table>
     
     <div>
-        <a href="/courses/${course.code}/assignments/${assignment.getAssignmentId()}/deliveries/download" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
+        <a href="${assignment.getURI()}deliveries/download" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
     </div>
 
 </div>

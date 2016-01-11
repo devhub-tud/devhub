@@ -1,10 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.io.IOException;
-
-import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
-
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationProvider.AuthenticationProviderUnavailable;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationProvider.AuthenticationSession;
@@ -16,6 +11,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+
+import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
+import java.io.IOException;
 
 /**
  * Default implementation of the {@link AuthenticationBackend}.

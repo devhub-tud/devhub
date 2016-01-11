@@ -8,12 +8,18 @@
 [@macros.renderMenu i18n user /]
 <div class="container">
 
+
+[#if group?? && group?has_content]
     <ol class="breadcrumb">
         <li><a href="/courses">${i18n.translate("section.projects")}</a></li>
-        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li>
-        <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}/pulls">${i18n.translate("section.pull-requests")}</a></li>
+        [#-- <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li> --]
+	    <li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
+	    <li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+	    <li><a href="${group.getURI()}">Group ${group.getGroupNumber()}</a></li>
+        <li><a href="${group.getURI()}pulls">${i18n.translate("section.pull-requests")}</a></li>
         <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
     </ol>
+[/#if]
 
 [#assign buildResult = builds[pullRequest.destination]![]]
 [#if buildResult?? && buildResult?has_content]
@@ -36,16 +42,16 @@
 
     <span class="view-picker">
         <div class="btn-group">
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}" class="btn btn-default active">${i18n.translate("pull-request.overview")}</a>
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/diff" class="btn btn-default">${i18n.translate("pull-request.view-diff")}</a>
+            <a href="${pullRequest.getURI()}" class="btn btn-default active">${i18n.translate("pull-request.overview")}</a>
+            <a href="${pullRequest.getURI()}diff" class="btn btn-default">${i18n.translate("pull-request.view-diff")}</a>
         </div>
     </span>
 
     <div class="headers" style="display: inline-block;">
-        <h2 class="header">${commit.getTitle()}</h2>
+        <h2 class="header">${commit.getMessage()}</h2>
         <h5 class="subheader">${commit.getAuthor()}</h5>
     [#if commit.getMessage()?has_content]
-        <div class="description">${commit.getMessage()}</div>
+        <div class="description">${commit.getMessageTail()}</div>
     [/#if]
     </div>
 </div>
@@ -57,7 +63,7 @@
         [#if event.isCommitEvent()]
             <ul class="list-unstyled">
                 <li style="line-height:30px;">
-                    <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${event.commit.commit}/diff">
+                    <a href="${repositoryEntity.getURI()}commits/${event.commit.commit}/diff">
                         <span class="octicon octicon-git-commit"></span>
                         <span class="label label-default">${event.commit.getCommit()?substring(0,7)?upper_case }</span>
                         <span>${event.commit.getMessage()}</span>
@@ -65,11 +71,11 @@
                     [#assign buildResult = builds[event.commit.commit]![]]
                     [#if buildResult?? && buildResult?has_content && buildResult.hasFinished()]
                         [#if buildResult.hasSucceeded()]
-                            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${event.commit.commit}/build">
+                            <a href="${repositoryEntity.getURI()}commits/${event.commit.commit}/build">
                                 <span class="octicon octicon-check text-success"></span>
                             </a>
                         [#else]
-                            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${event.commit.commit}/build">
+                            <a href="${repositoryEntity.getURI()}commits/${event.commit.commit}/build">
                                 <span class="octicon octicon-x text-danger"></span>
                             </a>
                         [/#if]
@@ -145,12 +151,12 @@
 
 [@macros.renderScripts /]
 [@diffbox.renderScripts/]
-[@inlineComments.renderScripts group i18n commit/]
+[@inlineComments.renderScripts group![] i18n commit/]
 
 <script>
     $(function() {
         $('#pull-comment-form').submit(function(event) {
-            $.post('/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/comment',
+            $.post('${pullRequest.getURI()}comment',
             $('[name="content"]', '#pull-comment-form').val()).done(function(res) {
                 // Add comment block
                 $('<div class="panel panel-default panel-comment">' +
@@ -175,7 +181,7 @@ $(function() {
         var label = $('span', btn).html('${i18n.translate("pull-request.merging")}');
 		var message = $('#merge-message');
 
-        $.post("/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/merge")
+        $.post("${pullRequest.getURI()}/merge")
             .done(function(res) {
                 if(res.success) {
                     label.html('${i18n.translate("pull-request.merged")}');
@@ -203,7 +209,7 @@ $(function() {
     });
 
     $('#btn-close').click(function() {
-        $.post('/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/close')
+        $.post('${pullRequest.getURI()}close')
             .done(function(res) {
                 $('#btn-close')
                     .html('<i class="octicon octicon-issue-closed"></i> <span>${i18n.translate("pull-request.closed")}</span>')
@@ -221,7 +227,7 @@ $(function() {
 
     function bindDeleteHandler() {
         $('#btn-remove-branch').click(function() {
-            $.post('/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}/delete-branch')
+            $.post('${pullRequest.getURI()}delete-branch')
                 .done(function(res) {
                     $('#btn-remove-branch').remove();
                 });

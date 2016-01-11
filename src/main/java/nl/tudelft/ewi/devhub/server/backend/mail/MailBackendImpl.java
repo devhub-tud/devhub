@@ -1,11 +1,12 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.Config;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Queues;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import javax.mail.Address;
 import javax.mail.Message.RecipientType;
@@ -14,14 +15,12 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
-import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.Config;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Queues;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.UnsupportedEncodingException;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Singleton

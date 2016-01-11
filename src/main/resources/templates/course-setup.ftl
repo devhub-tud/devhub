@@ -78,8 +78,8 @@
         <div class="form-group">
             <label for="timeout" class="col-sm-2 control-label">${i18n.translate("course.control.build-timeout")} (${i18n.translate("course.control.seconds")})</label>
             <div class="col-sm-10">
-        [#if course?exists && course.getBuildTimeout()?exists]
-            <input type="number" class="form-control" name="timeout" id="timeout" value="${course.getBuildTimeout()}" min="1" max="3600">
+        [#if course?exists && course.buildInstruction.getBuildTimeout()?exists]
+            <input type="number" class="form-control" name="timeout" id="timeout" value="${course.buildInstruction.getBuildTimeout()}" min="1" max="3600">
         [#else]
             <input type="number" class="form-control" name="timeout" id="timeout" value="600" min="1" max="3600">
         [/#if]

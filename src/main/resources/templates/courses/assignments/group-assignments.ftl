@@ -44,18 +44,18 @@
                     [#assign delivery = deliveries.getLastDelivery(assignment, group)!]
                     <tr>
                         <td>
-                            <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                            <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                             ${assignment_index + 1}
                             </a>
                         </td>
                         <td>
-                            <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                            <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                             ${assignment.getName()!"-"}
                             </a>
                         </td>
                         <td>
                             [#if assignment.getDueDate()??]
-                                <a href="/courses/${course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}">
+                                <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                                 ${assignment.getDueDate()?string["EEE, d MMM yyyy HH:mm"]}
                                 </a>
                             [/#if]
@@ -68,10 +68,10 @@
                         </td>
                         <td>
                             [#if delivery?has_content]
-                                [#assign commitId = delivery.getCommitId()!]
-                                [#if commitId?? && commitId?has_content && states?? && states.hasStarted(commitId)]
-                                    [#if states.hasFinished(commitId)]
-                                        [#if states.hasSucceeded(commitId)]
+                                [#assign commit = delivery.getCommit()!]
+                                [#if commit?? && commit?has_content && commit.buildResult?? && commit.buildResult?has_content]
+                                    [#if commit.buildResult.hasFinished()]
+                                        [#if commit.buildResult.hasSucceeded()]
                                             <span class="label label-success">${i18n.translate("build.state.succeeded")}</span>
                                         [#else]
                                             <span class="label label-success">${i18n.translate("build.state.failed")}</span>

@@ -1,20 +1,20 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-import java.util.Map;
-
 import lombok.Data;
 import nl.tudelft.ewi.git.models.EntryType;
+
+import com.google.common.collect.ImmutableList;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class FolderView extends View {
 
@@ -63,11 +63,11 @@ public class FolderView extends View {
 	 * @return A {@code Map} containing the entry names and types
 	 */
 	public Map<String, EntryType> getDirectoryEntries() {
-		ImmutableMap.Builder<String, EntryType> builder = ImmutableMap.builder();
+		LinkedHashMap<String, EntryType> map = new LinkedHashMap<>();
 		for(DirectoryElement entry : getDirectoryElements()) {
-			builder.put(entry.getName(), entry.getType());
+			map.put(entry.getName(), entry.getType());
 		}
-		return builder.build();
+		return map;
 	}
 	
 	/**

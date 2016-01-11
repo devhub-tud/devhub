@@ -6,9 +6,10 @@
 
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
-		<div class="container">
+        <div class="container">
 
-    [@macros.renderCommitHeader i18n group commit i18n.translate("commit.view-diff")/]
+
+    [@macros.renderCommitHeader i18n group![] commit i18n.translate("commit.view-diff")/]
 
     [#if diffViewModel?? && diffViewModel?has_content]
         [#list diffViewModel.diffs as diffModel]
@@ -40,12 +41,12 @@
 		</div>
 
 [@macros.renderScripts /]
-[@inlineComments.renderScripts group i18n commit/]
+[@inlineComments.renderScripts group![] i18n commit/]
 
 <script>
     $(function() {
         $('#pull-comment-form').submit(function(event) {
-            $.post('/courses/${group.course.code}/groups/${group.groupNumber}/comment', {
+            $.post('${repositoryEntity.getURI()}comment', {
                 "link-commit": "${commit.commit}",
                 "content": $('[name="content"]', '#pull-comment-form').val(),
                 "redirect": window.location.pathname

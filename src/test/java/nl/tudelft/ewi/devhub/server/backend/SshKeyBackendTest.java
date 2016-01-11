@@ -1,29 +1,39 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.math.BigInteger;
-import java.util.Random;
-
-import nl.tudelft.ewi.git.client.GitClientException;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.common.collect.Lists;
-
-import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
+import com.google.common.collect.ImmutableList;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitServerClientMock;
-import nl.tudelft.ewi.git.client.SshKeys;
 import nl.tudelft.ewi.git.models.SshKeyModel;
 import nl.tudelft.ewi.git.models.UserModel;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
 
-public class SshKeyBackendTest {
+import nl.tudelft.ewi.git.web.api.KeysApi;
+import nl.tudelft.ewi.git.web.api.UserApi;
+import nl.tudelft.ewi.git.web.api.UsersApi;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
-	private static final GitServerClientMock gitClient = new GitServerClientMock();
-	
-	private final SshKeyBackend backend = new SshKeyBackend(gitClient);
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+import java.util.Collection;
+import java.util.Collections;
+
+import static org.hamcrest.Matchers.any;
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(MockitoJUnitRunner.class)
+public class SshKeyBackendTest extends BackendTest {
+
+	@Mock KeysApi keysApi;
+	@Mock UserApi userApi;
+	@Mock UsersApi usersApi;
+	@InjectMocks SshKeyBackend backend;
 	
 	private User user;
 	private UserModel userModel;
@@ -31,86 +41,91 @@ public class SshKeyBackendTest {
 	@Before
 	public void beforeTest() {
 		user = createUser();
-		userModel = gitClient.users().ensureExists(user.getNetId());
+		userModel = new UserModel();
+		userModel.setName(user.getNetId());
+		Mockito.when(usersApi.getUser(user.getNetId())).thenReturn(userApi);
+		Mockito.when(userApi.get()).thenReturn(userModel);
+		Mockito.when(userApi.keys()).thenReturn(keysApi);
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testCreateInvalidKeyName() throws ApiError, GitClientException {
+	public void testCreateInvalidKeyName() throws ApiError {
 		backend.createNewSshKey(user, "keyna me", "ssh-rsa AAAA1242342 ");
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testCreateInvalidKey() throws ApiError, GitClientException {
-		backend.createNewSshKey(user, "keyname", "ss-rsa AAAA1242342 ");
+	public void testCreateInvalidKey() throws ApiError {
+		SshKeyModel model = new SshKeyModel();
+		model.setContents("ssh-rsa AAAA1242342");
+		model.setName("keyname");
+
+		Mockito.doThrow(new BadRequestException()).when(keysApi).addNewKey(model);
+		backend.createNewSshKey(user, model.getName(), model.getContents());
 	}
 	
 	@Test
-	public void testCreate() throws ApiError, GitClientException {
+	public void testCreate() throws ApiError {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
 		backend.createNewSshKey(user, model.getName(), model.getContents());
-		SshKeys keys = gitClient.users().sshKeys(userModel);
-		SshKeyModel actual = keys.retrieve(model.getName());
-		assertEquals(model, actual);
-		assertThat(userModel.getKeys(), contains(model));
+		Mockito.verify(keysApi).addNewKey(model);
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testCreateDuplicateName() throws ApiError, GitClientException {
+	public void testCreateDuplicateName() throws ApiError {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
-		backend.createNewSshKey(user, model.getName(), model.getContents());
+
+		userModel.setKeys(Collections.singleton(model));
+
 		backend.createNewSshKey(user, model.getName(), model.getContents());
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testCreateDuplicateKey() throws ApiError, GitClientException {
+	public void testCreateDuplicateKey() throws ApiError {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
-		backend.createNewSshKey(user, model.getName(), model.getContents());
+		userModel.setKeys(Collections.singleton(model));
 		backend.createNewSshKey(user, model.getName().concat("A"), model.getContents());
 	}
 	
 	@Test
-	public void testDeleteSshKey() throws ApiError, GitClientException {
+	public void testDeleteSshKey() throws ApiError {
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
-		backend.createNewSshKey(user, model.getName(), model.getContents());
-		assertThat(userModel.getKeys(), contains(model));
+
 		backend.deleteSshKey(user, model.getName());
-		assertTrue(userModel.getKeys().isEmpty());
+		Mockito.verify(keysApi).deleteSshKey(model.getName());
 	}
 	
 	@Test
-	public void testListEmptyKeys() throws ApiError, GitClientException {
+	public void testListEmptyKeys() throws ApiError {
 		assertTrue(backend.listKeys(user).isEmpty());
+
 		SshKeyModel model = new SshKeyModel();
 		model.setContents("ssh-rsa AAAA1242342");
 		model.setName("keyname");
+
+		Mockito.when(keysApi.addNewKey(model)).then(answer -> {
+			userModel.setKeys(Collections.singleton(model));
+			return model;
+		});
+
 		backend.createNewSshKey(user, model.getName(), model.getContents());
+
 		assertThat(backend.listKeys(user), contains(model));
 	}
 	
 	@Test(expected=ApiError.class)
-	public void testDeleteNonExistingSshKey() throws ApiError, GitClientException {
-		backend.deleteSshKey(user, "abcd");
-	}
-	
-	private final static Random random = new Random();
-	
-	protected String randomString() {
-		return new BigInteger(130, random).toString(32);
-	}
+	public void testDeleteNonExistingSshKey() throws ApiError {
+		String name = "abcd";
+		Mockito.doThrow(new NotFoundException()).when(keysApi).deleteSshKey(name);
+		backend.deleteSshKey(user, name);
 
-	protected User createUser() {
-		User user = new User();
-		user.setMemberOf(Lists.<GroupMembership> newArrayList());
-		user.setNetId(randomString());
-		return user;
 	}
 	
 }

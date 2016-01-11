@@ -1,13 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
-
 import lombok.extern.slf4j.Slf4j;
-
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
@@ -17,10 +10,15 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
+
 import org.apache.commons.lang.StringUtils;
 
 import javax.ws.rs.NotFoundException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,7 +79,6 @@ public class DeliveriesBackend {
 
         try {
             delivery.setCreatedUser(currentUser);
-            delivery.setCreated(new Date());
             deliveriesDAO.persist(delivery);
             log.info("{} submitted {}", currentUser, delivery);
         }
@@ -118,7 +115,8 @@ public class DeliveriesBackend {
         }
 
         String folderName = StringUtils.join(new Object[] {
-            group.getCourse().getCode(),
+            group.getCourseEdition().getCourse().getCode(),
+            group.getCourseEdition().getCode(),
             group.getGroupNumber(),
             delivery.getDeliveryId()
         }, File.separatorChar);
@@ -154,7 +152,7 @@ public class DeliveriesBackend {
         assert group != null : "Group should not be null";
 
         if (!(currentUser.isAdmin()
-        		|| currentUser.isAssisting(group.getCourse())
+        		|| currentUser.isAssisting(group.getCourseEdition())
         		|| group.getMembers().contains(currentUser))) {
             throw new UnauthorizedException();
         }
@@ -177,7 +175,7 @@ public class DeliveriesBackend {
     		throws ApiError, UnauthorizedException {
         Group group = delivery.getGroup();
         
-        if (!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourseEdition()))) {
             throw new UnauthorizedException();
         }
 
@@ -233,8 +231,12 @@ public class DeliveriesBackend {
      * @return statistics for the assignment
      */
     public AssignmentStats getAssignmentStats(Assignment assignment) {
-        List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
-        return new AssignmentStats(deliveries, assignment.getCourse().getGroups());
+        List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+        return getAssignmentStats(assignment, lastDeliveries);
+    }
+
+    public AssignmentStats getAssignmentStats(Assignment assignment, List<Delivery> lastDeliveries) {
+        return new AssignmentStats(lastDeliveries, assignment.getCourseEdition().getGroups());
     }
 
 }

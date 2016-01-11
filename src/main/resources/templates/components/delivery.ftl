@@ -5,7 +5,7 @@
 [/#macro]
 
 [#macro buildLabel delivery group builds]
-    [#assign commitId = delivery.getCommitId()!]
+    [#assign commitId = delivery.getCommit().getCommitId()!]
     [#if commitId?? && commitId?has_content]
     [#assign buildResult = builds[commitId]![]]
         [#if buildResult?? && buildResult?has_content && buildResult.hasFinished()]
@@ -40,10 +40,10 @@
         <dt>${i18n.translate("delivery.submitted-by")}</dt>
         <dd>${delivery.createdUser.getName()}</dd>
         <dt>${i18n.translate("delivery.date")}</dt>
-        <dd>${delivery.getCreated()?string["EEEE dd MMMM yyyy HH:mm"]}</dd>
+        <dd>${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</dd>
         [#if delivery.commitId?? && delivery.commitId?has_content]
             <dt>${i18n.translate("assignment.commit")}</dt>
-            <dd><a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/commits/${delivery.commitId}/diff">${delivery.commitId?substring(0, 8)}</a></dd>
+            <dd><a href="${delivery.commit.getDiffURI()}">${delivery.commitId?substring(0, 8)}</a></dd>
         [/#if]
         [#if delivery.getNotes()?? && delivery.getNotes()?has_content]
             <dt>${i18n.translate("delivery.notes")}</dt>
@@ -56,7 +56,7 @@
     <ul class="list-inline">
         [#list attachments as attachment]
             <li>
-                <a class="btn btn-link btn-sm" target="_blank" href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments/${assignment.getAssignmentId()}/attachment/${attachment.getPath()?url('ISO-8859-1')}">
+                <a class="btn btn-link btn-sm" target="_blank" href="${attachment.getURI()}">
                     <span class="glyphicon glyphicon-file aria-hidden="true"></span>
                     ${attachment.getFileName()}
                 </a>

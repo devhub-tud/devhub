@@ -1,14 +1,9 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Set;
-
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.database.entities.DeliveryAttachment;
@@ -17,8 +12,10 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,9 +25,11 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -67,12 +66,13 @@ public class DeliveriesBackendTest extends BackendTest {
 	
 	@Mock
 	private Group group;
-	
+
 	@Mock
 	private Course course;
 	
-	private Set<User> groupMembers;
-	
+	@Mock
+	private CourseEdition courseEdition;
+
 	@Mock
 	private InputStream in;
 
@@ -92,18 +92,20 @@ public class DeliveriesBackendTest extends BackendTest {
 	
 	@Before
 	public void setUp() throws IOException {
-		groupMembers = Sets.newHashSet();
+		Set<User> groupMembers = Sets.newHashSet();
 		groupMembers.add(currentUser);
 		
 		deliveries = Lists.newArrayList(delivery);
 		
 		when(currentUser.isAdmin()).thenReturn(true);
-		when(currentUser.isAssisting(Matchers.eq(course))).thenReturn(true);
+		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(true);
 		
 		when(delivery.getGroup()).thenReturn(group);
 		when(delivery.getAssignment()).thenReturn(assignment);
-		
-		when(group.getCourse()).thenReturn(course);
+
+		when(courseEdition.getCourse()).thenReturn(course);
+
+		when(group.getCourseEdition()).thenReturn(courseEdition);
 		when(group.getMembers()).thenReturn(groupMembers);
 		
 		when(storageBackend.store(Matchers.anyString(), Matchers.eq(fileName), Matchers.eq(in))).thenReturn(FULL_PATH_NAME);
@@ -131,7 +133,7 @@ public class DeliveriesBackendTest extends BackendTest {
 	}
 
 	private void isAnAdmin() {
-		when(currentUser.isAssisting(Matchers.eq(course))).thenReturn(false);
+		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(false);
 		when(group.getMembers()).thenReturn(Sets.newHashSet());
 	}
 	
@@ -160,7 +162,7 @@ public class DeliveriesBackendTest extends BackendTest {
 
 	private void isAGroupMember() {
 		when(currentUser.isAdmin()).thenReturn(false);
-		when(currentUser.isAssisting(Matchers.eq(course))).thenReturn(false);
+		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(false);
 	}
 	
 	@Test(expected=UnauthorizedException.class)
@@ -172,7 +174,7 @@ public class DeliveriesBackendTest extends BackendTest {
 
 	private void hasNoPermission() {
 		when(currentUser.isAdmin()).thenReturn(false);
-		when(currentUser.isAssisting(Matchers.eq(course))).thenReturn(false);
+		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(false);
 		when(group.getMembers()).thenReturn(Sets.newHashSet());
 	}
 	
@@ -343,7 +345,7 @@ public class DeliveriesBackendTest extends BackendTest {
 	
 	@Test
 	public void assignmentStatsFromLatestDeliveries() {
-		when(assignment.getCourse()).thenReturn(course);
+		when(assignment.getCourseEdition()).thenReturn(courseEdition);
 		when(deliveriesDAO.getLastDeliveries(Matchers.eq(assignment))).thenReturn(deliveries);
 		
 		assertNotNull(this.deliveriesBackend.getAssignmentStats(assignment));

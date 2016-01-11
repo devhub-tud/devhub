@@ -1,13 +1,13 @@
 package nl.tudelft.ewi.devhub.server;
 
+import lombok.extern.slf4j.Slf4j;
+
+import com.google.inject.Singleton;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
-
-import lombok.extern.slf4j.Slf4j;
-
-import com.google.inject.Singleton;
 
 /**
  * The {@link Config} class can be used to retrieve configuration settings from the
@@ -101,9 +101,16 @@ public class Config {
 	 * @return return the LDAP port, for example 636
 	 */
 	public int getLDAPPort() {
-		return Integer.parseInt(properties.getProperty("ldap-server.port", " 636"));
+		return Integer.parseInt(properties.getProperty("ldap-server.port", "636"));
 	}
-	
+
+	/**
+	 * @return git server connection pool size
+	 */
+	public int getGitServerConnectionPoolSize() {
+		return Integer.parseInt(properties.getProperty("git-server.connection.pool-size", "25"));
+	}
+
 	/**
 	 * @return whether or not to use SSL for this LDAP connection
 	 */
@@ -118,6 +125,16 @@ public class Config {
 	 */
 	public String getLDAPExtension() {
 		return properties.getProperty("ldap.extension", "");
+	}
+
+	/**
+	 * When false, we use the username plus the primary domain as DN for the bind request (LDAP).
+	 * When true, we use the username + extension as name for the bind request (Active Directory) .
+	 *
+	 * @return Whether the LDAP directory is AD.
+	 */
+	public boolean isActiveDirectory() {
+		return properties.getProperty("ldap.active-directory", "false").equalsIgnoreCase("true");
 	}
 	
 	/**

@@ -1,14 +1,15 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.database.entities.Comment;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -28,18 +29,15 @@ public class CommentMailer {
 	private final MailBackend backend;
 	private final TranslatorFactory factory;
 	private final HttpServletRequest request;
-	private final Group group;
 
 	@Inject
 	CommentMailer(MailBackend backend,
 				  TranslatorFactory factory,
 				  Config config,
-				  @Named("current.group") Group group,
 				  HttpServletRequest request) {
 		this.backend = backend;
 		this.factory = factory;
 		this.config = config;
-		this.group = group;
 		this.request = request;
 
 	}
@@ -60,9 +58,11 @@ public class CommentMailer {
 		String commenterName = commenter.getName();
 		String message = comment.getContent();
 		String url = config.getHttpUrl().concat(redirect);
-		String groupName = group.getGroupName();
 
-		group.getMembers()
+		RepositoryEntity repositoryEntity = comment.getRepository();
+		String groupName = repositoryEntity.getRepositoryName();
+
+		repositoryEntity.getCollaborators()
 			.stream()
 			.filter(addressee -> !addressee.equals(commenter))
 			.forEach(addressee -> {

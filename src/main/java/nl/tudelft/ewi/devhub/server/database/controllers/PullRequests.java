@@ -1,15 +1,15 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.persistence.EntityManager;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 
 import com.google.inject.Inject;
-
 import com.google.inject.persist.Transactional;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
-import nl.tudelft.ewi.devhub.server.database.entities.QPullRequest;
 
+import javax.persistence.EntityManager;
 import java.util.List;
+
+import static nl.tudelft.ewi.devhub.server.database.entities.issues.QPullRequest.pullRequest;
 
 /**
  * PullRequest data access object
@@ -23,90 +23,74 @@ public class PullRequests extends Controller<PullRequest> {
 
 	/**
 	 * Find a pull request by Group and issue id
-	 * @param group Group
+	 * @param repositoryEntity Group
 	 * @param id Issue id
 	 * @return the PullRequest
 	 */
 	@Transactional
-	public PullRequest findById(final Group group, final long id) {
-		return ensureNotNull(query().from(QPullRequest.pullRequest)
-				.where(QPullRequest.pullRequest.issueId.eq(id)
-						.and(QPullRequest.pullRequest.group.eq(group)))
-				.singleResult(QPullRequest.pullRequest), "No pull request exists for id " + id);
+	public PullRequest findById(final RepositoryEntity repositoryEntity, final long id) {
+		return ensureNotNull(query().from(pullRequest)
+				.where(pullRequest.issueId.eq(id)
+						.and(pullRequest.repository.eq(repositoryEntity)))
+				.singleResult(pullRequest), "No pull request exists for id " + id);
 	}
 
 	/**
 	 * Find an open pull request for a branch name
-	 * @param group group
+	 * @param repositoryEntity repositoryEntity
 	 * @param branchName the branch name
 	 * @return the PullRequest or null
 	 */
 	@Transactional
-	public PullRequest findOpenPullRequest(final Group group, final String branchName) {
-		return query().from(QPullRequest.pullRequest)
-			.where(QPullRequest.pullRequest.group.eq(group))
-			.where(QPullRequest.pullRequest.branchName.eq(branchName))
-			.where(QPullRequest.pullRequest.open.isTrue())
-			.singleResult(QPullRequest.pullRequest);
+	public PullRequest findOpenPullRequest(final RepositoryEntity repositoryEntity, final String branchName) {
+		return query().from(pullRequest)
+			.where(pullRequest.repository.eq(repositoryEntity))
+			.where(pullRequest.branchName.eq(branchName))
+			.where(pullRequest.open.isTrue())
+			.singleResult(pullRequest);
 	}
 
 	/**
 	 * List all open pull requests for this repository
-	 * @param group group
+	 * @param repositoryEntity repositoryEntity
 	 * @return List of all open pull requests
 	 */
 	@Transactional
-	public List<PullRequest> findOpenPullRequests(final Group group) {
-		final QPullRequest PullRequest = QPullRequest.pullRequest;
-		return query().from(PullRequest)
-			.where(PullRequest.group.eq(group))
-			.where(PullRequest.open.isTrue())
-			.orderBy(PullRequest.issueId.desc())
-			.list(PullRequest);
+	public List<PullRequest> findOpenPullRequests(final RepositoryEntity repositoryEntity) {
+		return query().from(pullRequest)
+			.where(pullRequest.repository.eq(repositoryEntity))
+			.where(pullRequest.open.isTrue())
+			.orderBy(pullRequest.issueId.desc())
+			.list(pullRequest);
 	}
 
 	/**
 	 * List all closed pull requests for this repository
-	 * @param group group
+	 * @param repositoryEntity repositoryEntity
 	 * @return List of all closed pull requests
 	 */
 	@Transactional
-	public List<PullRequest> findClosedPullRequests(final Group group) {
-		final QPullRequest PullRequest = QPullRequest.pullRequest;
-		return query().from(PullRequest)
-			.where(PullRequest.group.eq(group))
-			.where(PullRequest.open.isFalse())
-			.orderBy(PullRequest.issueId.desc())
-			.list(PullRequest);
+	public List<PullRequest> findClosedPullRequests(final RepositoryEntity repositoryEntity) {
+		return query().from(pullRequest)
+			.where(pullRequest.repository.eq(repositoryEntity))
+			.where(pullRequest.open.isFalse())
+			.orderBy(pullRequest.issueId.desc())
+			.list(pullRequest);
 	}
 
 	/**
 	 * Check if an open pull request exists for this repository
-	 * @param group the group
+	 * @param repositoryEntity the repositoryEntity
 	 * @param branchName the branch name
 	 * @return true if exists
 	 */
 	@Transactional
-	public boolean openPullRequestExists(final Group group, final String branchName) {
-		final QPullRequest PullRequest = QPullRequest.pullRequest;
-		return query().from(PullRequest)
-			.where(PullRequest.group.eq(group))
-				.where(PullRequest.branchName.eq(branchName))
-			.where(PullRequest.open.isTrue())
+	public boolean openPullRequestExists(final RepositoryEntity repositoryEntity, final String branchName) {
+		return query().from(pullRequest)
+			.where(pullRequest.repository.eq(repositoryEntity))
+			.where(pullRequest.branchName.eq(branchName))
+			.where(pullRequest.open.isTrue())
 			.exists();
-	}
-
-	/**
-	 * @param group Group
-	 * @return the next pull request number
-	 */
-	@Transactional
-	public long getNextPullRequestNumber(final Group group) {
-		Long val = query().from(QPullRequest.pullRequest)
-			.where(QPullRequest.pullRequest.group.eq(group))
-			.orderBy(QPullRequest.pullRequest.issueId.desc())
-			.singleResult(QPullRequest.pullRequest.issueId);
-		return val == null ? 1l : val.longValue() + 1;
 	}
 
 }

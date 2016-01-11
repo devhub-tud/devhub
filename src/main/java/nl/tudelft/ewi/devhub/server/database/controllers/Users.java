@@ -1,18 +1,18 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import nl.tudelft.ewi.devhub.server.database.entities.QUser;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.inject.persist.Transactional;
-import nl.tudelft.ewi.devhub.server.database.entities.QUser;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Users extends Controller<User> {
 

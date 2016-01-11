@@ -4,11 +4,9 @@ import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.AuthenticatedView;
 import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
 
-import static org.junit.Assert.assertTrue;
-
-import nl.tudelft.ewi.git.client.GitClientException;
-
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class CoursesTest extends WebTest {
 	
@@ -30,7 +28,7 @@ public class CoursesTest extends WebTest {
 	 */
 	@Test
 	public void testThatICanOpenTheProjectsPage() {
-		AuthenticatedView view = openLoginScreen()
+		openLoginScreen()
 				.login(NET_ID, PASSWORD)
 				.toCoursesView();
 	}
@@ -54,14 +52,12 @@ public class CoursesTest extends WebTest {
 	 * </ol>
 	 */
 	@Test
-	public void testThatICanOpenProject() throws GitClientException {
-		ProjectView view = openLoginScreen()
+	public void testThatICanOpenProject() {
+		openLoginScreen()
 				.login(NET_ID, PASSWORD)
 				.toCoursesView()
 				.listMyProjects()
 				.get(0).click();
-
-		assertTrue("Expected an empty list of commits", view.listCommits().isEmpty());
 	}
 	
 }

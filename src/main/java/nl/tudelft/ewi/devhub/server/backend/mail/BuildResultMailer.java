@@ -1,19 +1,19 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
+
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 public class BuildResultMailer {
 
@@ -36,14 +36,14 @@ public class BuildResultMailer {
 		
 		Translator translator = factory.create(locales);
 
-		Group repository = buildResult.getRepository();
-		String groupName = repository.getGroupName();
+		RepositoryEntity repository = buildResult.getRepository();
+		String groupName = repository.getTitle();
 		String log = lastLogLines(buildResult);
 
-		String commitId = buildResult.getCommitId();
+		String commitId = buildResult.getCommit().getCommitId();
 		commitId = commitId.substring(0, 10);
 
-		for (User addressee : repository.getMembers()) {
+		for (User addressee : repository.getCollaborators()) {
 			String userName = addressee.getName();
 			Object[] parameters = new Object[] { userName, commitId, groupName, DISPLAY_LOG_LINES, log };
 

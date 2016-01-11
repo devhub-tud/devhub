@@ -1,9 +1,9 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.backend.mail.MailBackend;
 
 import com.google.inject.Singleton;
-import nl.tudelft.ewi.devhub.server.backend.mail.MailBackend;
 
 @Slf4j
 @Singleton

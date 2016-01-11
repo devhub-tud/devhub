@@ -1,23 +1,25 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
-import com.google.common.base.Strings;
 import lombok.Data;
-
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffContext;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffFile;
 import nl.tudelft.ewi.git.models.ChangeType;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
-import nl.tudelft.ewi.git.models.DiffModel;
-import nl.tudelft.ewi.git.models.DiffModel.DiffContext;
-import nl.tudelft.ewi.git.models.DiffModel.DiffLine;
+
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+
+import nl.tudelft.ewi.git.models.DiffBlameModel.DiffBlameLine;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class DiffView extends View {
 	
@@ -94,9 +96,9 @@ public class DiffView extends View {
 
 		private final WebElement element;
 
-		private final DiffBlameModel.DiffBlameFile diffModel;
+		private final DiffFile<DiffContext<DiffBlameLine>> diffModel;
 
-		public void assertEqualTo(DiffBlameModel.DiffBlameFile expected) {
+		public void assertEqualTo(DiffFile<? extends DiffContext<? extends DiffBlameModel.DiffBlameLine>> expected) {
 			assertEquals(expected.getType(), diffModel.getType());
 
 			switch(diffModel.getType()){
@@ -123,7 +125,7 @@ public class DiffView extends View {
 		 * @return the created {@link DiffElement}
 		 */
 		public static DiffElement build(WebElement element) {
-			final DiffBlameModel.DiffBlameFile model = new DiffBlameModel.DiffBlameFile();
+			final DiffFile<DiffContext<DiffBlameModel.DiffBlameLine>> model = new DiffFile<>();
 
 
 			WebElement header = element.findElement(By.tagName("h5"));
@@ -153,11 +155,11 @@ public class DiffView extends View {
 			return new DiffElement(element, model);
 		}
 
-		private static List<DiffBlameModel.DiffBlameContext> getDiffContextsFor(List<WebElement> tableBodies) {
-			List<DiffBlameModel.DiffBlameContext> result = Lists.<DiffBlameModel.DiffBlameContext> newArrayList();
+		private static List<DiffContext<DiffBlameModel.DiffBlameLine>> getDiffContextsFor(List<WebElement> tableBodies) {
+			List<DiffContext<DiffBlameModel.DiffBlameLine>> result = Lists.newArrayList();
 
 			for(WebElement tbody : tableBodies) {
-				DiffBlameModel.DiffBlameContext context = new DiffBlameModel.DiffBlameContext();
+				DiffContext<DiffBlameModel.DiffBlameLine> context = new DiffContext<>();
 				List<WebElement> rows = tbody.findElements(By.tagName("tr"));
 				assertTrue("Rows should not be empty", !rows.isEmpty());
 				List<DiffBlameModel.DiffBlameLine> diffLines = Lists.<DiffBlameModel.DiffBlameLine> newArrayList();

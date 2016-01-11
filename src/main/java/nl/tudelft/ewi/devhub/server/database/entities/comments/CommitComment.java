@@ -1,9 +1,11 @@
-package nl.tudelft.ewi.devhub.server.database.entities;
+package nl.tudelft.ewi.devhub.server.database.entities.comments;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -18,7 +20,7 @@ import javax.validation.constraints.NotNull;
 @Entity
 @ToString(exclude="commit")
 @Table(name = "commit_comment")
-@EqualsAndHashCode(of="commentId")
+@EqualsAndHashCode(callSuper = true)
 public class CommitComment extends Comment {
 
     /**
@@ -27,7 +29,7 @@ public class CommitComment extends Comment {
 	@NotNull
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({
-		@JoinColumn(name="repository_name", referencedColumnName="repository_name"),
+		@JoinColumn(name="repository_id", referencedColumnName="repository_id"),
 		@JoinColumn(name="commit_id", referencedColumnName="commit_id")
 	})
 	private Commit commit;
@@ -42,4 +44,8 @@ public class CommitComment extends Comment {
     @Embedded
     private Source source;
 
+	@Override
+	public RepositoryEntity getRepository() {
+		return getCommit().getRepository();
+	}
 }

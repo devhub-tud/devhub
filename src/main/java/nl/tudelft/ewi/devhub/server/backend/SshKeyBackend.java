@@ -1,20 +1,20 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Users;
 import nl.tudelft.ewi.git.models.SshKeyModel;
 import nl.tudelft.ewi.git.models.UserModel;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import nl.tudelft.ewi.git.web.api.UsersApi;
+
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class SshKeyBackend {
 
@@ -27,10 +27,10 @@ public class SshKeyBackend {
 	
 	private static final String REGEX_VALID_KEY_NAME = "^[a-zA-Z0-9]+$";
 
-	private final GitServerClient client;
+	private final UsersApi client;
 
 	@Inject
-	SshKeyBackend(GitServerClient client) {
+	SshKeyBackend(UsersApi client) {
 		this.client = client;
 	}
 
@@ -40,11 +40,10 @@ public class SshKeyBackend {
 		}
 	}
 
-	public void createNewSshKey(User user, String name, String contents) throws ApiError, GitClientException {
+	public void createNewSshKey(User user, String name, String contents) throws ApiError {
+		Preconditions.checkNotNull(name);
+		Preconditions.checkNotNull(contents);
 		verifyKeyName(name);
-		if (contents == null || !contents.matches("^ssh-rsa\\s.+\\s*$")) {
-			throw new ApiError(INVALID_KEY_CONTENTS);
-		}
 
 		UserModel userModel = fetchUser(user.getNetId());
 		for (SshKeyModel sshKeyModel : userModel.getKeys()) {
@@ -61,30 +60,25 @@ public class SshKeyBackend {
 		SshKeyModel model = new SshKeyModel();
 		model.setName(name);
 		model.setContents(contents.trim());
-		client.users()
-			.sshKeys(userModel)
-			.registerSshKey(model);
+
+		try {
+			client.getUser(user.getNetId()).keys().addNewKey(model);
+		}
+		catch (BadRequestException | IllegalArgumentException e) {
+			throw new ApiError(INVALID_KEY_NAME);
+		}
 	}
 
-	public void deleteSshKey(User user, String name) throws ApiError, GitClientException  {
-		verifyKeyName(name);
+	public void deleteSshKey(User user, String name) throws ApiError  {
+		Preconditions.checkNotNull(user);
+		Preconditions.checkNotNull(name);
 
-		SshKeyModel keyModel = null;
-		UserModel userModel = fetchUser(user.getNetId());
-		for (SshKeyModel sshKeyModel : userModel.getKeys()) {
-			if (sshKeyModel.getName()
-				.equals(name)) {
-				keyModel = sshKeyModel;
-			}
+		try {
+			client.getUser(user.getNetId()).keys().deleteSshKey(name);
 		}
-
-		if (keyModel == null) {
+		catch (NotFoundException e) {
 			throw new ApiError(NO_SUCH_KEY);
 		}
-
-		client.users()
-			.sshKeys(userModel)
-			.deleteSshKey(keyModel);
 	}
 
 	public List<SshKeyModel> listKeys(User user) throws ApiError {
@@ -102,10 +96,10 @@ public class SshKeyBackend {
 		return keys;
 	}
 
+	@Deprecated
 	private UserModel fetchUser(String netId) throws ApiError {
 		try {
-			Users users = client.users();
-			return users.ensureExists(netId);
+			return client.getUser(netId).get();
 		}
 		catch (Throwable e) {
 			throw new ApiError(COULD_NOT_CONNECT, e);

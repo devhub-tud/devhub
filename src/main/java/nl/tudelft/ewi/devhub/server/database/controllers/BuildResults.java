@@ -1,10 +1,12 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.common.base.Preconditions;
-import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.persist.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -27,15 +29,15 @@ public class BuildResults extends Controller<BuildResult> {
 	}
 
 	@Transactional
-	public BuildResult find(Group group, String commitId) {
-		Preconditions.checkNotNull(group);
+	public BuildResult find(RepositoryEntity repository, String commitId) {
+		Preconditions.checkNotNull(repository);
 		Preconditions.checkNotNull(commitId);
 		
 		BuildResult result = query().from(buildResult)
-				.where(buildResult.repository.groupId.eq(group.getGroupId()))
-				.where(buildResult.commitId.equalsIgnoreCase(commitId))
+				.where(buildResult.commit.repository.id.eq(repository.getId()))
+				.where(buildResult.commit.commitId.equalsIgnoreCase(commitId))
 				.singleResult(buildResult);
-		
+
 		if (result == null) {
 			throw new EntityNotFoundException();
 		}
@@ -43,11 +45,18 @@ public class BuildResults extends Controller<BuildResult> {
 	}
 
 	@Transactional
-	public Map<String, BuildResult> findBuildResults(Group group, Collection<String> commitIds) {
+	public Map<String, BuildResult> findBuildResults(RepositoryEntity repository, Collection<String> commitIds) {
+		Preconditions.checkNotNull(repository);
+		Preconditions.checkNotNull(commitIds);
+
+		if(commitIds.isEmpty()) {
+			return ImmutableMap.of();
+		}
+
 		return query().from(buildResult)
-				.where(buildResult.repository.eq(group)
-						.and(buildResult.commitId.in(commitIds)))
-				.map(buildResult.commitId, buildResult);
+				.where(buildResult.commit.repository.eq(repository)
+						.and(buildResult.commit.commitId.in(commitIds)))
+				.map(buildResult.commit.commitId, buildResult);
 	}
 
 	@Transactional
@@ -56,12 +65,12 @@ public class BuildResults extends Controller<BuildResult> {
 	}
 	
 	@Transactional
-	public boolean exists(Group group, String commitId) {
-		Preconditions.checkNotNull(group);
+	public boolean exists(RepositoryEntity repository, String commitId) {
+		Preconditions.checkNotNull(repository);
 		Preconditions.checkNotNull(commitId);
 		
 		try {
-			find(group, commitId);
+			find(repository, commitId);
 			return true;
 		}
 		catch (EntityNotFoundException e) {

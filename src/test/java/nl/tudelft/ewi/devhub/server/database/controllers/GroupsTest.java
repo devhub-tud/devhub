@@ -1,146 +1,127 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import java.util.Random;
-
-import javax.inject.Inject;
-import javax.persistence.PersistenceException;
-import javax.validation.ConstraintViolationException;
-
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import lombok.Getter;
+import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.inject.Inject;
+import javax.persistence.PersistenceException;
+
+import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
-public class GroupsTest {
-	
-	@Inject
-	private Random random;
-	
-	@Inject
-	private Groups groups;
-	
-	@Inject
-	private Courses courses;
-	
-	@Test(expected=ConstraintViolationException.class)
+public class GroupsTest extends PersistedBackendTest {
+
+	@Inject @Getter private Users users;
+	@Inject @Getter private Groups groups;
+	@Inject @Getter private CourseEditions courses;
+
+	private CourseEdition courseEdition;
+
+	@Before
+	public void setUp() {
+		courseEdition = createCourseEdition();
+	}
+
+	@Test(expected = PersistenceException.class)
 	public void testInsertGroupWithoutCourse() {
 		Group group = new Group();
-		group.setRepositoryName("courses/ti1705/group-1");
-		group.setGroupNumber(5l);
 		groups.persist(group);
-	}
-	
-	@Test(expected=ConstraintViolationException.class)
-	public void testInsertGroupWithoutGroupNumber() {
-		Course course = getTestCourse();
-		Group group = new Group();
-		group.setRepositoryName("courses/ti1705/group-1");
-		group.setCourse(course);
-		groups.persist(group);
-	}
-	
-	@Test(expected=ConstraintViolationException.class)
-	public void testInsertGroupWithoutRepositoryName() {
-		Course course = getTestCourse();
-		Group group = new Group();
-		group.setGroupNumber(6l);
-		group.setCourse(course);
-		groups.persist(group);
-	}
-	
-	@Test(expected=PersistenceException.class)
-	public void testUnableToInsertWithSameId() {
-		Group group = createGroup();
-		groups.persist(group);
-		
-		Group otherGroup = new Group();
-		otherGroup.setCourse(group.getCourse());
-		otherGroup.setGroupId(group.getGroupId());
-		otherGroup.setGroupNumber(random.nextLong());
-		otherGroup.setRepositoryName(String.format("courses/%s/group-%s",
-				group.getGroupNumber(), group.getCourse().getName()));
-		groups.persist(otherGroup);
-	}
-	
-	@Test(expected=PersistenceException.class)
-	public void testUnableToInsertWithSameRepoName() {
-		Group group = createGroup();
-		groups.persist(group);
-		
-		Group otherGroup = new Group();
-		otherGroup.setCourse(group.getCourse());
-		otherGroup.setGroupNumber(random.nextLong());
-		otherGroup.setRepositoryName(group.getRepositoryName());
-		groups.persist(otherGroup);
-	}
-	
-	@Test(expected=PersistenceException.class)
-	public void testUnableToInsertWithSameGroupNumber() {
-		Group group = createGroup();
-		groups.persist(group);
-		
-		Group otherGroup = new Group();
-		otherGroup.setCourse(group.getCourse());
-		otherGroup.setGroupNumber(group.getGroupNumber());
-		otherGroup.setRepositoryName(group.getRepositoryName().concat("B"));
-		groups.persist(otherGroup);
 	}
 	
 	@Test
-	public void testPersistGroup() {
-		Group group = createGroup();
+	public void testAutomaticGroupNumberGeneration() {
+		Group group = new Group();
+		group.setCourseEdition(courseEdition);
 		groups.persist(group);
 	}
 	
+	@Test
+	public void testInsertGroupWithRepository() {
+		Group group = new Group();
+		group.setCourseEdition(courseEdition);
+		groups.persist(group);
+
+		GroupRepository groupRepository = new GroupRepository();
+		groupRepository.setRepositoryName(courseEdition.createRepositoryName(group).toASCIIString());
+		group.setRepository(groupRepository);
+		groups.merge(group);
+	}
+	
+	@Test(expected=PersistenceException.class)
+	public void testInsertGroupWithSameRepository() {
+		Group group = new Group();
+		group.setCourseEdition(courseEdition);
+		groups.persist(group);
+		
+		Group otherGroup = new Group();
+		otherGroup.setCourseEdition(group.getCourseEdition());
+		groups.persist(otherGroup);
+
+		GroupRepository groupRepository = new GroupRepository();
+		groupRepository.setRepositoryName(courseEdition.createRepositoryName(group).toASCIIString());
+
+		group.setRepository(groupRepository);
+		groups.merge(group);
+
+		otherGroup.setRepository(groupRepository);
+		groups.merge(otherGroup);
+	}
+
+	@Test(expected=PersistenceException.class)
+	@Ignore("The current implementation of FKSegmentedIdentifierGenerator will always override a manually set identifier")
+	public void testUnableToInsertWithSameGroupNumber() {
+		Group group = new Group();
+		group.setCourseEdition(courseEdition);
+		groups.persist(group);
+		
+		Group otherGroup = new Group();
+		otherGroup.setCourseEdition(group.getCourseEdition());
+		otherGroup.setGroupNumber(group.getGroupNumber());
+		groups.persist(otherGroup);
+	}
+
 	@Test
 	public void testListPersistedGroup() {
-		Group group = createGroup();
-		Course course = group.getCourse();
+		Group group = new Group();
+		group.setCourseEdition(courseEdition);
 		groups.persist(group);
-		assertThat(groups.find(course), hasItem(group));
+		assertThat(groups.find(courseEdition), hasItem(group));
 	}
-	
-	@Test
-	public void testFindById() {
-		Group group = createGroup();
-		groups.persist(group);
-		assertEquals(group, groups.find(group.getGroupId()));
-	}
-	
+
 	@Test
 	public void testFindByGroupNumber() {
-		Group group = createGroup();
-		Course course = group.getCourse();
+		Group group = new Group();
+		group.setCourseEdition(courseEdition);
 		groups.persist(group);
-		assertEquals(group, groups.find(course, group.getGroupNumber()));
+		assertEquals(group, groups.find(courseEdition, group.getGroupNumber()));
 	}
 	
 	@Test
 	public void testFindByRepoName() {
-		Group group = createGroup();
-		String repoName = group.getRepositoryName();
-		groups.persist(group);
-		assertEquals(group, groups.findByRepoName(repoName));
-	}
-	
-	protected Group createGroup() {
 		Group group = new Group();
-		Course course = getTestCourse();
-		group.setGroupNumber(random.nextLong());
-		group.setCourse(course);
-		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
-		return group;
-	}
-	
-	protected Course getTestCourse() {
-		return courses.find("TI1705");
+		group.setCourseEdition(courseEdition);
+		groups.persist(group);
+
+		GroupRepository groupRepository = new GroupRepository();
+		String repoName = courseEdition.createRepositoryName(group).toASCIIString();
+		groupRepository.setRepositoryName(repoName);
+		group.setRepository(groupRepository);
+		groups.merge(group);
+
+		assertEquals(group, groups.findByRepoName(repoName));
 	}
 	
 }

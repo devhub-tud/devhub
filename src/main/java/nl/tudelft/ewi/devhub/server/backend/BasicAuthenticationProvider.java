@@ -1,13 +1,13 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
-
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+
+import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
 
 /**
  * The {@code BasicAuthenticationProvider} checks the given password against the

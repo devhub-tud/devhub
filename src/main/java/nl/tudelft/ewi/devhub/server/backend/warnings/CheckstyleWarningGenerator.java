@@ -1,24 +1,23 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleError;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleFile;
+import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleReport;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.inject.Inject;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
-import nl.tudelft.ewi.git.client.GitServerClient;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import java.util.List;
 import java.util.stream.Stream;
-
-import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleReport;
-import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleFile;
-import  nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleError;
 
 /**
  * A {@code LineWarningGenerator} for Checkstyle warnings
@@ -76,8 +75,8 @@ public class CheckstyleWarningGenerator extends AbstractLineWarningGenerator<Che
     }
 
     @Inject
-    public CheckstyleWarningGenerator(final GitServerClient gitServerClient, final Commits commits) {
-        super(gitServerClient, commits);
+    public CheckstyleWarningGenerator(final RepositoriesApi repositoriesApi, final Commits commits) {
+        super(repositoriesApi, commits);
     }
 
     @Override

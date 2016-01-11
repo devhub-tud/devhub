@@ -1,13 +1,16 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.GitUsageWarning;
-import nl.tudelft.ewi.git.client.Branch;
-import nl.tudelft.ewi.git.client.Commit;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Repository;
-import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.BranchModel;
+
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.web.api.BranchApi;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,10 +22,10 @@ import java.util.Collections;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -34,14 +37,17 @@ public class PullRequestWarningGeneratorTest {
     private final static String OTHER_COMMIT_ID = "dcad";
     private final static String MASTER = "master";
 
-    @Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
+
+	@Mock private GroupRepository groupRepository;
+	@Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
     @Mock private Group group;
-    @Mock private Commit commit;
-    @Mock private Repository repository;
-    @Mock private Repositories repositories;
-    @Mock private GitServerClient gitServerClient;
-    @Mock private Branch branch;
-    @Mock private CommitModel commitModel;
+    @Mock private Commits commits;
+    @Mock private RepositoriesApi repositories;
+    @Mock private RepositoryApi repository;
+    @Mock private CommitApi commitApi;
+    @Mock private BranchApi branchApi;
+    @Mock private BranchModel branchModel;
+    @Mock private DetailedCommitModel repoCommit;
     @InjectMocks  private PullRequestWarningGenerator generator;
 
     private GitUsageWarning warning;
@@ -49,13 +55,17 @@ public class PullRequestWarningGeneratorTest {
     @Before
     public void beforeTest() throws Exception {
         when(commitEntity.getCommitId()).thenReturn(COMMIT_ID);
-        when(commitEntity.getRepository()).thenReturn(group);
-        when(group.getRepositoryName()).thenReturn("abc");
-        when(gitServerClient.repositories()).thenReturn(repositories);
-        when(repositories.retrieve(anyString())).thenReturn(repository);
-        when(repository.retrieveCommit(COMMIT_ID)).thenReturn(commit);
-        when(repository.retrieveBranch(MASTER)).thenReturn(branch);
-        when(branch.getCommit()).thenReturn(commitModel);
+		when(commitEntity.getRepository()).thenReturn(groupRepository);
+		when(group.getRepository()).thenReturn(groupRepository);
+		when(groupRepository.getRepositoryName()).thenReturn("");
+
+        when(repositories.getRepository(anyString())).thenReturn(repository);
+        when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
+        when(commitApi.get()).thenReturn(repoCommit);
+        when(repository.getBranch(MASTER)).thenReturn(branchApi);
+        when(branchApi.get()).thenReturn(branchModel);
+        when(branchModel.getCommit()).thenReturn(repoCommit);
+        when(branchApi.getCommit()).thenReturn(commitApi);
 
         warning = new GitUsageWarning();
         warning.setCommit(commitEntity);
@@ -63,32 +73,32 @@ public class PullRequestWarningGeneratorTest {
 
     @Test
     public void testCommitWithSingleParent() {
-        when(commitModel.getCommit()).thenReturn(COMMIT_ID);
-        when(commitModel.getParents()).thenReturn(new String[] { "fe30124" });
+        when(repoCommit.getCommit()).thenReturn(COMMIT_ID);
+        when(repoCommit.getParents()).thenReturn(new String[] { "fe30124" });
         Set<GitUsageWarning> warns = generator.generateWarnings(commitEntity, null);
         assertThat(warns, contains(warning));
     }
 
     @Test
     public void testMergeCommit() {
-        when(commitModel.getCommit()).thenReturn(COMMIT_ID);
-        when(commitModel.getParents()).thenReturn(new String[] { "fe30124", "ab30124" });
+        when(repoCommit.getCommit()).thenReturn(COMMIT_ID);
+        when(repoCommit.getParents()).thenReturn(new String[] { "fe30124", "ab30124" });
         Set<GitUsageWarning> warns = generator.generateWarnings(commitEntity, null);
         assertEquals(warns, Collections.<GitUsageWarning>emptySet());
     }
 
     @Test
     public void testCommitNotOnHead() {
-        when(commitModel.getCommit()).thenReturn(OTHER_COMMIT_ID);
-        when(commitModel.getParents()).thenReturn(new String[] { "fe30124" });
+        when(repoCommit.getCommit()).thenReturn(OTHER_COMMIT_ID);
+        when(repoCommit.getParents()).thenReturn(new String[] { "fe30124" });
         Set<GitUsageWarning> warns = generator.generateWarnings(commitEntity, null);
         assertEquals(warns, Collections.<GitUsageWarning>emptySet());
     }
 
     @Test
     public void testMergeCommitNotOnHead() {
-        when(commitModel.getCommit()).thenReturn(OTHER_COMMIT_ID);
-        when(commitModel.getParents()).thenReturn(new String[] { "fe30124", "ab30124" });
+        when(repoCommit.getCommit()).thenReturn(OTHER_COMMIT_ID);
+        when(repoCommit.getParents()).thenReturn(new String[] { "fe30124", "ab30124" });
         Set<GitUsageWarning> warns = generator.generateWarnings(commitEntity, null);
         assertEquals(warns, Collections.<GitUsageWarning>emptySet());
     }

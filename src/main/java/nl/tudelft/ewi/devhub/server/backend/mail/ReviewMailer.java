@@ -1,17 +1,15 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.Comment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -49,7 +47,7 @@ public class ReviewMailer {
     public void sendReviewMail(Delivery delivery) {
         Assignment assignment = delivery.getAssignment();
         Group group = delivery.getGroup();
-        Course course = group.getCourse();
+        CourseEdition course = group.getCourse();
         Delivery.Review review = delivery.getReview();
 
         Preconditions.checkNotNull(assignment);

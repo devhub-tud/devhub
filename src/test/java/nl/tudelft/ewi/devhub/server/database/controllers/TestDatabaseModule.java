@@ -1,11 +1,11 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import nl.tudelft.ewi.devhub.server.database.DbModule;
 
 import com.google.inject.persist.PersistService;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 public class TestDatabaseModule extends DbModule {
 	

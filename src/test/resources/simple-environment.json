@@ -42,70 +42,75 @@
 		{
 			"code": "ti1705",
 			"name": "Software quality and testing",
-			"templateRepositoryUrl": "https://github.com/SERG-Delft/jpacman-template.git",
-			"started": true,
-			"ended": false,
-			"minGroupSize": 2,
-			"maxGroupSize": 2,
-			"buildTimeout": 180,
+			"editions": [
+				{
+					"code": "1516",
+					"templateRepositoryUrl": "https://github.com/SERG-Delft/jpacman-template.git",
+					"started": true,
+					"ended": false,
+					"minGroupSize": 2,
+					"maxGroupSize": 2,
+					"buildTimeout": 180,
 
-            "assignments": [
-              {
-                "id" : 1,
-                "name" : "Requirements Analysis"
-              },
-			  {
-                "id" : 2,
-                "name" : "Product vision"
-              }
-            ],
-			
-			"assistants": [
-				"assistant1"
-			],
-			
-			"groups": [
-				{
-					"groupNumber": 1,
-					"members": [
-						"student1",
-						"student2"
-					],
-					"deliveries" : [
+					"assignments": [
 						{
-							"assignmentId" : 1,
-							"createdUserName" : "student1",
-							"review" : {
-								"state" : "APPROVED",
-								"grade" : 8.5,
-								"reviewedUserName" : "assistant1"
-							}
+							"id" : 1,
+							"name" : "Requirements Analysis"
 						},
 						{
-							"assignmentId" : 2,
-							"createdUserName" : "student2"
+							"id" : 2,
+							"name" : "Product vision"
 						}
-					]
-				},
-				{
-					"groupNumber": 2,
-					"members": [
-						"student3",
-						"student4"
 					],
-					"deliveries" : [
+
+					"assistants": [
+						"assistant1"
+					],
+
+					"groups": [
 						{
-							"assignmentId" : 2,
-							"createdUserName" : "student3",
-							"review" : {
-								"state" : "REJECTED",
-								"grade" : 4.5,
-								"reviewedUserName" : "assistant1"
-							}
+							"groupNumber": 1,
+							"members": [
+								"student1",
+								"student2"
+							],
+							"deliveries" : [
+								{
+									"assignmentId" : 1,
+									"createdUserName" : "student1",
+									"review" : {
+										"state" : "APPROVED",
+										"grade" : 8.5,
+										"reviewedUserName" : "assistant1"
+									}
+								},
+								{
+									"assignmentId" : 2,
+									"createdUserName" : "student2"
+								}
+							]
 						},
 						{
-							"assignmentId" : 1,
-							"createdUserName" : "student4"
+							"groupNumber": 2,
+							"members": [
+								"student3",
+								"student4"
+							],
+							"deliveries" : [
+								{
+									"assignmentId" : 2,
+									"createdUserName" : "student3",
+									"review" : {
+										"state" : "REJECTED",
+										"grade" : 4.5,
+										"reviewedUserName" : "assistant1"
+									}
+								},
+								{
+									"assignmentId" : 1,
+									"createdUserName" : "student4"
+								}
+							]
 						}
 					]
 				}

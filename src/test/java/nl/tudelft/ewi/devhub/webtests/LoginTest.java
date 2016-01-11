@@ -1,10 +1,11 @@
 package nl.tudelft.ewi.devhub.webtests;
 
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
-
 import nl.tudelft.ewi.devhub.webtests.views.LoginView;
-import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class LoginTest extends WebTest {
 

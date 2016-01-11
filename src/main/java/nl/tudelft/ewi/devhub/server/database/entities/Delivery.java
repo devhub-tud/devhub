@@ -4,6 +4,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.Base;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JoinColumnOrFormula;
+import org.hibernate.annotations.JoinColumnsOrFormulas;
+import org.hibernate.annotations.JoinFormula;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Basic;
@@ -26,6 +32,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 
@@ -37,8 +44,8 @@ import java.util.List;
 @Entity
 @Table(name = "assignment_deliveries")
 @ToString(exclude = {"notes", "attachments"})
-@EqualsAndHashCode(of={"assignment", "group"})
-public class Delivery implements Comparable<Delivery> {
+@EqualsAndHashCode(of={"deliveryId"}, callSuper = false)
+public class Delivery implements Event, Base {
 
     /**
      * The State for the Delivery
@@ -46,9 +53,9 @@ public class Delivery implements Comparable<Delivery> {
      */
     public enum State {
         SUBMITTED("delivery.state.submitted", "info", "delivery.state.submitted.description", "delivery.state.submitted.message"),
-        REJECTED("delivery.state.rejected", "warning", "delivery.state.rejected.description", "delivery.state.submitted.message"),
-        APPROVED("delivery.state.approved", "success", "delivery.state.approved.description", "delivery.state.submitted.message"),
-        DISAPPROVED("delivery.state.disapproved", "danger", "delivery.state.disapproved.description", "delivery.state.submitted.message");
+        REJECTED("delivery.state.rejected", "warning", "delivery.state.rejected.description", "delivery.state.rejected.message"),
+        APPROVED("delivery.state.approved", "success", "delivery.state.approved.description", "delivery.state.approved.message"),
+        DISAPPROVED("delivery.state.disapproved", "danger", "delivery.state.disapproved.description", "delivery.state.disapproved.message");
 
         /**
          * The translation key used for the badges, for example "Submitted".
@@ -89,24 +96,26 @@ public class Delivery implements Comparable<Delivery> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long deliveryId;
 
-    @ManyToOne
-    @JoinColumns({
-        @JoinColumn(name = "course_id", referencedColumnName = "course_id"),
-        @JoinColumn(name = "assignment_id", referencedColumnName = "assignment_id")
-    })
+    @ManyToOne(optional = false)
+    @JoinColumnsOrFormulas({
+		@JoinColumnOrFormula(formula = @JoinFormula(value = "course_edition_id", referencedColumnName = "course_edition_id")),
+		@JoinColumnOrFormula(column = @JoinColumn(name = "assignment_id", referencedColumnName = "assignment_id", nullable = false))
+	})
     private Assignment assignment;
 
-    @ManyToOne
-    @JoinColumn(name = "group_id")
+    @ManyToOne(optional = false)
+    @JoinColumns({
+		@JoinColumn(name = "course_edition_id", referencedColumnName = "course_edition_id", nullable = false),
+		@JoinColumn(name = "group_number", referencedColumnName = "group_number", nullable = false)
+	})
     private Group group;
 
-    @Column(name = "commit_id")
-    private String commitId;
-
-    @NotNull
-    @Column(name = "created")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date created;
+	@ManyToOne(optional = true, fetch = FetchType.LAZY)
+	@JoinColumns({
+		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
+		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id")
+	})
+    private Commit commit;
 
     @NotNull
     @ManyToOne
@@ -123,6 +132,11 @@ public class Delivery implements Comparable<Delivery> {
     @JoinColumn(name = "delivery_id")
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DeliveryAttachment> attachments;
+
+	@CreationTimestamp
+	@Column(name = "created_date")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date timestamp;
 
     @Data
     @Embeddable
@@ -177,12 +191,15 @@ public class Delivery implements Comparable<Delivery> {
 
     public boolean isLate() {
         Date dueDate = getAssignment().getDueDate();
-        return dueDate != null && getCreated().after(dueDate);
+        return dueDate != null && getTimestamp().after(dueDate);
     }
 
-    @Override
-    public int compareTo(Delivery other) {
-        return getCreated().compareTo(other.getCreated());
-    }
-
+	@Override
+	public URI getURI() {
+		return getGroup().getURI()
+			.resolve(Assignment.ASSIGNMENTS_PATH_BASE)
+			.resolve(getAssignment().getAssignmentId() + "/")
+			.resolve("deliveries/")
+			.resolve(getDeliveryId() + "/");
+	}
 }

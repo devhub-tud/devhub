@@ -1,21 +1,23 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
+import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
+import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
+import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
+import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
+import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
-import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
-import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
-import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
-import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+
 import org.jboss.resteasy.spi.NotImplementedYetException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +45,7 @@ import java.util.Set;
  * Created by jgmeligmeyling on 04/03/15.
  * @author Jan-Willem Gmleig Meyling
  */
-@Path("courses/{courseCode}/assignments")
+@Path("courses/{courseCode}/{editionCode}/assignments")
 public class AssignmentsResource extends Resource {
 
     public static final String DATE_FORMAT = "dd-MM-yyyy HH:mm";
@@ -52,7 +54,7 @@ public class AssignmentsResource extends Resource {
     private TemplateEngine templateEngine;
 
     @Inject
-    private Courses courses;
+    private CourseEditions courses;
 
     @Inject
     private Assignments assignmentsDAO;
@@ -71,11 +73,13 @@ public class AssignmentsResource extends Resource {
      * Get an overview of the courses
      * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
+     * @param editionCode the course to create an assignment for
      * @return a Response containing the generated page
      */
     @GET
     public Response getOverviewPage(@Context HttpServletRequest request,
-                                    @PathParam("courseCode") String courseCode) {
+                                    @PathParam("courseCode") String courseCode,
+									@PathParam("editionCode") String editionCode) {
         throw new NotImplementedYetException();
     }
 
@@ -83,6 +87,7 @@ public class AssignmentsResource extends Resource {
      * Present the user a form to create a new assignment
      * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
+	 * @param editionCode the course to create an assignment for
      * @return a Response containing the generated page
      */
     @GET
@@ -90,9 +95,10 @@ public class AssignmentsResource extends Resource {
     @Path("create")
     public Response getCreatePage(@Context HttpServletRequest request,
                                   @PathParam("courseCode") String courseCode,
+								  @PathParam("editionCode") String editionCode,
                                   @QueryParam("error") String error) throws IOException {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
@@ -112,6 +118,7 @@ public class AssignmentsResource extends Resource {
      * Submit a create assignment form
      * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
+	 * @param editionCode the course to create an assignment for
      * @param name name for the assignment
      * @param summary summary for the assignment
      * @param dueDate due date for the assignment
@@ -121,22 +128,23 @@ public class AssignmentsResource extends Resource {
     @Path("create")
     public Response createPage(@Context HttpServletRequest request,
                                @PathParam("courseCode") String courseCode,
+							   @PathParam("editionCode") String editionCode,
                                @FormParam("id") Long assignmentId,
                                @FormParam("name") String name,
                                @FormParam("summary") String summary,
                                @FormParam("due-date") String dueDate) {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
         if(assignmentsDAO.exists(course, assignmentId)) {
-            return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-number-exists");
+            return redirect(course.getURI().resolve("assignments/create?error=error.assignment-number-exists"));
         }
 
         Assignment assignment = new Assignment();
-        assignment.setCourse(course);
+        assignment.setCourseEdition(course);
         assignment.setAssignmentId(assignmentId);
         assignment.setName(name);
         assignment.setSummary(summary);
@@ -147,7 +155,7 @@ public class AssignmentsResource extends Resource {
                 assignment.setDueDate(simpleDateFormat.parse(dueDate));
             }
             catch (ParseException e) {
-                return redirect("/courses/" + courseCode + "/assignments/create?error=error.invalid-date-format");
+                return redirect(course.getURI().resolve("assignments/create?error=error.invalid-date-format"));
             }
         }
 
@@ -157,21 +165,22 @@ public class AssignmentsResource extends Resource {
         catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
             if(violations.isEmpty()) {
-                return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-create-error");
+                return redirect(course.getURI().resolve("assignments/create?error=error.assignment-create-error"));
             }
-            return redirect("/courses/" + courseCode + "/assignments/create?error=" + violations.iterator().next().getMessage());
+            return redirect(course.getURI().resolve("assignments/create?error=" + violations.iterator().next().getMessage()));
         }
         catch (Exception e) {
-            return redirect("/courses/" + courseCode + "/assignments/create?error=error.assignment-create-error");
+            return redirect(course.getURI().resolve("assignments/create?error=error.assignment-create-error"));
         }
 
-        return redirect("/courses/" + courseCode);
+        return redirect(course.getURI());
     }
 
     /**
      * An overview page for an assignment
      * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
+	 * @param editionCode the course to create an assignment for
      * @param assignmentId the assignment id
      * @return a Response containing the generated page
      */
@@ -180,16 +189,17 @@ public class AssignmentsResource extends Resource {
     @Path("{assignmentId : \\d+}")
     public Response getAssignmentPage(@Context HttpServletRequest request,
                                       @PathParam("courseCode") String courseCode,
+									  @PathParam("editionCode") String editionCode,
                                       @PathParam("assignmentId") Long assignmentId) throws IOException {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
         List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
-        AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment);
+        AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment, lastDeliveries);
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
@@ -211,6 +221,7 @@ public class AssignmentsResource extends Resource {
      * Download the grades for this assignment
      * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
+	 * @param editionCode the course to create an assignment for
      * @param assignmentId the assignment id
      * @return a CSV file with the most recent deliveries
      */
@@ -220,9 +231,10 @@ public class AssignmentsResource extends Resource {
     @Path("{assignmentId : \\d+}/deliveries/download")
     public String downloadAssignmentResults(@Context HttpServletRequest request,
                                             @PathParam("courseCode") String courseCode,
+											@PathParam("editionCode") String editionCode,
                                             @PathParam("assignmentId") Long assignmentId) throws IOException {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
@@ -260,6 +272,7 @@ public class AssignmentsResource extends Resource {
      * An edit page page for an assignment
      * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
+	 * @param editionCode the course to create an assignment for
      * @param assignmentId the assignment id
      */
     @GET
@@ -267,11 +280,12 @@ public class AssignmentsResource extends Resource {
     @Path("{assignmentId : \\d+}/edit")
     public Response getEditAssignmentPage(@Context HttpServletRequest request,
                                           @PathParam("courseCode") String courseCode,
+										  @PathParam("editionCode") String editionCode,
                                           @PathParam("assignmentId") long assignmentId,
                                           @QueryParam("error") String error) throws IOException {
 
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
@@ -294,12 +308,13 @@ public class AssignmentsResource extends Resource {
     @Path("{assignmentId : \\d+}/edit")
     public Response editAssignment(@Context HttpServletRequest request,
                                    @PathParam("courseCode") String courseCode,
+								   @PathParam("editionCode") String editionCode,
                                    @PathParam("assignmentId") long assignmentId,
                                    @FormParam("name") String name,
                                    @FormParam("summary") String summary,
                                    @FormParam("due-date") String dueDate) {
 
-        Course course = courses.find(courseCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
@@ -316,7 +331,7 @@ public class AssignmentsResource extends Resource {
                 assignment.setDueDate(simpleDateFormat.parse(dueDate));
             }
             catch (ParseException e) {
-                return redirect("/courses/" + courseCode + "/assignments/create?error=error.invalid-date-format");
+                return redirect(course.getURI().resolve("assignments/create?error=error.invalid-date-format"));
             }
         }
         else {
@@ -329,15 +344,15 @@ public class AssignmentsResource extends Resource {
         catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
             if(violations.isEmpty()) {
-                return redirect("/courses/" + courseCode + "/assignments/\" + assignmentId + \"/edit?error=error.assignment-create-error");
+                return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=error.assignment-create-error"));
             }
-            return redirect("/courses/" + courseCode + "/assignments/" + assignmentId + "/edit?error=" + violations.iterator().next().getMessage());
+            return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=" + violations.iterator().next().getMessage()));
         }
         catch (Exception e) {
-            return redirect("/courses/" + courseCode + "/assignments/" + assignmentId + "/edit?error=error.assignment-create-error");
+            return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=error.assignment-create-error"));
         }
 
-        return redirect("/courses/" + courseCode);
+        return redirect(course.getURI());
     }
 
 }

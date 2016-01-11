@@ -1,26 +1,24 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import java.util.List;
-import java.util.stream.Stream;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDFile;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDReport;
+import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDViolation;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
-
 import com.google.inject.Inject;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
-import nl.tudelft.ewi.git.client.GitServerClient;
-
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDReport;
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDFile;
-import nl.tudelft.ewi.devhub.server.backend.warnings.PMDWarningGenerator.PMDViolation;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Generator for PMD warnings
@@ -76,8 +74,8 @@ public class PMDWarningGenerator extends AbstractLineWarningGenerator<PMDReport,
 	}
 
 	@Inject
-	public PMDWarningGenerator(final GitServerClient gitServerClient, final Commits commits) {
-		super(gitServerClient, commits);
+	public PMDWarningGenerator(final RepositoriesApi repositoriesApi, final Commits commits) {
+		super(repositoriesApi, commits);
 	}
 
 	@Override

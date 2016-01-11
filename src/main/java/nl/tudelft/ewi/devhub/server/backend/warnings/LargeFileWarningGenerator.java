@@ -1,18 +1,19 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.base.Strings;
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LargeFileWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
-import nl.tudelft.ewi.git.models.DiffModel.DiffFile;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffContext;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffFile;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffLine;
 import nl.tudelft.ewi.git.models.EntryType;
+
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
 import java.util.List;
 import java.util.Set;
@@ -23,29 +24,30 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RequestScoped
+@SuppressWarnings("unused")
 public class LargeFileWarningGenerator extends AbstractCommitWarningGenerator<LargeFileWarning, GitPush>
 implements CommitPushWarningGenerator<LargeFileWarning> {
 
     private static final int MAX_FILE_SIZE = 500;
     private static final String MAX_FILE_SIZE_PROPERTY = "warnings.max-file-size";
 
-    private Repository repository;
+    private RepositoryApi repositoryApi;
     private Commit commit;
     int maxFileSize;
 
     @Inject
-    public LargeFileWarningGenerator(GitServerClient gitServerClient) {
-        super(gitServerClient);
+    public LargeFileWarningGenerator(RepositoriesApi repositoriesApi) {
+        super(repositoriesApi);
     }
 
     @Override
     @SneakyThrows
     public Set<LargeFileWarning> generateWarnings(Commit commit, GitPush attachment) {
         log.debug("Started generating warnings for {} in {}", commit, this);
-        final List<DiffFile> diffs = getGitCommit(commit).diff().getDiffs();
-        this.repository = getRepository(commit);
+        final List<DiffFile<DiffContext<DiffLine>>> diffs = getGitCommit(commit).diff().getDiffs();
+        this.repositoryApi = getRepository(commit);
         this.commit = commit;
-        this.maxFileSize = getIntegerProperty(commit.getRepository().getCourse(), MAX_FILE_SIZE_PROPERTY, MAX_FILE_SIZE);
+        this.maxFileSize = commit.getRepository().getIntegerProperty(MAX_FILE_SIZE_PROPERTY, MAX_FILE_SIZE);
 
         Set<LargeFileWarning> warnings = diffs.stream()
             .filter(file -> !file.isDeleted())
@@ -62,13 +64,13 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
     protected boolean filterTextFiles(DiffFile file) {
         String folderPath = folderForPath(file.getNewPath());
         String fileName = fileNameForPath(file.getNewPath());
-        return repository.listDirectoryEntries(commit.getCommitId(), folderPath)
+        return repositoryApi.getCommit(commit.getCommitId()).showTree(folderPath)
                 .get(fileName).equals(EntryType.TEXT);
     }
 
     @SneakyThrows
     protected boolean filterLargeFiles(DiffFile file) {
-        String contents = repository.showFile(commit.getCommitId(), file.getNewPath());
+        String contents = repositoryApi.getCommit(commit.getCommitId()).showTextFile(file.getNewPath());
         return contents.split("\n").length > maxFileSize;
     }
 
@@ -90,14 +92,6 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
 
     public static String fileNameForPath(final String path) {
         return path.substring(path.lastIndexOf('/') + 1);
-    }
-
-    private int getIntegerProperty(Course course, String key, int other) {
-        String value = course.getProperties().get(key);
-        if (!Strings.isNullOrEmpty(value)) {
-            return Integer.valueOf(value);
-        }
-        return other;
     }
 
 }

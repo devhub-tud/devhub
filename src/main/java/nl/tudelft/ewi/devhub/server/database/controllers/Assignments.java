@@ -1,9 +1,10 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.QAssignment;
+
+import com.google.inject.Inject;
 
 import javax.persistence.EntityManager;
 
@@ -17,17 +18,17 @@ public class Assignments extends Controller<Assignment> {
         super(em);
     }
 
-    public Assignment find(Course course, Long assignmentId) {
+    public Assignment find(CourseEdition course, Long assignmentId) {
         return ensureNotNull(query().from(QAssignment.assignment)
-            .where(QAssignment.assignment.course.eq(course)
+            .where(QAssignment.assignment.courseEdition.eq(course)
             .and(QAssignment.assignment.assignmentId.eq(assignmentId)))
             .singleResult(QAssignment.assignment),
             "Could not find assignment " + assignmentId + " for " + course.getCode());
     }
 
-    public boolean exists(Course course, Long assignmentId) {
+    public boolean exists(CourseEdition course, Long assignmentId) {
         return query().from(QAssignment.assignment)
-            .where(QAssignment.assignment.course.eq(course)
+            .where(QAssignment.assignment.courseEdition.eq(course)
             .and(QAssignment.assignment.assignmentId.eq(assignmentId)))
             .exists();
     }

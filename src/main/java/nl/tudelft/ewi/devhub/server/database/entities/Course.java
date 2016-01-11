@@ -1,104 +1,81 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
+import nl.tudelft.ewi.devhub.server.database.Base;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import java.util.Date;
+import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Created by Jan-Willem on 8/11/2015.
+ */
 @Data
 @Entity
-@Table(name = "courses")
-@ToString(of = { "code" })
-@EqualsAndHashCode(of = { "id" })
-public class Course {
+@Table(name = "course")
+@ToString(of = {"id", "code"})
+@EqualsAndHashCode(of = {"id"})
+public class Course implements Comparable<Course>, Base {
 
-	@Id
-	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	public static String COURSE_BASE_PATH = "/courses/";
 
-	@NotEmpty(message = "error.course-name-empty")
-	@Column(name = "name")
-	private String name;
+    @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
 
-	@NotEmpty(message = "course-code-empty")
-	@Column(name = "code", unique=true)
-	private String code;
+    /**
+     * The course code for the course. For example: {@code TI1706}.
+     * The course code should be unique, as it is part of the provisioned
+     * repository path.
+     */
+    @Column(name = "code", unique = true)
+    private String code;
 
-	@NotNull
-	@Column(name = "start_date")
-	private Date start;
+    /**
+     * Name for the course. Should not be empty.
+     */
+    @NotEmpty(message = "error.course-name-empty")
+    @Column(name = "name")
+    private String name;
 
-	@Column(name = "end_date")
-	private Date end;
+    /**
+     * The editions for this course.
+     */
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
+    @OrderBy("start_date ASC")
+    private List<CourseEdition> editions;
 
-	@NotNull(message = "error.course-min-group-empty")
-	@Column(name = "min_group_size")
-	private Integer minGroupSize;
+    /**
+     * Set the course code for this course. The course code will be converted
+     * into uppercase to ensure uniqueness across database implementations.
+     *
+     * @param code
+     */
+    public void setCode(String code) {
+        this.code = code.toUpperCase();
+    }
 
-	@NotNull(message = "error.course-max-group-empty")
-	@Column(name = "max_group_size")
-	private Integer maxGroupSize;
+    @Override
+    public int compareTo(Course o) {
+        return getCode().compareTo(o.getCode());
+    }
 
-	@Column(name = "template_repository_url")
-	private String templateRepositoryUrl;
-
-    @NotNull(message = "error.course-timeout")
-	@Column(name = "build_timeout")
-	private Integer buildTimeout;
-
-	@OrderBy("groupNumber ASC")
-	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-	private List<Group> groups;
-
-	@OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-	private List<CourseAssistant> courseAssistants;
-
-    @OrderBy("dueDate ASC, name ASC")
-    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    private List<Assignment> assignments;
-
-	public void setCode(String code) {
-		this.code = code.toUpperCase();
-	}
-
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "build_instruction", nullable = false)
-	private BuildInstructionEntity buildInstruction;
-
-	@ElementCollection
-	@JoinTable(name="course_properties", joinColumns=@JoinColumn(name="course_id"))
-	@MapKeyColumn(name="property_key")
-	@Column(name="property_value")
-	private Map<String, String> properties;
-
-	public List<User> getAssistants() {
-		List<User> assistants = Lists.newArrayList();
-		for (CourseAssistant assistant : courseAssistants) {
-			assistants.add(assistant.getUser());
-		}
-		return assistants;
+	@Override
+	public URI getURI() {
+		return URI.create(COURSE_BASE_PATH).resolve(getCode().toLowerCase() + "/");
 	}
 
 }

@@ -1,10 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Queues;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
-import com.google.inject.persist.UnitOfWork;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.client.BuildServerBackend;
@@ -16,10 +11,16 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildServers;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Queues;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
+import nl.tudelft.ewi.git.models.RepositoryModel;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -38,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class BuildsBackend {
 
-	private final GitServerClient gitServerClient;
+	private final RepositoriesApi repositoriesApi;
 	private final BuildServers buildServers;
 	private final Provider<BuildSubmitter> submitters;
 	private final ConcurrentLinkedQueue<BuildRequest> buildQueue;
@@ -49,14 +50,14 @@ public class BuildsBackend {
 
 	@Inject
 	BuildsBackend(BuildServers buildServers, Provider<BuildSubmitter> submitters,
-				  BuildResults buildResults, GitServerClient gitServerClient, Config config) {
+				  BuildResults buildResults, RepositoriesApi repositoriesApi, Config config) {
 		this.buildServers = buildServers;
 		this.submitters = submitters;
 		this.buildQueue = Queues.newConcurrentLinkedQueue();
 		this.executor = new ScheduledThreadPoolExecutor(1);
 		this.running = new AtomicBoolean(false);
 		this.buildResults = buildResults;
-		this.gitServerClient = gitServerClient;
+		this.repositoriesApi = repositoriesApi;
 		this.config = config;
 	}
 	
@@ -167,19 +168,19 @@ public class BuildsBackend {
 	 */
 	@SneakyThrows
 	protected void createBuildRequest(final Commit commit) {
-		Group group = commit.getRepository();
-		Repository repository = gitServerClient.repositories().retrieve(group.getRepositoryName());
-		BuildRequest buildRequest = group.getBuildInstruction().createBuildRequest(config, commit, repository);
-		log.info("Submitting a build for commit: {} of repository: {}", commit, group);
+		RepositoryEntity repositoryEntity = commit.getRepository();
+		RepositoryModel repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName()).getRepositoryModel();
+		BuildRequest buildRequest = repositoryEntity.getBuildInstruction().createBuildRequest(config, commit, repository);
+		log.info("Submitting a build for commit: {} of repository: {}", commit, repository);
 		offerBuild(buildRequest);
 	}
 
 	@SneakyThrows
-	protected String getCallbackUrl(final Commit commit, final Group group, final String resource) {
+	protected String getCallbackUrl(final Commit commit, final RepositoryEntity repository, final String resource) {
 		StringBuilder callbackBuilder = new StringBuilder();
 		callbackBuilder.append(config.getHttpUrl());
 		callbackBuilder.append("/hooks/").append(resource);
-		callbackBuilder.append("?repository=" + URLEncoder.encode(group.getRepositoryName(), "UTF-8"));
+		callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getRepositoryName(), "UTF-8"));
 		callbackBuilder.append("&commit=" + URLEncoder.encode(commit.getCommitId(), "UTF-8"));
 		return callbackBuilder.toString();
 	}

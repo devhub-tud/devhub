@@ -1,10 +1,10 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.io.IOException;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import com.google.inject.ImplementedBy;
 
-import nl.tudelft.ewi.devhub.server.database.entities.User;
+import java.io.IOException;
 
 /**
  * An {@code AuthenticationProvider} should be implemented to authenticate users

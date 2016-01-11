@@ -1,11 +1,10 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import java.net.URI;
-import java.net.URLEncoder;
+import lombok.SneakyThrows;
 
 import javax.ws.rs.core.Response;
-
-import lombok.SneakyThrows;
+import java.net.URI;
+import java.net.URLEncoder;
 
 public class Resource {
 	
@@ -13,8 +12,11 @@ public class Resource {
 
 	@SneakyThrows
 	public Response redirect(String path) {
-		return Response.seeOther(new URI(path))
-			.build();
+		return redirect(new URI(path));
+	}
+
+	public Response redirect(URI path) {
+		return Response.seeOther(path).build();
 	}
 
 	public Response display(String html) {
@@ -23,8 +25,8 @@ public class Resource {
 	}
 
 	@SneakyThrows
-	String encode(String value) {
+	static String encode(String value) {
 		return URLEncoder.encode(value, "UTF-8");
 	}
-	
+
 }

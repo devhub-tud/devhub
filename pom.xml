@@ -236,8 +236,8 @@
 		<!-- Backend services -->
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
-			<artifactId>git-client</artifactId>
-			<version>1.0.1</version>
+			<artifactId>git-models</artifactId>
+			<version>v1.0.4</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>
@@ -249,8 +249,14 @@
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
-			<artifactId>git-client</artifactId>
-			<version>1.0.1</version>
+			<artifactId>git-server</artifactId>
+			<version>v1.0.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>nl.tudelft.ewi.git</groupId>
+			<artifactId>git-server</artifactId>
+			<version>v1.0.4</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>

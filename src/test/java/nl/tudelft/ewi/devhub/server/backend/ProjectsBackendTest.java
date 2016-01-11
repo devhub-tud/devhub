@@ -1,91 +1,110 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.util.Map;
-
-import com.google.common.collect.ImmutableMap;
-
-import nl.tudelft.ewi.devhub.server.database.controllers.GroupMemberships;
+import lombok.Getter;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.TestDatabaseModule;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupMembership;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel;
+import nl.tudelft.ewi.git.models.UserModel;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
 
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
+import nl.tudelft.ewi.git.web.api.GroupsApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.UsersApi;
+import org.hamcrest.Matchers;
+import org.jukito.JukitoRunner;
+import org.jukito.UseModules;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
-public class ProjectsBackendTest extends BackendTest {
+import javax.ws.rs.NotFoundException;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
+@RunWith(JukitoRunner.class)
+@UseModules(ProjectsBackendTest.ProjectsBackendTestModule.class)
+public class ProjectsBackendTest extends PersistedBackendTest {
+
+	private static RepositoriesApi repositoriesApi = mock(RepositoriesApi.class);
+	private static UsersApi usersApi = mock(UsersApi.class);
+
+	public static class ProjectsBackendTestModule extends AbstractModule {
+
+		@Override
+		protected void configure() {
+			install(new TestDatabaseModule());
+			bind(RepositoriesApi.class).toInstance(repositoriesApi);
+			bind(UsersApi.class).toInstance(usersApi);
+		}
+
+	}
 	
-	private static final GroupMemberships groupMemberships = mock(GroupMemberships.class);
-	private static final Groups groups = mock(Groups.class);
-	private static final Users users = mock(Users.class);
-	private static GitServerClient gitClient;
-	private ProjectsBackend projectsBackend;
+	@Inject private ProjectsBackend projectsBackend;
+	@Inject @Getter private CourseEditions courses;
+	@Inject @Getter private Users users;
+	@Inject @Getter private Groups groups;
+	@Inject GroupsApi groupsApi;
 
-	private Course course;
-	
+	private CourseEdition course;
 	private User user;
 
-	@BeforeClass
-	public static void initGitServerClientMock() {
-		gitClient = Mockito.mock(GitServerClient.class);
-		when(gitClient.users()).thenReturn(mock(nl.tudelft.ewi.git.client.Users.class));
-		when(gitClient.groups()).thenReturn(mock(nl.tudelft.ewi.git.client.Groups.class));
-		when(gitClient.repositories()).thenReturn(mock(Repositories.class));
-	}
-	
 	@Before
 	public void beforeTest() {
-		projectsBackend = new ProjectsBackend(
-				new ValueProvider<GroupMemberships>(groupMemberships),
-				new ValueProvider<Groups>(groups),
-				new ValueProvider<Users>(users),
-				gitClient);
-
-		course = createCourse();
+		reset(repositoriesApi, usersApi);
+		course = createCourseEdition();
 		user = createUser();
-		when(groups.find(course)).thenReturn(Lists.<Group>newArrayList());
-		when(groupMemberships.ofGroup(Mockito.any(Group.class)))
-			.thenReturn(Lists.<GroupMembership>newArrayList());
+
+		Mockito.doThrow(new NotFoundException()).when(groupsApi).getGroup(anyString());
 	}
-	
+
+	@Override
+	protected User createUser() {
+		User user = super.createUser();
+		UserModel userModel = new UserModel();
+		userModel.setName(user.getNetId());
+		usersApi.createNewUser(userModel);
+		return user;
+	}
+
 	@Test
-	public void testCreateProject() throws ApiError, GitClientException {
-		projectsBackend.setupProject(course, Lists.newArrayList(user));
-		ArgumentCaptor<Group> groupCaptor = ArgumentCaptor.forClass(Group.class);
-		verify(groups).persist(groupCaptor.capture());
-		Group group = groupCaptor.getValue();
+	public void testCreateProject() throws ApiError {
+		Group group = projectsBackend.setupProject(course, Lists.newArrayList(user));
 		verifyPersistedGroup(group, course, user);
 		verifyProvisionRepository(group);
 	}
 
-	private void verifyProvisionRepository(Group group) throws GitClientException {
+	private void verifyProvisionRepository(Group group) {
 		Map<String, RepositoryModel.Level> expectedPermissions =
 			ImmutableMap.of(
-					user.getNetId(), RepositoryModel.Level.READ_WRITE,
-					"@" + course.getCode().toLowerCase(), RepositoryModel.Level.ADMIN);
+				user.getNetId(), RepositoryModel.Level.READ_WRITE);
 
 		CreateRepositoryModel expectedRepoModel = new CreateRepositoryModel();
-		expectedRepoModel.setName(group.getRepositoryName());
+		expectedRepoModel.setName(group.getRepository().getRepositoryName());
 		expectedRepoModel.setTemplateRepository(course.getTemplateRepositoryUrl());
 		expectedRepoModel.setPermissions(expectedPermissions);
-		verify(gitClient.repositories()).create(expectedRepoModel);
+		verify(repositoriesApi).createRepository(expectedRepoModel);
 	}
 
 	@Test(expected=ApiError.class)
@@ -93,31 +112,18 @@ public class ProjectsBackendTest extends BackendTest {
 		putUserInCourse(user, course);
 		projectsBackend.setupProject(course, Lists.newArrayList(user));
 	}
-	
-	protected static void putUserInCourse(User user, Course course) {
+
+	protected static void putUserInCourse(User user, CourseEdition course) {
 		Group group = new Group();
-		group.setCourse(course);
-		GroupMembership groupMembership = new GroupMembership();
-		groupMembership.setUser(user);
-		groupMembership.setGroup(group);
-		group.setMemberships(Sets.newHashSet(groupMembership));
-		user.setMemberOf(Lists.newArrayList(groupMembership));
-		when(groupMemberships.ofGroup(group))
-			.thenReturn(Lists.newArrayList(groupMembership));
+		group.setMembers(Sets.newHashSet(user));
+		group.setCourseEdition(course);
+		course.setGroups(Lists.newArrayList(group));
 	}
-	
-	protected static void verifyPersistedGroup(Group group, Course course, User... members) {
+
+	protected static void verifyPersistedGroup(Group group, CourseEdition course, User... members) {
 		assertNotNull(group);
 		assertEquals(course, group.getCourse());
-		for(User member : members)
-			verifyPersistedGroupMembership(member, group);
-	}
-	
-	protected static void verifyPersistedGroupMembership(User user, Group group) {
-		GroupMembership expected = new GroupMembership();
-		expected.setUser(user);
-		expected.setGroup(group);
-		verify(groupMemberships).persist(expected);	
+		assertThat(group.getMembers(), Matchers.contains(members));
 	}
 
 }

@@ -1,9 +1,9 @@
 package nl.tudelft.ewi.devhub.server.database;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Connection;
 import java.sql.SQLException;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 enum DatabaseType {

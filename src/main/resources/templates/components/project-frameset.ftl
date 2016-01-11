@@ -1,7 +1,8 @@
 [#macro renderBreadcrumb i18n group]
     <ol class="breadcrumb hidden-xs">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
-        <li><a href="/courses/${group.course.getCode()}">${group.course.getCode()} - ${group.course.getName()}</a></li>
+        <li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
+        <li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
         <li class="active">Group ${group.getGroupNumber()}</li>
     </ol>
 [/#macro]
@@ -10,22 +11,24 @@
     <div>
         <ul class="nav nav-pills nav-stacked">
             <li role="presentation" [#if currentTab == "commits"]class="active"[/#if]>
-                <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}">
+                <a href="${repositoryEntity.getURI()}">
                     ${i18n.translate("section.commits")}
                 </a>
             </li>
             <li role="presentation" [#if currentTab == "pull-requests"]class="active"[/#if]>
-                <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/pulls">
+                <a href="${repositoryEntity.getURI()}pulls">
                     ${i18n.translate("section.pull-requests")}
                 </a>
             </li>
+    [#if group?? && group?has_content]
             <li role="presentation" [#if currentTab == "assignments"]class="active"[/#if]>
-                <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/assignments">
+                <a href="${repositoryEntity.getURI()}assignments">
                     ${i18n.translate("section.assignments")}
                 </a>
             </li>
+    [/#if]
             <li role="presentation" [#if currentTab == "contributors"]class="active"[/#if]>
-                <a href="/courses/${group.course.getCode()}/groups/${group.getGroupNumber()}/contributors">
+                <a href="${repositoryEntity.getURI()}contributors">
                 ${i18n.translate("section.contributors")}
                 </a>
             </li>

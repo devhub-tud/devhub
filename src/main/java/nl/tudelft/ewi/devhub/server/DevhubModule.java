@@ -1,14 +1,5 @@
 package nl.tudelft.ewi.devhub.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
-import com.google.inject.Provides;
-import com.google.inject.multibindings.Multibinder;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
-import com.google.inject.persist.PersistFilter;
-import com.google.inject.servlet.RequestScoped;
-import com.google.inject.servlet.ServletModule;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackendImpl;
@@ -25,9 +16,18 @@ import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.GitServerClientImpl;
-import nl.tudelft.ewi.git.client.Repositories;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
+import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
+import com.google.inject.persist.PersistFilter;
+import com.google.inject.servlet.RequestScoped;
+import com.google.inject.servlet.ServletModule;
+
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.reflections.Reflections;
 
@@ -44,24 +44,27 @@ public class DevhubModule extends ServletModule {
 
 	private final File rootFolder;
 	private final Config config;
+	private final LifeCycle lifeCycle;
 
-	public DevhubModule(Config config, File rootFolder) {
+	public DevhubModule(Config config, File rootFolder, LifeCycle lifeCycle) {
 		this.config = config;
 		this.rootFolder = rootFolder;
+		this.lifeCycle = lifeCycle;
 	}
 
 	@Override
 	protected void configureServlets() {
 		install(new DbModule());
 		install(new JaxrsModule());
-		bind(JacksonJaxbXMLProvider.class);
+		install(new GitServerClientModule(config, lifeCycle));
+
 		requireBinding(ObjectMapper.class);
+		requireBinding(JacksonJaxbXMLProvider.class);
 
 		bind(File.class).annotatedWith(Names.named("directory.templates")).toInstance(new File(rootFolder, "templates"));
 		bind(TranslatorFactory.class).toInstance(new TranslatorFactory("i18n.devhub"));
 		bind(Config.class).toInstance(config);
 
-		bind(GitServerClient.class).toInstance(new GitServerClientImpl(config.getGitServerHost()));
 		bind(AuthenticationBackend.class).to(AuthenticationBackendImpl.class);
 		bind(AuthenticationProvider.class).to(LdapAuthenticationProvider.class);
 		bind(LdapUserProcessor.class).to(PersistingLdapUserProcessor.class);
@@ -69,7 +72,7 @@ public class DevhubModule extends ServletModule {
 
 		filter("/*").through(PersistFilter.class);
 		filter("/accounts*", "/build-servers*", "/projects*", "/validation*", "/courses*").through(UserAuthorizeFilter.class);
-		filterRegex("^/courses/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
+		filterRegex("^/courses/[^/]+/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
 
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);
@@ -90,11 +93,6 @@ public class DevhubModule extends ServletModule {
 			log.info("Registering resource {}", clasz);
 			bind(clasz);
 		}
-	}
-
-	@Provides
-	public Repositories provideRepositories(final GitServerClient gitServerClient) {
-		return gitServerClient.repositories();
 	}
 	
 	@Provides

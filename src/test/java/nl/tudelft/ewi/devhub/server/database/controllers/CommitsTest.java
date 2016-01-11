@@ -1,81 +1,84 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.inject.AbstractModule;
-import lombok.SneakyThrows;
+import lombok.Getter;
+import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
+import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Repository;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
+
+import com.google.inject.AbstractModule;
+
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(JukitoRunner.class)
 @UseModules({TestDatabaseModule.class, CommitsTest.CommitsTestModule.class})
-public class CommitsTest {
+public class CommitsTest extends PersistedBackendTest {
+
+	private static RepositoriesApi repositories = Mockito.mock(RepositoriesApi.class);
+	private static RepositoryApi repository = Mockito.mock(RepositoryApi.class);
+	private static  CommitApi commitApi = Mockito.mock(CommitApi.class);
+	private static  DetailedCommitModel commit = Mockito.mock(DetailedCommitModel.class);
+
+	@BeforeClass
+	public static void before() {
+		Mockito.when(repositories.getRepository(Mockito.anyString())).thenReturn(repository);
+		Mockito.when(repository.getCommit(Mockito.anyString())).thenReturn(commitApi);
+		Mockito.when(commitApi.get()).thenReturn(commit);
+		Mockito.when(commit.getParents()).thenReturn(new String[] {});
+	}
 
 	public static class CommitsTestModule extends AbstractModule {
 
 		@Override
-		@SneakyThrows
 		protected void configure() {
-			Repositories repositories = Mockito.mock(Repositories.class);
-			Repository repository = Mockito.mock(Repository.class);
-			nl.tudelft.ewi.git.client.Commit commit = Mockito.mock(nl.tudelft.ewi.git.client.Commit.class);
-
-			bind(Repositories.class).toInstance(repositories);
-			Mockito.when(repositories.retrieve(Mockito.anyString())).thenReturn(repository);
-			Mockito.when(repository.retrieveCommit(Mockito.anyString())).thenReturn(commit);
-			Mockito.when(commit.getParents()).thenReturn(new String[] {});
+			bind(RepositoriesApi.class).toInstance(repositories);
 		}
 
 	}
-	
-	@Inject
-	private Random random;
-	
-	@Inject
-	private Groups groups;
-	
-	@Inject
-	private Courses courses;
 
-	@Inject
-	private Users users;
+	@Inject @Getter private Groups groups;
+	@Inject @Getter private CourseEditions courses;
+	@Inject @Getter private Users users;
+	@Inject private Commits commits;
 
-	@Inject
-	private EntityManager entityManager;
+	private User user;
+	private Group group;
 
-	@Inject
-	private Repositories repositories;
-	@Inject
-	private Commits commits;
-	
-	@Test
-	public void testEnsureCommitInRepository() {
-		Group group = createGroup();
-		Commit commit = createCommit(group);
-		assertEquals(group, commit.getRepository());
+	@Before
+	public void setup() {
+		user = createUser();
+		group = createGroup(createCourseEdition(), user);
 	}
 	
 	@Test
+	public void testEnsureCommitInRepository() {
+		Commit commit = createCommit(group.getRepository());
+		assertEquals(group.getRepository(), commit.getRepository());
+	}
+
+	@Test
 	public void testEnsureCommentInCommit() {
-		Group group = createGroup();
-		Commit commit = createCommit(group);
+		Commit commit = createCommit(group.getRepository());
 		CommitComment expected = createCommitComment(commit);
 		List<CommitComment> comments = commit.getComments();
 		assertEquals("Expected size 1 for list of comments", 1, comments.size());
@@ -83,11 +86,9 @@ public class CommitsTest {
 		CommitComment actual = comments.get(0);
 		assertEquals(expected.getCommit(), actual.getCommit());
 		assertEquals(expected.getContent(), actual.getContent());
-		//assertEquals(expected.getOldLineNumber(), actual.getOldLineNumber());
-		//assertEquals(expected.getOldFilePath(), actual.getOldFilePath());
-		//assertEquals(expected.getNewLineNumber(), actual.getNewLineNumber());
-		//assertEquals(expected.getNewFilePath(), actual.getNewFilePath());
-		assertEquals(expected.getTime(), actual.getTime());
+
+		assertEquals(expected.getSource(), actual.getSource());
+		assertNotNull(actual.getTimestamp());
 		assertEquals(expected.getUser(), actual.getUser());
 	}
 	
@@ -95,36 +96,21 @@ public class CommitsTest {
 		CommitComment comment = new CommitComment();
 		comment.setCommit(commit);
 		comment.setContent("This is a comment");
-		//comment.setOldFilePath("dev/null");
-		//comment.setOldLineNumber(null);
-		//comment.setNewFilePath(".gitignore");
-		//comment.setNewLineNumber(1);
-		comment.setTime(new Date());
-		comment.setUser(student1());
+
+		Source source = new Source();
+		source.setSourceCommit(commit);
+		source.setSourceFilePath(".gitignore");
+		source.setSourceLineNumber(1);
+
+		comment.setSource(source);
+		comment.setUser(user);
 		commit.getComments().add(comment);
 		commits.merge(commit);
 		return comment;
 	}
 	
-	protected Commit createCommit(Group repository) {
+	protected Commit createCommit(RepositoryEntity repository) {
 		return commits.ensureExists(repository, UUID.randomUUID().toString());
-	}
-	
-	protected Group createGroup() {
-		Group group = new Group();
-		Course course = getTestCourse();
-		group.setGroupNumber(random.nextLong());
-		group.setCourse(course);
-		group.setRepositoryName(String.format("courses/%s/group-%s", group.getGroupNumber(), course.getName()));
-		return groups.persist(group);
-	}
-	
-	protected Course getTestCourse() {
-		return courses.find("TI1705");
-	}
-	
-	protected User student1() {
-		return users.find(1);
 	}
 	
 }

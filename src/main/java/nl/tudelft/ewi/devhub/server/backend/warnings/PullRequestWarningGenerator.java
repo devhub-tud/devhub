@@ -1,17 +1,16 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.GitUsageWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
-import nl.tudelft.ewi.git.client.Branch;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
 import nl.tudelft.ewi.git.models.CommitModel;
 
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+
+import javax.ws.rs.ClientErrorException;
 import java.util.Set;
 
 /**
@@ -25,8 +24,8 @@ public class PullRequestWarningGenerator extends AbstractCommitWarningGenerator<
 implements CommitPushWarningGenerator<GitUsageWarning> {
 
     @Inject
-    public PullRequestWarningGenerator(GitServerClient gitServerClient) {
-        super(gitServerClient);
+    public PullRequestWarningGenerator(RepositoriesApi repositoriesApi) {
+        super(repositoriesApi);
     }
 
     @Override
@@ -41,7 +40,7 @@ implements CommitPushWarningGenerator<GitUsageWarning> {
                 warnings.add(warning);
             }
         }
-        catch (GitClientException e) {
+        catch (ClientErrorException e) {
             log.warn(e.getMessage(), e);
         }
 
@@ -49,13 +48,14 @@ implements CommitPushWarningGenerator<GitUsageWarning> {
         return warnings;
     }
 
-    protected CommitModel getMasterCommit(final Commit commit) throws GitClientException {
-        Repository repository = getRepository(commit);
-        Branch master = repository.retrieveBranch("master");
-        return master.getCommit();
+    protected CommitModel getMasterCommit(final Commit commit) {
+        return getRepository(commit)
+           .getBranch("master")
+           .getCommit()
+           .get();
     }
 
-    protected boolean commitOnMaster(final Commit commit) throws GitClientException {
+    protected boolean commitOnMaster(final Commit commit) {
         CommitModel commitModel = getMasterCommit(commit);
         return headIsMaster(commitModel, commit.getCommitId()) && headIsNoMerge(commitModel);
     }

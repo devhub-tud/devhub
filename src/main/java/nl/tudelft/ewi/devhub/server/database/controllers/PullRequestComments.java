@@ -1,7 +1,8 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
+
 import com.google.inject.Inject;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequestComment;
 
 import javax.persistence.EntityManager;
 

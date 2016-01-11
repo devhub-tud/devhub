@@ -1,18 +1,18 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -50,22 +50,24 @@ public class PullRequestMailer {
      * @param pullRequest PullRequest to send
      */
     public void sendReviewMail(PullRequest pullRequest) {
-        Group group = pullRequest.getGroup();
-        Course course = group.getCourse();
+        RepositoryEntity repository = pullRequest.getRepository();
 
+        URI uri = URI.create(config.getHttpUrl())
+                .resolve(repository.getURI())
+                .resolve("pull/")
+                .resolve(Long.toString(pullRequest.getIssueId()));
 
-        String link = String.format("%s/courses/%s/groups/%d/pull/%d",
-                config.getHttpUrl(), course.getCode(), group.getGroupNumber(), pullRequest.getIssueId());
+        String link = uri.toASCIIString();
         List<Locale> locales = Collections.list(request.getLocales());
         Translator translator = factory.create(locales);
 
-        group.getMembers()
+        repository.getCollaborators()
                 .stream()
                 .filter(user -> !user.equals(currentUser))
                 .forEach(addressee -> {
                     String userName = addressee.getName();
-                    String subject = translator.translate(COMMENT_SUBJECT, group.getGroupName());
-                    String content = translator.translate(COMMENT_CONTENT, userName, currentUser.getName(), group.getGroupName(), link);
+                    String subject = translator.translate(COMMENT_SUBJECT, repository.getTitle());
+                    String content = translator.translate(COMMENT_CONTENT, userName, currentUser.getName(), repository.getTitle(), link);
                     backend.sendMail(new MailBackend.Mail(addressee.getEmail(), subject, content));
                 });
     }

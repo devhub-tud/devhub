@@ -1,14 +1,15 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.IgnoredFileWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
-import nl.tudelft.ewi.git.client.GitServerClient;
 import nl.tudelft.ewi.git.models.DiffModel;
+
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import java.util.stream.Stream;
  */
 @Slf4j
 @RequestScoped
+@SuppressWarnings("unused")
 public class IgnoredFileWarningGenerator extends AbstractCommitWarningGenerator<IgnoredFileWarning, GitPush>
 implements CommitPushWarningGenerator<IgnoredFileWarning> {
 
@@ -28,15 +30,15 @@ implements CommitPushWarningGenerator<IgnoredFileWarning> {
     private String[] ext;
 
     @Inject
-    public IgnoredFileWarningGenerator(GitServerClient gitServerClient) {
-        super(gitServerClient);
+    public IgnoredFileWarningGenerator(RepositoriesApi repositoriesApi) {
+        super(repositoriesApi);
     }
 
     @Override
     @SneakyThrows
     public Set<IgnoredFileWarning> generateWarnings(Commit commit, GitPush attachment) {
         log.debug("Start generating warnings for {} in {}", commit, this);
-        this.ext = getProperty(commit, PROPERTY_KEY, DEFAULT_EXTENSIONS);
+        this.ext = commit.getRepository().getCommaSeparatedValues(PROPERTY_KEY, DEFAULT_EXTENSIONS);
 
         final Set<IgnoredFileWarning> warnings = getGitCommit(commit).diff().getDiffs().stream()
             .filter(diffFile -> !diffFile.isDeleted())

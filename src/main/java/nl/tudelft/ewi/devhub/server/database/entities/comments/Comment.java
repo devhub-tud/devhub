@@ -1,21 +1,22 @@
-package nl.tudelft.ewi.devhub.server.database.entities;
+package nl.tudelft.ewi.devhub.server.database.entities.comments;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.devhub.server.database.entities.Event;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
-import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -28,8 +29,8 @@ import java.util.Date;
 @Data
 @Entity
 @Inheritance(strategy= InheritanceType.TABLE_PER_CLASS)
-@EqualsAndHashCode(of={"commentId"})
-public abstract class Comment implements Comparable<Comment> {
+@EqualsAndHashCode(of={"commentId"}, callSuper = false)
+public abstract class Comment implements Event {
 
     @Id
     @Column(name = "id")
@@ -46,14 +47,11 @@ public abstract class Comment implements Comparable<Comment> {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @NotNull
-    @Column(name="time")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date time;
+	@CreationTimestamp
+	@Column(name = "created_date")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date timestamp;
 
-    @Override
-    public int compareTo(Comment o) {
-        return getTime().compareTo(o.getTime());
-    }
+    public abstract RepositoryEntity getRepository();
 
 }

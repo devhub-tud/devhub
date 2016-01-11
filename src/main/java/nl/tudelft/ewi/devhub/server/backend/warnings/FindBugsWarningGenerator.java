@@ -1,29 +1,27 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.BugInstance;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsFile;
+import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsReport;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.inject.Inject;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
+import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsReport;
-import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.FindBugsFile;
-import nl.tudelft.ewi.devhub.server.backend.warnings.FindBugsWarningGenerator.BugInstance;
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
-
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repository;
-
-import javax.ws.rs.NotFoundException;
 
 /**
  * Convert FindBugs violations into Warnings
@@ -107,8 +105,8 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
     }
 
     @Inject
-    public FindBugsWarningGenerator(final GitServerClient gitServerClient, final Commits commits) {
-        super(gitServerClient, commits);
+    public FindBugsWarningGenerator(final RepositoriesApi repositoriesApi, final Commits commits) {
+        super(repositoriesApi, commits);
     }
 
     @Override
@@ -140,14 +138,14 @@ public class FindBugsWarningGenerator extends AbstractLineWarningGenerator<FindB
 
     @Override
     protected String filePathFor(final FindBugsFile value, final Commit commit) {
-        Repository repository = retrieveRepository(commit.getRepository());
+        CommitApi commitApi = getGitCommit(commit);
         for(String codebase : CODE_BASES) {
             String path = codebase.concat(value.getSourcePath());
             String folder = path.substring(0, path.lastIndexOf('/'));
             String fileName = path.substring(folder.length() + 1);
 
             try {
-                if(repository.listDirectoryEntries(commit.getCommitId(), folder).containsKey(fileName)) {
+                if(commitApi.showTree(folder).containsKey(fileName)) {
                     return path;
                 }
             }

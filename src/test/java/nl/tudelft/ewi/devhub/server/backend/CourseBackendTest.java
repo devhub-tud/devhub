@@ -1,19 +1,15 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import java.util.ArrayList;
-
-import nl.tudelft.ewi.devhub.server.database.controllers.CourseAssistants;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseAssistant;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.GroupMembers;
-import nl.tudelft.ewi.git.client.Groups;
 
+import com.google.common.collect.Sets;
+
+import nl.tudelft.ewi.git.web.api.GroupApi;
+import nl.tudelft.ewi.git.web.api.GroupsApi;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,11 +18,11 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,56 +36,34 @@ public class CourseBackendTest extends BackendTest {
 	private Users currentUsers;
 	
 	@Mock
-	private nl.tudelft.ewi.git.client.Users users;
-	
-	@Mock
-	private Courses courses;
-	
-	@Mock
-	private GitServerClient gitServerClient;
+	private CourseEditions courses;
+
 	
 	@InjectMocks
 	private CoursesBackend courseBackend;
 	
 	@Mock
-	private Groups groups;
-	
-	@Mock
-	private GroupMembers groupMembers;
-	
-	@Mock
-	private CourseAssistants courseAssistantsDAO;
+	private GroupsApi groups;
 
-	private ArrayList<User> newAssistants;
+	@Mock
+	private GroupApi groupApi;
 
-	private ArrayList<CourseAssistant> oldAssistants;
-	
-	private Course course;
+	private Set<User> newAssistants;
+
+	private Set<User> oldAssistants;
+
+	private CourseEdition course;
 	
 	@Before
-	public void setUp() throws GitClientException {
-		course = createCourse();
-		newAssistants = Lists.newArrayList(createUsersArray());
-		oldAssistants = Lists.newArrayList(createAssistantsArray());
-		course.setCourseAssistants(oldAssistants);
+	public void setUp() {
+		course = createCourseEdition();
+		oldAssistants = Sets.newHashSet(createUser(), createUser());
+		newAssistants = Sets.newHashSet(createUser(), createUser());
+		course.setAssistants(oldAssistants);
 		
 		when(currentUser.isAdmin()).thenReturn(true);
-		when(groups.ensureExists(Matchers.any())).thenReturn(null);
-		when(gitServerClient.groups()).thenReturn(groups);
-		when(gitServerClient.users()).thenReturn(users);
-		when(groups.groupMembers(Matchers.any())).thenReturn(groupMembers);
+		when(groups.getGroup(Matchers.any())).thenReturn(groupApi);
 
-		when(courseAssistantsDAO.persist(any())).thenAnswer((invocation -> {
-			CourseAssistant courseAssistant = (CourseAssistant) invocation.getArguments()[0];
-			oldAssistants.add(courseAssistant);
-			return courseAssistant;
-		}));
-
-		when(courseAssistantsDAO.delete(any())).thenAnswer((invocation -> {
-			CourseAssistant courseAssistant = (CourseAssistant) invocation.getArguments()[0];
-			oldAssistants.remove(courseAssistant);
-			return courseAssistant;
-		}));
 	}
 
 	private User[] createUsersArray() {
@@ -102,31 +76,16 @@ public class CourseBackendTest extends BackendTest {
 		
 		return assistants;
 	}
-
-	private CourseAssistant[] createAssistantsArray() {
-		int numberOfAssistants = 5;
-		CourseAssistant[] assistants = new CourseAssistant[numberOfAssistants];
-		
-		for (int i = 0; i < numberOfAssistants; i++) {
-			CourseAssistant assistant = new CourseAssistant();
-			assistant.setCourse(course);
-			assistant.setUser(createUser());
-			
-			assistants[i] = assistant;
-		}
-		
-		return assistants;
-	}
 	
 	@Test(expected=UnauthorizedException.class)
-	public void mustBeAdminToCreateGroup() throws GitClientException {
+	public void mustBeAdminToCreateGroup() {
 		when(currentUser.isAdmin()).thenReturn(false);
 		
 		courseBackend.createCourse(course);
 	}
 	
 	@Test
-	public void courseIsStored() throws GitClientException {
+	public void courseIsStored() {
 		courseBackend.createCourse(course);
 		
 		verify(courses).persist(course);
@@ -134,46 +93,47 @@ public class CourseBackendTest extends BackendTest {
 	
 	@SuppressWarnings("unchecked")
 	@Test(expected=Exception.class)
-	public void courseIsRemovedWhenFailedToStore() throws GitClientException {
+	public void courseIsRemovedWhenFailedToStore() {
 		when(courses.persist(Matchers.eq(course))).thenThrow(Exception.class);
 		
 		courseBackend.createCourse(course);
 	}
 	
 	@Test(expected=UnauthorizedException.class)
-	public void mustBeAdminToMergeGroup() throws GitClientException {
+	public void mustBeAdminToMergeGroup() {
 		when(currentUser.isAdmin()).thenReturn(false);
 		
 		courseBackend.mergeCourse(course);
 	}
 	
 	@Test
-	public void courseIsMerged() throws GitClientException {
+	public void courseIsMerged() {
 		courseBackend.mergeCourse(course);
 		
 		verify(courses).merge(course);
 	}
 	
 	@Test(expected=UnauthorizedException.class)
-	public void mustBeAdminToSetAssistants() throws GitClientException {
+	public void mustBeAdminToSetAssistants() {
 		when(currentUser.isAdmin()).thenReturn(false);
 		
 		courseBackend.setAssistants(course, new ArrayList<User>());
 	}
 
 	@Test
-	public void assistantsAreAddedToCourse() throws GitClientException {
+	public void assistantsAreAddedToCourse() {
 		courseBackend.setAssistants(course, newAssistants);
 
 		assertEquals(newAssistants, course.getAssistants());
 	}
 	
 	@Test
-	public void assistantsAreRemovedFromCourseWhenNotInNewList() throws GitClientException {
+	public void assistantsAreRemovedFromCourseWhenNotInNewList() {
 		courseBackend.setAssistants(course, newAssistants);
-		
-		User removedAssistant = newAssistants.remove(0);
-		
+
+		User removedAssistant = newAssistants.iterator().next();
+		newAssistants.remove(removedAssistant);
+
 		courseBackend.setAssistants(course, newAssistants);
 
 		assertFalse(course.getAssistants().contains(removedAssistant));

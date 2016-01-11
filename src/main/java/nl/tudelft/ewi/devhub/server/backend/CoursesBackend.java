@@ -1,28 +1,30 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.CourseAssistants;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseAssistant;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.git.client.GitClientException;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.GroupMembers;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
 import nl.tudelft.ewi.git.models.UserModel;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.git.web.api.GroupApi;
+import nl.tudelft.ewi.git.web.api.GroupsApi;
+
+import javax.ws.rs.NotFoundException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -31,16 +33,13 @@ import java.util.stream.Collectors;
 public class CoursesBackend {
 
     @Inject
-    private Courses courses;
+    private CourseEditions courses;
 
     @Inject
     private Users users;
 
     @Inject
-    private GitServerClient gitServerClient;
-
-    @Inject
-    private CourseAssistants courseAssistantsDAO;
+    private GroupsApi groupsApi;
 
     @Inject
     @Named("current.user")
@@ -50,20 +49,18 @@ public class CoursesBackend {
      * Create a course.
      * 
      * @param course
-     * 		Course to create
-     * @throws GitClientException
-     * 		If an GitClientException occurs
+     * 		CourseEdition to create
      */
-    public void createCourse(Course course) throws GitClientException {
+    public void createCourse(CourseEdition course) {
         Preconditions.checkNotNull(course);
         checkAdmin();
 
         Collection<IdentifiableModel> admins = getAdmins();
 
         GroupModel groupModel = new GroupModel();
-        groupModel.setName(getGitoliteGroupName(course));
+        groupModel.setName(gitoliteAssistantGroupName(course));
         groupModel.setMembers(admins);
-        gitServerClient.groups().ensureExists(groupModel);
+        groupsApi.create(groupModel);
 
         try {
             courses.persist(course);
@@ -71,7 +68,7 @@ public class CoursesBackend {
         }
         catch (Exception e) {
             // On failure, delete the group from the Gitolite config
-            gitServerClient.groups().delete(groupModel);
+            groupsApi.getGroup(groupModel.getName()).deleteGroup();
             throw e;
         }
     }
@@ -82,7 +79,7 @@ public class CoursesBackend {
      * @param course
      * 		The course to save
      */
-    public void mergeCourse(Course course) {
+    public void mergeCourse(CourseEdition course) {
         Preconditions.checkNotNull(course);
         checkAdmin();
         courses.merge(course);
@@ -90,36 +87,63 @@ public class CoursesBackend {
     }
     
     /**
-     * Set the CourseAssistants for a Course, and add them to the course group on the Git Server
+     * Set the CourseAssistants for a CourseEdition, and add them to the course group on the Git Server
      * to access the repositories.
      * 
      * @param course
-     * 		The Course to update
+     * 		The CourseEdition to update
      * @param newAssistants
      * 		List of users assisting this course
-     * @throws GitClientException
-     * 		if an GitClientException occurs
      */
-    public void setAssistants(Course course, Collection<User> newAssistants) throws GitClientException {
+    @Transactional
+    public void setAssistants(CourseEdition course, Collection<? extends User> newAssistants) {
         Preconditions.checkNotNull(course);
         Preconditions.checkNotNull(newAssistants);
         checkAdmin();
 
-        List<User> assistantsToAdd = Lists.newArrayList(newAssistants);
-        List<CourseAssistant> assistants = Lists.newArrayList(course.getCourseAssistants());
+        Set<User> assistants = course.getAssistants();
 
-        GroupModel group = getGitoliteGroup(course);
-        GroupMembers groupMembersApi = gitServerClient.groups().groupMembers(group);
-        Collection<IdentifiableModel> groupMembers = groupMembersApi.listAll();
+        Set<User> toBeAdded = Sets.newHashSet();
+        Set<User> toBeRemoved = Sets.newHashSet();
 
-        updateExistingAssistants(assistantsToAdd, assistants, groupMembersApi,
-				groupMembers);
-
-        addAssistantsListToGroup(course, assistantsToAdd, groupMembersApi,
-                groupMembers);
+        retain(assistants, newAssistants, toBeAdded, toBeRemoved);
 
 
+        try {
+            GroupApi group = getGitoliteGroup(course);
+            // Apply changes only to Git config after DB merge
+            toBeAdded.stream().map(this::retrieveUser).forEach(group::addNewMember);
+            toBeRemoved.stream().map(this::retrieveUser).forEach(group::removeMember);
+        }
+        catch (NotFoundException e) {
+            GroupModel group = new GroupModel();
+            group.setName(gitoliteAssistantGroupName(course));
+            group.setMembers(Stream.concat(assistants.stream(), users.listAdministrators().stream())
+               .distinct()
+               .map(this::retrieveUser)
+               .collect(Collectors.toList()));
+            groupsApi.create(group);
+        }
+
+        courses.merge(course);
         log.info("{} set the assistants for {} to {}", currentUser, course, assistants);
+    }
+
+    private static <T> void retain(Collection<T> collection, Collection<? extends T> retain,
+                                   Collection<? super T> added, Collection<? super T> removed) {
+        Iterator<T> iterator = collection.iterator();
+        while(iterator.hasNext()) {
+            T next = iterator.next();
+            if(!retain.contains(next)) {
+                iterator.remove();
+                removed.add(next);
+            }
+        }
+        for(T t : retain) {
+            if(collection.add(t)) {
+                added.add(t);
+            }
+        }
     }
     
     private void checkAdmin() throws UnauthorizedException {
@@ -132,76 +156,23 @@ public class CoursesBackend {
 		return users.listAdministrators().stream()
 				.map(this::retrieveUser)
 				.collect(Collectors.toList());
-	}
+    }
 
-    private void addAssistantsListToGroup(Course course,
-			List<User> assistantsToAdd, GroupMembers groupMembersApi,
-			Collection<IdentifiableModel> groupMembers) {
-    	
-		assistantsToAdd.forEach((member) -> {
-            CourseAssistant courseAssistant = new CourseAssistant();
-            courseAssistant.setCourse(course);
-            courseAssistant.setUser(member);
-            
-            courseAssistantsDAO.persist(courseAssistant);
-            addAssistantToGroup(groupMembersApi, groupMembers, member);
-        });
-	}
-    
-    /*
-     * Takes the list of existing assistants and removes all assistants
-     * that are not in the assistantsToAdd list.
-     */
-    private void updateExistingAssistants(List<User> assistantsToAdd,
-			List<CourseAssistant> assistants, GroupMembers groupMembersApi,
-			Collection<IdentifiableModel> groupMembers) {
-		assistants.stream()
-                // Filters the existing assistants that should not be
-                // removed, but remove them from the list to be added.
-                // Remove returns true if the assistant was in the list,
-                // so the lambda returns true if the assistant should be
-                // removed.
-                .filter((assistant) -> !assistantsToAdd.remove(assistant.getUser()))
-                .forEach((assistant) -> {
-                    courseAssistantsDAO.delete(assistant);
-                    removeAssistantFromGroup(groupMembersApi, groupMembers, assistant.getUser());
-                });
-	}
-
-    @SneakyThrows
     private UserModel retrieveUser(User user) {
-        return gitServerClient.users().ensureExists(user.getNetId());
+        UserModel userModel = new UserModel();
+        userModel.setName(user.getNetId());
+        return userModel;
     }
 
-    private String getGitoliteGroupName(Course course) {
-        return "@" + course.getCode().toLowerCase();
+    private String gitoliteAssistantGroupName(CourseEdition courseEdition) {
+        return String.format("@%s-%s",
+           courseEdition.getCourse().getCode(),
+           courseEdition.getCode()).toLowerCase();
     }
 
-    private GroupModel getGitoliteGroup(Course course) throws GitClientException {
-        String groupName = getGitoliteGroupName(course);
-        return gitServerClient.groups().retrieve(groupName);
-    }
-
-    @SneakyThrows
-    private void removeAssistantFromGroup(GroupMembers groupMembersApi, 
-    		Collection<IdentifiableModel> groupMembers, User user) {
-        UserModel userModel = retrieveUser(user);
-        
-        if (groupMembers.contains(userModel)) {
-            groupMembersApi.removeMember(retrieveUser(user));
-            log.info("Revoked course repository access for {} ", user);
-        }
-    }
-
-    @SneakyThrows
-    private void addAssistantToGroup(GroupMembers groupMembersApi,
-    		Collection<IdentifiableModel> groupMembers, User user) {
-        UserModel userModel = retrieveUser(user);
-        
-        if (!groupMembers.contains(userModel)) {
-            groupMembersApi.addMember(retrieveUser(user));
-            log.info("Granted course repository access for {} ", user);
-        }
+    private GroupApi getGitoliteGroup(CourseEdition course) {
+        String groupName = gitoliteAssistantGroupName(course);
+        return groupsApi.getGroup(groupName);
     }
 
 }

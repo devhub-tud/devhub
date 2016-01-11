@@ -66,10 +66,10 @@
         <div class="col-sm-offset-2 col-sm-10">
             <div class="pull-right">
             [#if assignment?exists]
-                <a href="/courses/${course.getCode()}" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
+                <a href="${course.getURI()}" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
                 <button type="submit" class="btn btn-primary">${i18n.translate("course.control.save")}</button>
             [#else]
-                <a href="/courses" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
+                <a href="${course.getURI()}" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
                 <button type="submit" class="btn btn-primary">${i18n.translate("assignment.create")}</button>
             [/#if]
             </div>

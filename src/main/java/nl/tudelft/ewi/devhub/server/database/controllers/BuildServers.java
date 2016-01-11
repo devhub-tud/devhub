@@ -1,15 +1,15 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
-
-import java.util.List;
+import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
+import nl.tudelft.ewi.devhub.server.database.entities.QBuildServer;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
-import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
-import nl.tudelft.ewi.devhub.server.database.entities.QBuildServer;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import java.util.List;
 
 public class BuildServers extends Controller<BuildServer> {
 

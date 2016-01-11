@@ -1,8 +1,10 @@
-package nl.tudelft.ewi.devhub.server.database.entities;
+package nl.tudelft.ewi.devhub.server.database.entities.comments;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -14,17 +16,21 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @Entity
-@ToString(exclude="pullRequest")
+@ToString(exclude="pullRequest", callSuper = true)
 @Table(name = "pull_request_comments")
-@EqualsAndHashCode(of="commentId")
+@EqualsAndHashCode(callSuper = true)
 public class PullRequestComment extends Comment  {
 
 	@NotNull
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({
-		@JoinColumn(name="issue_id", referencedColumnName="id"),
-		@JoinColumn(name="repository_name", referencedColumnName="repository_name")
+		@JoinColumn(name="repository_id", referencedColumnName="repository_id"),
+		@JoinColumn(name="issue_id", referencedColumnName="issue_id")
 	})
 	private PullRequest pullRequest;
 
+	@Override
+	public RepositoryEntity getRepository() {
+		return getPullRequest().getRepository();
+	}
 }

@@ -1,53 +1,59 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import nl.tudelft.ewi.devhub.server.database.Base;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit.CommitId;
+import org.hibernate.annotations.Type;
+
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumns;
+import javax.persistence.MapsId;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-
-import lombok.Data;
-import org.hibernate.annotations.Type;
-import org.hibernate.validator.constraints.NotEmpty;
+import java.net.URI;
 
 @Data
 @Entity
 @Table(name = "build_results")
-public class BuildResult {
+@ToString(exclude = "log")
+@EqualsAndHashCode(of = "commit")
+public class BuildResult implements Base {
 
-	public static BuildResult newBuildResult(Commit commit) {
-		return newBuildResult(commit.getRepository(), commit.getCommitId());
-	}
-
-	public static BuildResult newBuildResult(Group group, String commit) {
+	public static BuildResult newBuildResult(final Commit commit) {
 		BuildResult result = new BuildResult();
-		result.setRepository(group);
-		result.setCommitId(commit);
+		result.setCommit(commit);
 		result.setSuccess(null);
 		result.setLog(null);
 		return result;
 	}
 
-	@Id
-	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	/*
+	 * Technically it should have been enough to annotate BuildResult#commit with @Id,
+	 * but due to a bug this did not work:
+	  *
+	 *    https://hibernate.atlassian.net/browse/HHH-3993
+	 *
+	 * Using the Commit.CommitId as @EmbeddedId combined with a @MapsId works just fine.
+	 */
+	@EmbeddedId
+	private CommitId commitId;
 
-	@NotNull
-	@ManyToOne
-	@JoinColumn(name = "repository_id")
-	private Group repository;
-
-	@NotEmpty
-	@Column(name = "commit_id")
-	private String commitId;
+	@MapsId
+	@JoinColumns(value = {
+		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id"),
+		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id")
+	})
+	@OneToOne(optional = false, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+	private Commit commit;
 
 	@Column(name = "success")
 	private Boolean success;
@@ -79,6 +85,15 @@ public class BuildResult {
 	 */
 	public boolean hasFailed() {
 		return Boolean.FALSE.equals(getSuccess());
+	}
+
+	public RepositoryEntity getRepository() {
+		return getCommit().getRepository();
+	}
+
+	@Override
+	public URI getURI() {
+		return getCommit().getURI().resolve("build/");
 	}
 
 }

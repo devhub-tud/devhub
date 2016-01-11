@@ -1,11 +1,16 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import nl.tudelft.ewi.devhub.server.database.Base;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -13,38 +18,43 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.PrimaryKeyJoinColumns;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Ordering;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import java.io.Serializable;
+import java.net.URI;
+import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
-@Table(name="commit")
-@ToString(exclude="comments")
+@Table(name = "commit")
 @IdClass(Commit.CommitId.class)
-@EqualsAndHashCode(of={"repository", "commitId"})
-public class Commit implements Comparable<Commit> {
+@ToString(exclude = {"comments", "buildResult"})
+@EqualsAndHashCode(of = {"repository", "commitId"}, callSuper = false)
+public class Commit implements Event, Base {
 
 	@Data
-	@EqualsAndHashCode
+	@Embeddable
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class CommitId implements Serializable {
-		private Group repository;
+
+		private long repository;
+
 		private String commitId;
+
 	}
 
 	@Id
-	@ManyToOne
-	@JoinColumn(name = "repository_name", referencedColumnName = "repository_name")
-	private Group repository;
-	
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "repository_id")
+	private RepositoryEntity repository;
+
 	@Id
 	@Column(name = "commit_id")
 	private String commitId;
@@ -64,13 +74,28 @@ public class Commit implements Comparable<Commit> {
 	@Column(name = "merge")
 	private Boolean merge;
 	
-	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<CommitComment> comments;
 
+	@OneToOne(optional = true, cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
+	@PrimaryKeyJoinColumns({
+		@PrimaryKeyJoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
+		@PrimaryKeyJoinColumn(name = "commit_id", referencedColumnName = "commit_id")
+	})
+	private BuildResult buildResult;
+
 	@Override
-	public int compareTo(Commit o) {
-		return ComparisonChain.start()
-			.compare(getCommitTime(), o.getCommitTime(), Ordering.natural().nullsLast())
-			.result();
+	public Date getTimestamp() {
+		return getPushTime();
 	}
+
+	@Override
+	public URI getURI() {
+		return getRepository().getURI().resolve("commits/" + getCommitId() + "/");
+	}
+
+	public URI getDiffURI() {
+		return getURI().resolve("diff/");
+	}
+
 }

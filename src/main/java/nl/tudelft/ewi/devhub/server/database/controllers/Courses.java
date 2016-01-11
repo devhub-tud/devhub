@@ -1,22 +1,20 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-
-import java.util.Date;
-import java.util.List;
-
-import com.google.common.collect.ImmutableList;
-import nl.tudelft.ewi.devhub.server.database.entities.*;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
-import com.mysema.query.jpa.impl.JPAQuery;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.QCourse;
-import nl.tudelft.ewi.devhub.server.database.entities.QGroupMembership;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+
+import static nl.tudelft.ewi.devhub.server.database.entities.QCourse.course;
+
+/**
+ * Created by Jan-Willem on 8/28/2015.
+ */
 public class Courses extends Controller<Course> {
 
 	@Inject
@@ -25,76 +23,31 @@ public class Courses extends Controller<Course> {
 	}
 
 	@Transactional
-	public Course find(long id) {
-		return ensureNotNull(query().from(QCourse.course)
-			.where(QCourse.course.id.eq(id))
-			.singleResult(QCourse.course), "Could not find course with id: " + id);
-	}
-
-	@Transactional
 	public Course find(String courseCode) {
 		Preconditions.checkNotNull(courseCode);
-		return ensureNotNull(query().from(QCourse.course)
-			.where(QCourse.course.code.equalsIgnoreCase(courseCode.toUpperCase()))
-			.where(QCourse.course.end.isNull())
-			.singleResult(QCourse.course), "Could not find course with code: " + courseCode);
-	}
-
-    @Transactional
-    public List<Course> listParticipatingCourses(User user) {
-        return query().from(QGroupMembership.groupMembership)
-            .where(QGroupMembership.groupMembership.user.id.eq(user.getId()))
-            .list(QGroupMembership.groupMembership.group.course);
-    }
-
-    @Transactional
-    public List<Course> listAssistingCourses(User user) {
-        return query().from(QCourseAssistant.courseAssistant)
-            .where(QCourseAssistant.courseAssistant.user.eq(user))
-            .list(QCourseAssistant.courseAssistant.course);
-    }
-
-    @Transactional
-    public List<Course> listAdministratingCourses(User user) {
-        if(user.isAdmin()) {
-            return query().from(QCourse.course).list(QCourse.course);
-        }
-        return ImmutableList.<Course> of();
-    }
-
-	@Transactional
-	public List<Course> listActiveCourses() {
-		return query().from(QCourse.course)
-			.where(QCourse.course.start.before(new Date()))
-			.where(QCourse.course.end.isNull()
-				.or(QCourse.course.end.after(new Date())))
-			.orderBy(QCourse.course.code.toLowerCase().asc())
-			.orderBy(QCourse.course.name.toLowerCase().asc())
-			.orderBy(QCourse.course.start.asc())
-			.list(QCourse.course);
+		return ensureNotNull(query().from(course)
+			.where(course.course.code.equalsIgnoreCase(courseCode))
+			.singleResult(course), "Could not find course with code: " + courseCode);
 	}
 
 	@Transactional
-	public List<Course> listNotYetParticipatedCourses(User user) {
-		Preconditions.checkNotNull(user);
-		Date now = new Date();
+	public Course ensureExists(String courseCode, String courseName) {
+		Preconditions.checkNotNull(courseCode);
+		Preconditions.checkNotNull(courseName);
 
-		List<Long> participatingCourses = query().from(QGroupMembership.groupMembership)
-			.where(QGroupMembership.groupMembership.user.id.eq(user.getId()))
-			.list(QGroupMembership.groupMembership.group.course.id);
-
-		JPAQuery query = query().from(QCourse.course)
-			.where(QCourse.course.start.before(now))
-			.where(QCourse.course.end.isNull()
-				.or(QCourse.course.end.after(now)));
-
-		if (!participatingCourses.isEmpty()) {
-			query = query.where(QCourse.course.id.notIn(participatingCourses));
+		try {
+			Course course = find(courseCode);
+			if(!course.getName().equals(courseName)) {
+				course.setName(courseName);
+				return merge(course);
+			}
+			return course;
 		}
-
-		return query.orderBy(QCourse.course.code.asc())
-			.orderBy(QCourse.course.name.toLowerCase().asc())
-			.orderBy(QCourse.course.start.asc())
-			.list(QCourse.course);
+		catch (EntityNotFoundException e) {
+			Course course = new Course();
+			course.setCode(courseCode);
+			course.setName(courseName);
+			return persist(course);
+		}
 	}
 }

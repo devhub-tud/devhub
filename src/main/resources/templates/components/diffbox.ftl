@@ -6,7 +6,7 @@
     <div class="header">
         <span class="pull-right hidden-xs buttons">
         [#if !diffModel.isDeleted()]
-            <a href="/courses/${group.course.code}/groups/${group.groupNumber}/commits/${commit.commit}/raw/${diffModel.newPath?url('UTF8')}" class="btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> ${i18n.translate("button.label.download")}</a>
+            <a href="${repositoryEntity.getURI()}commits/${commit.commit}/raw/${diffModel.newPath?url('UTF8')}" class="btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> ${i18n.translate("button.label.download")}</a>
         [/#if]
             <button class="btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> ${i18n.translate("button.label.fold")}</button>
             <button class="btn btn-sm btn-default unfolder" style="display: none;"><i class="glyphicon glyphicon-chevron-down"></i> ${i18n.translate("button.label.unfold")}</button>

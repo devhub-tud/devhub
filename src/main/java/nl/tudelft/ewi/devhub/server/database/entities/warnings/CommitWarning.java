@@ -1,16 +1,17 @@
 package nl.tudelft.ewi.devhub.server.database.entities.warnings;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.hibernate.annotations.JoinColumnOrFormula;
 import org.hibernate.annotations.JoinColumnsOrFormulas;
 import org.hibernate.annotations.JoinFormula;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
@@ -32,7 +33,7 @@ public abstract class CommitWarning extends Warning {
     @JsonIgnore
     @ManyToOne
     @JoinColumnsOrFormulas({
-        @JoinColumnOrFormula(formula = @JoinFormula(value = "repository_name", referencedColumnName = "repository_name")),
+        @JoinColumnOrFormula(formula = @JoinFormula(value = "repository_id", referencedColumnName = "repository_id")),
         @JoinColumnOrFormula(column = @JoinColumn(name = "commit_id", referencedColumnName = "commit_id"))
     })
     private Commit commit;

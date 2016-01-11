@@ -6,7 +6,9 @@
 [@macros.renderMenu i18n user /]
 <div class="container">
 
-    [@projectFrameset.renderBreadcrumb i18n group/]
+  [#if group?? && group?has_content]
+      [@projectFrameset.renderBreadcrumb i18n group/]
+  [/#if]
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
@@ -16,25 +18,31 @@
 
     <div class="row">
         <div class="col-md-2">
-            [@projectFrameset.renderSidemenu "pull-requests" i18n group repository/]
+            [@projectFrameset.renderSidemenu "pull-requests" i18n group![] repository/]
         </div>
         <div class="col-md-10">
             <table class="table table-bordered">
                 <tbody>
                 [#if openPullRequests?? && openPullRequests?has_content]
                     [#list openPullRequests as pullRequest]
-                        [#assign commit = repository.retrieveCommit(pullRequest.destination)]
-                        [#assign buildResult = builds[commit.commit]![]]
-                        [@commitRow.render group buildResult pullRequest.destination "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
+                        [#assign commit = pullRequest.destination]
+                        [#assign buildResult = commit.getBuildResult()![]]
+                        [@commitRow.render group![] buildResult![] pullRequest.destination "${pullRequest.getURI()}"]
                             <span class="pull-right">
+                              <div>
                                 <span class="text-success octicon octicon-arrow-up"></span>
                                 <span class="text-muted">${pullRequest.ahead}</span>
                                 <span class="text-danger octicon octicon-arrow-down"></span>
                                 <span class="text-muted">${pullRequest.behind}</span>
+                              </div>
+                                [#assign numComments = pullRequest.comments?size]
+                                [#if numComments > 0]
+                                    <div class="pull-right"><i class="glyphicon glyphicon-comment"></i> ${numComments} </div>
+                                [/#if]
                             </span>
                             <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
-                            <div class="committer">${commit.getMessage()}</div>
-                            <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                            <div class="committer">${pullRequest.destination.author}</div>
+                            <div class="timestamp" data-value="${pullRequest.destination.pushTime?date}">on ${pullRequest.destination.pushTime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
                         [/@commitRow.render]
                     [/#list]
                 [#else]
@@ -52,9 +60,9 @@
                 <tbody>
                 [#if closedPullRequests?? && closedPullRequests?has_content]
                     [#list closedPullRequests as pullRequest]
-                        [#assign commit = repository.retrieveCommit(pullRequest.destination)]
-                        [#assign buildResult = builds[commit.commit]![]]
-                        [@commitRow.render group buildResult commit.getCommit() "/courses/${group.course.code}/groups/${group.groupNumber}/pull/${pullRequest.issueId}"]
+                        [#assign commit = pullRequest.destination]
+                        [#assign buildResult = commit.getBuildResult()![]]
+                        [@commitRow.render group![] buildResult![] commit.getCommit() "${pullRequest.getURI()}"]
                         <span class="pull-right">
                             [#if pullRequest.merged]
                                 <span class="label label-success"><i class="octicon octicon-git-merge"></i> Merged</span>
@@ -63,8 +71,8 @@
                             [/#if]
                         </span>
                         <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
-                        <div class="committer">${commit.getMessage()}</div>
-                        <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                        <div class="committer">${pullRequest.destination.author}</div>
+                        <div class="timestamp" data-value="${pullRequest.destination.pushTime?date}">on ${pullRequest.destination.pushTime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
                         [/@commitRow.render]
                     [/#list]
                 [#else]

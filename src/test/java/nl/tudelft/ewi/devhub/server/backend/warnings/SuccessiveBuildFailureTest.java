@@ -1,14 +1,17 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import com.google.common.collect.ImmutableMap;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.SuccessiveBuildFailure;
-import nl.tudelft.ewi.git.client.Commit;
-import nl.tudelft.ewi.git.client.GitServerClient;
-import nl.tudelft.ewi.git.client.Repositories;
-import nl.tudelft.ewi.git.client.Repository;
+
+import com.google.common.collect.ImmutableMap;
+
+import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.junit.Before;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.Theories;
@@ -38,12 +41,14 @@ public class SuccessiveBuildFailureTest {
 
     private final static String COMMIT_ID = "abcd";
 
-    @Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
+
+	@Mock private GroupRepository groupRepository;
+	@Mock private nl.tudelft.ewi.devhub.server.database.entities.Commit commitEntity;
     @Mock private Group group;
-    @Mock private Commit commit;
-    @Mock private Repository repository;
-    @Mock private Repositories repositories;
-    @Mock private GitServerClient gitServerClient;
+    @Mock private RepositoriesApi repositories;
+    @Mock private RepositoryApi repository;
+    @Mock private CommitApi commitApi;
+    @Mock private DetailedCommitModel repoCommit;
     @Mock private BuildResults buildResults;
     @InjectMocks private SuccessiveBuildFailureGenerator generator;
 
@@ -56,11 +61,13 @@ public class SuccessiveBuildFailureTest {
     public void beforeTest() throws Exception {
         MockitoAnnotations.initMocks(this);
         when(commitEntity.getCommitId()).thenReturn(COMMIT_ID);
-        when(commitEntity.getRepository()).thenReturn(group);
-        when(gitServerClient.repositories()).thenReturn(repositories);
-        when(repositories.retrieve(anyString())).thenReturn(repository);
-        when(repository.retrieveCommit(COMMIT_ID)).thenReturn(commit);
-        when(commit.getParents()).thenReturn(new String[0]);
+		when(commitEntity.getRepository()).thenReturn(groupRepository);
+		when(group.getRepository()).thenReturn(groupRepository);
+
+        when(repositories.getRepository(anyString())).thenReturn(repository);
+        when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
+        when(commitApi.get()).thenReturn(repoCommit);
+        when(repoCommit.getParents()).thenReturn(new String[0]);
 
         warning = new SuccessiveBuildFailure();
         warning.setCommit(commitEntity);
@@ -76,7 +83,7 @@ public class SuccessiveBuildFailureTest {
         assumeTrue(parent.hasFailed());
         assumeTrue(current.hasFailed());
 
-        when(buildResults.findBuildResults(eq(group), any()))
+        when(buildResults.findBuildResults(eq(groupRepository), any()))
                 .thenReturn(ImmutableMap.of(COMMIT_ID, parent));
         Set<SuccessiveBuildFailure> warnings = generator.generateWarnings(commitEntity, current);
         assertThat(warnings, contains(warning));
@@ -93,7 +100,7 @@ public class SuccessiveBuildFailureTest {
         assumeTrue(parent.hasFailed() || parent2.hasFailed());
         assumeTrue(current.hasFailed());
 
-        when(buildResults.findBuildResults(eq(group), any()))
+        when(buildResults.findBuildResults(eq(groupRepository), any()))
                 .thenReturn(ImmutableMap.of("parent", parent, "parent2", parent2));
         Set<SuccessiveBuildFailure> warnings = generator.generateWarnings(commitEntity, current);
         assertThat(warnings, contains(warning));
@@ -109,7 +116,7 @@ public class SuccessiveBuildFailureTest {
     public void testNotSuccessiveBuildFailure(BuildResult current, BuildResult parent, BuildResult parent2) {
         assumeTrue(parent.hasSucceeded() && parent2.hasSucceeded());
 
-        when(buildResults.findBuildResults(eq(group), any()))
+        when(buildResults.findBuildResults(eq(groupRepository), any()))
                 .thenReturn(ImmutableMap.of("parent", parent, "parent2", parent2));
         Set<SuccessiveBuildFailure> warnings = generator.generateWarnings(commitEntity, current);
         assertEquals(warnings, Collections.<SuccessiveBuildFailure>emptySet());
@@ -119,13 +126,12 @@ public class SuccessiveBuildFailureTest {
      * Commit, parent not failing
      * @param current commit
      * @param parent parent commit
-     * @param parent
      */
     @Theory
     public void testNotSuccessiveBuildFailure(BuildResult current, BuildResult parent) {
         assumeTrue(parent.hasSucceeded());
 
-        when(buildResults.findBuildResults(eq(group), any()))
+        when(buildResults.findBuildResults(eq(groupRepository), any()))
                 .thenReturn(ImmutableMap.of("parent", parent));
         Set<SuccessiveBuildFailure> warnings = generator.generateWarnings(commitEntity, current);
         assertEquals(warnings, Collections.<SuccessiveBuildFailure>emptySet());
@@ -137,7 +143,7 @@ public class SuccessiveBuildFailureTest {
      */
     @Theory
     public void testNotSuccessiveBuildFailure(BuildResult current) {
-        when(buildResults.findBuildResults(eq(group), any()))
+        when(buildResults.findBuildResults(eq(groupRepository), any()))
                 .thenReturn(ImmutableMap.of());
         Set<SuccessiveBuildFailure> warnings = generator.generateWarnings(commitEntity, current);
         assertEquals(warnings, Collections.<SuccessiveBuildFailure>emptySet());

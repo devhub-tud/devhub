@@ -1,8 +1,11 @@
 package nl.tudelft.ewi.devhub.server.web.filters;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -12,13 +15,9 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import nl.tudelft.ewi.devhub.server.database.entities.User;
-
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 @Singleton
 public class UserAuthorizeFilter implements Filter {

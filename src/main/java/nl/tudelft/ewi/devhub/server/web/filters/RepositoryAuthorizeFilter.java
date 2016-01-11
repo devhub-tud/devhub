@@ -1,14 +1,23 @@
 package nl.tudelft.ewi.devhub.server.web.filters;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
+import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
+import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Key;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
+
+import org.eclipse.jetty.http.HttpStatus;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.Filter;
@@ -20,25 +29,15 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.NotFoundException;
-
-import org.eclipse.jetty.http.HttpStatus;
-
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
-import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import lombok.extern.slf4j.Slf4j;
-
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Key;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Singleton
@@ -46,7 +45,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 
 	private final TemplateEngine templateEngine;
 	private final Provider<Groups> groupsProvider;
-	private final Provider<Courses> coursesProvider;
+	private final Provider<CourseEditions> coursesProvider;
 	private final Provider<User> currentUserProvider;
 	private final Pattern pattern;
 	
@@ -55,12 +54,12 @@ public class RepositoryAuthorizeFilter implements Filter {
 			final @Named("current.user") Provider<User> currentUserProvider,
 			final TemplateEngine templateEngine,
 			final Provider<Groups> groupsProvider,
-			final Provider<Courses> coursesProvider) {
+			final Provider<CourseEditions> coursesProvider) {
 		this.currentUserProvider = currentUserProvider;
 		this.templateEngine = templateEngine;
 		this.coursesProvider = coursesProvider;
 		this.groupsProvider = groupsProvider;
-		this.pattern = Pattern.compile("^/courses/([^/]+)/groups/(\\d+)(/.*)?");
+		this.pattern = Pattern.compile("^/courses/([^/]+)/([^/]+)/groups/(\\d+)(/.*)?");
 	}
 	
 	@Override
@@ -98,8 +97,8 @@ public class RepositoryAuthorizeFilter implements Filter {
 		Matcher matcher = pattern.matcher(uri);
 		
 		if(matcher.matches()) {
-			Course course = coursesProvider.get().find(matcher.group(1));
-			Group group = groupsProvider.get().find(course, Long.parseLong(matcher.group(2)));
+			CourseEdition course = coursesProvider.get().find(matcher.group(1), matcher.group(2));
+			Group group = groupsProvider.get().find(course, Long.parseLong(matcher.group(3)));
 			if (!user.isAdmin() && !user.isAssisting(course) && !user.isMemberOf(group)) {
 				throw new UnauthorizedException();
 			}

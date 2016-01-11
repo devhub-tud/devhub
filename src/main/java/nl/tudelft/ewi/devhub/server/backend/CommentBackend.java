@@ -1,21 +1,20 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
-import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
-import nl.tudelft.ewi.devhub.server.database.entities.Comment;
-import nl.tudelft.ewi.devhub.server.database.entities.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 
+import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
 import javax.persistence.EntityManager;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,10 +28,6 @@ public class CommentBackend {
     @Inject
     @Named("current.user")
     private User currentUser;
-
-    @Inject
-    @Named("current.group")
-    private Group group;
 
     @Inject
     private CommitComments commentsDAO;
@@ -54,12 +49,6 @@ public class CommentBackend {
     public void post(Comment comment) throws UnauthorizedException, ApiError {
         Preconditions.checkNotNull(comment);
 
-        if (!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse())
-        		|| group.getMembers().contains(currentUser))) {
-            throw new UnauthorizedException();
-        }
-
-        comment.setTime(new Date());
         comment.setUser(currentUser);
 
         try {
@@ -79,8 +68,8 @@ public class CommentBackend {
      * 		commits to look for
      * @return a CommitChecker
      */
-    public CommentChecker getCommentChecker(Collection<String> commitIds) {
-        return new CommentChecker(commitIds);
+    public CommentChecker getCommentChecker(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+        return new CommentChecker(repositoryEntity, commitIds);
     }
 
     /**
@@ -90,12 +79,12 @@ public class CommentBackend {
     public class CommentChecker {
 
     	/**
-    	 * All the comments for all commits for the {@link CommentBackend#group}.
+    	 * All the comments for all commits for the {@link RepositoryEntity}.
     	 */
         public final List<CommitComment> comments;
 
-        public CommentChecker(Collection<String> commitIds) {
-            comments = commentsDAO.getInlineCommentsFor(group, commitIds);
+        public CommentChecker(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+            comments = commentsDAO.getInlineCommentsFor(repositoryEntity, commitIds);
         }
 
         /**

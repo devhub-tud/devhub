@@ -1,19 +1,18 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import java.math.BigInteger;
-import java.util.Random;
-
-import javax.inject.Inject;
-import javax.validation.ConstraintViolationException;
-
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
-
-import static org.junit.Assert.*;
 
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.inject.Inject;
+import javax.validation.ConstraintViolationException;
+import java.math.BigInteger;
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)

@@ -1,11 +1,11 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.QDelivery;
+
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.Comparator;
@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import static com.mysema.query.group.GroupBy.groupBy;
 import static com.mysema.query.group.GroupBy.list;
 import static nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
+import static nl.tudelft.ewi.devhub.server.database.entities.QDelivery.delivery;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -35,11 +36,11 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public Delivery getLastDelivery(Assignment assignment, Group group) {
-        return query().from(QDelivery.delivery)
-            .where(QDelivery.delivery.assignment.eq(assignment))
-            .where(QDelivery.delivery.group.eq(group))
-            .orderBy(QDelivery.delivery.created.desc())
-            .singleResult(QDelivery.delivery);
+        return query().from(delivery)
+            .where(delivery.assignment.eq(assignment))
+            .where(delivery.group.eq(group))
+            .orderBy(delivery.timestamp.desc())
+            .singleResult(delivery);
     }
 
     /**
@@ -51,11 +52,10 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public boolean lastDeliveryIsApprovedOrDisapproved(Assignment assignment, Group group) {
-        QDelivery Delivery = QDelivery.delivery;
-        return query().from(Delivery)
-            .where(Delivery.assignment.eq(assignment)
-            .and(Delivery.group.eq(group))
-            .and(Delivery.review.state.in(State.APPROVED, State.DISAPPROVED)))
+        return query().from(delivery)
+			.where(delivery.assignment.eq(assignment)
+				.and(delivery.group.eq(group))
+				.and(delivery.review.state.in(State.APPROVED, State.DISAPPROVED)))
             .exists();
     }
 
@@ -67,11 +67,11 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public List<Delivery> getDeliveries(Assignment assignment, Group group) {
-        return query().from(QDelivery.delivery)
-            .where(QDelivery.delivery.assignment.eq(assignment))
-            .where(QDelivery.delivery.group.eq(group))
-            .orderBy(QDelivery.delivery.created.desc())
-                .list(QDelivery.delivery);
+        return query().from(delivery)
+			.where(delivery.assignment.eq(assignment)
+				.and(delivery.group.eq(group)))
+			.orderBy(delivery.timestamp.desc())
+			.list(delivery);
     }
 
     /**
@@ -81,10 +81,10 @@ public class Deliveries extends Controller<Delivery> {
      */
     @Transactional
     public List<Delivery> getLastDeliveries(Assignment assignment) {
-        Map<Group, List<Delivery>> deliveriesMap = query().from(QDelivery.delivery)
-            .where(QDelivery.delivery.assignment.eq(assignment))
-            .orderBy(QDelivery.delivery.created.desc())
-            .transform(groupBy(QDelivery.delivery.group).as(list(QDelivery.delivery)));
+        Map<Group, List<Delivery>> deliveriesMap = query().from(delivery)
+			.where(delivery.assignment.eq(assignment))
+			.orderBy(delivery.timestamp.desc())
+            .transform(groupBy(delivery.group).as(list(delivery)));
 
         Comparator<Delivery> byState = Comparator.comparing(Delivery::getState);
         Comparator<Delivery> bySubmissionDate = Comparator.<Delivery> naturalOrder();
@@ -101,11 +101,11 @@ public class Deliveries extends Controller<Delivery> {
      * @return Delivery for id
      */
     @Transactional
-    public Delivery find(Group group, long deliveryId) {
-        return ensureNotNull(query().from(QDelivery.delivery)
-                .where(QDelivery.delivery.deliveryId.eq(deliveryId)
-                .and(QDelivery.delivery.group.eq(group)))
-                .singleResult(QDelivery.delivery),
+	public Delivery find(Group group, long deliveryId) {
+		return ensureNotNull(query().from(delivery)
+				.where(delivery.deliveryId.eq(deliveryId)
+					.and(delivery.group.eq(group)))
+				.singleResult(delivery),
             "No delivery found for id " + deliveryId);
     }
 }

@@ -7,7 +7,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.FolderView;
-import nl.tudelft.ewi.devhub.webtests.views.TextFileView;
+import nl.tudelft.ewi.devhub.webtests.views.TextFileInCommitView;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.EntryType;
 
@@ -140,7 +140,7 @@ public class FolderTest extends WebTest {
 		assertNotNull(fileName);
 		assertNotNull(contents);
 
-		TextFileView view = folderView
+		TextFileInCommitView view = folderView
 				.getDirectoryElements()
 				.get(i).click();
 

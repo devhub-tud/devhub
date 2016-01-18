@@ -1,16 +1,13 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import lombok.Data;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffContext;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffFile;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffLine;
 import nl.tudelft.ewi.git.models.ChangeType;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
-
-import com.google.common.base.Function;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-
 import nl.tudelft.ewi.git.models.DiffBlameModel.DiffBlameLine;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -19,77 +16,22 @@ import org.openqa.selenium.WebElement;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class DiffView extends View {
-	
-	private static final By HEADERS = By.xpath("//span[@class='headers']");
-	private static final By DROPDOWN_CARET = By.xpath("//button[contains(@class,'dropdown-toggle')]");
-	private static final By MESSAGE_HEADER = By.xpath(".//h2[@class='header']");
-	private static final By AUTHOR_SUB_HEADER = By.xpath(".//h5[@class='subheader']");
-	private static final By VIEW_FILES_BUTTON = By.xpath("//a[starts-with(normalize-space(.), 'View files')]");
+public class DiffInCommitView extends ProjectInCommitView {
 
-	private final WebElement headers;
-	
-	public DiffView(WebDriver driver) {
+	public DiffInCommitView(WebDriver driver) {
 		super(driver);
-		this.headers = getDriver().findElement(HEADERS);
-		assertInvariant();
-	}
-
-	private void assertInvariant() {
-		assertTrue(currentPathStartsWith("/courses"));
-		assertNotNull(headers);
-		assertNotNull(getDriver().findElement(DROPDOWN_CARET));
-	}
-	
-	public FolderView viewFiles() {
-		assertInvariant();
-
-		WebElement container = getDriver().findElement(By.className("container"));
-		WebElement dropdownCaret = container.findElement(DROPDOWN_CARET);
-		dropdownCaret.click();
-		WebElement viewFilesButton = container.findElement(VIEW_FILES_BUTTON);
-		viewFilesButton.click();
-
-		return new FolderView(getDriver());
 	}
 
 	/**
 	 * @return the {@link DiffElement DiffElements} in this {@code DiffView}
 	 */
 	public List<DiffElement> listDiffs() {
-		assertInvariant();
+		invariant();
 		WebElement container = getDriver().findElement(By.className("container"));
-		return listDiffs(container);
-	}
-
-	private List<DiffElement> listDiffs(WebElement container) {
 		List<WebElement> elements = container.findElements(By.xpath("//div[@class='diff box']"));
-
-		return Lists.transform(elements, new Function<WebElement, DiffElement>() {
-
-			@Override
-			public DiffElement apply(WebElement element) {
-				return DiffElement.build(element);
-			}
-
-		});
-	}
-
-	/**
-	 * @return the text content of the author header
-	 */
-	public String getAuthorHeader() {
-		return headers.findElement(AUTHOR_SUB_HEADER).getText();
-	}
-
-	/**
-	 * @return the text content of the message header
-	 */
-	public String getMessageHeader() {
-		return headers.findElement(MESSAGE_HEADER).getText();
+		return Lists.transform(elements, DiffElement::build);
 	}
 
 	@Data
@@ -103,17 +45,17 @@ public class DiffView extends View {
 			assertEquals(expected.getType(), diffModel.getType());
 
 			switch(diffModel.getType()){
-			case DELETE:
-				assertEquals(expected.getOldPath(), diffModel.getOldPath());
-				break;
-			case ADD:
-			case MODIFY:
-				assertEquals(expected.getNewPath(), diffModel.getNewPath());
-				break;
-			default:
-				assertEquals(expected.getOldPath(), diffModel.getOldPath());
-				assertEquals(expected.getNewPath(), diffModel.getNewPath());
-				break;
+				case DELETE:
+					assertEquals(expected.getOldPath(), diffModel.getOldPath());
+					break;
+				case ADD:
+				case MODIFY:
+					assertEquals(expected.getNewPath(), diffModel.getNewPath());
+					break;
+				default:
+					assertEquals(expected.getOldPath(), diffModel.getOldPath());
+					assertEquals(expected.getNewPath(), diffModel.getNewPath());
+					break;
 
 			}
 
@@ -135,7 +77,7 @@ public class DiffView extends View {
 		}
 
 		/**
-		 * Build a {@link DiffElement} from a {@link WebElement} in the {@link DiffView}
+		 * Build a {@link DiffElement} from a {@link WebElement} in the {@link DiffInCommitView}
 		 * @param element the {@link WebElement} to be converted into a {@link DiffElement}
 		 * @return the created {@link DiffElement}
 		 */
@@ -229,5 +171,4 @@ public class DiffView extends View {
 		}
 
 	}
-	
 }

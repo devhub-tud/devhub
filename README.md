@@ -1,5 +1,6 @@
 [![Stories in Ready](https://badge.waffle.io/devhub-tud/devhub.png?label=ready&title=Ready)](https://waffle.io/devhub-tud/devhub)
 [![Build Status](https://travis-ci.org/devhub-tud/devhub.svg?branch=master)](https://travis-ci.org/devhub-tud/devhub)
+[![Coverage Status](https://coveralls.io/repos/github/devhub-tud/devhub/badge.svg?branch=master)](https://coveralls.io/github/devhub-tud/devhub?branch=master)
 DevHub
 ======
 

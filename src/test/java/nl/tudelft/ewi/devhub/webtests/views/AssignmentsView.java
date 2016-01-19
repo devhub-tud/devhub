@@ -28,6 +28,9 @@ public class AssignmentsView extends ProjectSidebarView {
 		assertNotNull(getDriver().findElement(RECENT_ASSIGNMENTS_HEADER));
 	}
 
+	/**
+	 * @return A list of assignments.
+	 */
 	public List<Assignment> listAssignments() {
 		invariant();
 		WebElement table = getDriver().findElement(By.className("table-bordered"));

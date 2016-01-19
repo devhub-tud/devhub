@@ -26,6 +26,9 @@ private static final By CONTRIBUTORS_HEADER = By.xpath("//h4[starts-with(normali
 		assertNotNull(getDriver().findElement(CONTRIBUTORS_HEADER));
 	}
 
+	/**
+	 * @return the list of contributors to this project.
+	 */
 	public List<Contributor> listContributors() {
 		invariant();
 		WebElement table = getDriver().findElement(By.className("table-bordered"));

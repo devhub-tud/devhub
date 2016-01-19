@@ -36,11 +36,19 @@ public abstract class ProjectSidebarView extends AuthenticatedView {
 		return new CoursesView(getDriver());
 	}
 
+	/**
+	 * Navigate to the assignment view.
+	 * @return A {@link AssignmentsView} instance.
+	 */
 	public AssignmentsView toAssignmentView() {
 		getDriver().findElement(By.linkText("Assignments")).click();
 		return new AssignmentsView(getDriver());
 	}
 
+	/**
+	 * Navigate to the contributors view.
+	 * @return A {@link ContributorsView} instance.
+	 */
 	public ContributorsView toContributorsView() {
 		getDriver().findElement(By.linkText("Contributors")).click();
 		return new ContributorsView(getDriver());

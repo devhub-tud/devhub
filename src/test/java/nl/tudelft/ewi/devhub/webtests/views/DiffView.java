@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.webtests.views;
 import lombok.Data;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffContext;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffFile;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffLine;
 import nl.tudelft.ewi.git.models.ChangeType;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 
@@ -116,7 +117,21 @@ public class DiffView extends View {
 
 			}
 
-			assertEquals(expected.getContexts(), diffModel.getContexts());
+			assertEquals(expected.getContexts().size(), diffModel.getContexts().size());
+			for (int i = 0, l = expected.getContexts().size(); i < l; i++) {
+				DiffContext<DiffBlameLine> actualContext = diffModel.getContexts().get(i);
+				DiffContext<? extends DiffBlameLine> expectedContext = expected.getContexts().get(i);
+				assertEquals(expectedContext.getLines().size(), actualContext.getLines().size());
+
+				for (int j = 0, m = expectedContext.getLines().size(); i < m; i++) {
+					DiffLine expectedLine = expectedContext.getLines().get(j);
+					DiffLine actualLine = actualContext.getLines().get(j);
+
+					assertEquals(expectedLine.getContent(), actualLine.getContent());
+					assertEquals(expectedLine.getOldLineNumber(), actualLine.getOldLineNumber());
+					assertEquals(expectedLine.getNewLineNumber(), actualLine.getNewLineNumber());
+				}
+			}
 		}
 
 		/**

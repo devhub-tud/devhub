@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<guice.version>3.0</guice.version>
+		<guice.version>[3.0,4.0]</guice.version>
 		<hibernate.version>4.3.8.Final</hibernate.version>
 		<hibernate.validator.version>4.3.1.Final</hibernate.validator.version>
 		<jackson.version>2.4.4</jackson.version>
@@ -29,6 +29,8 @@
 		<querydsl.version>3.6.0</querydsl.version>
 		<logback.version>1.0.13</logback.version>
 		<selenium.version>2.45.0</selenium.version>
+		<build.server.version>1.2.0</build.server.version>
+		<git.server.version>v1.0.4</git.server.version>
 	</properties>
 
     <repositories>
@@ -237,12 +239,10 @@
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
 			<artifactId>git-models</artifactId>
-			<version>v1.0.4</version>
+			<version>${git.server.version}</version>
 			<exclusions>
 				<exclusion>
-					<artifactId>
-						resteasy-hibernatevalidator-provider
-					</artifactId>
+					<artifactId>resteasy-hibernatevalidator-provider</artifactId>
 					<groupId>org.jboss.resteasy</groupId>
 				</exclusion>
 			</exclusions>
@@ -250,29 +250,27 @@
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
 			<artifactId>git-server</artifactId>
-			<version>v1.0.4</version>
+			<version>${git.server.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
 			<artifactId>git-server</artifactId>
-			<version>v1.0.4</version>
+			<version>${git.server.version}</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.ewi.build</groupId>
 			<artifactId>build-client</artifactId>
-			<version>1.1.0</version>
+			<version>${build.server.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>guice</artifactId>
 					<groupId>com.google.inject</groupId>
 				</exclusion>
 				<exclusion>
-					<artifactId>
-						resteasy-hibernatevalidator-provider
-					</artifactId>
+					<artifactId>resteasy-hibernatevalidator-provider</artifactId>
 					<groupId>org.jboss.resteasy</groupId>
 				</exclusion>
 			</exclusions>
@@ -280,7 +278,7 @@
 		<dependency>
 			<groupId>nl.tudelft.ewi.build</groupId>
 			<artifactId>build-client</artifactId>
-			<version>1.1.0</version>
+			<version>${build.server.version}</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>

@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -13,14 +14,21 @@ import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -45,11 +53,23 @@ public class PrivateRepositoryOverview extends Resource {
 
 	@GET
 	@Transactional
-	public Response getPrivateRepositoryOverview() {
+	public Response getPrivateRepositoryOverview() throws IOException {
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repositories", privateRepositories.findPrivateRepositories(currentUser));
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("projects.ftl", locales, parameters));
+	}
+
+	@POST
+	@Path("setup")
+	@Transactional
+	public Response setupPrivateRepository(@FormParam("repositoryName") @NotEmpty String repositoryName) {
 		PrivateRepository privateRepository = new PrivateRepository();
+		privateRepository.setTitle(repositoryName);
 		privateRepository.setOwner(currentUser);
-		privateRepository.setTitle("test");
-		privateRepository.setRepositoryName(currentUser.getNetId() + "/" + "test");
+		privateRepository.setCollaborators(Lists.newArrayList(currentUser));
+		privateRepository.setRepositoryName(currentUser.getNetId() + "/" + repositoryName);
 		privateRepositories.persist(privateRepository);
 
 		CreateRepositoryModel createRepositoryModel = new CreateRepositoryModel();

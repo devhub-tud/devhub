@@ -38,6 +38,7 @@
 				 		<li><a href="/build-servers">${i18n.translate("section.build-servers")}</a></li>
 [/#if]
 						<li><a href="/courses">${i18n.translate("section.courses")}</a></li>
+						<li><a href="/projects">${i18n.translate("section.projects")}</a></li>
 						<li><a href="/accounts">${i18n.translate("section.account")}</a></li>
 						<li><a href="/logout">${i18n.translate("section.logout")}</a></li>
 					</ul>

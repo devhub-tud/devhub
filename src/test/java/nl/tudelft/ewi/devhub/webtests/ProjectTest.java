@@ -6,9 +6,12 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
-import nl.tudelft.ewi.devhub.webtests.views.DiffView;
-import nl.tudelft.ewi.devhub.webtests.views.ProjectView;
-import nl.tudelft.ewi.devhub.webtests.views.ProjectView.Commit;
+import nl.tudelft.ewi.devhub.webtests.views.CommitsView;
+import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Commit;
+import nl.tudelft.ewi.devhub.webtests.views.ContributorsView;
+import nl.tudelft.ewi.devhub.webtests.views.ContributorsView.Contributor;
+import nl.tudelft.ewi.devhub.webtests.views.DiffInCommitView;
+import nl.tudelft.ewi.devhub.webtests.views.DiffInCommitView.DiffElement;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
@@ -74,7 +77,7 @@ public class ProjectTest extends WebTest {
 	 */
 	@Test
 	public void testListCommits() {
-		ProjectView view = openLoginScreen()
+		CommitsView view = openLoginScreen()
 				.login(NET_ID, PASSWORD)
 				.toCoursesView()
 				.listMyProjects()
@@ -116,7 +119,7 @@ public class ProjectTest extends WebTest {
 	@Test
 	@Ignore("No easy way to produce empty diff right now")
 	public void testViewCommitDiffEmpty() {
-		DiffView view = openLoginScreen()
+		DiffInCommitView view = openLoginScreen()
 				.login(NET_ID, PASSWORD)
 				.toCoursesView()
 				.listMyProjects()
@@ -124,7 +127,7 @@ public class ProjectTest extends WebTest {
 				.listCommits()
 				.get(0).click();
 
-		List<DiffView.DiffElement> list = view.listDiffs();
+		List<DiffElement> list = view.listDiffs();
 		assertEquals(commitModel.getAuthor(), view.getAuthorHeader());
 		assertEquals(commitModel.getMessage(), view.getMessageHeader());
 		assertTrue("Expected empty list", list.isEmpty());
@@ -153,7 +156,7 @@ public class ProjectTest extends WebTest {
 
 		DiffBlameModel diffBlameModel = commitApi.diffBlame();
 
-		DiffView view = openLoginScreen()
+		DiffInCommitView view = openLoginScreen()
 				.login(NET_ID, PASSWORD)
 				.toCoursesView()
 				.listMyProjects()
@@ -164,9 +167,36 @@ public class ProjectTest extends WebTest {
 		assertEquals(commitModel.getAuthor(), view.getAuthorHeader());
 		assertEquals(commitModel.getMessage(), view.getMessageHeader());
 
-		List<DiffView.DiffElement> list = view.listDiffs();
-		DiffView.DiffElement result = list.get(0);
+		List<DiffElement> list = view.listDiffs();
+		DiffElement result = list.get(0);
 		result.assertEqualTo(diffBlameModel.getDiffs().get(0));
+	}
+
+	@Test
+	public void testListContributors() {
+		ContributorsView view = openLoginScreen()
+			.login(NET_ID, PASSWORD)
+			.toCoursesView()
+			.listMyProjects()
+			.get(0).click()
+			.toContributorsView();
+
+		List<Contributor> contributors = view.listContributors();
+		assertEquals(2, contributors.size());
+
+		for(int i = 0, s = 2; i < s; i++) {
+			Contributor assignment = contributors.get(i);
+			if(i==0){
+				assertEquals(assignment.getNetID(), "student1");
+				assertEquals(assignment.getName(), "Student One");
+				assertEquals(assignment.getEmail(), "student-1@student.tudelft.nl");
+			}
+			if(i==1){
+				assertEquals(assignment.getNetID(), "student2");
+				assertEquals(assignment.getName(), "Student Two");
+				assertEquals(assignment.getEmail(), "student-2@student.tudelft.nl");
+			}
+		}
 	}
 
 }

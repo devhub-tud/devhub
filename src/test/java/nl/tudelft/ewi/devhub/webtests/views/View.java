@@ -13,11 +13,11 @@ import org.openqa.selenium.WebElement;
 import java.util.List;
 
 @Slf4j
-public class View {
+public abstract class View {
 
 	private final WebDriver driver;
 
-	View(WebDriver driver) {
+	protected View(WebDriver driver) {
 		this.driver = driver;
 	}
 
@@ -31,6 +31,11 @@ public class View {
 	protected WebDriver getDriver() {
 		return driver;
 	}
+
+	/**
+	 * Check the invariant on this view.
+	 */
+	protected abstract void invariant();
 
 	/**
 	 * @return The current URL of the browser.

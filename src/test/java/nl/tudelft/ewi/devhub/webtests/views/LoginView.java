@@ -19,12 +19,12 @@ public class LoginView extends View {
 		return new LoginView(driver);
 	}
 
-	private LoginView(WebDriver driver) {
+	public LoginView(WebDriver driver) {
 		super(driver);
-		assertInvariant();
 	}
 
-	private void assertInvariant() {
+	@Override
+	protected void invariant() {
 		assertTrue(currentPathEquals("/login"));
 		assertNotNull(getDriver().findElement(LOGIN_FORM));
 		assertNotNull(getDriver().findElement(USERNAME_FIELD));
@@ -35,16 +35,13 @@ public class LoginView extends View {
 	/**
 	 * Logs in using the specified <code>username</code> and <code>password</code>.
 	 * 
-	 * @param username
-	 *            The username to use when logging in.
-	 * @param password
-	 *            The password to use when logging in.
-	 * @return The {@link CoursesView} to which the user will be redirected upon a
-	 *         successful login. In case of an unsuccessful login, a
-	 *         {@link AssertionError} will be thrown.
+	 * @param username The username to use when logging in.
+	 * @param password The password to use when logging in.
+	 * @return The {@link CoursesView} to which the user will be redirected upon a successful login.
+	 *         In case of an unsuccessful login, a {@link AssertionError} will be thrown.
 	 */
 	public CoursesView login(String username, String password) {
-		assertInvariant();
+		invariant();
 		String url = getDriver().getCurrentUrl();
 
 		setUsernameField(username);
@@ -58,12 +55,11 @@ public class LoginView extends View {
 	/**
 	 * This method fills in the specified <code>username</code> in the login form.
 	 * 
-	 * @param username
-	 *            The username to fill in the username field.
+	 * @param username The username to fill in the username field.
 	 * @return The current {@link LoginView}.
 	 */
 	public LoginView setUsernameField(String username) {
-		assertInvariant();
+		invariant();
 		WebElement usernameField = getDriver().findElement(USERNAME_FIELD);
 		usernameField.sendKeys(username);
 		return this;
@@ -72,12 +68,11 @@ public class LoginView extends View {
 	/**
 	 * This method fills in the specified <code>password</code> in the login form.
 	 * 
-	 * @param password
-	 *            The password to fill in the password field.
+	 * @param password The password to fill in the password field.
 	 * @return The current {@link LoginView}.
 	 */
 	public LoginView setPasswordField(String password) {
-		assertInvariant();
+		invariant();
 		WebElement passwordField = getDriver().findElement(PASSWORD_FIELD);
 		passwordField.sendKeys(password);
 		return this;
@@ -89,7 +84,7 @@ public class LoginView extends View {
 	 * @return The current {@link LoginView}.
 	 */
 	public LoginView clickLoginButton() {
-		assertInvariant();
+		invariant();
 		WebElement loginButton = getDriver().findElement(LOGIN_BUTTON);
 		loginButton.click();
 		return this;

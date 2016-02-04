@@ -29,7 +29,7 @@ public class LoginTest extends WebTest {
 	 */
 	@Test
 	public void testThatValidUserCanLogin() {
-		openLoginScreen().login(NET_ID, PASSWORD);
+		openLoginScreen().login(NET_ID, PASSWORD).logout();
 	}
 
 	/**
@@ -64,4 +64,8 @@ public class LoginTest extends WebTest {
 		assertEquals(1, loginView.listAlerts().size());
 	}
 
+	@Override
+	public void logout() {
+		// No-op, tests logout them selves or do not login at all...
+	}
 }

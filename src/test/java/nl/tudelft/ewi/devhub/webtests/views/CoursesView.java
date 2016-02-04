@@ -1,12 +1,10 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
+import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
-
-import com.google.common.collect.Lists;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -23,10 +21,11 @@ public class CoursesView extends AuthenticatedView {
 
 	CoursesView(WebDriver driver) {
 		super(driver);
-		assertInvariant();
 	}
 
-	private void assertInvariant() {
+	@Override
+	protected void invariant() {
+		super.invariant();
 		assertTrue(currentPathEquals("/courses"));
 		assertNotNull(getDriver().findElement(MY_PROJECTS_HEADER));
 	}
@@ -35,7 +34,7 @@ public class CoursesView extends AuthenticatedView {
 	 * @return A {@link List} of all {@link Project}s in the "My projects" section.
 	 */
 	public List<Project> listMyProjects() {
-		assertInvariant();
+		invariant();
 		WebElement myProjectsHeader = getDriver().findElement(MY_PROJECTS_HEADER);
 		WebElement table = Dom.nextSibling(myProjectsHeader, "table");
 		return listProjectsInTable(table);
@@ -45,18 +44,18 @@ public class CoursesView extends AuthenticatedView {
 	 * @return True if the currently logged in user is assisting one or more projects.
 	 */
 	public boolean hasAssistingProjects() {
-		assertInvariant();
+		invariant();
 		return Dom.isVisible(getDriver(), ASSISTING_PROJECTS_HEADER);
 	}
 
 	/**
 	 * @return A {@link List} of all {@link Project}s in the "Assisting projects" section.
 	 */
-	public List<Project> listAssistingProjects() {
-		assertInvariant();
+	public List<CourseOverview> listAssistingCourses() {
+		invariant();
 		WebElement assistingProjectsHeader = getDriver().findElement(ASSISTING_PROJECTS_HEADER);
 		WebElement table = Dom.nextSibling(assistingProjectsHeader, "table");
-		return listProjectsInTable(table);
+		return listProjectOverviewsInTable(table);
 	}
 
 	private List<Project> listProjectsInTable(WebElement table) {
@@ -75,6 +74,23 @@ public class CoursesView extends AuthenticatedView {
 		}
 		return projects;
 	}
+	
+	private List<CourseOverview> listProjectOverviewsInTable(WebElement table) {
+		List<WebElement> entries = table.findElements(By.tagName("td"));
+		if (entries.size() == 1) {
+			if (!Dom.isVisible(entries.get(0), By.tagName("a"))) {
+				return Lists.newArrayList();
+			}
+		}
+
+		List<CourseOverview> projects = Lists.newArrayList();
+		for (WebElement entry : entries) {
+			WebElement projectLink = entry.findElement(By.tagName("a"));
+			CourseOverview project = new CourseOverview(projectLink.getText(), projectLink);
+			projects.add(project);
+		}
+		return projects;
+	}
 
 	@Data
 	public class Project {
@@ -83,10 +99,23 @@ public class CoursesView extends AuthenticatedView {
 		@Getter(AccessLevel.NONE)
 		private final WebElement anchor;
 
-		public ProjectView click() {
+		public CommitsView click() {
 			anchor.click();
-			return new ProjectView(getDriver());
+			return new CommitsView(getDriver());
 		}
 	}
 
+	@Data
+	public class CourseOverview {
+		private final String namel;
+		
+		@Getter(AccessLevel.NONE)
+		private final WebElement anchor;
+		
+		public CourseView click() {
+			anchor.click();
+			return new CourseView(getDriver());
+		}
+	}
+	
 }

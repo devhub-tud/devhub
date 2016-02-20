@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<guice.version>[3.0,4.0]</guice.version>
+		<guice.version>3.0</guice.version>
 		<hibernate.version>4.3.8.Final</hibernate.version>
 		<hibernate.validator.version>4.3.1.Final</hibernate.validator.version>
 		<jackson.version>2.4.4</jackson.version>

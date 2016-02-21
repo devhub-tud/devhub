@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.webtests.utils;
 
+import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.webtests.rules.DriverResource;
 import nl.tudelft.ewi.devhub.webtests.rules.ServerResource;
 import nl.tudelft.ewi.devhub.webtests.views.AuthenticatedView;
@@ -11,6 +12,8 @@ import org.junit.ClassRule;
 import org.junit.rules.RuleChain;
 import org.openqa.selenium.WebDriver;
 
+import javax.inject.Inject;
+
 public abstract class WebTest {
 
 	public static final String NET_ID = "student1";
@@ -20,13 +23,15 @@ public abstract class WebTest {
 	public static DriverResource driverResource = new DriverResource();
 	@ClassRule public static RuleChain ruleChain = RuleChain.outerRule(serverResource).around(driverResource);
 
+	@Inject private Config config;
+
 	@Before
 	public void setUp() {
 		serverResource.getServer().getInjector().injectMembers(this);
 	}
 	
 	public LoginView openLoginScreen() {
-		return LoginView.create(getDriver(), "http://localhost:8080");
+		return LoginView.create(getDriver(), "http://localhost:"  + config.getHttpPort());
 	}
 	
 	public WebDriver getDriver() {

@@ -28,7 +28,7 @@
 		<liquibase.slf4j.version>1.7.7</liquibase.slf4j.version>
 		<querydsl.version>3.6.0</querydsl.version>
 		<logback.version>1.0.13</logback.version>
-		<selenium.version>2.45.0</selenium.version>
+		<selenium.version>2.52.0</selenium.version>
 		<build.server.version>1.2.0</build.server.version>
 		<git.server.version>v1.0.4</git.server.version>
 	</properties>
@@ -180,6 +180,11 @@
 			<version>${guice.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-assistedinject</artifactId>
+			<version>${guice.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate.version}</version>
@@ -252,6 +257,12 @@
 			<artifactId>git-server</artifactId>
 			<version>${git.server.version}</version>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.inject.extensions</groupId>
+					<artifactId>guice-assistedinject</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.ewi.git</groupId>
@@ -259,6 +270,12 @@
 			<version>${git.server.version}</version>
 			<scope>test</scope>
 			<type>test-jar</type>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.inject.extensions</groupId>
+					<artifactId>guice-assistedinject</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.ewi.build</groupId>

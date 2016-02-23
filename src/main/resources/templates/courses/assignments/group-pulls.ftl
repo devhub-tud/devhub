@@ -62,7 +62,7 @@
                     [#list closedPullRequests as pullRequest]
                         [#assign commit = pullRequest.destination]
                         [#assign buildResult = commit.getBuildResult()![]]
-                        [@commitRow.render group![] buildResult![] commit.getCommit() "${pullRequest.getURI()}"]
+                        [@commitRow.render group![] buildResult![] commit "${pullRequest.getURI()}"]
                         <span class="pull-right">
                             [#if pullRequest.merged]
                                 <span class="label label-success"><i class="octicon octicon-git-merge"></i> Merged</span>

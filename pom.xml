@@ -495,6 +495,7 @@
 						</manifestEntries>
 					</archive>
 					<excludes>
+						<exclude>config.properties</exclude>
 						<exclude>changelog.xml</exclude>
 						<exclude>logback.xml</exclude>
 						<exclude>persistence.properties</exclude>

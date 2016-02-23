@@ -70,7 +70,7 @@
                             [#if delivery?has_content]
                                 [#assign commit = delivery.getCommit()!]
                                 [#if commit?? && commit?has_content && commit.buildResult?? && commit.buildResult?has_content]
-                                    <a href="${repositoryEntity.getURI()}commits/${commit.commit}/diff">
+                                    <a href="${repositoryEntity.getURI()}commits/${commit.commitId}/diff">
                                     [#if commit.buildResult.hasFinished()]
                                         [#if commit.buildResult.hasSucceeded()]
                                             <span class="label label-success">${i18n.translate("build.state.succeeded")}</span>

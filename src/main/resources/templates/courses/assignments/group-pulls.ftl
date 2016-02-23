@@ -41,8 +41,12 @@
                                 [/#if]
                             </span>
                             <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
+                    [#if pullRequest.destination.author?? && pullRequest.destination.author?has_content]
                             <div class="committer">${pullRequest.destination.author}</div>
+                    [/#if]
+                    [#if pullRequest.destination.pushTime?? && pullRequest.destination.pushTime?has_content]
                             <div class="timestamp" data-value="${pullRequest.destination.pushTime?date}">on ${pullRequest.destination.pushTime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                    [/#if]
                         [/@commitRow.render]
                     [/#list]
                 [#else]
@@ -71,8 +75,12 @@
                             [/#if]
                         </span>
                         <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
+                    [#if pullRequest.destination.author?? && pullRequest.destination.author?has_content]
                         <div class="committer">${pullRequest.destination.author}</div>
+                    [/#if]
+                    [#if pullRequest.destination.pushTime?? && pullRequest.destination.pushTime?has_content]
                         <div class="timestamp" data-value="${pullRequest.destination.pushTime?date}">on ${pullRequest.destination.pushTime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                    [/#if]
                         [/@commitRow.render]
                     [/#list]
                 [#else]

@@ -21,7 +21,7 @@
     </ol>
 [/#if]
 
-[#assign buildResult = builds[pullRequest.destination]![]]
+[#assign buildResult = builds[pullRequest.destination.commitId]![]]
 [#if buildResult?? && buildResult?has_content]
     [#if buildResult.hasFinished()]
         [#if buildResult.hasSucceeded()]

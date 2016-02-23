@@ -20,7 +20,7 @@
     </ol>
 [/#if]
 
-[#assign buildResult = builds[pullRequest.destination]![]]
+[#assign buildResult = builds[pullRequest.destination.commitId]![]]
 [#if buildResult?? && buildResult?has_content]
     [#if buildResult.hasFinished()]
         [#if buildResult.hasSucceeded()]
@@ -61,11 +61,11 @@
                     [#assign buildResult = builds[commit.commit]![]]
                     [#if buildResult?? && buildResult?has_content && buildResult.hasFinished()]
                     	[#if buildResult.hasSucceeded()]
-		                    <a href="${repositoryEntity.getURI()}commits/${pullRequest.destination}/build">
+		                    <a href="${repositoryEntity.getURI()}commits/${commit.commit}/build">
                                 <span class="octicon octicon-check text-success"></span>
                             </a>
                         [#else]
-                            <a href="${repositoryEntity.getURI()}commits/${pullRequest.destination}/build">
+                            <a href="${repositoryEntity.getURI()}commits/${commit.commit}/build">
 	                            <span class="octicon octicon-x text-danger"></span>
                             </a>
                         [/#if]

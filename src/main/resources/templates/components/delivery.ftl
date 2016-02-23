@@ -8,13 +8,17 @@
     [#assign commitId = delivery.getCommit().getCommitId()!]
     [#if commitId?? && commitId?has_content]
     [#assign buildResult = builds[commitId]![]]
-        [#if buildResult?? && buildResult?has_content && buildResult.hasFinished()]
+    <a href="${repositoryEntity.getURI()}commits/${commitId}/diff">
+        [#if buildResult.hasFinished()]
             [#if buildResult.hasSucceeded()]
-            <span class="label label-success">${i18n.translate("build.state.succeeded")}</span>
+                <span class="label label-success">${i18n.translate("build.state.succeeded")}</span>
             [#else]
-            <span class="label label-danger">${i18n.translate("build.state.failed")}</span>
+                <span class="label label-danger">${i18n.translate("build.state.failed")}</span>
             [/#if]
+        [#else]
+            <span class="label label-info">${commit.commitId?substring(0, 6)}</span>
         [/#if]
+    </a>
     [/#if]
 [/#macro]
 
@@ -41,9 +45,9 @@
         <dd>${delivery.createdUser.getName()}</dd>
         <dt>${i18n.translate("delivery.date")}</dt>
         <dd>${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</dd>
-        [#if delivery.commitId?? && delivery.commitId?has_content]
+        [#if delivery.commit.commitId?? && delivery.commit.commitId?has_content]
             <dt>${i18n.translate("assignment.commit")}</dt>
-            <dd><a href="${delivery.commit.getDiffURI()}">${delivery.commitId?substring(0, 8)}</a></dd>
+            <dd><a href="${delivery.commit.getDiffURI()}">${delivery.commit.commitId?substring(0, 8)}</a></dd>
         [/#if]
         [#if delivery.getNotes()?? && delivery.getNotes()?has_content]
             <dt>${i18n.translate("delivery.notes")}</dt>

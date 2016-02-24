@@ -50,7 +50,7 @@ public class PullRequestsTest extends PersistedBackendTest {
 		pr.setMergeBase(commits.ensureExists(groupRepository, COMMIT_B));
 
 		pullRequests.persist(pr);
-		pullRequestEquals(pr, pullRequests.findOpenPullRequest(groupRepository, "super-branch"));
+		pullRequestEquals(pr, pullRequests.findOpenPullRequest(groupRepository, "super-branch").get());
 	}
 
 	private static void pullRequestEquals(PullRequest expected, PullRequest actual) {

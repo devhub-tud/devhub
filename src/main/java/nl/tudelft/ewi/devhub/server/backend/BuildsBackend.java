@@ -25,11 +25,9 @@ import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.NotFoundException;
-import java.net.URLEncoder;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -43,18 +41,18 @@ public class BuildsBackend {
 	private final BuildServers buildServers;
 	private final Provider<BuildSubmitter> submitters;
 	private final ConcurrentLinkedQueue<BuildRequest> buildQueue;
-	private final ScheduledExecutorService executor;
+	private final ExecutorService executor;
 	private final AtomicBoolean running;
 	private final BuildResults buildResults;
 	private final Config config;
 
 	@Inject
 	BuildsBackend(BuildServers buildServers, Provider<BuildSubmitter> submitters,
-				  BuildResults buildResults, RepositoriesApi repositoriesApi, Config config) {
+				  BuildResults buildResults, RepositoriesApi repositoriesApi, Config config, ExecutorService executor) {
 		this.buildServers = buildServers;
 		this.submitters = submitters;
 		this.buildQueue = Queues.newConcurrentLinkedQueue();
-		this.executor = new ScheduledThreadPoolExecutor(1);
+		this.executor = executor;
 		this.running = new AtomicBoolean(false);
 		this.buildResults = buildResults;
 		this.repositoriesApi = repositoriesApi;
@@ -173,16 +171,6 @@ public class BuildsBackend {
 		BuildRequest buildRequest = repositoryEntity.getBuildInstruction().createBuildRequest(config, commit, repository);
 		log.info("Submitting a build for commit: {} of repository: {}", commit, repository);
 		offerBuild(buildRequest);
-	}
-
-	@SneakyThrows
-	protected String getCallbackUrl(final Commit commit, final RepositoryEntity repository, final String resource) {
-		StringBuilder callbackBuilder = new StringBuilder();
-		callbackBuilder.append(config.getHttpUrl());
-		callbackBuilder.append("/hooks/").append(resource);
-		callbackBuilder.append("?repository=" + URLEncoder.encode(repository.getRepositoryName(), "UTF-8"));
-		callbackBuilder.append("&commit=" + URLEncoder.encode(commit.getCommitId(), "UTF-8"));
-		return callbackBuilder.toString();
 	}
 
 	public void shutdown() throws InterruptedException {

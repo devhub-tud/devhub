@@ -1,10 +1,13 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import lombok.SneakyThrows;
+import com.google.inject.Provider;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.persist.UnitOfWork;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
+import nl.tudelft.ewi.devhub.server.backend.RunnableInUnitOfWork;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleReport;
@@ -22,24 +25,21 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.SuccessiveBuildFailure;
+import nl.tudelft.ewi.devhub.server.util.CommitIterator;
 import nl.tudelft.ewi.devhub.server.web.filters.RequireAuthenticatedBuildServer;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.models.BranchModel;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 
-import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
@@ -48,18 +48,17 @@ import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,150 +72,166 @@ import static java.net.URLDecoder.decode;
 @Produces(MediaType.APPLICATION_JSON + Resource.UTF8_CHARSET)
 public class HooksResource extends Resource {
 
-	private final BuildsBackend buildBackend;
-	private final RepositoriesApi repositoriesApi;
 	private final BuildResults buildResults;
 	private final RepositoriesController repositoriesController;
 	private final BuildResultMailer mailer;
-	private final PullRequests pullRequests;
-	private final PullRequestBackend pullRequestBackend;
 	private final Commits commits;
 	private final Warnings warnings;
-	private final Set<CommitPushWarningGenerator> pushWarningGenerators;
+	private final GitPushHandlerFactory gitPushHandlerFactory;
 	private final PMDWarningGenerator pmdWarningGenerator;
 	private final CheckstyleWarningGenerator checkstyleWarningGenerator;
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
 	private final SuccessiveBuildFailureGenerator successiveBuildFailureGenerator;
+	private final ExecutorService executor;
 
 	@Inject
-	HooksResource(BuildsBackend buildBackend, RepositoriesApi repositoriesApi, BuildResults buildResults,
-		    RepositoriesController repositoriesController, BuildResultMailer mailer, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
-			Commits commits, Warnings warnings, PMDWarningGenerator pmdWarningGenerator, CheckstyleWarningGenerator checkstyleWarningGenerator,
-			FindBugsWarningGenerator findBugsWarningGenerator, SuccessiveBuildFailureGenerator successiveBuildFailureGenerator,
-			Set<CommitPushWarningGenerator> pushWarningGenerators) {
-
-		this.buildBackend = buildBackend;
-		this.repositoriesApi = repositoriesApi;
-		this.buildResults = buildResults;
-		this.repositoriesController = repositoriesController;
+	public HooksResource(BuildResults buildResults,
+	                     Commits commits,
+	                     Warnings warnings,
+	                     BuildResultMailer mailer,
+	                     ExecutorService executor,
+	                     PMDWarningGenerator pmdWarningGenerator,
+	                     GitPushHandlerFactory gitPushHandlerFactory,
+	                     RepositoriesController repositoriesController,
+	                     FindBugsWarningGenerator findBugsWarningGenerator,
+	                     CheckstyleWarningGenerator checkstyleWarningGenerator,
+	                     SuccessiveBuildFailureGenerator successiveBuildFailureGenerator) {
 		this.mailer = mailer;
-		this.pullRequests = pullRequests;
-		this.pullRequestBackend = pullRequestBackend;
 		this.commits = commits;
 		this.warnings = warnings;
+		this.executor = executor;
+		this.buildResults = buildResults;
 		this.pmdWarningGenerator = pmdWarningGenerator;
-		this.checkstyleWarningGenerator = checkstyleWarningGenerator;
+		this.gitPushHandlerFactory = gitPushHandlerFactory;
+		this.repositoriesController = repositoriesController;
 		this.findBugsWarningGenerator = findBugsWarningGenerator;
+		this.checkstyleWarningGenerator = checkstyleWarningGenerator;
 		this.successiveBuildFailureGenerator = successiveBuildFailureGenerator;
-		this.pushWarningGenerators = pushWarningGenerators;
 	}
 
+	/**
+	 * Git push hook implementation.
+	 *
+	 * @param push GitPush request.
+	 * @see GitPushHandler#runInUnitOfWork()
+	 */
 	@POST
 	@Path("git-push")
-	public void onGitPush(@Context HttpServletRequest request, @Valid GitPush push) throws UnsupportedEncodingException {
+	public void onGitPush(@Valid GitPush push) {
 		log.info("Received git-push event: {}", push);
-
-		RepositoryApi repositoryApi = repositoriesApi.getRepository(push.getRepository());
-		DetailedRepositoryModel repositoryModel = repositoryApi.getRepositoryModel();
-		RepositoryEntity repositoryEntity = repositoriesController.find(push.getRepository());
-
-		Set<Commit> commitsToBeBuilt = repositoryModel.getBranches().stream()
-			.map(BranchModel::getCommit)
-			.flatMap(commitModel -> findCommitsToBeBuilt(repositoryEntity, repositoryApi, commitModel.getCommit()).stream())
-			.collect(Collectors.toSet());
-
-		commitsToBeBuilt.stream()
-			.forEach(buildBackend::buildCommit);
-
-		repositoryModel.getBranches().stream()
-			.flatMap(branchModel -> findOpenPullRequests(repositoryEntity, branchModel))
-			.forEach(pullRequest -> updatePullRequest(repositoryApi, pullRequest));
-
-		commitsToBeBuilt.forEach(commit -> triggerWarnings(repositoryEntity, commit, push));
+		GitPushHandler gitPushHandler = gitPushHandlerFactory.create(push);
+		executor.submit(gitPushHandler);
 	}
 
-	protected Set<Commit> findCommitsToBeBuilt(final RepositoryEntity repositoryEntity, final RepositoryApi repository,
-											   final String commitId) {
-		Set<Commit> commits = Sets.newHashSet();
-		CommitModel commitModel = retrieveCommit(repository, commitId);
-		findCommitsToBeBuilt(repositoryEntity, repository, commitModel, commits);
-		return commits;
-	}
+	/**
+	 * The GitPushHandler ensures that the {@link #gitPush git-push} API call is non blocking and
+	 * the operations are performed within an unit of work.
+	 */
+	public static class GitPushHandler extends RunnableInUnitOfWork {
 
-	protected void findCommitsToBeBuilt(final RepositoryEntity repositoryEntity, final RepositoryApi repositoryApi,
-										final CommitModel commitModel,
-										final Set<Commit> results) {
-		final Commit commit = commits.ensureExists(repositoryEntity, commitModel.getCommit());
+		private final Commits commits;
+		private final Warnings warnings;
+		private final PullRequests pullRequests;
+		private final BuildsBackend buildBackend;
+		private final RepositoriesApi repositoriesApi;
+		private final PullRequestBackend pullRequestBackend;
+		private final RepositoriesController repositoriesController;
+		private final Set<CommitPushWarningGenerator> pushWarningGenerators;
+		private final GitPush gitPush;
 
-		if(!buildResults.exists(commit)) {
-			results.add(commit);
-			Stream.of(commitModel.getParents())
-				.map(commitId -> retrieveCommit(repositoryApi, commitId))
-				.forEach(a -> findCommitsToBeBuilt(repositoryEntity, repositoryApi, a, results));
+		@Inject
+		public GitPushHandler(Provider<UnitOfWork> workProvider, Warnings warnings, Set<CommitPushWarningGenerator> pushWarningGenerators, Commits commits, PullRequests pullRequests, BuildsBackend buildBackend, RepositoriesApi repositoriesApi, PullRequestBackend pullRequestBackend, RepositoriesController repositoriesController, @Assisted GitPush gitPush) {
+			super(workProvider);
+			this.warnings = warnings;
+			this.commits = commits;
+			this.pullRequests = pullRequests;
+			this.buildBackend = buildBackend;
+			this.repositoriesApi = repositoriesApi;
+			this.pullRequestBackend = pullRequestBackend;
+			this.pushWarningGenerators = pushWarningGenerators;
+			this.repositoriesController = repositoriesController;
+			this.gitPush = gitPush;
 		}
-	}
 
-	@SneakyThrows
-	protected CommitModel retrieveCommit(RepositoryApi repository, String commitId) {
-		return repository.getCommit(commitId).get();
-	}
+		@Override
+		@Transactional
+		protected void runInUnitOfWork() {
+			RepositoryApi repositoryApi = repositoriesApi.getRepository(gitPush.getRepository());
+			DetailedRepositoryModel repositoryModel = repositoryApi.getRepositoryModel();
+			RepositoryEntity repositoryEntity = repositoriesController.find(gitPush.getRepository());
 
-	@POST
-	@Transactional
-	@RequireAuthenticatedBuildServer
-	@Path("trigger-warning-generation")
-	public void triggerWarnings(@QueryParam("repository") @NotEmpty String repositoryName,
-								@QueryParam("commit") @NotEmpty String commitId) {
+			Set<Commit> commitsToBeBuilt =
+				// For every branch
+				repositoryModel.getBranches().stream().sequential()
+					// Get the head
+					.map(BranchModel::getCommit)
+					// Ensure the head commit exists in the database
+					.map(commitModel -> commits.ensureExists(repositoryEntity, commitModel.getCommit()))
+					// Pick the first 3 unbuild commits using BFS
+					.flatMap(commit -> CommitIterator.stream(commit, Commit::hasNoBuildResult).limit(3))
+					// Limit the results
+					.limit(20)
+					// Get the unique commits
+					.collect(Collectors.toSet());
 
-		RepositoryEntity repositoryEntity = repositoriesController.find(repositoryName);
-		Commit commit = commits.ensureExists(repositoryEntity, commitId);
+			log.info("Building commits {}", commitsToBeBuilt);
+			commitsToBeBuilt.stream()
+				.forEach(buildBackend::buildCommit);
 
-		Preconditions.checkNotNull(repositoryEntity);
-		Preconditions.checkNotNull(commit);
+			log.info("Find open pull requests for repository {}", repositoryEntity);
+			pullRequests.findOpenPullRequests(repositoryEntity)
+				.forEach(pullRequest -> pullRequestBackend.updatePullRequest(repositoryApi, pullRequest));
 
-		GitPush gitPush = new GitPush();
-		gitPush.setRepository(repositoryName);
-		triggerWarnings(repositoryEntity, commit, gitPush);
-	}
+			log.info("Generating warnings for commits {}", commitsToBeBuilt);
+			commitsToBeBuilt.forEach(commit -> triggerWarnings(repositoryEntity, commit, gitPush));
+		}
 
-	protected void triggerWarnings(final RepositoryEntity repositoryEntity, final Commit commit, final GitPush gitPush) {
-		assert repositoryEntity != null;
-		assert commit != null;
-		assert gitPush != null;
 
-		Set<? extends CommitWarning> pushWarnings = pushWarningGenerators.stream()
-			.flatMap(generator -> {
-				try {
-					Set<? extends CommitWarning> commitWarningList = generator.generateWarnings(commit, gitPush);
-					return commitWarningList.stream();
-				}
-				catch (Exception e) {
-					log.warn("Failed to generate warnings with {} for {} ", generator, commit);
-					log.warn(e.getMessage(), e);
-					return Stream.empty();
-				}
-			})
-			.collect(Collectors.toSet());
+		protected void triggerWarnings(final RepositoryEntity repositoryEntity, final Commit commit, final GitPush gitPush) {
+			assert repositoryEntity != null;
+			assert commit != null;
+			assert gitPush != null;
 
-		Set<? extends CommitWarning> persistedWarnings = warnings.persist(repositoryEntity, pushWarnings);
-		log.info("Persisted {} of {} push warnings for {}", persistedWarnings.size(),
+			Set<? extends CommitWarning> pushWarnings = pushWarningGenerators.stream()
+				.flatMap(generator -> {
+					try {
+						Set<? extends CommitWarning> commitWarningList = generator.generateWarnings(commit, gitPush);
+						return commitWarningList.stream();
+					}
+					catch (Exception e) {
+						log.warn("Failed to generate warnings with {} for {} ", generator, commit);
+						log.warn(e.getMessage(), e);
+						return Stream.empty();
+					}
+				})
+				.collect(Collectors.toSet());
+
+			Set<? extends CommitWarning> persistedWarnings = warnings.persist(repositoryEntity, pushWarnings);
+			log.info("Persisted {} of {} push warnings for {}", persistedWarnings.size(),
 				pushWarnings.size(), repositoryEntity);
+		}
+
 	}
 
-	@SneakyThrows
-	private void updatePullRequest(RepositoryApi repositoryApi, PullRequest pullRequest) {
-		pullRequestBackend.updatePullRequest(repositoryApi, pullRequest);
+	/**
+	 * Assisted inject factory for the {@link nl.tudelft.ewi.devhub.server.web.resources.HooksResource.GitPushHandler}.
+	 */
+	public interface GitPushHandlerFactory {
+
+		/**
+		 * Create a new {@link nl.tudelft.ewi.devhub.server.web.resources.HooksResource.GitPushHandler}
+		 * @param gitPush {@link GitPush} to trigger.
+		 * @return A new instance.
+		 */
+		GitPushHandler create(GitPush gitPush);
+
 	}
 
-	private Stream<PullRequest> findOpenPullRequests(RepositoryEntity repositoryEntity, BranchModel branch) {
-		PullRequest pullRequest = pullRequests.findOpenPullRequest(repositoryEntity, branch.getName());
-		return pullRequest == null ? Stream.empty() : Stream.of(pullRequest);
-	}
 
 	@POST
 	@Path("build-result")
-	@RequireAuthenticatedBuildServer
 	@Transactional
+	@RequireAuthenticatedBuildServer
 	public void onBuildResult(@QueryParam("repository") @NotEmpty String repository,
 							  @QueryParam("commit") @NotEmpty String commitId,
 			nl.tudelft.ewi.build.jaxrs.models.BuildResult buildResult) throws UnsupportedEncodingException {

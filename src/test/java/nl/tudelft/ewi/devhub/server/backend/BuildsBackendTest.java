@@ -22,6 +22,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.concurrent.Executors;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -55,7 +57,7 @@ public class BuildsBackendTest {
 		when(buildServers.findById(1l)).thenReturn(buildServer);
 		when(buildBackend.offerBuildRequest(Mockito.any(BuildRequest.class))).thenReturn(true);
 		buildsBackend = new BuildsBackend(buildServers,
-			new ValueProvider<BuildSubmitter>(new MockedBuildSubmitter()), buildResults, repositoriesApi, config);;
+			new ValueProvider<BuildSubmitter>(new MockedBuildSubmitter()), buildResults, repositoriesApi, config, Executors.newSingleThreadExecutor());
 	}
 
 

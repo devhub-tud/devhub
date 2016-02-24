@@ -158,12 +158,15 @@ public abstract class AbstractProjectResource extends Resource {
 			parameters.put("comments", comments.commentsFor(repositoryEntity, commitIds));
 			parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
-			PullRequest pullRequest = pullRequests.findOpenPullRequest(repositoryEntity, branch.getName());
-			if(pullRequest != null) {
-				parameters.put("pullRequest", pullRequest);
-			}
+			pullRequests.findOpenPullRequest(repositoryEntity, branch.getName()).ifPresent(pullRequest ->
+				parameters.put("pullRequest", pullRequest));
 		}
-		catch (NotFoundException e) {}
+		catch (NotFoundException e) {
+			if (branchName.equals("master")) {
+				// Swallow exception for master, so an overview page can be generated for bare empty repositories
+				log.debug("Master branch is empty for {}", repositoryEntity);
+			} else throw e;
+		}
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));

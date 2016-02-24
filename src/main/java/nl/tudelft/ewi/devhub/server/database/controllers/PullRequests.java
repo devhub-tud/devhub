@@ -8,6 +8,7 @@ import com.google.inject.persist.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Optional;
 
 import static nl.tudelft.ewi.devhub.server.database.entities.issues.QPullRequest.pullRequest;
 
@@ -42,12 +43,12 @@ public class PullRequests extends Controller<PullRequest> {
 	 * @return the PullRequest or null
 	 */
 	@Transactional
-	public PullRequest findOpenPullRequest(final RepositoryEntity repositoryEntity, final String branchName) {
-		return query().from(pullRequest)
+	public Optional<PullRequest> findOpenPullRequest(final RepositoryEntity repositoryEntity, final String branchName) {
+		return Optional.ofNullable(query().from(pullRequest)
 			.where(pullRequest.repository.eq(repositoryEntity))
 			.where(pullRequest.branchName.eq(branchName))
 			.where(pullRequest.open.isTrue())
-			.singleResult(pullRequest);
+			.singleResult(pullRequest));
 	}
 
 	/**

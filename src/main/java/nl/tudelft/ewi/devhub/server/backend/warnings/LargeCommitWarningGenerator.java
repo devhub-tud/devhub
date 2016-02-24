@@ -51,7 +51,7 @@ implements CommitPushWarningGenerator<LargeCommitWarning> {
         List<DiffFile<DiffContext<DiffLine>>> diffs = getGitCommit(commit).diff().getDiffs();
         this.ext = commit.getRepository().getCommaSeparatedValues(COUNTED_EXTENSIONS_PROPERTY, DEFAULT_EXTENSIONS);
 
-        if(!commit.getMerge() && (tooManyFiles(diffs, commit) || tooManyLineChanges(diffs, commit))) {
+        if(!commit.isMerge() && (tooManyFiles(diffs, commit) || tooManyLineChanges(diffs, commit))) {
             LargeCommitWarning warning = new LargeCommitWarning();
             warning.setCommit(commit);
             log.debug("Finished generating warnings for {} in {}", commit, this);

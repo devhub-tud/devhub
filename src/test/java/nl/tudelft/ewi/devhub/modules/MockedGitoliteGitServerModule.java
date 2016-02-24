@@ -6,6 +6,8 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.git.backend.JGitRepositoryFacadeFactory;
+import nl.tudelft.ewi.git.backend.RepositoryFacadeFactory;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
 import nl.tudelft.ewi.git.web.MockedSingleton;
@@ -95,6 +97,8 @@ public class MockedGitoliteGitServerModule extends AbstractModule {
 		bindSubResourceFactory(CommitApi.class, CommitApiImpl.class, CommitApiFactory.class);
 		bindSubResourceFactory(BranchApi.class, BranchApiImpl.class, BranchApiFactory.class);
 		bindSubResourceFactory(RepositoryApi.class, RepositoryApiImpl.class, RepositoryApiFactory.class);
+
+		bind(RepositoryFacadeFactory.class).to(JGitRepositoryFacadeFactory.class);
 
 		bind(ManagedConfig.class).toInstance(managedConfig);
 		bind(nl.tudelft.ewi.git.Config.class).toInstance(configuration);

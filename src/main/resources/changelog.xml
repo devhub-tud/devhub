@@ -857,4 +857,21 @@
 
 	</changeSet>
 
+	<changeSet id="add_commit_parents" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="commit_parent">
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="parent_repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="parent_commit_id" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+		</createTable>
+	</changeSet>
+
 </databaseChangeLog>

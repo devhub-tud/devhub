@@ -13,7 +13,7 @@ import javax.persistence.EntityNotFoundException;
 @Slf4j
 public class Controller<T> {
 
-	private final EntityManager entityManager;
+	protected final EntityManager entityManager;
 
 	@Inject
 	public Controller(EntityManager entityManager) {

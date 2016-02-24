@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server;
 
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackendImpl;
@@ -15,6 +16,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
+import nl.tudelft.ewi.devhub.server.web.resources.HooksResource;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +40,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public class DevhubModule extends ServletModule {
@@ -61,6 +65,7 @@ public class DevhubModule extends ServletModule {
 		requireBinding(ObjectMapper.class);
 		requireBinding(JacksonJaxbXMLProvider.class);
 
+		bind(ExecutorService.class).toInstance(Executors.newCachedThreadPool());
 		bind(File.class).annotatedWith(Names.named("directory.templates")).toInstance(new File(rootFolder, "templates"));
 		bind(TranslatorFactory.class).toInstance(new TranslatorFactory("i18n.devhub"));
 		bind(Config.class).toInstance(config);
@@ -69,6 +74,10 @@ public class DevhubModule extends ServletModule {
 		bind(AuthenticationProvider.class).to(LdapAuthenticationProvider.class);
 		bind(LdapUserProcessor.class).to(PersistingLdapUserProcessor.class);
 		bindWarningGenerators();
+
+		install(new FactoryModuleBuilder()
+			.implement(HooksResource.GitPushHandler.class, HooksResource.GitPushHandler.class)
+			.build(HooksResource.GitPushHandlerFactory.class));
 
 		filter("/*").through(PersistFilter.class);
 		filter("/accounts*", "/build-servers*", "/projects*", "/validation*", "/courses*").through(UserAuthorizeFilter.class);

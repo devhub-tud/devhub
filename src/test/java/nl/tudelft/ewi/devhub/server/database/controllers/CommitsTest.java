@@ -15,6 +15,7 @@ import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
+import org.hamcrest.Matchers;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
@@ -29,6 +30,7 @@ import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JukitoRunner.class)
 @UseModules({TestDatabaseModule.class, CommitsTest.CommitsTestModule.class})
@@ -37,14 +39,13 @@ public class CommitsTest extends PersistedBackendTest {
 	private static RepositoriesApi repositories = Mockito.mock(RepositoriesApi.class);
 	private static RepositoryApi repository = Mockito.mock(RepositoryApi.class);
 	private static  CommitApi commitApi = Mockito.mock(CommitApi.class);
-	private static  DetailedCommitModel commit = Mockito.mock(DetailedCommitModel.class);
+	private static  DetailedCommitModel commit = new DetailedCommitModel();
 
 	@BeforeClass
 	public static void before() {
 		Mockito.when(repositories.getRepository(Mockito.anyString())).thenReturn(repository);
 		Mockito.when(repository.getCommit(Mockito.anyString())).thenReturn(commitApi);
 		Mockito.when(commitApi.get()).thenReturn(commit);
-		Mockito.when(commit.getParents()).thenReturn(new String[] {});
 	}
 
 	public static class CommitsTestModule extends AbstractModule {
@@ -68,6 +69,7 @@ public class CommitsTest extends PersistedBackendTest {
 	public void setup() {
 		user = createUser();
 		group = createGroup(createCourseEdition(), user);
+		commit.setParents(new String[] {});
 	}
 	
 	@Test
@@ -90,6 +92,14 @@ public class CommitsTest extends PersistedBackendTest {
 		assertEquals(expected.getSource(), actual.getSource());
 		assertNotNull(actual.getTimestamp());
 		assertEquals(expected.getUser(), actual.getUser());
+	}
+
+	@Test
+	public void testPersistWithParent() {
+		Commit a = createCommit(group.getRepository());
+		commit.setParents(new String[] { a.getCommitId() });
+		Commit b = createCommit(group.getRepository());
+		assertThat(b.getParents(), Matchers.contains(a));
 	}
 	
 	protected CommitComment createCommitComment(Commit commit) {

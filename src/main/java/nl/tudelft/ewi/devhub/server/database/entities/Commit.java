@@ -16,6 +16,8 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -29,13 +31,14 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @Entity
 @Table(name = "commit")
 @IdClass(Commit.CommitId.class)
 @ToString(exclude = {"comments", "buildResult"})
-@EqualsAndHashCode(of = {"repository", "commitId"}, callSuper = false)
+@EqualsAndHashCode(of = {"repository", "commitId"})
 public class Commit implements Event, Base {
 
 	@Data
@@ -70,9 +73,6 @@ public class Commit implements Event, Base {
 	@Column(name = "pushed")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date pushTime;
-
-	@Column(name = "merge")
-	private Boolean merge;
 	
 	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<CommitComment> comments;
@@ -83,6 +83,23 @@ public class Commit implements Event, Base {
 		@PrimaryKeyJoinColumn(name = "commit_id", referencedColumnName = "commit_id")
 	})
 	private BuildResult buildResult;
+
+	@ManyToMany
+	@JoinTable(name="commit_parent",
+		joinColumns = {
+			@JoinColumn(name="repository_id", referencedColumnName="repository_id"),
+			@JoinColumn(name="commit_id", referencedColumnName="commit_id")
+		},
+		inverseJoinColumns= {
+			@JoinColumn(name="parent_repository_id", referencedColumnName="repository_id"),
+			@JoinColumn(name="parent_commit_id", referencedColumnName="commit_id")
+		}
+	)
+	private List<Commit> parents;
+
+	public boolean isMerge() {
+		return parents.size() > 1;
+	}
 
 	@Override
 	public Date getTimestamp() {
@@ -96,6 +113,10 @@ public class Commit implements Event, Base {
 
 	public URI getDiffURI() {
 		return getURI().resolve("diff/");
+	}
+
+	public boolean hasNoBuildResult() {
+		return Objects.isNull(buildResult);
 	}
 
 }

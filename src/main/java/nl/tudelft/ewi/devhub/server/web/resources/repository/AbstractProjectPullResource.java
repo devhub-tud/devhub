@@ -330,8 +330,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 	@POST
 	@Path("/pull/{pullId}/merge")
 	@Produces(MediaType.APPLICATION_JSON)
-	public MergeResponse mergePullRequest(@Context HttpServletRequest request,
-	                                      @PathParam("pullId") long pullId) throws IOException {
+	public MergeResponse mergePullRequest(@PathParam("pullId") long pullId) throws IOException {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
@@ -354,7 +353,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 			// Currently the git server fails to correctly trigger the push hook
 			// Therefore, we invoke the githook manually
 			// See: https://github.com/devhub-tud/devhub/issues/140
-			hooksResource.onGitPush(request, new GitPush(repositoryEntity.getRepositoryName()));
+			hooksResource.onGitPush(new GitPush(repositoryEntity.getRepositoryName()));
 		}
 
 		return response;

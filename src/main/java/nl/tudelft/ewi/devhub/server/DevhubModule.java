@@ -63,7 +63,7 @@ public class DevhubModule extends ServletModule {
 		install(new GitServerClientModule(config, lifeCycle));
 
 		requireBinding(ObjectMapper.class);
-		requireBinding(JacksonJaxbXMLProvider.class);
+		bind(JacksonJaxbXMLProvider.class);
 
 		bind(ExecutorService.class).toInstance(Executors.newCachedThreadPool());
 		bind(File.class).annotatedWith(Names.named("directory.templates")).toInstance(new File(rootFolder, "templates"));

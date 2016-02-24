@@ -12,6 +12,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 
 import com.google.common.base.Preconditions;
@@ -168,9 +169,16 @@ public class BuildsBackend {
 	protected void createBuildRequest(final Commit commit) {
 		RepositoryEntity repositoryEntity = commit.getRepository();
 		RepositoryModel repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName()).getRepositoryModel();
-		BuildRequest buildRequest = repositoryEntity.getBuildInstruction().createBuildRequest(config, commit, repository);
-		log.info("Submitting a build for commit: {} of repository: {}", commit, repository);
-		offerBuild(buildRequest);
+
+		BuildInstructionEntity buildInstructionEntity = repositoryEntity.getBuildInstruction();
+		if (buildInstructionEntity != null) {
+			BuildRequest buildRequest = buildInstructionEntity.createBuildRequest(config, commit, repository);
+			log.info("Submitting a build for commit: {} of repository: {}", commit, repository);
+			offerBuild(buildRequest);
+		}
+		else {
+			log.debug("Not building commit {} as there is no build instruction", commit);
+		}
 	}
 
 	public void shutdown() throws InterruptedException {

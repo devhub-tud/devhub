@@ -7,9 +7,11 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.build.jaxrs.models.BuildInstruction;
 import nl.tudelft.ewi.devhub.server.database.controllers.PrivateRepositories;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
@@ -70,6 +72,13 @@ public class PrivateRepositoryOverview extends Resource {
 		privateRepository.setOwner(currentUser);
 		privateRepository.setCollaborators(Lists.newArrayList(currentUser));
 		privateRepository.setRepositoryName(currentUser.getNetId() + "/" + repositoryName);
+
+		MavenBuildInstructionEntity buildInstruction = new MavenBuildInstructionEntity();
+		buildInstruction.setCommand("test");
+		buildInstruction.setWithDisplay(true);
+		buildInstruction.setBuildTimeout(600000);
+		privateRepository.setBuildInstruction(buildInstruction);
+
 		privateRepositories.persist(privateRepository);
 
 		CreateRepositoryModel createRepositoryModel = new CreateRepositoryModel();

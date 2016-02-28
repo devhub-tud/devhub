@@ -22,8 +22,10 @@
 [#list members as member]
 							<tr>
 								<td>
-									<div><b>${member.getName()}</b></div>
-									<div class="truncate">${member.getNetId()}</div> 
+								[#if member.name? && member.name?has_content]
+									<div><b>${member.name}</b></div>
+								[/#if]
+									<div class="truncate">${member.netId}</div> 
 								</td>
 							</tr>
 [/#list]

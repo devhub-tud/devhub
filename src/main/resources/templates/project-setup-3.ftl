@@ -22,7 +22,7 @@
 [#list members as member]
 							<tr>
 								<td>
-								[#if member.name? && member.name?has_content]
+								[#if member.name?? && member.name?has_content]
 									<div><b>${member.name}</b></div>
 								[/#if]
 									<div class="truncate">${member.netId}</div> 

@@ -37,7 +37,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "commit")
 @IdClass(Commit.CommitId.class)
-@ToString(exclude = {"comments", "buildResult"})
+@ToString(exclude = {"comments", "buildResult", "parents"})
 @EqualsAndHashCode(of = {"repository", "commitId"})
 public class Commit implements Event, Base {
 

@@ -10,8 +10,8 @@ After cloning the repository, you have to initialize these submodules.
 
 ```sh
 git clone git@github.com:devhub-tud/devhub.git
-git submodules init
-git submodules update
+git submodule init
+git submodule update
 ```
 
 ### Dependencies
@@ -19,7 +19,7 @@ git submodules update
 
 ### Setting up your IDE
 *These steps were only tested for Eclipse and IntelliJ.*
-To succesfully run and test Devhub, a couple of steps should be followed to setup various dependencies and configurations.
+To successfully run and test Devhub, a couple of steps should be followed to setup various dependencies and configurations.
 
 
 1. Fork the Devhub repository.
@@ -45,7 +45,7 @@ To succesfully run and test Devhub, a couple of steps should be followed to setu
 When the JPA plugin for Eclipse generates a lot of false errors, you can disable the validation under `Preferences > Validation > JPA Validator`.
 		
 ### Code Formatting
-We do not write getters/setters and equals/hashcode implementations ourselves, but instead use the Lombok `@Data` and `@EqualsAndHashcode` annotations for that. Prevent overusage of Lombok, try to limit it to JPA classes and Jackson models.
+We do not write getters/setters and equals/hashcode implementations ourselves, but instead use the Lombok `@Data` and `@EqualsAndHashcode` annotations for that. Prevent overuse of Lombok, try to limit it to JPA classes and Jackson models.
 
 ### Schema changes
 We use Liquibase to perform the required schema changes in deployment.
@@ -54,7 +54,7 @@ Do **NOT** alter existing changelog entries.
 
 ### Less CSS changes
 We use Less in order to generate CSS.
-The Less is transfored to CSS using the [`lesscss-maven-plugin`](https://github.com/marceloverdijk/lesscss-maven-plugin).
+The Less is transformed to CSS using the [`lesscss-maven-plugin`](https://github.com/marceloverdijk/lesscss-maven-plugin).
 You can recompile the less file using `mvn lesscss:compile`.
 There is no need to restart the Devhub server afterwards.
 

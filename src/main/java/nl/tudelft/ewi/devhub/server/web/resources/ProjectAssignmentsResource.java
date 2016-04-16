@@ -180,9 +180,9 @@ public class ProjectAssignmentsResource extends Resource {
      * @param assignment the assignment we are showing the grade for.
      * @return  whether the current user can see the grade yet.
      */
-    private boolean canSeeGrade(Assignment assignment) {
+    protected boolean canSeeGrade(Assignment assignment) {
         CourseEdition edition = group.getCourseEdition();
-        return (currentUser.isAdmin() || currentUser.isAssisting(edition) )  || assignment.isGradesReleased();
+        return currentUser.isAdmin() || currentUser.isAssisting(edition) || assignment.isGradesReleased();
     }
 
     /**

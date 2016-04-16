@@ -324,7 +324,10 @@ public class AssignmentsResource extends Resource {
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
         assignment.setName(name);
         assignment.setSummary(summary);
-        assignment.setGradesReleased(release);
+
+        if(release != null) {
+            assignment.setGradesReleased(release);
+        }
 
         if(!Strings.isNullOrEmpty(dueDate)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);

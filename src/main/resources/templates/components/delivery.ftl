@@ -45,7 +45,7 @@
         <dd>${delivery.createdUser.getName()}</dd>
         <dt>${i18n.translate("delivery.date")}</dt>
         <dd>${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</dd>
-        [#if delivery.commit.commitId?? && delivery.commit.commitId?has_content]
+        [#if delivery.commit?? && delivery.commit?has_content]
             <dt>${i18n.translate("assignment.commit")}</dt>
             <dd><a href="${delivery.commit.getDiffURI()}">${delivery.commit.commitId?substring(0, 8)}</a></dd>
         [/#if]

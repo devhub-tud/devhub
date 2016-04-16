@@ -351,7 +351,6 @@ public class ProjectAssignmentsResource extends Resource {
 
         try {
             deliveriesBackend.review(delivery, review);
-            reviewMailer.sendReviewMail(delivery);
         }
         catch (Exception e){
             throw new ApiError("error.could-not-review", e);

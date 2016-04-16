@@ -873,5 +873,11 @@
 			</column>
 		</createTable>
 	</changeSet>
+	
+	<changeSet id="add_assignment_release" author="Liam Clark">
+		<addColumn tableName="assignments">
+			<column name="released" type="boolean" defaultValue="true"/>
+		</addColumn>
+	</changeSet>
 
 </databaseChangeLog>

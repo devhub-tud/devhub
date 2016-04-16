@@ -84,6 +84,9 @@ public class Assignment implements Comparable<Assignment>, Base {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dueDate;
 
+    @Column(name="released")
+    private boolean gradesReleased;
+
     @Override
     public int compareTo(Assignment o) {
         return ComparisonChain.start()

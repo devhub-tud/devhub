@@ -312,7 +312,8 @@ public class AssignmentsResource extends Resource {
                                    @PathParam("assignmentId") long assignmentId,
                                    @FormParam("name") String name,
                                    @FormParam("summary") String summary,
-                                   @FormParam("due-date") String dueDate) {
+                                   @FormParam("due-date") String dueDate,
+                                   @FormParam("release") Boolean release) {
 
         CourseEdition course = courses.find(courseCode, editionCode);
 
@@ -323,7 +324,7 @@ public class AssignmentsResource extends Resource {
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
         assignment.setName(name);
         assignment.setSummary(summary);
-
+        assignment.setGradesReleased(release);
 
         if(!Strings.isNullOrEmpty(dueDate)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);

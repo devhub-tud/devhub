@@ -78,7 +78,6 @@ public class ProjectAssignmentsResource extends Resource {
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
     private final Assignments assignments;
-    private final ReviewMailer reviewMailer;
 
     @Inject
     public ProjectAssignmentsResource(final TemplateEngine templateEngine,
@@ -89,8 +88,7 @@ public class ProjectAssignmentsResource extends Resource {
                                       final RepositoriesApi repositoriesApi,
                                       final DeliveriesBackend deliveriesBackend,
                                       final Assignments assignments,
-                                      final Commits commits,
-                                      final ReviewMailer reviewMailer) {
+                                      final Commits commits) {
 
         this.templateEngine = templateEngine;
         this.group = group;
@@ -101,7 +99,6 @@ public class ProjectAssignmentsResource extends Resource {
         this.repositoriesApi = repositoriesApi;
         this.deliveriesBackend = deliveriesBackend;
         this.assignments = assignments;
-        this.reviewMailer = reviewMailer;
         this.commits = commits;
     }
 

@@ -40,12 +40,14 @@
         </div>
     </div>
 
+    [#if assignment?exists]
     <div class="form-group">
-        <label for="release" class="col-sm-2 control-label">Release grades</label>
+        <label for="release" class="col-sm-2 control-label">${i18n.translate("assignment.release")}</label>
         <div class="col-sm-10">
             <input type="checkbox" class="form-control" id="release">
         </div>
     </div>
+    [/#if]
 
     <div class="form-group">
         <label for="name" class="col-sm-2 control-label">${i18n.translate("course.control.assignment-name")}</label>

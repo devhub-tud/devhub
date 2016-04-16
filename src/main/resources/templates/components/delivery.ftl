@@ -69,9 +69,8 @@
     </ul>
     [/#if]
 
-
     [#assign review = delivery.getReview()!]
-    [#if review?? && review?has_content && (review.getGrade()?? || review.getCommentary()??)]
+    [#if review?? && seeGrade && review?has_content && (review.getGrade()?? || review.getCommentary()??)]
     <blockquote>
         <dl>
             [#if review.getGrade()??]

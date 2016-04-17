@@ -44,7 +44,7 @@
     <div class="form-group">
         <label for="release" class="col-sm-2 control-label">${i18n.translate("assignment.release")}</label>
         <div class="col-sm-10">
-            <input type="checkbox" class="form-control" id="release">
+            <input type="checkbox" class="form-control" name="release" id="release">
         </div>
     </div>
     [/#if]

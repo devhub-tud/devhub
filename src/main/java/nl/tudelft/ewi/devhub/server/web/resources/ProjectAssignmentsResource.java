@@ -109,6 +109,7 @@ public class ProjectAssignmentsResource extends Resource {
 		parameters.put("group", group);
 		parameters.put("course", group.getCourseEdition());
 		parameters.put("repositoryEntity", repositoryEntity);
+        parameters.put("submittedState", Delivery.State.SUBMITTED);
 		return parameters;
 	}
 
@@ -128,7 +129,6 @@ public class ProjectAssignmentsResource extends Resource {
         Map<String, Object> parameters = getBaseParameters();
         parameters.put("repository", repositoryModel);
         parameters.put("deliveries", deliveries);
-        parameters.put("submittedState", Delivery.State.SUBMITTED);
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-assignments.ftl", locales, parameters));

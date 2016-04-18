@@ -128,6 +128,7 @@ public class ProjectAssignmentsResource extends Resource {
         Map<String, Object> parameters = getBaseParameters();
         parameters.put("repository", repositoryModel);
         parameters.put("deliveries", deliveries);
+        parameters.put("submittedState", Delivery.State.SUBMITTED);
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-assignments.ftl", locales, parameters));

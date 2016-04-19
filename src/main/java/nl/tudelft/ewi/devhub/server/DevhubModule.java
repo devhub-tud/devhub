@@ -17,6 +17,7 @@ import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.resources.HooksResource;
+import nl.tudelft.ewi.devhub.server.web.resources.HooksResource.GitPushHandlerWorkerFactory;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,8 +77,8 @@ public class DevhubModule extends ServletModule {
 		bindWarningGenerators();
 
 		install(new FactoryModuleBuilder()
-			.implement(HooksResource.GitPushHandler.class, HooksResource.GitPushHandler.class)
-			.build(HooksResource.GitPushHandlerFactory.class));
+			.implement(HooksResource.GitPushHandlerWorker.class, HooksResource.GitPushHandlerWorker.class)
+			.build(GitPushHandlerWorkerFactory.class));
 
 		filter("/*").through(PersistFilter.class);
 		filter("/accounts*", "/build-servers*", "/projects*", "/validation*", "/courses*").through(UserAuthorizeFilter.class);

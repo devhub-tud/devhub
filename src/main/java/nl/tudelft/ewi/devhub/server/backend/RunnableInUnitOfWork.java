@@ -26,6 +26,7 @@ public abstract class RunnableInUnitOfWork implements Runnable {
 		}
 		catch (Throwable e) {
 			log.error(e.getMessage(), e);
+			throw e;
 		}
 		finally {
 			work.end();

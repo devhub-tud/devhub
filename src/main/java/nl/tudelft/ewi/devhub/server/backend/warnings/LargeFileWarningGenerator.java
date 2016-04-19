@@ -11,7 +11,6 @@ import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffLine;
 import nl.tudelft.ewi.git.models.EntryType;
 
 import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
  * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
-@RequestScoped
 @SuppressWarnings("unused")
 public class LargeFileWarningGenerator extends AbstractCommitWarningGenerator<LargeFileWarning, GitPush>
 implements CommitPushWarningGenerator<LargeFileWarning> {

@@ -8,7 +8,6 @@ import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.models.DiffModel;
 
 import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import java.util.Set;
@@ -19,7 +18,6 @@ import java.util.stream.Stream;
  * @author Liam Clark
  */
 @Slf4j
-@RequestScoped
 @SuppressWarnings("unused")
 public class IgnoredFileWarningGenerator extends AbstractCommitWarningGenerator<IgnoredFileWarning, GitPush>
 implements CommitPushWarningGenerator<IgnoredFileWarning> {

@@ -9,7 +9,6 @@ import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffContext;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffFile;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffLine;
@@ -24,7 +23,6 @@ import java.util.stream.Stream;
  * @author Liam Clark
  */
 @Slf4j
-@RequestScoped
 @SuppressWarnings("unused")
 public class LargeCommitWarningGenerator  extends AbstractCommitWarningGenerator<LargeCommitWarning, GitPush>
 implements CommitPushWarningGenerator<LargeCommitWarning> {

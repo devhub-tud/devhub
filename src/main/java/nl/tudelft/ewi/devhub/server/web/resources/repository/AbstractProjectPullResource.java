@@ -200,7 +200,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		parameters.put("repository", repository);
 		parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, commitIds);
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, destinationId);
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		try {
@@ -269,7 +269,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		parameters.put("diffViewModel", diffBlameModel);
 		parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, commitIds);
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, pullRequest.getDestination().getCommitId());
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		List<Locale> locales = Collections.list(request.getLocales());

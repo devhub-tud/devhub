@@ -431,7 +431,7 @@ public abstract class AbstractProjectResource extends Resource {
 
 		Set<String> blameCommits = getCommitsForBlame(blame);
         parameters.put("comments", commentBackend.getCommentChecker(repositoryEntity, blameCommits));
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, blameCommits);
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, commitId);
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		List<Locale> locales = Collections.list(request.getLocales());

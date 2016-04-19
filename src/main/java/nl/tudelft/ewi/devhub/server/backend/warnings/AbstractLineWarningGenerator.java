@@ -134,6 +134,7 @@ implements CommitWarningGenerator<T, A> {
                 T warning = mapToWarning(violation);
                 Source source = getSource(violation);
                 warning.setSource(source);
+                warning.setCommit(commit);
                 return warning;
             }
 

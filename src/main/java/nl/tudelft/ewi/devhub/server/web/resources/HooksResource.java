@@ -216,7 +216,7 @@ public class HooksResource extends Resource {
 			assert commit != null;
 			assert gitPush != null;
 
-			Set<? extends CommitWarning> pushWarnings = pushWarningGenerators.stream()
+			Set<? extends CommitWarning> pushWarnings = pushWarningGenerators.stream().sequential()
 				.flatMap(generator -> {
 					try {
 						Set<? extends CommitWarning> commitWarningList = generator.generateWarnings(commit, gitPush);

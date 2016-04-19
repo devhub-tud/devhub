@@ -43,7 +43,7 @@ public class CommitIterator implements Iterator<Commit> {
 	public static Stream<Commit> stream(Commit start, Predicate<Commit> predicate) {
 		return StreamSupport.stream(
 			Spliterators.spliteratorUnknownSize(new CommitIterator(start, predicate), Spliterator.ORDERED),
-			true);
+			false);
 	}
 
 }

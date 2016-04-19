@@ -77,7 +77,7 @@ public class HooksResource extends Resource {
 	private final BuildResultMailer mailer;
 	private final Commits commits;
 	private final Warnings warnings;
-	private final GitPushHandlerFactory gitPushHandlerFactory;
+	private final GitPushHandlerWorkerFactory gitPushHandlerWorkerFactory;
 	private final PMDWarningGenerator pmdWarningGenerator;
 	private final CheckstyleWarningGenerator checkstyleWarningGenerator;
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
@@ -91,7 +91,7 @@ public class HooksResource extends Resource {
 	                     BuildResultMailer mailer,
 	                     ExecutorService executor,
 	                     PMDWarningGenerator pmdWarningGenerator,
-	                     GitPushHandlerFactory gitPushHandlerFactory,
+	                     GitPushHandlerWorkerFactory gitPushHandlerWorkerFactory,
 	                     RepositoriesController repositoriesController,
 	                     FindBugsWarningGenerator findBugsWarningGenerator,
 	                     CheckstyleWarningGenerator checkstyleWarningGenerator,
@@ -102,7 +102,7 @@ public class HooksResource extends Resource {
 		this.executor = executor;
 		this.buildResults = buildResults;
 		this.pmdWarningGenerator = pmdWarningGenerator;
-		this.gitPushHandlerFactory = gitPushHandlerFactory;
+		this.gitPushHandlerWorkerFactory = gitPushHandlerWorkerFactory;
 		this.repositoriesController = repositoriesController;
 		this.findBugsWarningGenerator = findBugsWarningGenerator;
 		this.checkstyleWarningGenerator = checkstyleWarningGenerator;
@@ -113,21 +113,41 @@ public class HooksResource extends Resource {
 	 * Git push hook implementation.
 	 *
 	 * @param push GitPush request.
-	 * @see GitPushHandler#runInUnitOfWork()
+	 * @see GitPushHandlerWorker#onGitPush(GitPush)
 	 */
 	@POST
 	@Path("git-push")
 	public void onGitPush(@Valid GitPush push) {
 		log.info("Received git-push event: {}", push);
-		GitPushHandler gitPushHandler = gitPushHandlerFactory.create(push);
+		GitPushHandlerWorker gitPushHandler = gitPushHandlerWorkerFactory.create(push);
 		executor.submit(gitPushHandler);
 	}
 
+	public static class GitPushHandlerWorker extends RunnableInUnitOfWork {
+
+		private final Provider<GitPushHandler> gitPushHandlerProvider;
+		private final GitPush gitPush;
+
+		@Inject
+		public GitPushHandlerWorker(Provider<UnitOfWork> workProvider, Provider<GitPushHandler> gitPushHandlerProvider, @Assisted GitPush gitPush) {
+			super(workProvider);
+			this.gitPushHandlerProvider = gitPushHandlerProvider;
+			this.gitPush = gitPush;
+		}
+
+		@Override
+		@Transactional
+		protected void runInUnitOfWork() {
+			this.gitPushHandlerProvider.get().handle(gitPush);
+		}
+
+	}
+
 	/**
-	 * The GitPushHandler ensures that the {@link #gitPush git-push} API call is non blocking and
+	 * The GitPushHandler ensures that the {@code git-push} API call is non blocking and
 	 * the operations are performed within an unit of work.
 	 */
-	public static class GitPushHandler extends RunnableInUnitOfWork {
+	public static class GitPushHandler {
 
 		private final Commits commits;
 		private final Warnings warnings;
@@ -137,11 +157,17 @@ public class HooksResource extends Resource {
 		private final PullRequestBackend pullRequestBackend;
 		private final RepositoriesController repositoriesController;
 		private final Set<CommitPushWarningGenerator> pushWarningGenerators;
-		private final GitPush gitPush;
 
 		@Inject
-		public GitPushHandler(Provider<UnitOfWork> workProvider, Warnings warnings, Set<CommitPushWarningGenerator> pushWarningGenerators, Commits commits, PullRequests pullRequests, BuildsBackend buildBackend, RepositoriesApi repositoriesApi, PullRequestBackend pullRequestBackend, RepositoriesController repositoriesController, @Assisted GitPush gitPush) {
-			super(workProvider);
+		public GitPushHandler(
+			Warnings warnings,
+			Set<CommitPushWarningGenerator> pushWarningGenerators,
+			Commits commits, PullRequests pullRequests,
+			BuildsBackend buildBackend,
+			RepositoriesApi repositoriesApi,
+			PullRequestBackend pullRequestBackend,
+			RepositoriesController repositoriesController
+		) {
 			this.warnings = warnings;
 			this.commits = commits;
 			this.pullRequests = pullRequests;
@@ -150,12 +176,10 @@ public class HooksResource extends Resource {
 			this.pullRequestBackend = pullRequestBackend;
 			this.pushWarningGenerators = pushWarningGenerators;
 			this.repositoriesController = repositoriesController;
-			this.gitPush = gitPush;
 		}
 
-		@Override
 		@Transactional
-		protected void runInUnitOfWork() {
+		public void handle(GitPush gitPush) {
 			RepositoryApi repositoryApi = repositoriesApi.getRepository(gitPush.getRepository());
 			DetailedRepositoryModel repositoryModel = repositoryApi.getRepositoryModel();
 			RepositoryEntity repositoryEntity = repositoriesController.find(gitPush.getRepository());
@@ -216,14 +240,14 @@ public class HooksResource extends Resource {
 	/**
 	 * Assisted inject factory for the {@link nl.tudelft.ewi.devhub.server.web.resources.HooksResource.GitPushHandler}.
 	 */
-	public interface GitPushHandlerFactory {
+	public interface GitPushHandlerWorkerFactory {
 
 		/**
 		 * Create a new {@link nl.tudelft.ewi.devhub.server.web.resources.HooksResource.GitPushHandler}
 		 * @param gitPush {@link GitPush} to trigger.
 		 * @return A new instance.
 		 */
-		GitPushHandler create(GitPush gitPush);
+		GitPushHandlerWorker create(GitPush gitPush);
 
 	}
 

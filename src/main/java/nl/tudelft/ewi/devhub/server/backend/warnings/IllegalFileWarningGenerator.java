@@ -9,7 +9,6 @@ import nl.tudelft.ewi.git.models.EntryType;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
@@ -22,7 +21,6 @@ import java.util.stream.Stream;
  * @author Liam Clark
  */
 @Slf4j
-@RequestScoped
 public class IllegalFileWarningGenerator extends AbstractCommitWarningGenerator<IllegalFileWarning, GitPush>
 implements CommitPushWarningGenerator<IllegalFileWarning> {
 

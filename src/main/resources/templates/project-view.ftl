@@ -54,7 +54,7 @@
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     [#list repository.getBranches() as b ]
-                        <li><a href="${repositoryEntity.getURI()}branch/${b.getSimpleName()}" style="text-align:right;">
+                        <li><a href="${repositoryEntity.getURI()}branch/${b.name?url('UTF-8')}" style="text-align:right;">
                         ${b.getSimpleName()}
                             [#if b.isBehind() || b.isAhead() ]
                                 <span class="text-success octicon octicon-arrow-up"></span>

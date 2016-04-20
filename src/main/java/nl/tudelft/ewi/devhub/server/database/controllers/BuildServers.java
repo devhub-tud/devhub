@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.common.collect.ImmutableList;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildServer;
 import nl.tudelft.ewi.devhub.server.database.entities.QBuildServer;
 
@@ -20,9 +21,9 @@ public class BuildServers extends Controller<BuildServer> {
 
 	@Transactional
 	public List<BuildServer> listAll() {
-		return query().from(QBuildServer.buildServer)
+		return ImmutableList.copyOf(query().from(QBuildServer.buildServer)
 				.orderBy(QBuildServer.buildServer.name.toLowerCase().asc())
-				.list(QBuildServer.buildServer);
+				.list(QBuildServer.buildServer));
 	}
 
 	@Transactional

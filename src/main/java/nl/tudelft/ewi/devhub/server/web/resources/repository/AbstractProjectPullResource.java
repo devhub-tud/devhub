@@ -131,7 +131,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		Preconditions.checkNotNull(branchName);
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		if (pullRequests.findOpenPullRequest(repositoryEntity, branchName) != null) {
+		if (pullRequests.findOpenPullRequest(repositoryEntity, branchName).isPresent()) {
 			throw new IllegalArgumentException("There already is an open pull request for " + branchName);
 		}
 

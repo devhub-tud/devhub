@@ -181,7 +181,7 @@ $(function() {
         var label = $('span', btn).html('${i18n.translate("pull-request.merging")}');
 		var message = $('#merge-message');
 
-        $.post("${pullRequest.getURI()}/merge")
+        $.post("${pullRequest.getURI()}merge")
             .done(function(res) {
                 if(res.success) {
                     label.html('${i18n.translate("pull-request.merged")}');

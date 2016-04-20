@@ -54,7 +54,7 @@ public class Warnings extends Controller<Warning> {
         return new JPASubQuery().from(lineWarning)
             .where(lineWarning.repository.eq(repositoryEntity)
                 .and(lineWarning.commit.commitId.in(commitIds)
-                    .and(lineWarning.source.sourceCommit.commitId.notIn(commitIds))))
+                    .and(lineWarning.source.sourceCommit.commitId.ne(lineWarning.commit.commitId))))
             .list(lineWarning);
     }
 

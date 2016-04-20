@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.client.BuildServerBackend;
@@ -24,6 +25,7 @@ import nl.tudelft.ewi.git.models.RepositoryModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.NotFoundException;
 import java.util.List;
@@ -36,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * The {@link BuildsBackend} allows you to query and manipulate data from the build-server.
  */
 @Slf4j
+@Singleton
 public class BuildsBackend {
 
 	private final RepositoriesApi repositoriesApi;
@@ -215,10 +218,13 @@ public class BuildsBackend {
 				while (!buildQueue.isEmpty()) {
 					boolean delivered = false;
 					BuildRequest buildRequest = buildQueue.peek();
+
 					List<BuildServer> allBuildServers = buildServers.listAll();
+					List<BuildServer> buildServersAtCapacity = Lists.newArrayList(allBuildServers);
+
 					
-					while (!allBuildServers.isEmpty()) {
-						BuildServer buildServer = allBuildServers.remove(0);
+					while (!buildServersAtCapacity.isEmpty()) {
+						BuildServer buildServer = buildServersAtCapacity.remove(0);
 						String host = buildServer.getHost();
 						String name = buildServer.getName();
 						String secret = buildServer.getSecret();
@@ -234,8 +240,8 @@ public class BuildsBackend {
 					
 					if (!delivered) {
 						try {
-							log.info("All {} build servers at capacity. Queue size: {}", 
-									allBuildServers.size(), buildQueue.size());
+							log.info("{} of {} build servers at capacity. Queue size: {}",
+									buildServersAtCapacity.size(), allBuildServers.size(), buildQueue.size());
 							
 							Thread.sleep(NO_CAPACITY_DELAY);
 						}

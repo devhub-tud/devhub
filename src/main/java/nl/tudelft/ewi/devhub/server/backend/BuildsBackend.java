@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * The {@link BuildsBackend} allows you to query and manipulate data from the build-server.
  */
 @Slf4j
-@Singleton
 public class BuildsBackend {
 
 	private final RepositoriesApi repositoriesApi;

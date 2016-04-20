@@ -30,7 +30,7 @@
 		<logback.version>1.0.13</logback.version>
 		<selenium.version>2.52.0</selenium.version>
 		<build.server.version>1.2.0</build.server.version>
-		<git.server.version>1.0.6</git.server.version>
+		<git.server.version>1.0.7</git.server.version>
 	</properties>
 
     <repositories>

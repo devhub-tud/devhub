@@ -41,7 +41,7 @@ public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundExceptio
 	@Override
 	public Response toResponse(NotFoundException exception) {
 		UUID id = UUID.randomUUID();
-		log.warn(exception.getMessage() + " (" + id + ")");
+		log.warn(exception.getMessage() + " (" + id + ")", exception);
 
 		List<Locale> locales = Collections.list(request.getLocales());
 

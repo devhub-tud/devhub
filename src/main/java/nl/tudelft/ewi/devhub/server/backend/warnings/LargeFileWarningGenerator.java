@@ -29,7 +29,6 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
     private static final int MAX_FILE_SIZE = 500;
     private static final String MAX_FILE_SIZE_PROPERTY = "warnings.max-file-size";
 
-    private RepositoryApi repositoryApi;
     private Commit commit;
     int maxFileSize;
 
@@ -43,7 +42,7 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
     public Set<LargeFileWarning> generateWarnings(Commit commit, GitPush attachment) {
         log.debug("Started generating warnings for {} in {}", commit, this);
         final List<DiffFile<DiffContext<DiffLine>>> diffs = getGitCommit(commit).diff().getDiffs();
-        this.repositoryApi = getRepository(commit);
+        RepositoryApi repositoryApi = getRepository(commit);
         this.commit = commit;
         this.maxFileSize = commit.getRepository().getIntegerProperty(MAX_FILE_SIZE_PROPERTY, MAX_FILE_SIZE);
 
@@ -62,13 +61,14 @@ implements CommitPushWarningGenerator<LargeFileWarning> {
     protected boolean filterTextFiles(DiffFile file) {
         String folderPath = folderForPath(file.getNewPath());
         String fileName = fileNameForPath(file.getNewPath());
-        return repositoryApi.getCommit(commit.getCommitId()).showTree(folderPath)
+        return getGitCommit(commit).showTree(folderPath)
                 .get(fileName).equals(EntryType.TEXT);
     }
 
     @SneakyThrows
     protected boolean filterLargeFiles(DiffFile file) {
-        String contents = repositoryApi.getCommit(commit.getCommitId()).showTextFile(file.getNewPath());
+        String contents = getGitCommit(commit)
+            .showTextFile(file.getNewPath());
         return contents.split("\n").length > maxFileSize;
     }
 

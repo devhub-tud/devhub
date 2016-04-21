@@ -18,10 +18,12 @@ import javax.persistence.Entity;
  */
 @Data
 @Entity
-@ToString(callSuper = true)
+@ToString(of = {"message", "severity"}, callSuper = true)
 @DiscriminatorValue("checkstyle")
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(of = {"message", "severity"}, callSuper = true)
 public class CheckstyleWarning extends LineWarning {
+
+    private static final String RESOURCE_KEY = "warning.checkstyle";
 
     @NotEmpty
     @Column(name = "message")
@@ -32,7 +34,7 @@ public class CheckstyleWarning extends LineWarning {
 
     @Override
     public String getMessage(Translator translator) {
-        return message;
+        return translator.translate(RESOURCE_KEY, message, severity);
     }
 
 }

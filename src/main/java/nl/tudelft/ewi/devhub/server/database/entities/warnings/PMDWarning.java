@@ -20,8 +20,8 @@ import javax.validation.constraints.NotNull;
 @Data
 @Entity
 @DiscriminatorValue("pmd")
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@ToString(of = {"message", "rule", "priority"}, callSuper = true)
+@EqualsAndHashCode(of = {"message", "rule", "priority"}, callSuper = true)
 public class PMDWarning extends LineWarning {
 
     private static final String RESOURCE_KEY = "warning.pmd";

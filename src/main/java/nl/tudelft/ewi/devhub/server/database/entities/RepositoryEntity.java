@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableMap;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
@@ -58,7 +59,7 @@ public abstract class RepositoryEntity implements Configurable, Base {
     @Column(name = "repository_name", unique = true)
     private String repositoryName;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "build_instruction", nullable = true)
     private BuildInstructionEntity buildInstruction;
 

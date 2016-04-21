@@ -107,7 +107,7 @@ public class Warnings extends Controller<Warning> {
     public List<LineWarning> getLineWarningsFor(final RepositoryEntity repositoryEntity, final String commitId) {
         return query().from(lineWarning)
             .where(lineWarning.repository.eq(repositoryEntity)
-                    .and(lineWarning.source.sourceCommit.commitId.eq(commitId)))
+                    .and(lineWarning.commit.commitId.eq(commitId)))
             .list(lineWarning);
     }
 

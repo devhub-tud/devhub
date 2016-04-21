@@ -17,8 +17,8 @@ import javax.persistence.Entity;
  */
 @Data
 @Entity
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@ToString(of = {"source"}, callSuper = true)
+@EqualsAndHashCode(of = {"source"}, callSuper = true)
 public abstract class LineWarning extends CommitWarning {
 
     @Getter

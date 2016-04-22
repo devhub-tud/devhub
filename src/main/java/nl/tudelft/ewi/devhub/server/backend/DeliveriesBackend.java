@@ -194,8 +194,8 @@ public class DeliveriesBackend {
     /**
      * Get the attachment for an assignment.
      * 
-     * @param assignment
-     * 		Assignment to get the attachment for
+     * @param delivery
+     * 		Delivery to get the attachment for
      * @param group
      * 		Group to get the assignment path for
      * @param attachmentPath
@@ -206,17 +206,15 @@ public class DeliveriesBackend {
      * @throws NotFoundException
      * 		When the file could not be found
      */
-    public File getAttachment(Assignment assignment, Group group, String attachmentPath)
+    public File getAttachment(Delivery delivery, Group group, String attachmentPath)
     		throws UnauthorizedException, NotFoundException {
         checkUserAuthorized(group);
         File file = storageBackend.getFile(attachmentPath);
-        List<Delivery> deliveriesForAssignment = deliveriesDAO.getDeliveries(assignment, group);
 
         // VERY IMPORTANT
-        //   VERIFY THAT FILE ACTUALLY BELONGS TO THIS ASSIGNMENT
-        if (deliveriesForAssignment.stream().noneMatch((delivery) ->
-            delivery.getAttachments().stream().anyMatch((attachment) ->
-                attachment.getPath().equals(attachmentPath)))) {
+        //   VERIFY THAT FILE ACTUALLY BELONGS TO THIS DELIVERY
+        if (delivery.getAttachments().stream().noneMatch((attachment) ->
+                attachment.getPath().equals(attachmentPath))) {
             throw new UnauthorizedException();
         }
 

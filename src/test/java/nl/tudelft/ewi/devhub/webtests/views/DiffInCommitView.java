@@ -69,7 +69,7 @@ public class DiffInCommitView extends ProjectInCommitView {
 					DiffLine expectedLine = expectedContext.getLines().get(j);
 					DiffLine actualLine = actualContext.getLines().get(j);
 
-					assertEquals(expectedLine.getContent(), actualLine.getContent());
+					assertEquals(expectedLine.getContent().trim(), actualLine.getContent().trim());
 					assertEquals(expectedLine.getOldLineNumber(), actualLine.getOldLineNumber());
 					assertEquals(expectedLine.getNewLineNumber(), actualLine.getNewLineNumber());
 				}

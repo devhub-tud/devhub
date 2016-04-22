@@ -275,18 +275,18 @@ public class ProjectAssignmentsResource extends Resource {
     /**
      * Get a file from a delivery
      * @param request the current HttpServletRequest
-     * @param assignmentId assignmentId for the assignment
+     * @param deliveryId deliveryId for the delivery
      * @param attachmentPath requested file
      * @return the requested file
      */
     @GET
-    @Path("{assignmentId : \\d+}/attachment/{path}")
+    @Path("{assignmentId : \\d+}/deliveries/{deliveryId}/attachment/{path}")
     public Response getAttachment(@Context HttpServletRequest request,
-                                  @PathParam("assignmentId") Long assignmentId,
+                                  @PathParam("deliveryId") long deliveryId,
                                   @PathParam("path") String attachmentPath) {
 
-        Assignment assignment = assignments.find(group.getCourse(), assignmentId);
-        File file = deliveriesBackend.getAttachment(assignment, group, attachmentPath);
+        Delivery delivery = deliveries.find(group, deliveryId);
+        File file = deliveriesBackend.getAttachment(delivery, group, attachmentPath);
         return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM).build();
     }
 

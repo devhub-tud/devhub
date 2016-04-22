@@ -302,7 +302,7 @@ public class DeliveriesBackendTest extends BackendTest {
 		
 		when(delivery.getAttachments()).thenReturn(attachments);
 		
-		assertEquals(file, this.deliveriesBackend.getAttachment(assignment, group, FULL_PATH_NAME));
+		assertEquals(file, this.deliveriesBackend.getAttachment(delivery, group, FULL_PATH_NAME));
 	}
 	
 	@Test
@@ -340,7 +340,7 @@ public class DeliveriesBackendTest extends BackendTest {
 		when(delivery.getAttachments()).thenReturn(attachments);
 		when(attachment.getPath()).thenReturn("bogusPath.txt");
 		
-		this.deliveriesBackend.getAttachment(assignment, group, FULL_PATH_NAME);
+		this.deliveriesBackend.getAttachment(delivery, group, FULL_PATH_NAME);
 	}
 	
 	@Test

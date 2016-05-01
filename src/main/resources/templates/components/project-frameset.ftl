@@ -32,6 +32,11 @@
                 ${i18n.translate("section.contributors")}
                 </a>
             </li>
+            <li role="presentation" [#if currentTab == "settings"]class="active"[/#if]>
+                <a href="${repositoryEntity.getURI()}settings">
+				Settings
+                </a>
+            </li>
         </ul>
 
         <h4>Git clone URL</h4>

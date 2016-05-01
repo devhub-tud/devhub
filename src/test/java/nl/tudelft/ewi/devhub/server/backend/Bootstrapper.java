@@ -17,6 +17,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
@@ -243,8 +244,17 @@ public class Bootstrapper {
 		groupEntity.setMembers(Sets.newHashSet());
 		groupEntity.setGroupNumber(group.getGroupNumber());
 
+		MavenBuildInstructionEntity mavenBuildInstructionEntity = new MavenBuildInstructionEntity();
+		mavenBuildInstructionEntity.setCheckstyle(true);
+		mavenBuildInstructionEntity.setFindbugs(true);
+		mavenBuildInstructionEntity.setPmd(true);
+		mavenBuildInstructionEntity.setWithDisplay(true);
+		mavenBuildInstructionEntity.setBuildTimeout(600);
+		mavenBuildInstructionEntity.setCommand("test");
+
 		GroupRepository groupRepository = new GroupRepository();
 		groupRepository.setRepositoryName(entity.createRepositoryName(groupEntity).toASCIIString());
+		groupRepository.setBuildInstruction(mavenBuildInstructionEntity);
 		groupEntity.setRepository(groupRepository);
 
 		groups.persist(groupEntity);

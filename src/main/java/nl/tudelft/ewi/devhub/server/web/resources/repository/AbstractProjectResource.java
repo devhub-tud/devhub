@@ -38,6 +38,7 @@ import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
+
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
@@ -447,8 +448,25 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	@Transactional
 	public void deleteRepository() {
 		RepoType repositoryEntity = getRepositoryEntity();
-		repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+		log.info("Removing {} from git-server", repositoryEntity.getRepositoryName());
+		repositoriesApi.getRepository(repositoryEntity.getRepositoryName()).deleteRepository();
+		log.info("Removing {}", repositoryEntity);
 		repositoriesController.delete(repositoryEntity);
+	}
+
+	@GET
+	@Path("/settings")
+	@Transactional
+	public Response showSettings(@Context HttpServletRequest request) throws IOException, ApiError {
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repository", repository.getRepositoryModel());
+		parameters.put("buildInstruction", repositoriesController.unproxy(repositoryEntity.getBuildInstruction()));
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project/settings.ftl", locales, parameters));
 	}
 
 

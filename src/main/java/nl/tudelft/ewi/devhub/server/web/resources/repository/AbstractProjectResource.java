@@ -8,13 +8,13 @@ import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.controllers.Controller;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -38,12 +38,14 @@ import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
+
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -72,7 +74,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-public abstract class AbstractProjectResource extends Resource {
+public abstract class AbstractProjectResource<RepoType extends RepositoryEntity> extends Resource {
 
 	private static final int PAGE_SIZE = 25;
 
@@ -87,6 +89,7 @@ public abstract class AbstractProjectResource extends Resource {
 	protected final CommentMailer commentMailer;
 	protected final Commits commits;
 	protected final Warnings warnings;
+	protected final Controller<? super RepoType> repositoriesController;
 
 	protected AbstractProjectResource(final TemplateEngine templateEngine,
 							final @Named("current.user") User currentUser,
@@ -98,22 +101,24 @@ public abstract class AbstractProjectResource extends Resource {
 							final CommitComments comments,
 							final CommentMailer commentMailer,
 							final Commits commits,
-							final Warnings warnings) {
+							final Warnings warnings,
+						  	final Controller<? super RepoType> repositoriesController) {
 
 		this.templateEngine = templateEngine;
 		this.currentUser = currentUser;
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
-      this.buildBackend = buildBackend;
+		this.buildBackend = buildBackend;
 		this.repositoriesApi = repositoriesApi;
 		this.comments = comments;
 		this.commentMailer = commentMailer;
 		this.commits = commits;
 		this.warnings = warnings;
+		this.repositoriesController = repositoriesController;
 	}
 
-	protected abstract RepositoryEntity getRepositoryEntity();
+	protected abstract RepoType getRepositoryEntity();
 
 	protected Map<String, Object> getBaseParameters() {
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
@@ -437,6 +442,33 @@ public abstract class AbstractProjectResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
 	}
+
+	@DELETE
+	@Consumes(MediaType.WILDCARD)
+	@Transactional
+	public void deleteRepository() {
+		RepoType repositoryEntity = getRepositoryEntity();
+		log.info("Removing {} from git-server", repositoryEntity.getRepositoryName());
+		repositoriesApi.getRepository(repositoryEntity.getRepositoryName()).deleteRepository();
+		log.info("Removing {}", repositoryEntity);
+		repositoriesController.delete(repositoryEntity);
+	}
+
+	@GET
+	@Path("/settings")
+	@Transactional
+	public Response showSettings(@Context HttpServletRequest request) throws IOException, ApiError {
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repository", repository.getRepositoryModel());
+		parameters.put("buildInstruction", repositoriesController.unproxy(repositoryEntity.getBuildInstruction()));
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project/settings.ftl", locales, parameters));
+	}
+
 
 	private Set<String> getCommitsForBlame(BlameModel blame) {
 		return blame.getBlames().stream()

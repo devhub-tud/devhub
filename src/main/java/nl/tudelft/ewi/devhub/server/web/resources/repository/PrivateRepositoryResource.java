@@ -29,7 +29,7 @@ import javax.ws.rs.core.UriInfo;
  */
 @RequestScoped
 @Path("projects/{netId}/{repoTitle}")
-public class PrivateRepositoryResource extends AbstractProjectResource {
+public class PrivateRepositoryResource extends AbstractProjectResource<PrivateRepository> {
 
 	private final PrivateRepositories privateRepositories;
 
@@ -41,7 +41,7 @@ public class PrivateRepositoryResource extends AbstractProjectResource {
 	                                 RepositoriesApi repositoriesApi, BuildsBackend buildBackend, CommitComments comments,
 	                                 CommentMailer commentMailer, Commits commits, Warnings warnings,
 	                                 PrivateRepositories privateRepositories) {
-		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, repositoriesApi, buildBackend, comments, commentMailer, commits, warnings);
+		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, repositoriesApi, buildBackend, comments, commentMailer, commits, warnings, privateRepositories);
 		this.privateRepositories = privateRepositories;
 	}
 

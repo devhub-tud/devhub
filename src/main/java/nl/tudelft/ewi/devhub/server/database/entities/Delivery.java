@@ -110,7 +110,7 @@ public class Delivery implements Event, Base {
 	})
     private Group group;
 
-	@ManyToOne(optional = true, fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumns({
 		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
 		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id")
@@ -130,7 +130,7 @@ public class Delivery implements Event, Base {
     private String notes;
 
     @JoinColumn(name = "delivery_id")
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<DeliveryAttachment> attachments;
 
 	@CreationTimestamp

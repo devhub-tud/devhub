@@ -1,12 +1,16 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 
 import com.google.common.collect.ComparisonChain;
 
@@ -24,11 +28,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import java.io.Serializable;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -67,7 +73,7 @@ public class Group implements Comparable<Group>, Serializable, Base {
 	@Column(name = "group_number", nullable = false)
 	private long groupNumber;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	@JoinColumn(name = "repository_id", referencedColumnName = "id", unique = true)
 	private GroupRepository repository;
 
@@ -86,6 +92,11 @@ public class Group implements Comparable<Group>, Serializable, Base {
 		}
 	)
 	private Set<User> members;
+
+	@Setter(AccessLevel.NONE)
+	@Getter(AccessLevel.NONE)
+	@OneToMany(mappedBy = "group", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<Delivery> deliveries;
 
 	public String getGroupName() {
 		return String.format("%s (Group %d)",

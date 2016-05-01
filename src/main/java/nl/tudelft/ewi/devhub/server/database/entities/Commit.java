@@ -10,7 +10,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -42,7 +41,6 @@ import java.util.Objects;
 public class Commit implements Event, Base {
 
 	@Data
-	@Embeddable
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class CommitId implements Serializable {
@@ -63,7 +61,7 @@ public class Commit implements Event, Base {
 	private String commitId;
 
 	@Size(max = 255)
-	@Column(name = "author", length = 255)
+	@Column(name = "author")
 	private String author;
 
 	@Column(name = "committed")
@@ -74,10 +72,10 @@ public class Commit implements Event, Base {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date pushTime;
 	
-	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<CommitComment> comments;
 
-	@OneToOne(optional = true, cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
+	@OneToOne(cascade = {CascadeType.DETACH, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
 	@PrimaryKeyJoinColumns({
 		@PrimaryKeyJoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
 		@PrimaryKeyJoinColumn(name = "commit_id", referencedColumnName = "commit_id")

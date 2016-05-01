@@ -1,12 +1,15 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
-
-import com.google.common.collect.ImmutableMap;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -23,10 +26,10 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.net.URI;
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 
 /**
  * The {@code Repository} information was previously stored within the
@@ -59,9 +62,19 @@ public abstract class RepositoryEntity implements Configurable, Base {
     @Column(name = "repository_name", unique = true)
     private String repositoryName;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "build_instruction", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "build_instruction")
     private BuildInstructionEntity buildInstruction;
+
+	@Setter(AccessLevel.NONE)
+	@Getter(AccessLevel.NONE)
+	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<Warning> warnings;
+
+	@Setter(AccessLevel.NONE)
+	@Getter(AccessLevel.NONE)
+	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<PullRequest> pullRequests;
 
     /**
      * @return a list of collaborators for this repository.

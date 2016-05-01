@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
@@ -49,6 +50,7 @@ import java.util.List;
 @Entity
 @Table(name = "repository")
 @EqualsAndHashCode(of = {"id"})
+@ToString(of = {"id", "repositoryName"})
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(discriminatorType = DiscriminatorType.INTEGER)
 public abstract class RepositoryEntity implements Configurable, Base {

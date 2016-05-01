@@ -69,6 +69,11 @@ public abstract class RepositoryEntity implements Configurable, Base {
 	@Setter(AccessLevel.NONE)
 	@Getter(AccessLevel.NONE)
 	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<Commit> commits;
+
+	@Setter(AccessLevel.NONE)
+	@Getter(AccessLevel.NONE)
+	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Warning> warnings;
 
 	@Setter(AccessLevel.NONE)

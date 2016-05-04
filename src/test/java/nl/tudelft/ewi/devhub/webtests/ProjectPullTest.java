@@ -7,6 +7,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
+import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestView;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.web.api.BranchApi;
@@ -18,8 +19,8 @@ import nl.tudelft.ewi.gitolite.repositories.Repository;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,7 +35,6 @@ import java.net.URISyntaxException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class ProjectPullTest extends WebTest {
 
@@ -94,15 +94,20 @@ public class ProjectPullTest extends WebTest {
 	@Test
 	public void testCreatePullRequest() {
 		
-		// Create pull request for commit
-		PullRequestView view = openLoginScreen()
+		// assert branch is visible
+		Branch newBranch = openLoginScreen()
 			.login(NET_ID, PASSWORD)
 			.toCoursesView()
 			.listMyProjects()
 			.get(0).click()
 			.listBranches()
-			.get(1).click()
-			.openCreatePullRequestView();
+			.get(1);
+		
+		assertEquals(BRANCH_NAME, newBranch.getName());
+		
+		// navigate to pull request view
+		PullRequestView view = newBranch.click().openCreatePullRequestView();
+		assertThat(view.getCurrentUrl(), CoreMatchers.containsString("courses/ti1705/TI1705/groups/1/pull/1"));
 		
 	}
 

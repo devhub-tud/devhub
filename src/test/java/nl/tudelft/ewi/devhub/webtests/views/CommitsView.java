@@ -4,12 +4,15 @@ import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -73,10 +76,17 @@ public class CommitsView extends ProjectSidebarView {
 		
 		for(WebElement entry : entries){
 			WebElement anchor = entry.findElement(By.tagName("a"));
-			String name = anchor.getText().trim();
+			String name = anchor.getAttribute("text").trim();
 			branches.add(new Branch(name, anchor));
 		}
 		return branches;
+	}
+	
+	public PullRequestView openCreatePullRequestView(){
+		invariant();
+		getDriver().findElement(By.cssSelector("button.pull-right")).click();
+		return new PullRequestView(getDriver());
+		
 	}
 
 	@Data
@@ -102,8 +112,13 @@ public class CommitsView extends ProjectSidebarView {
 		private final String name;
 		
 		private final WebElement anchor;
-		
+
+		@SneakyThrows
 		public CommitsView click() {
+			// Open dropdown
+			getDriver().findElement(By.cssSelector("div.pull-right button.dropdown-toggle")).click();
+			// Wait for the animation to complete
+			Thread.sleep(100);
 			anchor.click();
 			return new CommitsView(getDriver());
 		}

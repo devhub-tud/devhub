@@ -2,7 +2,7 @@ package nl.tudelft.ewi.devhub.webtests.views;
 
 import org.openqa.selenium.WebDriver;
 
-public class PullRequestView extends View {
+public class PullRequestView extends AuthenticatedView {
 
 	public PullRequestView(WebDriver driver) {
 		super(driver);

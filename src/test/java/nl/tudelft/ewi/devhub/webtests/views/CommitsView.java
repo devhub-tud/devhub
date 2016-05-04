@@ -57,6 +57,28 @@ public class CommitsView extends ProjectSidebarView {
 
 	}
 
+	/**
+	 * @return A {@link List} of all {@link Branch}es in the Branch selection dropdown.
+	 */
+	public List<Branch> listBranches(){
+		invariant();
+		WebElement dropdown = getDriver().findElement(By.cssSelector("ul.dropdown-menu"));
+		return listBranches(dropdown);
+		
+	}
+
+	private List<Branch> listBranches(WebElement dropdown) {
+		List<WebElement> entries = dropdown.findElements(By.tagName("li"));
+		List<Branch> branches = Lists.newArrayList();
+		
+		for(WebElement entry : entries){
+			WebElement anchor = entry.findElement(By.tagName("a"));
+			String name = anchor.getText().trim();
+			branches.add(new Branch(name, anchor));
+		}
+		return branches;
+	}
+
 	@Data
 	public class Commit {
 
@@ -72,6 +94,20 @@ public class CommitsView extends ProjectSidebarView {
 			return new DiffInCommitView(getDriver());
 		}
 
+	}
+	
+	@Data
+	public class Branch {
+		
+		private final String name;
+		
+		private final WebElement anchor;
+		
+		public CommitsView click() {
+			anchor.click();
+			return new CommitsView(getDriver());
+		}
+		
 	}
 
 }

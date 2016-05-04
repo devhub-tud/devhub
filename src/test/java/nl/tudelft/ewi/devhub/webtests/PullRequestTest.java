@@ -9,8 +9,8 @@ import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 public class PullRequestTest extends WebTest {
 
 	@Test
-	public void test() {
-		fail("Not yet implemented");
+	public void testCreatePullRequest() {
+		
 	}
 
 }

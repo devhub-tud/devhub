@@ -76,7 +76,7 @@ public class CommitsView extends ProjectSidebarView {
 		
 		for(WebElement entry : entries){
 			WebElement anchor = entry.findElement(By.tagName("a"));
-			String name = anchor.getAttribute("text").trim();
+			String name = anchor.getAttribute("text").split("\n")[0].trim();
 			branches.add(new Branch(name, anchor));
 		}
 		return branches;

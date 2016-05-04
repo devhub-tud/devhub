@@ -18,6 +18,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 
+import org.apache.commons.io.FileUtils;
 import org.jboss.resteasy.spi.NotImplementedYetException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +33,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -229,7 +233,7 @@ public class AssignmentsResource extends Resource {
     @Transactional
     @Produces(TEXT_CSV)
     @Path("{assignmentId : \\d+}/deliveries/download")
-    public String downloadAssignmentResults(@Context HttpServletRequest request,
+    public Response downloadAssignmentResults(@Context HttpServletRequest request,
                                             @PathParam("courseCode") String courseCode,
 											@PathParam("editionCode") String editionCode,
                                             @PathParam("assignmentId") Long assignmentId) throws IOException {
@@ -264,8 +268,11 @@ public class AssignmentsResource extends Resource {
                 sb.append(CSV_ROW_SEPARATOR);
             });
         });
-
-        return sb.toString();
+        
+        ResponseBuilder respons = Response.ok(sb.toString());
+        respons.header("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ ".csv\"");
+        
+        return respons.build();
     }
 
     /**

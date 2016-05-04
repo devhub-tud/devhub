@@ -16,6 +16,8 @@ public abstract class ProjectSidebarView extends AuthenticatedView {
 
 	private static final By BREADCRUMB = By.xpath("/html/body/div/ol");
 
+	private static final By SIDEBAR = By.className("col-md-2");
+
 	protected ProjectSidebarView(WebDriver driver) {
 		super(driver);
 	}
@@ -24,6 +26,7 @@ public abstract class ProjectSidebarView extends AuthenticatedView {
 	protected void invariant() {
 		assertTrue(currentPathStartsWith("/courses"));
 		assertNotNull(getBreadcrumb());
+		assertNotNull(getDriver().findElement(SIDEBAR));
 	}
 
 	protected WebElement getBreadcrumb() {

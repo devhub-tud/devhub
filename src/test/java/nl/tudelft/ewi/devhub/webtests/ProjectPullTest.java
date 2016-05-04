@@ -2,11 +2,14 @@ package nl.tudelft.ewi.devhub.webtests;
 
 import com.google.common.io.Files;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
+import nl.tudelft.ewi.devhub.webtests.views.CommitsView;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestView;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
@@ -44,6 +47,7 @@ public class ProjectPullTest extends WebTest {
 	@Inject Groups groups;
 	@Inject RepositoriesApi repositoriesApi;
 	@Inject RepositoriesManager repositoriesManager;
+	@Inject PullRequests pullRequests;
 
 	@Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -102,13 +106,18 @@ public class ProjectPullTest extends WebTest {
 			.get(0).click()
 			.listBranches()
 			.get(1);
-		
+
+
 		assertEquals(BRANCH_NAME, newBranch.getName());
-		
+
 		// navigate to pull request view
-		PullRequestView view = newBranch.click().openCreatePullRequestView();
-		assertThat(view.getCurrentUrl(), CoreMatchers.containsString("courses/ti1705/TI1705/groups/1/pull/1"));
-		
+		PullRequestView pullRequestView =
+			newBranch.click().openCreatePullRequestView();
+
+		// Grab the pull request instance for BRANCH_NAME from the DB.
+		PullRequest pullRequest = pullRequests.findOpenPullRequest(groupRepository, "refs/heads/" + BRANCH_NAME).get();
+
+		// TODO Assertions on pullRequestView against pullRequest
 	}
 
 }

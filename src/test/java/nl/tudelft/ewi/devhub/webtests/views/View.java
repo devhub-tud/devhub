@@ -19,6 +19,7 @@ public abstract class View {
 
 	protected View(WebDriver driver) {
 		this.driver = driver;
+		invariant();
 	}
 
 	/**
@@ -56,6 +57,21 @@ public abstract class View {
 		for (int i = 0; i < 100; i++) {
 			String currentPath = getCurrentPath();
 			if (currentPath.equals(path) || currentPath.startsWith(path + "?")) {
+				return true;
+			}
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				log.warn(e.getMessage(), e);
+			}
+		}
+		return false;
+	}
+
+	public boolean currentPathContains(String path) {
+		for (int i = 0; i < 100; i++) {
+			String currentPath = getCurrentPath();
+			if (currentPath.contains(path)) {
 				return true;
 			}
 			try {

@@ -12,6 +12,9 @@ import static org.junit.Assert.assertEquals;
 
 public class AssignmentTest extends WebTest {
 
+	private static final String ASSISTANT_USERNAME = "assistant1";
+	private static final String ASSISTANT_PASSWORD = "assistant1";
+
 	@Test
 	public void testListAssignments() {
 		AssignmentsView view = openLoginScreen()
@@ -32,11 +35,8 @@ public class AssignmentTest extends WebTest {
 
 	@Test
 	public void testAssignment() throws ParseException {
-		final String net_id = "assistant1";
-		final String password = "assistant1";
-
 		final AssignmentView view = openLoginScreen()
-				.login(net_id, password)
+				.login(ASSISTANT_USERNAME, ASSISTANT_PASSWORD)
 				.listAssistingCourses()
 				.get(0).click()
 				.listGroups()
@@ -47,7 +47,8 @@ public class AssignmentTest extends WebTest {
 
 		final AssignmentView.Assignment assignment = view.getAssignment();
         assertEquals("Student Two", assignment.getAuthor());
-        // TODO: 4-5-16 assert date is equal to current date
+		assertEquals("Product vision", assignment.getName());
+        assertEquals("Submitted", assignment.getStatus());
     }
 	
 }

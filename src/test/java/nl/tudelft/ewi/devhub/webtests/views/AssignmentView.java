@@ -34,20 +34,20 @@ public class AssignmentView extends ProjectSidebarView {
     }
 
     public Assignment getAssignment() throws ParseException {
-        String author;
-        Date date;
         WebElement submit = getDriver().findElement(By.cssSelector("a[href^=\"deliveries\"]"));
 
         final List<WebElement> elements = getDriver().findElements(By.tagName("dd"));
-        author = elements.get(0).getText();
-        date = new SimpleDateFormat("EEEE dd MMMM yyyy k:m", Locale.US).parse(elements.get(1).getText());
+        final String author = elements.get(0).getText();
+        final Date date = new SimpleDateFormat("EEEE dd MMMM yyyy k:m", Locale.US).parse(elements.get(1).getText());
+        final String name = getDriver().findElement(By.cssSelector("div .col-md-offset-2.col-md-10")).getText();
+        final String status = getDriver().findElement(By.cssSelector("span.label")).getText();
 
-        return new Assignment(author, date, submit);
+        return new Assignment(author, name, status, date, submit);
     }
 
     @Data
     public class Assignment {
-        private final String author;
+        private final String author, name, status;
         private final Date date;
         @Getter(AccessLevel.NONE)
         private final WebElement anchor;

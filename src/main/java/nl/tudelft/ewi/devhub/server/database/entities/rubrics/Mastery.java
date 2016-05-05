@@ -4,6 +4,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,6 +31,7 @@ import javax.persistence.Table;
 @Table(name = "characteristic_mastery")
 @EqualsAndHashCode(of = {"id"})
 @ToString(exclude = {"characteristic"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Mastery {
 
 	@Id
@@ -36,6 +40,7 @@ public class Mastery {
 	private long id;
 
 	@ManyToOne(optional = false)
+	@JsonBackReference
 	@JoinColumn(name = "characteristic_id", referencedColumnName = "characteristic_id")
 	private Characteristic characteristic;
 
@@ -46,6 +51,6 @@ public class Mastery {
 	private String description;
 
 	@Column(name = "points")
-	private int points;
+	private double points;
 
 }

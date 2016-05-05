@@ -4,6 +4,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -24,6 +28,7 @@ import java.util.List;
 @Table(name = "assignment_task_characteristic")
 @EqualsAndHashCode(of = {"id"})
 @ToString(exclude = {"task"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Characteristic {
 
 	@Id
@@ -31,6 +36,7 @@ public class Characteristic {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
+	@JsonBackReference
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "task_id", referencedColumnName = "task_id")
 	private Task task;
@@ -51,15 +57,24 @@ public class Characteristic {
 	 * 	<li>1, 2, 3, 4</li>
 	 * </ul>
 	 */
+	@JsonManagedReference
 	@OneToMany(mappedBy = "characteristic", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Mastery> levels;
 
 	@Column(name = "weight")
 	private double weight;
 
-	public int getMaximalNumberOfPoints() {
+	/**
+	 * Hook that allows you to ignore this weight when computing the
+	 * total weight for a {@link Task}, allowing you to create
+	 * {@code Characteristics} for bonus points and penalties.
+	 */
+	@Column(name = "weightAddsToTotalWeight")
+	private boolean weightAddsToTotalWeight = true;
+
+	public double getMaximalNumberOfPoints() {
 		return getLevels().stream()
-			.mapToInt(Mastery::getPoints)
+			.mapToDouble(Mastery::getPoints)
 			.max().orElse(0);
 	}
 

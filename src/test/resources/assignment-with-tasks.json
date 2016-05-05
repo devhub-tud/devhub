@@ -1,0 +1,29 @@
+{
+  "name": "Part 1. E2E & Boundary Testing",
+  "summary": "",
+  "dueDate": null,
+  "tasks": [
+    {
+      "description": "Smoke Testing",
+      "characteristics": [
+        {
+          "description": "Correct implementation of the Smoke Test",
+          "levels": [
+            {
+              "description": "No implementation of the Smoke Test",
+              "points": 0
+            },
+            {
+              "description": "Constructing dependencies manually.",
+              "points": 1
+            },
+            {
+              "description": "Correctly launching the interface.",
+              "points": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

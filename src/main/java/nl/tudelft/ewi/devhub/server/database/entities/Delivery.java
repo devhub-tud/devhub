@@ -31,7 +31,6 @@ import javax.persistence.JoinColumns;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.MapKey;
 import javax.persistence.MapKeyJoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -181,13 +180,13 @@ public class Delivery implements Event, Base {
 		joinColumns = @JoinColumn(name = "delivery_id", referencedColumnName = "id"),
 		inverseJoinColumns = @JoinColumn(name = "mastery_id", referencedColumnName = "mastery_id")
 	)
-	@MapKeyJoinColumn(name = "characteristic_id", referencedColumnName = "characteristic_id", updatable = false, insertable = false)
+	@MapKeyJoinColumn(name = "characteristic_id", referencedColumnName = "characteristic_id")
 	private Map<Characteristic, Mastery> rubrics;
 
 	public double getAchievedNumberOfPoints() {
-		return getRubrics().entrySet().stream()
+		return Math.max(0, Math.min(getRubrics().entrySet().stream()
 			.mapToDouble(entry -> entry.getValue().getPoints() * entry.getKey().getWeight())
-			.sum();
+			.sum(), getAssignment().getNumberOfAchievablePoints()));
 	}
 
     public State getState() {

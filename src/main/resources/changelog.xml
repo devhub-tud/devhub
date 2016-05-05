@@ -900,7 +900,10 @@
                 <constraints nullable="false"/>
             </column>
             <column name="description" type="varchar(1024)"/>
-            <column name="weight" type="float">
+            <column name="weight" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="weightAddsToTotalWeight" type="boolean" defaultValue="true">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -913,7 +916,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="description" type="varchar(1024)"/>
-            <column name="points" type="int">
+            <column name="points" type="double">
                 <constraints nullable="false"/>
             </column>
         </createTable>

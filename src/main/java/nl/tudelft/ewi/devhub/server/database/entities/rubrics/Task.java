@@ -5,6 +5,10 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,6 +30,7 @@ import java.util.List;
 @Table(name = "assignment_task")
 @EqualsAndHashCode(of = {"id"})
 @ToString(exclude = {"assignment"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Task {
 
 	@Id
@@ -33,6 +38,7 @@ public class Task {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
+	@JsonBackReference
 	@ManyToOne(optional = false)
 	@JoinColumns({
 		@JoinColumn(name = "course_edition_id", referencedColumnName = "course_edition_id"),
@@ -49,17 +55,20 @@ public class Task {
 	/**
 	 * The skills, knowledge, and/or behavior to be demonstrated.
 	 */
+	@JsonManagedReference
 	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Characteristic> characteristics;
 
 	public double getTotalWeight() {
 		return getCharacteristics().stream()
+			.filter(Characteristic::isWeightAddsToTotalWeight)
 			.mapToDouble(Characteristic::getWeight)
 			.sum();
 	}
 
 	public double getMaximalNumberOfPoints() {
 		return getCharacteristics().stream()
+			.filter(Characteristic::isWeightAddsToTotalWeight)
 			.mapToDouble(Characteristic::getMaximalNumberOfPointsWithWeight)
 			.sum();
 	}

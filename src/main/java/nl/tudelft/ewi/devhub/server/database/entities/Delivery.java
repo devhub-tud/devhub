@@ -5,6 +5,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JoinColumnOrFormula;
@@ -26,7 +28,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapKey;
+import javax.persistence.MapKeyJoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -35,6 +41,7 @@ import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Delivery for an assignment
@@ -167,6 +174,21 @@ public class Delivery implements Event, Base {
         private String commentary;
 
     }
+
+	@ManyToMany
+	@JoinTable(
+		name = "delivery_rubrics",
+		joinColumns = @JoinColumn(name = "delivery_id", referencedColumnName = "id"),
+		inverseJoinColumns = @JoinColumn(name = "mastery_id", referencedColumnName = "mastery_id")
+	)
+	@MapKeyJoinColumn(name = "characteristic_id", referencedColumnName = "characteristic_id", updatable = false, insertable = false)
+	private Map<Characteristic, Mastery> rubrics;
+
+	public double getAchievedNumberOfPoints() {
+		return getRubrics().entrySet().stream()
+			.mapToDouble(entry -> entry.getValue().getPoints() * entry.getKey().getWeight())
+			.sum();
+	}
 
     public State getState() {
         Review review = getReview();

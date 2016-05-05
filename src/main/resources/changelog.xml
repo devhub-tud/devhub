@@ -874,4 +874,84 @@
 		</createTable>
 	</changeSet>
 
+    <changeSet id="add_rubrics" author="Jan-Willem Gmelig Meyling">
+        <createTable tableName="assignment_task">
+            <column name="task_id" type="bigint" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="course_edition_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assignment_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(1024)"/>
+        </createTable>
+        
+        <createTable tableName="assignment_task_characteristic">
+            <column name="characteristic_type" type="varchar(255)" defaultValue="PlainCharacteristic">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="characteristic_id" type="bigint" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="task_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(1024)"/>
+            <column name="weight" type="float">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="characteristic_mastery">
+            <column name="mastery_id" type="bigint" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="characteristic_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(1024)"/>
+            <column name="points" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="delivery_rubrics">
+            <column name="delivery_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mastery_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="characteristic_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="delivery_rubrics" columnNames="delivery_id, characteristic_id"/>
+        
+        <addForeignKeyConstraint baseTableName="assignment_task" baseColumnNames="course_edition_id, assignment_id"
+             constraintName="task_for_assignment"
+             referencedTableName="assignments"
+             referencedColumnNames="course_edition_id, assignment_id"/>
+
+        <addForeignKeyConstraint baseTableName="assignment_task_characteristic"
+            baseColumnNames="task_id" constraintName="task_for_characteristic" referencedTableName="assignment_task"
+             referencedColumnNames="task_id"/>
+
+        <addForeignKeyConstraint baseTableName="characteristic_mastery" baseColumnNames="characteristic_id"
+            constraintName="characteristic_for_mastery" referencedTableName="assignment_task_characteristic"
+            referencedColumnNames="characteristic_id"/>
+
+        <addForeignKeyConstraint baseTableName="delivery_rubrics" baseColumnNames="characteristic_id, mastery_id"
+             constraintName="mastery_for_delivery_rubrics" referencedTableName="characteristic_mastery"
+             referencedColumnNames="characteristic_id, mastery_id"/>
+
+        <addForeignKeyConstraint baseTableName="delivery_rubrics" baseColumnNames="delivery_id"
+             constraintName="delivery_for_delivery_rubrics" referencedTableName="assignment_deliveries"
+             referencedColumnNames="id"/>
+    </changeSet>
+    
 </databaseChangeLog>

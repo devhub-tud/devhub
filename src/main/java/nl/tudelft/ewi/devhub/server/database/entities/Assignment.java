@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
@@ -16,20 +18,24 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -83,6 +89,9 @@ public class Assignment implements Comparable<Assignment>, Base {
     @Column(name="due_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dueDate;
+
+	@OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<Task> tasks;
 
     @Override
     public int compareTo(Assignment o) {

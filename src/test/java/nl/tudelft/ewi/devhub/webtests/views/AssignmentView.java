@@ -39,7 +39,7 @@ public class AssignmentView extends ProjectSidebarView {
         final List<WebElement> elements = getDriver().findElements(By.tagName("dd"));
         final String author = elements.get(0).getText();
         final Date date = new SimpleDateFormat("EEEE dd MMMM yyyy k:m", Locale.US).parse(elements.get(1).getText());
-        final String name = getDriver().findElement(By.cssSelector("div .col-md-offset-2.col-md-10")).getText();
+        final String name = getDriver().findElement(By.cssSelector("div .col-md-offset-2.col-md-10 h4")).getText();
         final String status = getDriver().findElement(By.cssSelector("span.label")).getText();
 
         return new Assignment(author, name, status, date, submit);

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Douwe Koopmans on 4-5-16.
@@ -29,6 +30,7 @@ public class AssignmentView extends ProjectSidebarView {
     protected void invariant() {
         super.invariant();
         assertNotNull(getDriver().findElement(RECENT_ASSIGNMENTS_HEADER));
+        assertTrue(currentPathStartsWith("/courses/ti1705/TI1705/groups/"));
     }
 
     public Assignment getAssignment() throws ParseException {

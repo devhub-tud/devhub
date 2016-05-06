@@ -47,7 +47,7 @@ public class AssignmentsTest extends PersistedBackendTest {
 		entityManager.clear();
 
 		assignment = assignments.find(courseEdition, assignment.getAssignmentId());
-		assertThat(assignment.getTasks(), iterableWithSize(1));
+		assertThat(assignment.getTasks(), iterableWithSize(3));
 	}
 
 }

@@ -29,7 +29,7 @@ import javax.persistence.Table;
 @Data
 @Entity
 @Table(name = "characteristic_mastery")
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"id", "characteristic"})
 @ToString(exclude = {"characteristic"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Mastery {

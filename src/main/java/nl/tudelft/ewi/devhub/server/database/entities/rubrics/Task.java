@@ -6,6 +6,7 @@ import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -28,7 +29,7 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "assignment_task")
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"id", "assignment", "description"})
 @ToString(exclude = {"assignment"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Task {

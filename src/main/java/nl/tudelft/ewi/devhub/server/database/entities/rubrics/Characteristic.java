@@ -26,7 +26,7 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "assignment_task_characteristic")
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"id", "task"})
 @ToString(exclude = {"task"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Characteristic {

@@ -45,8 +45,12 @@ import static org.junit.Assert.assertThat;
 
 @Slf4j
 public class ProjectPullTest extends WebTest {
-
-	private final String BRANCH_NAME = "my-super-branch";
+	
+	// Commit constants
+	private static final String BRANCH_NAME = "my-super-branch";
+	private static final String COMMIT_MESSAGE = "Adding my-file.txt";
+	private static final String FILE_NAME = "my-file.txt";
+	private static final String FILE_CONTENT = "Initial content";
 	
 	@Inject Users users;
 	@Inject Groups groups;
@@ -93,9 +97,9 @@ public class ProjectPullTest extends WebTest {
 		git.pull().call();
 
 		git.checkout().setCreateBranch(true).setName(BRANCH_NAME).call();
-		Files.write("Initial content".getBytes(), new File(temporaryFolder.getRoot(), "my-file.txt"));
-		git.add().addFilepattern("my-file.txt").call();
-		git.commit().setMessage("Adding my-file.txt").setAuthor(user.getName(), user.getEmail()).call();
+		Files.write(FILE_CONTENT.getBytes(), new File(temporaryFolder.getRoot(), FILE_NAME));
+		git.add().addFilepattern(FILE_NAME).call();
+		git.commit().setMessage(COMMIT_MESSAGE).setAuthor(user.getName(), user.getEmail()).call();
 		
 		git.push().call();
 	}
@@ -137,7 +141,7 @@ public class ProjectPullTest extends WebTest {
 		assertThat(pullRequestView.getAuthorHeader(), CoreMatchers.containsString(user.getEmail()));
 
 		// Assert message header is latest commit message
-		assertEquals("Adding my-file.txt", pullRequestView.getMessageHeader());
+		assertEquals(COMMIT_MESSAGE, pullRequestView.getMessageHeader());
 		
 	}
 	

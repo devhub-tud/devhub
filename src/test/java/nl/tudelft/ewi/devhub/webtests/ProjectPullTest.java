@@ -20,11 +20,14 @@ import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
 import nl.tudelft.ewi.gitolite.repositories.Repository;
+import nl.tudelft.ewi.gitolite.repositories.RepositoryNotFoundException;
+
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.URIish;
 import org.hamcrest.CoreMatchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -136,6 +139,18 @@ public class ProjectPullTest extends WebTest {
 		// Assert message header is latest commit message
 		assertEquals("Adding my-file.txt", pullRequestView.getMessageHeader());
 		
+	}
+	
+	@After
+	public void teardown() throws RepositoryNotFoundException, URISyntaxException{
+		// Delete pullrequest after test
+		PullRequest pullRequest = pullRequests.findOpenPullRequest(groupRepository, "refs/heads/" + BRANCH_NAME).get();
+		pullRequests.delete(pullRequest);
+
+		// Delete branch after test
+		RepositoryApi repositoryApi = repositoriesApi.getRepository(groupRepository.getRepositoryName());
+	
+		repositoryApi.getBranch(BRANCH_NAME).deleteBranch();
 	}
 
 }

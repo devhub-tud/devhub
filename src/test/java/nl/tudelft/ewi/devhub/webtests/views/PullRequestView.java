@@ -9,7 +9,7 @@ import static org.junit.Assert.assertTrue;
 public class PullRequestView extends AuthenticatedView {
 
 	private static final By BREADCRUMB = By.xpath("/html/body/div/ol");
-	private static final By HEADERS = By.xpath("//span[@class='headers']");
+	private static final By HEADERS = By.xpath("//div[@class='headers']");
 	private static final By MESSAGE_HEADER = By.xpath(".//h2[@class='header']");
 	private static final By AUTHOR_SUB_HEADER = By.xpath(".//h5[@class='subheader']");
 

@@ -1,6 +1,8 @@
 package nl.tudelft.ewi.devhub.webtests;
 
 import com.google.common.io.Files;
+
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -9,7 +11,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
-import nl.tudelft.ewi.devhub.webtests.views.CommitsView;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestView;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
@@ -39,6 +40,7 @@ import java.net.URISyntaxException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+@Slf4j
 public class ProjectPullTest extends WebTest {
 
 	private final String BRANCH_NAME = "my-super-branch";
@@ -98,7 +100,7 @@ public class ProjectPullTest extends WebTest {
 	@Test
 	public void testCreatePullRequest() {
 		
-		// assert branch is visible
+		// Assert branch is visible
 		Branch newBranch = openLoginScreen()
 			.login(NET_ID, PASSWORD)
 			.toCoursesView()
@@ -110,14 +112,30 @@ public class ProjectPullTest extends WebTest {
 
 		assertEquals(BRANCH_NAME, newBranch.getName());
 
-		// navigate to pull request view
+		// Navigate to pull request view
 		PullRequestView pullRequestView =
 			newBranch.click().openCreatePullRequestView();
 
 		// Grab the pull request instance for BRANCH_NAME from the DB.
 		PullRequest pullRequest = pullRequests.findOpenPullRequest(groupRepository, "refs/heads/" + BRANCH_NAME).get();
 
-		// TODO Assertions on pullRequestView against pullRequest
+		// Wait for the view to load
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			log.warn("", e);
+		}
+		
+		// Assertions on pullRequestView against pullRequest
+		assertEquals(pullRequest.isOpen(), pullRequestView.isOpen());
+		
+		// Assert opening users name and email are in the header (currently failing)
+		assertThat(pullRequestView.getAuthorHeader(), CoreMatchers.containsString(user.getName()));
+		assertThat(pullRequestView.getAuthorHeader(), CoreMatchers.containsString(user.getEmail()));
+
+		// Assert message header is latest commit message
+		assertEquals("Adding my-file.txt", pullRequestView.getMessageHeader());
+		
 	}
 
 }

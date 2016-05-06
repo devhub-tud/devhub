@@ -135,11 +135,11 @@ public class ProjectPullTest extends WebTest {
 		
 		// Assertions on pullRequestView against pullRequest
 		assertEquals(pullRequest.isOpen(), pullRequestView.isOpen());
-		
-		// Assert opening users name and email are in the header (currently failing)
-		assertThat(pullRequestView.getAuthorHeader(), CoreMatchers.containsString(user.getName()));
-		assertThat(pullRequestView.getAuthorHeader(), CoreMatchers.containsString(user.getEmail()));
 
+		// Assert opening users name and email are in the header (currently failing)
+		String author = pullRequest.getDestination().getAuthor();
+		assertEquals(author, pullRequestView.getAuthorHeader());
+		
 		// Assert message header is latest commit message
 		assertEquals(COMMIT_MESSAGE, pullRequestView.getMessageHeader());
 		

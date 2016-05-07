@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -29,7 +30,7 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "assignment_task")
-@EqualsAndHashCode(of = {"id", "assignment", "description"})
+@EqualsAndHashCode(of = {"id"})
 @ToString(exclude = {"assignment"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Task {
@@ -57,7 +58,7 @@ public class Task {
 	 * The skills, knowledge, and/or behavior to be demonstrated.
 	 */
 	@JsonManagedReference
-	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "task", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Characteristic> characteristics;
 
 	public double getTotalWeight() {

@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,7 +10,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,9 +26,10 @@ import static org.hamcrest.Matchers.equalTo;
  */
 public class DeliveryTest {
 
-	Delivery delivery;
-	Assignment assignment;
-	ObjectMapper objectMapper = new ObjectMapper();
+	private Delivery delivery;
+	private Assignment assignment;
+	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final AtomicInteger atomicInteger = new AtomicInteger(0);
 
 	@Before
 	public void setUp() throws IOException {
@@ -33,6 +37,7 @@ public class DeliveryTest {
 			DeliveryTest.class.getResourceAsStream("/assignment-with-tasks.json"),
 			Assignment.class
 		);
+		createCharacteristicIds();
 		delivery = new Delivery();
 		delivery.setAssignment(assignment);
 	}
@@ -74,5 +79,15 @@ public class DeliveryTest {
 			.getLevels().get(1);
 	}
 
+	/**
+	 * Characteristic equality is based on id values. As we're testing against a
+	 * non persisted Assignment, we generate fake unique identities in order to
+	 * maintain object uniqueness.
+	 */
+	protected void createCharacteristicIds() {
+		assignment.getTasks().stream()
+			.map(Task::getCharacteristics).flatMap(Collection::stream)
+			.forEach(characteristic -> characteristic.setId(atomicInteger.incrementAndGet()));
+	}
 
 }

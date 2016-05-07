@@ -81,8 +81,9 @@
     [/#if]
     </table>
     
-    <div>
-        <a href="${assignment.getURI()}deliveries/download" class="pull-right btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
+    <div class="pull-right">
+        <a href="${assignment.getURI()}deliveries/download-rubrics" class="btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download rubrics</a>
+        <a href="${assignment.getURI()}deliveries/download" class="btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
     </div>
 
 </div>

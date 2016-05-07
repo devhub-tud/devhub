@@ -32,7 +32,7 @@ import javax.persistence.Table;
 @EqualsAndHashCode(of = {"id"})
 @ToString(exclude = {"characteristic"})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Mastery {
+public class Mastery implements Comparable<Mastery> {
 
 	@Id
 	@Column(name = "mastery_id")
@@ -53,4 +53,8 @@ public class Mastery {
 	@Column(name = "points")
 	private double points;
 
+	@Override
+	public int compareTo(Mastery o) {
+		return Double.compare(getPoints(), o.getPoints());
+	}
 }

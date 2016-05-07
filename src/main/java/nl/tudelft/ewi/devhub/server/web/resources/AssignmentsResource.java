@@ -9,10 +9,13 @@ import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -21,6 +24,7 @@ import com.google.inject.persist.Transactional;
 import org.jboss.resteasy.spi.NotImplementedYetException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.FormParam;
@@ -36,11 +40,13 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -50,9 +56,9 @@ import java.util.Set;
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class AssignmentsResource extends Resource {
 
-    public static final String DATE_FORMAT = "dd-MM-yyyy HH:mm";
+    private static final String DATE_FORMAT = "dd-MM-yyyy HH:mm";
 
-    @Inject
+	@Inject
     private TemplateEngine templateEngine;
 
     @Inject
@@ -71,23 +77,26 @@ public class AssignmentsResource extends Resource {
     @Named("current.user")
     private User currentUser;
 
+	@Context
+	HttpServletRequest request;
+
+	@Context
+	HttpServletResponse response;
+
     /**
      * Get an overview of the courses
-     * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
      * @param editionCode the course to create an assignment for
      * @return a Response containing the generated page
      */
     @GET
-    public Response getOverviewPage(@Context HttpServletRequest request,
-                                    @PathParam("courseCode") String courseCode,
+    public Response getOverviewPage(@PathParam("courseCode") String courseCode,
 									@PathParam("editionCode") String editionCode) {
         throw new NotImplementedYetException();
     }
 
     /**
      * Present the user a form to create a new assignment
-     * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
 	 * @param editionCode the course to create an assignment for
      * @return a Response containing the generated page
@@ -95,8 +104,7 @@ public class AssignmentsResource extends Resource {
     @GET
     @Transactional
     @Path("create")
-    public Response getCreatePage(@Context HttpServletRequest request,
-                                  @PathParam("courseCode") String courseCode,
+    public Response getCreatePage(@PathParam("courseCode") String courseCode,
 								  @PathParam("editionCode") String editionCode,
                                   @QueryParam("error") String error) throws IOException {
 
@@ -118,7 +126,6 @@ public class AssignmentsResource extends Resource {
 
     /**
      * Submit a create assignment form
-     * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
 	 * @param editionCode the course to create an assignment for
      * @param name name for the assignment
@@ -128,8 +135,7 @@ public class AssignmentsResource extends Resource {
      */
     @POST
     @Path("create")
-    public Response createPage(@Context HttpServletRequest request,
-                               @PathParam("courseCode") String courseCode,
+    public Response createPage(@PathParam("courseCode") String courseCode,
 							   @PathParam("editionCode") String editionCode,
                                @FormParam("id") Long assignmentId,
                                @FormParam("name") String name,
@@ -180,7 +186,6 @@ public class AssignmentsResource extends Resource {
 
     /**
      * An overview page for an assignment
-     * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
 	 * @param editionCode the course to create an assignment for
      * @param assignmentId the assignment id
@@ -189,8 +194,7 @@ public class AssignmentsResource extends Resource {
     @GET
     @Transactional
     @Path("{assignmentId : \\d+}")
-    public Response getAssignmentPage(@Context HttpServletRequest request,
-                                      @PathParam("courseCode") String courseCode,
+    public Response getAssignmentPage(@PathParam("courseCode") String courseCode,
 									  @PathParam("editionCode") String editionCode,
                                       @PathParam("assignmentId") Long assignmentId) throws IOException {
 
@@ -216,12 +220,11 @@ public class AssignmentsResource extends Resource {
     }
 
     private final static String TEXT_CSV = "text/csv";
-    private final static char CSV_FIELD_SEPARATOR = ';';
+    private final static char CSV_FIELD_SEPARATOR = ',';
     private final static char CSV_ROW_SEPARATOR = '\n';
 
     /**
      * Download the grades for this assignment
-     * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
 	 * @param editionCode the course to create an assignment for
      * @param assignmentId the assignment id
@@ -231,8 +234,7 @@ public class AssignmentsResource extends Resource {
     @Transactional
     @Produces(TEXT_CSV)
     @Path("{assignmentId : \\d+}/deliveries/download")
-    public String downloadAssignmentResults(@Context HttpServletRequest request,
-                                            @PathParam("courseCode") String courseCode,
+    public String downloadAssignmentResults(@PathParam("courseCode") String courseCode,
 											@PathParam("editionCode") String editionCode,
                                             @PathParam("assignmentId") Long assignmentId) throws IOException {
 
@@ -243,7 +245,7 @@ public class AssignmentsResource extends Resource {
             throw new UnauthorizedException();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("Assignment;NetId;StudentNo;Name;Group;State;Grade;").append(CSV_ROW_SEPARATOR);
+        sb.append("Assignment,NetId,StudentNo,Name,Group,State,Grade,").append(CSV_ROW_SEPARATOR);
 
         deliveriesDAO.getLastDeliveries(assignment).forEach(delivery -> {
             Delivery.Review review = delivery.getReview();
@@ -260,15 +262,88 @@ public class AssignmentsResource extends Resource {
                     sb.append(review.getGrade()).append(CSV_FIELD_SEPARATOR);
                 }
                 else {
-                    sb.append("SUBMITTED;").append(CSV_FIELD_SEPARATOR);
+                    sb.append(Delivery.State.SUBMITTED).append(CSV_FIELD_SEPARATOR);
                 }
 
                 sb.append(CSV_ROW_SEPARATOR);
             });
         });
 
+		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ ".csv\"");
         return sb.toString();
     }
+
+	/**
+	 * Download the grades for this assignment
+	 * @param courseCode the course to create an assignment for
+	 * @param editionCode the course to create an assignment for
+	 * @param assignmentId the assignment id
+	 * @return a CSV file with the most recent deliveries
+	 */
+	@GET
+	@Transactional
+	@Produces(TEXT_CSV)
+	@Path("{assignmentId : \\d+}/deliveries/download-rubrics")
+	public String downloadRubrics(@PathParam("courseCode") String courseCode,
+								  @PathParam("editionCode") String editionCode,
+								  @PathParam("assignmentId") Long assignmentId) throws IOException {
+
+		CourseEdition course = courses.find(courseCode, editionCode);
+		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+			throw new UnauthorizedException();
+		}
+		StringBuilder sb = new StringBuilder();
+
+		int numLevels = assignment.getTasks().stream()
+			.map(Task::getCharacteristics).flatMap(Collection::stream)
+			.map(Characteristic::getLevels).mapToInt(Collection::size)
+			.max().orElse(0);
+
+		List<Delivery> deliveries = Lists.newArrayList(deliveriesDAO.getLastDeliveries(assignment));
+		Collections.sort(deliveries, Delivery.DELIVERIES_BY_GROUP_NUMBER);
+
+		// Skip initial columns, list all groups
+		IntStream.range(0, 2 + numLevels).forEach(i -> sb.append(CSV_FIELD_SEPARATOR));
+		deliveries.forEach(delivery -> sb.append("Group ")
+			.append(Long.toString(delivery.getGroup().getGroupNumber()))
+			.append(CSV_FIELD_SEPARATOR));
+		sb.append(CSV_ROW_SEPARATOR);
+
+		assignment.getTasks().forEach(task -> {
+			// Print exercise
+			sb.append(task.getDescription()).append(CSV_FIELD_SEPARATOR).append(CSV_FIELD_SEPARATOR);
+			IntStream.range(0, numLevels + deliveries.size()).forEach(i -> sb.append(CSV_FIELD_SEPARATOR));
+			sb.append(CSV_ROW_SEPARATOR);
+
+			task.getCharacteristics().forEach(characteristic -> {
+				sb.append("-> ").append(characteristic.getDescription()).append(CSV_FIELD_SEPARATOR)
+					.append(characteristic.getWeight()).append(CSV_FIELD_SEPARATOR);
+
+				characteristic.getLevels().stream().sorted().forEach(mastery ->
+					sb.append(mastery.getDescription()).append(CSV_FIELD_SEPARATOR));
+
+				IntStream.range(0, numLevels - characteristic.getLevels().size())
+					.forEach(a -> sb.append(CSV_FIELD_SEPARATOR));
+
+				deliveries.forEach(delivery -> {
+					if (delivery.getRubrics().containsKey(characteristic)) {
+						sb.append(Double.toString(delivery.getRubrics().get(characteristic).getPoints()));
+					}
+					else {
+						sb.append(CSV_FIELD_SEPARATOR);
+					}
+					sb.append(CSV_FIELD_SEPARATOR);
+				});
+
+				sb.append(CSV_ROW_SEPARATOR);
+			});
+		});
+
+		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ ".csv\"");
+		return sb.toString();
+	}
 
     /**
      * An edit page page for an assignment

@@ -38,6 +38,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -50,10 +51,13 @@ import java.util.Map;
 @Entity
 @Table(name = "assignment_deliveries")
 @ToString(exclude = {"notes", "attachments"})
-@EqualsAndHashCode(of={"deliveryId"}, callSuper = false)
+@EqualsAndHashCode(of={"deliveryId"})
 public class Delivery implements Event, Base {
 
-    /**
+	public static final Comparator<Delivery> DELIVERIES_BY_GROUP_NUMBER = (a, b) ->
+		Long.compare(a.getGroup().getGroupNumber(), b.getGroup().getGroupNumber());
+
+	/**
      * The State for the Delivery
      * @author Jan-Willem Gmelig Meyling
      */

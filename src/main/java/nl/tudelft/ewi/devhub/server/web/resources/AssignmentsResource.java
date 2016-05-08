@@ -486,6 +486,7 @@ public class AssignmentsResource extends Resource {
 		}
 
 		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+		// Trigger lazy initialization of tasks...
 		assignment.getTasks().size();
 		return assignment;
 	}
@@ -540,7 +541,10 @@ public class AssignmentsResource extends Resource {
 			throw new UnauthorizedException();
 		}
 
-		return deliveriesDAO.getLastDeliveries(assignment);
+		List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
+		// Lazy load...
+		deliveries.forEach(Delivery::getMasteries);
+		return deliveries;
 	}
 
 }

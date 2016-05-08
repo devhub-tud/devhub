@@ -9,6 +9,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -41,6 +43,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -184,6 +187,7 @@ public class Delivery implements Event, Base {
 
     }
 
+	@JsonIgnore
 	@ManyToMany
 	@JoinTable(
 		name = "delivery_rubrics",
@@ -193,33 +197,43 @@ public class Delivery implements Event, Base {
 	@MapKeyJoinColumn(name = "characteristic_id", referencedColumnName = "characteristic_id")
 	private Map<Characteristic, Mastery> rubrics;
 
+	public Collection<Mastery> getMasteries() {
+		return getRubrics().values();
+	}
+
 	public double getAchievedNumberOfPoints() {
 		return Math.max(0, Math.min(getRubrics().entrySet().stream()
 			.mapToDouble(entry -> entry.getValue().getPoints() * entry.getKey().getWeight())
 			.sum(), getAssignment().getNumberOfAchievablePoints()));
 	}
 
+	@JsonIgnore
     public State getState() {
         Review review = getReview();
         return review == null ? State.SUBMITTED : review.getState() == null ? State.SUBMITTED : review.getState();
     }
 
+	@JsonIgnore
     public boolean isSubmitted() {
         return getState().equals(State.SUBMITTED);
     }
 
+	@JsonIgnore
     public boolean isApproved() {
         return getState().equals(State.APPROVED);
     }
 
+	@JsonIgnore
     public boolean isDisapproved() {
         return getState().equals(State.DISAPPROVED);
     }
 
+	@JsonIgnore
     public boolean isRejected() {
         return getState().equals(State.REJECTED);
     }
 
+	@JsonIgnore
     public boolean isLate() {
         Date dueDate = getAssignment().getDueDate();
         return dueDate != null && getTimestamp().after(dueDate);

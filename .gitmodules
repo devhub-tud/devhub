@@ -19,3 +19,6 @@
 [submodule "src/main/resources/static/vendor/angular-xeditable"]
 	path = src/main/resources/static/vendor/angular-xeditable
 	url = https://github.com/vitalets/angular-xeditable.git
+[submodule "src/main/resources/static/vendor/jstat"]
+	path = src/main/resources/static/vendor/jstat
+	url = https://github.com/jstat/jstat.git

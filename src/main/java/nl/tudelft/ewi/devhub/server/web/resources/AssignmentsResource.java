@@ -347,7 +347,6 @@ public class AssignmentsResource extends Resource {
 
     /**
      * An edit page page for an assignment
-     * @param request the current HttpServletRequest
      * @param courseCode the course to create an assignment for
 	 * @param editionCode the course to create an assignment for
      * @param assignmentId the assignment id
@@ -355,8 +354,7 @@ public class AssignmentsResource extends Resource {
     @GET
     @Transactional
     @Path("{assignmentId : \\d+}/edit")
-    public Response getEditAssignmentPage(@Context HttpServletRequest request,
-                                          @PathParam("courseCode") String courseCode,
+    public Response getEditAssignmentPage(@PathParam("courseCode") String courseCode,
 										  @PathParam("editionCode") String editionCode,
                                           @PathParam("assignmentId") long assignmentId,
                                           @QueryParam("error") String error) throws IOException {
@@ -381,10 +379,33 @@ public class AssignmentsResource extends Resource {
         return display(templateEngine.process("courses/assignments/create-assignment.ftl", locales, parameters));
     }
 
+	@GET
+	@Transactional
+	@Path("{assignmentId : \\d+}/rubrics")
+	public Response getEditRubricsPage(@PathParam("courseCode") String courseCode,
+									   @PathParam("editionCode") String editionCode,
+									   @PathParam("assignmentId") long assignmentId) throws IOException {
+
+
+		CourseEdition course = courses.find(courseCode, editionCode);
+		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+			throw new UnauthorizedException();
+		}
+
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("course", course);
+		parameters.put("assignment", assignment);
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("courses/assignments/assignment-rubrics.ftl", locales, parameters));
+	}
+
     @POST
     @Path("{assignmentId : \\d+}/edit")
-    public Response editAssignment(@Context HttpServletRequest request,
-                                   @PathParam("courseCode") String courseCode,
+    public Response editAssignment(@PathParam("courseCode") String courseCode,
 								   @PathParam("editionCode") String editionCode,
                                    @PathParam("assignmentId") long assignmentId,
                                    @FormParam("name") String name,

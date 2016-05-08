@@ -10,3 +10,12 @@
 [submodule "src/main/resources/static/vendor/highlightjs"]
 	path = src/main/resources/static/vendor/highlightjs
 	url = https://github.com/components/highlightjs.git
+[submodule "src/main/resources/static/vendor/angular"]
+	path = src/main/resources/static/vendor/angular
+	url = https://github.com/angular/bower-angular.git
+[submodule "src/main/resources/static/vendor/angular-bootstrap"]
+	path = src/main/resources/static/vendor/angular-bootstrap
+	url = https://github.com/angular-ui/bootstrap-bower.git
+[submodule "src/main/resources/static/vendor/angular-xeditable"]
+	path = src/main/resources/static/vendor/angular-xeditable
+	url = https://github.com/vitalets/angular-xeditable.git

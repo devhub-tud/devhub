@@ -58,103 +58,10 @@ module.run(function(editableOptions) {
     editableOptions.theme = 'bs3'; // bootstrap3 theme. Can be also 'bs2', 'default'
 });
 
-module.controller('TestCtrl', function($scope) {
-	$scope.assignment = {
-        "id": 1,
-        "name": "Part 1. E2E & Boundary Testing",
-        "summary": "",
-        "dueDate": null,
-        "tasks": [
-            {
-                "description": "Smoke Testing",
-                "characteristics": [
-                    {
-                        "weight": 4,
-                        "description": "Correct implementation of the Smoke Test",
-                        "levels": [
-                            {
-                                "description": "No implementation of the Smoke Test.",
-                                "points": 0
-                            },
-                            {
-                                "description": "Constructing dependencies manually.",
-                                "points": 1
-                            },
-                            {
-                                "description": "Correctly launching the interface.",
-                                "points": 3
-                            }
-                        ]
-                    },
-                    {
-                        "weight": 4,
-                        "description": "Correct implementation of the Smoke Test",
-                        "levels": [
-                            {
-                                "description": "No implementation of the Smoke Test.",
-                                "points": 0
-                            },
-                            {
-                                "description": "Constructing dependencies manually.",
-                                "points": 1
-                            },
-                            {
-                                "description": "Correctly launching the interface.",
-                                "points": 3
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "description": "Feature Based Testing Testing",
-                "characteristics": [
-                    {
-                        "weight": 6,
-                        "description": "Correct implementation of the Smoke Test",
-                        "levels": [
-                            {
-                                "description": "No implementation of the Smoke Test.",
-                                "points": 0
-                            },
-                            {
-                                "description": "Correct Gherkin scenarios.",
-                                "points": 1
-                            },
-                            {
-                                "description": "Reasonably well step-definition implementation.",
-                                "points": 2
-                            },
-                            {
-                                "description": "Step-definitions are properly reused across scenarios.",
-                                "points": 3
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "description": "Consecutive build failures",
-                "characteristics": [
-                    {
-                        "description": "Consecutive build failures",
-                        "weightAddsToTotalWeight": false,
-                        "weight": 1,
-                        "levels": [
-                            {
-                                "description": "No more than four consecutive build failures.",
-                                "points": 0
-                            },
-                            {
-                                "description": "More than four consecutive build failures.",
-                                "points": -3
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    };
+module.controller('TestCtrl', function($scope, $http) {
+	$http.get('json').then(function(res) {
+		$scope.assignment = res.data;
+	});
 })
 </script>
 [/@macros.renderScripts]

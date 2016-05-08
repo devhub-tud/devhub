@@ -27,9 +27,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -379,30 +382,6 @@ public class AssignmentsResource extends Resource {
         return display(templateEngine.process("courses/assignments/create-assignment.ftl", locales, parameters));
     }
 
-	@GET
-	@Transactional
-	@Path("{assignmentId : \\d+}/rubrics")
-	public Response getEditRubricsPage(@PathParam("courseCode") String courseCode,
-									   @PathParam("editionCode") String editionCode,
-									   @PathParam("assignmentId") long assignmentId) throws IOException {
-
-
-		CourseEdition course = courses.find(courseCode, editionCode);
-		Assignment assignment = assignmentsDAO.find(course, assignmentId);
-
-		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-			throw new UnauthorizedException();
-		}
-
-		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("course", course);
-		parameters.put("assignment", assignment);
-
-		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("courses/assignments/assignment-rubrics.ftl", locales, parameters));
-	}
-
     @POST
     @Path("{assignmentId : \\d+}/edit")
     public Response editAssignment(@PathParam("courseCode") String courseCode,
@@ -452,5 +431,116 @@ public class AssignmentsResource extends Resource {
 
         return redirect(course.getURI());
     }
+
+	/**
+	 * Display the rubrics page for this {@link Assignment}.
+	 * @param courseCode the course to create an assignment for.
+	 * @param editionCode the course to create an assignment for.
+	 * @param assignmentId the assignment id.
+	 * @return The rubrics page.
+	 * @throws IOException If an I/O error occurs.
+	 */
+	@GET
+	@Transactional
+	@Path("{assignmentId : \\d+}/rubrics")
+	public Response getEditRubricsPage(@PathParam("courseCode") String courseCode,
+									   @PathParam("editionCode") String editionCode,
+									   @PathParam("assignmentId") long assignmentId) throws IOException {
+
+
+		CourseEdition course = courses.find(courseCode, editionCode);
+		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+			throw new UnauthorizedException();
+		}
+
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("course", course);
+		parameters.put("assignment", assignment);
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("courses/assignments/assignment-rubrics.ftl", locales, parameters));
+	}
+
+	/**
+	 * Retrieve the {@link Assignment} as JSON.
+	 * @param courseCode the course to create an assignment for.
+	 * @param editionCode the course to create an assignment for.
+	 * @param assignmentId the assignment id.
+	 * @return The {@link Assignment} instance.
+	 */
+	@GET
+	@Transactional
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("{assignmentId : \\d+}/json")
+	public Assignment getAssignmentAsJson(@PathParam("courseCode") String courseCode,
+										  @PathParam("editionCode") String editionCode,
+										  @PathParam("assignmentId") long assignmentId) {
+
+		CourseEdition course = courses.find(courseCode, editionCode);
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+			throw new UnauthorizedException();
+		}
+
+		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+		assignment.getTasks().size();
+		return assignment;
+	}
+
+	/**
+	 * Update an {@link Assignment}.
+	 * @param courseCode the course to create an assignment for.
+	 * @param editionCode the course to create an assignment for.
+	 * @param assignmentId the assignment id.
+	 * @param assignment the updated assignment instance.
+	 * @return The updated assignment instance.
+	 */
+	@PUT
+	@Transactional
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Path("{assignmentId : \\d+}/json")
+	public Assignment updateAssignment(@PathParam("courseCode") String courseCode,
+									   @PathParam("editionCode") String editionCode,
+									   @PathParam("assignmentId") long assignmentId,
+									   @Valid Assignment assignment) {
+
+		CourseEdition course = courses.find(courseCode, editionCode);
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+			throw new UnauthorizedException();
+		}
+
+		assignment.setCourseEdition(course);
+		assignment.setAssignmentId(assignmentId);
+		return assignmentsDAO.merge(assignment);
+	}
+
+	/**
+	 * Get the last assignment deliveries as JSON.
+	 * @param courseCode the course to create an assignment for.
+	 * @param editionCode the course to create an assignment for.
+	 * @param assignmentId the assignment id.
+	 * @return a list of deliveries.
+	 */
+	@GET
+	@Transactional
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("{assignmentId : \\d+}/last-deliveries/json")
+	public List<Delivery> getLastDeliveries(@PathParam("courseCode") String courseCode,
+											@PathParam("editionCode") String editionCode,
+											@PathParam("assignmentId") long assignmentId) {
+		CourseEdition course = courses.find(courseCode, editionCode);
+		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+			throw new UnauthorizedException();
+		}
+
+		return deliveriesDAO.getLastDeliveries(assignment);
+	}
 
 }

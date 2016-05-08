@@ -8,6 +8,9 @@ import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JoinColumnOrFormula;
 import org.hibernate.annotations.JoinColumnsOrFormulas;
@@ -106,6 +109,7 @@ public class Delivery implements Event, Base {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long deliveryId;
 
+	@JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumnsOrFormulas({
 		@JoinColumnOrFormula(formula = @JoinFormula(value = "course_edition_id", referencedColumnName = "course_edition_id")),
@@ -113,6 +117,7 @@ public class Delivery implements Event, Base {
 	})
     private Assignment assignment;
 
+	@JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumns({
 		@JoinColumn(name = "course_edition_id", referencedColumnName = "course_edition_id", nullable = false),
@@ -139,6 +144,7 @@ public class Delivery implements Event, Base {
     @Type(type = "org.hibernate.type.TextType")
     private String notes;
 
+	@JsonManagedReference
     @JoinColumn(name = "delivery_id")
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<DeliveryAttachment> attachments;

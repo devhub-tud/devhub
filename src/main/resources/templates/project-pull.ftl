@@ -191,7 +191,7 @@ $(function() {
                 else {
                     label.html('${i18n.translate("pull-request.failed-to-merge")}');
                     btn.removeClass('btn-primary').addClass('btn-danger');
-                    message.html('${i18n.translate("pull-request.failed-to-merge.message")}');
+                    message.html("${i18n.translate("pull-request.failed-to-merge.message")}");
                     $('.pull-request-badge').addClass('failed');
                 }
 

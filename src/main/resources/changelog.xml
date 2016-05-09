@@ -959,5 +959,9 @@
              constraintName="delivery_for_delivery_rubrics" referencedTableName="assignment_deliveries"
              referencedColumnNames="id"/>
     </changeSet>
+
+	<changeSet id="fix_columnname" author="Jan-Willem Gmelig Meyling">
+		<renameColumn tableName="assignment_task_characteristic" oldColumnName="weightAddsToTotalWeight" newColumnName="weight_adds_to_total_weight"/>
+	</changeSet>
     
 </databaseChangeLog>

@@ -70,7 +70,7 @@ public class Characteristic {
 	 * total weight for a {@link Task}, allowing you to create
 	 * {@code Characteristics} for bonus points and penalties.
 	 */
-	@Column(name = "weightAddsToTotalWeight")
+	@Column(name = "weight_adds_to_total_weight")
 	private boolean weightAddsToTotalWeight = true;
 
 	public double getMaximalNumberOfPoints() {

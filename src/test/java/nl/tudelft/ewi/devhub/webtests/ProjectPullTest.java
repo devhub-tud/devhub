@@ -179,6 +179,40 @@ public class ProjectPullTest extends WebTest {
 		assertFalse(pullRequest.isMerged());
 	}
 	
+	@Test
+	public void testMergePullRequest() {
+		// Assert branch is visible
+		Branch newBranch = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toCoursesView()
+				.listMyProjects()
+				.get(0).click()
+				.listBranches().get(1);
+
+		assertEquals(BRANCH_NAME, newBranch.getName());
+
+		// Navigate to pull request view
+		PullRequestOverViewView pullRequestOverViewView = newBranch.click().openCreatePullRequestView();
+		
+		assertTrue(pullRequestOverViewView.isOpen());
+		pullRequestOverViewView.merge();
+		
+		// Wait for the view to load
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			log.warn("", e);
+		}
+		
+		assertFalse(pullRequestOverViewView.isOpen());
+		assertFalse(pullRequestOverViewView.isClosed());
+		assertTrue(pullRequestOverViewView.isMerged());
+		
+		PullRequest pullRequest = getPullRequest(BRANCH_NAME);
+		assertTrue(pullRequest.isClosed());
+		assertTrue(pullRequest.isMerged());
+	}
+	
 	@After
 	public void teardown() throws RepositoryNotFoundException, URISyntaxException{
 		// Delete pullrequest after test

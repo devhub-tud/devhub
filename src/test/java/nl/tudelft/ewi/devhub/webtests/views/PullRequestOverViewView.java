@@ -2,6 +2,7 @@ package nl.tudelft.ewi.devhub.webtests.views;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -30,7 +31,7 @@ public class PullRequestOverViewView extends PullRequestView {
 		try {
 			WebElement closeButton = getDriver().findElement(By.id("btn-close"));
 			return closeButton.isEnabled();
-		} catch (NoSuchElementException e) {
+		} catch (NoSuchElementException|StaleElementReferenceException e) {
 			log.warn(e.getMessage(), e);
 			return false;
 		}
@@ -44,7 +45,7 @@ public class PullRequestOverViewView extends PullRequestView {
 		try {
 			WebElement closeButton = getDriver().findElement(By.id("btn-close"));
 			return !closeButton.isEnabled();
-		} catch (NoSuchElementException e) {
+		} catch (NoSuchElementException|StaleElementReferenceException e) {
 			log.warn(e.getMessage(), e);
 			return false;
 		}
@@ -58,7 +59,7 @@ public class PullRequestOverViewView extends PullRequestView {
 		try {
 			WebElement mergeButton = getDriver().findElement(By.id("btn-merge"));
 			return !mergeButton.isEnabled();
-		} catch (NoSuchElementException e) {
+		} catch (NoSuchElementException|StaleElementReferenceException e) {
 			log.warn(e.getMessage(), e);
 			return false;
 		}

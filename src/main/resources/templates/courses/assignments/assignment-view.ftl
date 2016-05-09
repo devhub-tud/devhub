@@ -6,14 +6,47 @@
 
 <div class="container">
 
-    <ol class="breadcrumb hidden-xs">
+    <ol class="breadcrumb">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
         <li><a href="${course.course.getURI()}">${course.course.code} - ${course.course.name}</a></li>
-        <li><a href="${course.getURI()}">${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+        <li>
+          <span uib-dropdown dropdown-append-to-body="true">
+            <a href id="simple-dropdown" uib-dropdown-toggle>
+              ${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]
+              <span class="caret"></span>
+            </a>
+            <ul uib-dropdown-menu>
+            [#list course.course.getEditions() as a]
+              <li><a href="${a.getURI()}">${a.timeSpan.start?string["yyyy"]}[#if a.timeSpan.end??] - ${a.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+            [/#list]
+            </ul>
+          </span>
+        </li>
         <li><a href="${course.getURI()}">${ i18n.translate("assignments.title") }</a></li>
-        [#-- <li><a href="/courses">${ i18n.translate("section.courses") }</a></li> --]
-        [#-- <li><a href="/courses/${course.getCode()}">${course.getCode()} - ${course.getName()}</a></li> --]
-        <li>${assignment.getName()}</li>
+        <li>
+          <span uib-dropdown dropdown-append-to-body="true">
+            <a href id="simple-dropdown" uib-dropdown-toggle>
+              ${assignment.getName()}
+              <span class="caret"></span>
+            </a>
+            <ul uib-dropdown-menu>
+              [#list course.getAssignments() as a]
+                <li><a href="${a.getURI()}">${a.getName()}</a></li>
+              [/#list]
+            </ul>
+          </span>
+        </li>
+        <li>
+          <span uib-dropdown dropdown-append-to-body="true">
+            <a href id="simple-dropdown" uib-dropdown-toggle>
+              Overview
+              <span class="caret"></span>
+            </a>
+            <ul uib-dropdown-menu>
+              <li><a href="${assignment.getURI()}rubrics">Rubrics</a></li>
+            </ul>
+          </span>
+        </li>
     </ol>
 
 [#if assignmentStats??]
@@ -89,5 +122,11 @@
 </div>
 [@macros.renderScripts]
 <script src="/static/js/deliveries-filter.js"></script>
+<script src="/static/vendor/angular/angular.min.js"></script>
+<script src="/static/vendor/angular-bootstrap/ui-bootstrap.min.js"></script>
+
+<script type="text/javascript">
+angular.module('devhub', ['ui.bootstrap']);
+</script>
 [/@macros.renderScripts]
 [@macros.renderFooter /]

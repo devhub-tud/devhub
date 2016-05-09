@@ -12,12 +12,47 @@ body > .angular-bootstrap-contextmenu.dropdown {
 
 <div class="container" ng-controller="StatisticsControl">
 
-    <ol class="breadcrumb hidden-xs">
+    <ol class="breadcrumb">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
         <li><a href="${course.course.getURI()}">${course.course.code} - ${course.course.name}</a></li>
-        <li><a href="${course.getURI()}">${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
-        <li><a href="${course.getURI()}">${ i18n.translate("assignments.title") }</a></li>
-        <li>${assignment.getName()}</li>
+	    <li>
+          <span uib-dropdown dropdown-append-to-body="true">
+            <a href id="simple-dropdown" uib-dropdown-toggle>
+						${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]
+	            <span class="caret"></span>
+            </a>
+            <ul uib-dropdown-menu>
+						[#list course.course.getEditions() as a]
+	            <li><a href="${a.getURI()}">${a.timeSpan.start?string["yyyy"]}[#if a.timeSpan.end??] - ${a.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+						[/#list]
+            </ul>
+          </span>
+	    </li>
+			<li><a href="${course.getURI()}">${ i18n.translate("assignments.title") }</a></li>
+	    <li>
+				<span uib-dropdown dropdown-append-to-body="true">
+					<a href id="simple-dropdown" uib-dropdown-toggle>
+					${assignment.getName()}
+						<span class="caret"></span>
+					</a>
+					<ul uib-dropdown-menu>
+					[#list course.getAssignments() as a]
+						<li><a href="${a.getURI()}rubrics">${a.getName()}</a></li>
+					[/#list]
+					</ul>
+				</span>
+	    </li>
+			<li>
+				<span uib-dropdown>
+					<a href id="simple-dropdown" uib-dropdown-toggle>
+						Rubrics
+						<span class="caret"></span>
+					</a>
+					<ul uib-dropdown-menu>
+						<li><a href="${assignment.getURI()}">Overview</a></li>
+					</ul>
+				</span>
+			</li>
     </ol>
 
 	<div class="panel panel-default">
@@ -34,6 +69,13 @@ body > .angular-bootstrap-contextmenu.dropdown {
 					<th>Count</th>
 				</tr>
             </thead>
+					<tbody>
+						<tr ng-if="!assignment.tasks.length">
+							<td colspan="6">
+								<em>Looks like you have no tasks yet. <a ng-click="addTask()" style="cursor: pointer;">Want to create one?</a></em>
+							</td>
+						</tr>
+					</tbody>
             <tbody ng-repeat="task in assignment.tasks">
 				<tr class="active"  context-menu="contextMenuForTask(task)">
 					<td colspan="6">

@@ -37,11 +37,13 @@ function createTask() {
 module.controller('StatisticsControl', function($scope, $http, $q) {
     var levels = {};
 
+    $scope.addTask = function() {
+        $scope.assignment.tasks.push(createTask())
+    };
+
     $scope.contextMenuForAssignment = function() {
         return [
-            ['Add Task', function() {
-                $scope.assignment.tasks.push(createTask())
-            }]
+            ['Add Task', $scope.addTask]
         ]
     };
 

@@ -2,7 +2,6 @@ package nl.tudelft.ewi.devhub.webtests;
 
 import com.google.common.io.Files;
 
-import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -15,6 +14,7 @@ import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView;
+import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.web.api.BranchApi;
@@ -30,12 +30,12 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.URIish;
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.openqa.selenium.By;
 
 import javax.inject.Inject;
 
@@ -49,9 +49,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 
-@Slf4j
 public class ProjectPullTest extends WebTest {
 	
 	// Commit constants
@@ -212,6 +210,39 @@ public class ProjectPullTest extends WebTest {
 		assertTrue(Pattern.matches("^Merge pull request #\\d+ from " + BRANCH_NAME, lastMasterCommit.getMessage()));		
 		assertEquals(2, lastMasterCommit.getParents().length);
 		assertTrue(ArrayUtils.contains(lastMasterCommit.getParents(), lastBranchCommit.getCommitId()));
+	}
+	
+	@Test
+	public void testDeleteBranch() throws InterruptedException{
+		// Assert branch is visible
+		Branch newBranch = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toCoursesView()
+				.listMyProjects()
+				.get(0).click()
+				.listBranches().get(1);
+
+		assertEquals(BRANCH_NAME, newBranch.getName());
+
+		// Navigate to pull request view
+		PullRequestOverViewView pullRequestOverViewView = newBranch.click().openCreatePullRequestView();
+		
+		assertTrue(pullRequestOverViewView.isOpen());
+		pullRequestOverViewView.merge();		
+		
+		// Wait until branch can be removed
+		waitForCondition(5, x -> Dom.isVisible(x, By.id("btn-remove-branch")));
+		
+		pullRequestOverViewView.removeBranch();
+
+		// Wait until the branch is deleted at the backend
+		waitForCondition(3, x -> repositoryApi.getBranches().size() == 1);
+		
+		// Assert master is the only available branch after deletion
+		assertEquals(1, repositoryApi.getBranches().size());
+		assertEquals("refs/heads/master", repositoryApi.getBranches().toArray(new BranchModel[1])[0].getName());
+		
+		
 	}
 	
 	@After

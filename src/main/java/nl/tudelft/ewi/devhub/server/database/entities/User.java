@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -47,17 +48,18 @@ public class User {
 	private String netId;
 
 	@Size(max = 128)
-	@Column(name = "name", length = 128, nullable = true)
+	@Column(name = "name", length = 128)
 	private String name;
 
 	@Size(max = 255)
-	@Column(name = "email", length = 255, nullable = true)
+	@Column(name = "email")
 	private String email;
 
 	@Size(max = 20)
-	@Column(name = "student_number", length = 20, nullable = true, unique = true)
+	@Column(name = "student_number", length = 20, unique = true)
 	private String studentNumber;
 
+	@JsonIgnore
 	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
@@ -67,17 +69,21 @@ public class User {
 	@Column(name = "admin")
 	private boolean admin;
 
+	@JsonIgnore
 	@ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
 	private List<Group> groups;
 
+	@JsonIgnore
 	@ManyToMany(mappedBy = "assistants", fetch = FetchType.LAZY)
 	private Set<CourseEdition> assists;
 
 	@Deprecated
+	@JsonIgnore
 	public List<Group> listGroups() {
 		return getGroups();
 	}
-	
+
+	@JsonIgnore
 	public List<Group> listAssistedGroups() {
 		return getAssists().stream()
 			.map(CourseEdition::getGroups)

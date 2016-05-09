@@ -60,21 +60,33 @@ public class PullRequestOverViewView extends PullRequestView {
 	 * Close the pull request.
 	 */
 	public void close() {
-		getDriver().findElement(By.id("btn-close")).click();
+		getCloseButton().click();
 	}
 
 	/**
 	 * Merge the pull request.
 	 */
 	public void merge() {
-		getDriver().findElement(By.id("btn-merge")).click();
+		getMergeButton().click();
 	}
 
 	/**
 	 * Remove the branch.
 	 */
 	public void removeBranch() {
-		getDriver().findElement(By.id("btn-remove-branch")).click();
+		getRemoveBranchButton().click();
+	}
+	
+	public WebElement getMergeButton(){
+		return getDriver().findElement(By.id("btn-merge"));
+	}
+
+	public WebElement getCloseButton(){
+		return getDriver().findElement(By.id("btn-close"));
+	}
+
+	public WebElement getRemoveBranchButton(){
+		return getDriver().findElement(By.id("btn-remove-branch"));
 	}
 
 }

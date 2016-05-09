@@ -56,7 +56,8 @@ public class ProjectPullTest extends WebTest {
 	private static final String BRANCH_NAME = "my-super-branch";
 	private static final String COMMIT_MESSAGE = "Adding my-file.txt";
 	private static final String FILE_NAME = "my-file.txt";
-	private static final String FILE_CONTENT = "Initial content";
+	private static final String FILE_CONTENT_MASTER = "Initial content on master";
+	private static final String FILE_CONTENT_BRANCH = "Initial content on branch";
 	
 	@Inject Users users;
 	@Inject Groups groups;
@@ -77,7 +78,7 @@ public class ProjectPullTest extends WebTest {
 	@Before
 	public void setup() throws URISyntaxException, GitAPIException, IOException{
 		prepareInitialCommit();
-		createBranch();
+		createCommit(FILE_CONTENT_BRANCH, BRANCH_NAME);
 	}
 	
 	public void prepareInitialCommit() {
@@ -90,7 +91,7 @@ public class ProjectPullTest extends WebTest {
 		commitModel = commitApi.get();
 	}
 
-	public void createBranch() throws URISyntaxException, GitAPIException, IOException {
+	public void createCommit(String fileContent, String branchName) throws URISyntaxException, GitAPIException, IOException {
 		Repository repository = repositoriesManager.getRepository(new URI(groupRepository.getRepositoryName() + ".git/"));
 		
 		Git git = Git.init().setBare(false).setDirectory(temporaryFolder.getRoot()).call();
@@ -102,8 +103,12 @@ public class ProjectPullTest extends WebTest {
 		
 		git.pull().call();
 
-		git.checkout().setCreateBranch(true).setName(BRANCH_NAME).call();
-		Files.write(FILE_CONTENT.getBytes(), new File(temporaryFolder.getRoot(), FILE_NAME));
+		boolean createBranch = git.getRepository().findRef(branchName) == null;
+		if(!git.getRepository().getBranch().equals(branchName)){
+			git.checkout().setCreateBranch(createBranch).setName(branchName).call();			
+		}
+		
+		Files.write(fileContent.getBytes(), new File(temporaryFolder.getRoot(), FILE_NAME));
 		git.add().addFilepattern(FILE_NAME).call();
 		git.commit().setMessage(COMMIT_MESSAGE).setAuthor(user.getName(), user.getEmail()).setCommitter(user.getName(), user.getEmail()).call();
 		
@@ -241,9 +246,41 @@ public class ProjectPullTest extends WebTest {
 		// Assert master is the only available branch after deletion
 		assertEquals(1, repositoryApi.getBranches().size());
 		assertEquals("refs/heads/master", repositoryApi.getBranches().toArray(new BranchModel[1])[0].getName());
+				
+	}
+	
+	@Test
+	public void testFailedMerge() throws RepositoryNotFoundException, URISyntaxException, IllegalStateException, GitAPIException, IOException, InterruptedException{
+		createCommit(FILE_CONTENT_MASTER, "master");
 		
+		// Assert branch is visible
+		Branch newBranch = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toCoursesView()
+				.listMyProjects()
+				.get(0).click()
+				.listBranches().get(1);
+
+		assertEquals(BRANCH_NAME, newBranch.getName());
+
+		// Navigate to pull request view
+		PullRequestOverViewView pullRequestOverViewView = newBranch.click().openCreatePullRequestView();
+		
+		assertTrue(pullRequestOverViewView.isOpen());
+		pullRequestOverViewView.merge();
+		
+		waitForCondition(3, x -> !pullRequestOverViewView.getMergeButton().getText().startsWith("Merging"));
+		
+		assertEquals("Failed to merge", pullRequestOverViewView.getMergeButton().getText());
+		
+		PullRequest pullRequest = getPullRequest(BRANCH_NAME);
+		
+		assertFalse(pullRequest.isClosed());
+		assertTrue(pullRequest.isOpen());
+		assertFalse(pullRequest.isMerged());
 		
 	}
+	
 	
 	@After
 	public void teardown() throws RepositoryNotFoundException, URISyntaxException{

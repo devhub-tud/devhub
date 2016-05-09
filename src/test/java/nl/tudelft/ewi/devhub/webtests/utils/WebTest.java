@@ -12,6 +12,8 @@ import org.junit.ClassRule;
 import org.junit.rules.RuleChain;
 import org.openqa.selenium.WebDriver;
 
+import com.google.common.base.Predicate;
+
 import javax.inject.Inject;
 
 public abstract class WebTest {
@@ -41,5 +43,9 @@ public abstract class WebTest {
 	@After
 	public void logout() {
 		new AuthenticatedView(getDriver()).logout();
+	}
+	
+	protected void waitForCondition(int timeOutInSeconds, Predicate<WebDriver> condition) {
+		Dom.waitForCondition(getDriver(), timeOutInSeconds, condition);		
 	}
 }

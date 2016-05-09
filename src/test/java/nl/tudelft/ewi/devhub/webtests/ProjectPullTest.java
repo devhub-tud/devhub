@@ -166,7 +166,7 @@ public class ProjectPullTest extends WebTest {
 		assertTrue(pullRequestOverViewView.isOpen());
 		pullRequestOverViewView.close();		
 		
-		Dom.waitForCondition(getDriver(), 3, x -> pullRequestOverViewView.isClosed());
+		waitForCondition(3, x -> pullRequestOverViewView.isClosed());
 		
 		assertFalse(pullRequestOverViewView.isOpen());
 		assertTrue(pullRequestOverViewView.isClosed());
@@ -176,7 +176,7 @@ public class ProjectPullTest extends WebTest {
 		assertTrue(pullRequest.isClosed());
 		assertFalse(pullRequest.isMerged());
 	}
-	
+
 	@Test
 	public void testMergePullRequest() {
 		// Assert branch is visible

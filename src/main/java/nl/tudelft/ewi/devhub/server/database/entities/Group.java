@@ -12,6 +12,7 @@ import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.google.common.collect.ComparisonChain;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -59,6 +60,7 @@ public class Group implements Comparable<Group>, Serializable, Base {
 	}
 
 	@Id
+	@JsonBackReference
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "course_edition_id", referencedColumnName = "id", nullable = false)
 	private CourseEdition courseEdition;

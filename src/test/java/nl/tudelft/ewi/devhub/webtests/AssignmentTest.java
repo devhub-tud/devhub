@@ -46,7 +46,7 @@ public class AssignmentTest extends WebTest {
 		assertEquals(2, assignments.size());
 
 		AssignmentsView.Assignment assignment = assignments.get(0);
-		assertEquals(assignment.getName(), "Product vision");
+		assertEquals(assignment.getName(), "Part 1. E2E & Boundary Testing");
 		assertEquals(assignment.getNumber(), "1");
 	}
 

@@ -1,120 +1,194 @@
 {
-	"users": [
-		{
-			"name": "Student One",
-			"email": "student-1@student.tudelft.nl",
-			"netId": "student1",
-			"password": "student1"
-		},
-		{
-			"name": "Student Two",
-			"email": "student-2@student.tudelft.nl",
-			"netId": "student2",
-			"password": "student2"
-		},
-		{
-			"name": "Student Three",
-			"email": "student-3@student.tudelft.nl",
-			"netId": "student3",
-			"password": "student3"
-		},
-		{
-			"name": "Student Four",
-			"email": "student-4@student.tudelft.nl",
-			"netId": "student4",
-			"password": "student4"
-		},
-		{
-			"name": "Assistant One",
-			"email": "assistant-1@student.tudelft.nl",
-			"netId": "assistant1",
-			"password": "assistant1"
-		},
-		{
-			"name": "Admin One",
-			"email": "admin-1@tudelft.nl",
-			"netId": "admin1",
-			"password": "admin1",
-			"admin": true
-		}
-	],
-	"courses": [
-		{
-			"code": "ti1705",
-			"name": "Software quality and testing",
-			"editions": [
-				{
-					"code": "1516",
-					"templateRepositoryUrl": "https://github.com/SERG-Delft/jpacman-template.git",
-					"started": true,
-					"ended": false,
-					"minGroupSize": 2,
-					"maxGroupSize": 2,
-					"buildTimeout": 180,
+  "users": [
+    {
+      "name": "Student One",
+      "email": "student-1@student.tudelft.nl",
+      "netId": "student1",
+      "password": "student1"
+    },
+    {
+      "name": "Student Two",
+      "email": "student-2@student.tudelft.nl",
+      "netId": "student2",
+      "password": "student2"
+    },
+    {
+      "name": "Student Three",
+      "email": "student-3@student.tudelft.nl",
+      "netId": "student3",
+      "password": "student3"
+    },
+    {
+      "name": "Student Four",
+      "email": "student-4@student.tudelft.nl",
+      "netId": "student4",
+      "password": "student4"
+    },
+    {
+      "name": "Assistant One",
+      "email": "assistant-1@student.tudelft.nl",
+      "netId": "assistant1",
+      "password": "assistant1"
+    },
+    {
+      "name": "Admin One",
+      "email": "admin-1@tudelft.nl",
+      "netId": "admin1",
+      "password": "admin1",
+      "admin": true
+    }
+  ],
+  "courses": [
+    {
+      "code": "ti1705",
+      "name": "Software quality and testing",
+      "editions": [
+        {
+          "code": "1516",
+          "templateRepositoryUrl": "https://github.com/SERG-Delft/jpacman-template.git",
+          "started": true,
+          "ended": false,
+          "minGroupSize": 2,
+          "maxGroupSize": 2,
+          "buildTimeout": 180,
 
-					"assignments": [
-						{
-							"id" : 1,
-							"name" : "Requirements Analysis"
-						},
-						{
-							"id" : 2,
-							"name" : "Product vision"
-						}
-					],
+          "assignments": [
+            {
+              "id": 1,
+              "name": "Part 1. E2E & Boundary Testing",
+              "summary": "",
+              "dueDate": null,
+              "tasks": [
+                {
+                  "description": "Smoke Testing",
+                  "characteristics": [
+                    {
+                      "weight": 4,
+                      "description": "Correct implementation of the Smoke Test",
+                      "levels": [
+                        {
+                          "description": "No implementation of the Smoke Test.",
+                          "points": 0
+                        },
+                        {
+                          "description": "Constructing dependencies manually.",
+                          "points": 1
+                        },
+                        {
+                          "description": "Correctly launching the interface.",
+                          "points": 3
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "description": "Feature Based Testing Testing",
+                  "characteristics": [
+                    {
+                      "weight": 6,
+                      "description": "Correct implementation of the Smoke Test",
+                      "levels": [
+                        {
+                          "description": "No implementation of the Smoke Test.",
+                          "points": 0
+                        },
+                        {
+                          "description": "Correct Gherkin scenarios.",
+                          "points": 1
+                        },
+                        {
+                          "description": "Reasonably well step-definition implementation.",
+                          "points": 2
+                        },
+                        {
+                          "description": "Step-definitions are properly reused across scenarios.",
+                          "points": 3
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "description": "Consecutive build failures",
+                  "characteristics": [
+                    {
+                      "description": "Consecutive build failures",
+                      "weightAddsToTotalWeight": false,
+                      "weight": 1,
+                      "levels": [
+                        {
+                          "description": "No more than four consecutive build failures.",
+                          "points": 0
+                        },
+                        {
+                          "description": "More than four consecutive build failures.",
+                          "points": -3
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id" : 2,
+              "name" : "Product vision"
+            }
+          ],
 
-					"assistants": [
-						"assistant1"
-					],
+          "assistants": [
+            "assistant1"
+          ],
 
-					"groups": [
-						{
-							"groupNumber": 1,
-							"members": [
-								"student1",
-								"student2"
-							],
-							"deliveries" : [
-								{
-									"assignmentId" : 1,
-									"createdUserName" : "student1",
-									"review" : {
-										"state" : "APPROVED",
-										"grade" : 8.5,
-										"reviewedUserName" : "assistant1"
-									}
-								},
-								{
-									"assignmentId" : 2,
-									"createdUserName" : "student2"
-								}
-							]
-						},
-						{
-							"groupNumber": 2,
-							"members": [
-								"student3",
-								"student4"
-							],
-							"deliveries" : [
-								{
-									"assignmentId" : 2,
-									"createdUserName" : "student3",
-									"review" : {
-										"state" : "REJECTED",
-										"grade" : 4.5,
-										"reviewedUserName" : "assistant1"
-									}
-								},
-								{
-									"assignmentId" : 1,
-									"createdUserName" : "student4"
-								}
-							]
-						}
-					]
-				}
-			]
-		}
-	]
+          "groups": [
+            {
+              "groupNumber": 1,
+              "members": [
+                "student1",
+                "student2"
+              ],
+              "deliveries" : [
+                {
+                  "assignmentId" : 1,
+                  "createdUserName" : "student1",
+                  "review" : {
+                    "state" : "APPROVED",
+                    "grade" : 8.5,
+                    "reviewedUserName" : "assistant1"
+                  }
+                },
+                {
+                  "assignmentId" : 2,
+                  "createdUserName" : "student2"
+                }
+              ]
+            },
+            {
+              "groupNumber": 2,
+              "members": [
+                "student3",
+                "student4"
+              ],
+              "deliveries" : [
+                {
+                  "assignmentId" : 2,
+                  "createdUserName" : "student3",
+                  "review" : {
+                    "state" : "REJECTED",
+                    "grade" : 4.5,
+                    "reviewedUserName" : "assistant1"
+                  }
+                },
+                {
+                  "assignmentId" : 1,
+                  "createdUserName" : "student4"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

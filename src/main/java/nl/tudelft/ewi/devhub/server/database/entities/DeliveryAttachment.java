@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.database.Base;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -26,6 +28,7 @@ public class DeliveryAttachment implements Base {
     @Column(name = "path")
     private String path;
 
+	@JsonBackReference
     @ManyToOne
     @JoinColumn(name = "delivery_id")
     private Delivery delivery;

@@ -97,7 +97,7 @@ public class ProjectPullTest extends WebTest {
 		git.checkout().setCreateBranch(true).setName(BRANCH_NAME).call();
 		Files.write(FILE_CONTENT.getBytes(), new File(temporaryFolder.getRoot(), FILE_NAME));
 		git.add().addFilepattern(FILE_NAME).call();
-		git.commit().setMessage(COMMIT_MESSAGE).setAuthor(user.getName(), user.getEmail()).call();
+		git.commit().setMessage(COMMIT_MESSAGE).setAuthor(user.getName(), user.getEmail()).setCommitter(user.getName(), user.getEmail()).call();
 		
 		git.push().call();
 	}

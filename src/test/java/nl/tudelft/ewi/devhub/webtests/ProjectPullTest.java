@@ -12,7 +12,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
-import nl.tudelft.ewi.devhub.webtests.views.PullRequestView;
+import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
@@ -118,7 +118,7 @@ public class ProjectPullTest extends WebTest {
 		assertEquals(BRANCH_NAME, newBranch.getName());
 
 		// Navigate to pull request view
-		PullRequestView pullRequestView =
+		PullRequestOverViewView pullRequestOverViewView =
 			newBranch.click().openCreatePullRequestView();
 
 		// Grab the pull request instance for BRANCH_NAME from the DB.
@@ -132,14 +132,14 @@ public class ProjectPullTest extends WebTest {
 		}
 		
 		// Assertions on pullRequestView against pullRequest
-		assertEquals(pullRequest.isOpen(), pullRequestView.isOpen());
+		assertEquals(pullRequest.isOpen(), pullRequestOverViewView.isOpen());
 
 		// Assert opening users name and email are in the header (currently failing)
 		String author = pullRequest.getDestination().getAuthor();
-		assertEquals(author, pullRequestView.getAuthorHeader());
+		assertEquals(author, pullRequestOverViewView.getAuthorHeader());
 		
 		// Assert message header is latest commit message
-		assertEquals(COMMIT_MESSAGE, pullRequestView.getMessageHeader());
+		assertEquals(COMMIT_MESSAGE, pullRequestOverViewView.getMessageHeader());
 		
 	}
 	

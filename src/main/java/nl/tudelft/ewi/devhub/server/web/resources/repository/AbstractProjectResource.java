@@ -44,6 +44,7 @@ import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
 import org.hibernate.validator.constraints.NotEmpty;
+import org.jboss.resteasy.annotations.cache.Cache;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import javax.persistence.EntityNotFoundException;
@@ -61,7 +62,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -157,6 +160,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	}
 
 	@GET
+	@Cache(noStore = true)
 	@Path("/branch/{branchName}")
 	@Transactional
 	public Response showBranchOverview(@Context HttpServletRequest request,
@@ -195,7 +199,8 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		}
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("project-view.ftl", locales, parameters));
+		return display(templateEngine.process("project-view.ftl", locales, parameters));		
+		
 	}
 
 	protected List<String> getCommitIds(CommitSubList commits) {

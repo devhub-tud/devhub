@@ -28,13 +28,10 @@ public class PullRequestOverViewView extends PullRequestView {
 	 * @return Returns true if the pull request is open.
      */
 	public boolean isOpen() {
-		try {
-			WebElement closeButton = getDriver().findElement(By.id("btn-close"));
-			return closeButton.isEnabled();
-		} catch (NoSuchElementException|StaleElementReferenceException e) {
-			log.warn(e.getMessage(), e);
-			return false;
-		}
+		if(getDriver().findElements(By.id("btn-close")).stream().findAny().isPresent()){
+			return getDriver().findElement(By.id("btn-close")).isEnabled();
+		} 
+		return false;
 	}
 
 	/**
@@ -42,13 +39,10 @@ public class PullRequestOverViewView extends PullRequestView {
 	 * @return Returns true if the pull request is open.
      */
 	public boolean isClosed() {
-		try {
-			WebElement closeButton = getDriver().findElement(By.id("btn-close"));
-			return !closeButton.isEnabled();
-		} catch (NoSuchElementException|StaleElementReferenceException e) {
-			log.warn(e.getMessage(), e);
-			return false;
-		}
+		if(getDriver().findElements(By.id("btn-close")).stream().findAny().isPresent()){
+			return !getDriver().findElement(By.id("btn-close")).isEnabled();
+		} 
+		return false;
 	}
 
 	/**
@@ -56,13 +50,10 @@ public class PullRequestOverViewView extends PullRequestView {
 	 * @return Returns true if the pull request is open.
      */
 	public boolean isMerged() {
-		try {
-			WebElement mergeButton = getDriver().findElement(By.id("btn-merge"));
-			return !mergeButton.isEnabled();
-		} catch (NoSuchElementException|StaleElementReferenceException e) {
-			log.warn(e.getMessage(), e);
-			return false;
-		}
+		if(getDriver().findElements(By.id("btn-merge")).stream().findAny().isPresent()){
+			return !getDriver().findElement(By.id("btn-merge")).isEnabled();
+		} 
+		return false;
 	}
 
 	/**

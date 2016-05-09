@@ -11,6 +11,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
+import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView;
@@ -148,7 +149,7 @@ public class ProjectPullTest extends WebTest {
 	}
 
 	@Test
-	public void testClosePullRequest() throws InterruptedException {
+	public void testClosePullRequest() {
 		// Assert branch is visible
 		Branch newBranch = openLoginScreen()
 				.login(NET_ID, PASSWORD)
@@ -163,10 +164,9 @@ public class ProjectPullTest extends WebTest {
 		PullRequestOverViewView pullRequestOverViewView = newBranch.click().openCreatePullRequestView();
 		
 		assertTrue(pullRequestOverViewView.isOpen());
-		pullRequestOverViewView.close();
+		pullRequestOverViewView.close();		
 		
-		// Wait for the view to load
-		Thread.sleep(500);
+		Dom.waitForCondition(getDriver(), 3, x -> pullRequestOverViewView.isClosed());
 		
 		assertFalse(pullRequestOverViewView.isOpen());
 		assertTrue(pullRequestOverViewView.isClosed());
@@ -178,7 +178,7 @@ public class ProjectPullTest extends WebTest {
 	}
 	
 	@Test
-	public void testMergePullRequest() throws InterruptedException {
+	public void testMergePullRequest() {
 		// Assert branch is visible
 		Branch newBranch = openLoginScreen()
 				.login(NET_ID, PASSWORD)
@@ -196,7 +196,7 @@ public class ProjectPullTest extends WebTest {
 		pullRequestOverViewView.merge();
 		
 		// Wait for the view to load
-		Thread.sleep(500);
+		Dom.waitForCondition(getDriver(), 5, x -> !pullRequestOverViewView.isOpen());
 		
 		assertFalse(pullRequestOverViewView.isOpen());
 		assertFalse(pullRequestOverViewView.isClosed());

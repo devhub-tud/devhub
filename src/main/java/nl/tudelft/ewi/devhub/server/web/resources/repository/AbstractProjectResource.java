@@ -61,7 +61,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -195,7 +197,17 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		}
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("project-view.ftl", locales, parameters));
+		Response response =  display(templateEngine.process("project-view.ftl", locales, parameters));
+		
+		CacheControl cc = new CacheControl();
+		cc.setNoStore(true);
+		cc.setNoCache(true);
+		cc.setMaxAge(0);
+		cc.setPrivate(true);
+		
+		response.getHeaders().add(HttpHeaders.CACHE_CONTROL, cc.toString());
+		return response;
+		
 	}
 
 	protected List<String> getCommitIds(CommitSubList commits) {

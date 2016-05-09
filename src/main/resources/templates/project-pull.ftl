@@ -186,7 +186,7 @@ $(function() {
                 if(res.success) {
                     label.html('${i18n.translate("pull-request.merged")}');
                     btn.removeClass('btn-primary').addClass('btn-success');
-                    message.html('${i18n.translate("pull-request.closed.message")}');
+                    message.html('${i18n.translate("pull-request.merged.message")}');
                 }
                 else {
                     label.html('${i18n.translate("pull-request.failed-to-merge")}');

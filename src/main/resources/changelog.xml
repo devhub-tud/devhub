@@ -948,9 +948,12 @@
             constraintName="characteristic_for_mastery" referencedTableName="assignment_task_characteristic"
             referencedColumnNames="characteristic_id"/>
 
-        <addForeignKeyConstraint baseTableName="delivery_rubrics" baseColumnNames="characteristic_id, mastery_id"
+        <addForeignKeyConstraint baseTableName="delivery_rubrics" baseColumnNames="mastery_id"
              constraintName="mastery_for_delivery_rubrics" referencedTableName="characteristic_mastery"
-             referencedColumnNames="characteristic_id, mastery_id"/>
+             referencedColumnNames="mastery_id"/>
+
+				<addUniqueConstraint tableName="delivery_rubrics" columnNames="delivery_id, characteristic_id"
+														 constraintName="unique_characteristic_per_delivery"/>
 
         <addForeignKeyConstraint baseTableName="delivery_rubrics" baseColumnNames="delivery_id"
              constraintName="delivery_for_delivery_rubrics" referencedTableName="assignment_deliveries"

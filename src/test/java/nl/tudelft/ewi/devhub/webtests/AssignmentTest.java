@@ -1,5 +1,13 @@
 package nl.tudelft.ewi.devhub.webtests;
 
+import com.google.inject.Inject;
+import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
+import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
+import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.AssignmentView;
 import nl.tudelft.ewi.devhub.webtests.views.AssignmentsView;
@@ -14,6 +22,15 @@ public class AssignmentTest extends WebTest {
 
 	private static final String ASSISTANT_USERNAME = "assistant1";
 	private static final String ASSISTANT_PASSWORD = "assistant1";
+
+    @Inject
+	private CourseEditions courseEditions;
+
+    @Inject
+    private Deliveries deliveries;
+
+    @Inject
+    private Groups groups;
 
 	@Test
 	public void testListAssignments() {
@@ -45,10 +62,15 @@ public class AssignmentTest extends WebTest {
 				.listAssignments()
 				.get(0).click();
 
-		final AssignmentView.Assignment assignment = view.getAssignment();
-        assertEquals("Student Two", assignment.getAuthor());
-		assertEquals("Product vision", assignment.getName());
-        assertEquals("Submitted", assignment.getStatus());
+        final CourseEdition course = courseEditions.find(1);
+        final Group group = groups.find(course).get(0);
+        final Delivery modelDelivery = deliveries.find(group,2L);
+        final Assignment modelAssignment = modelDelivery.getAssignment();
+        final AssignmentView.Assignment viewAssignment = view.getAssignment();
+
+        assertEquals(modelDelivery.getCreatedUser().getName(), viewAssignment.getAuthor());
+        assertEquals(modelAssignment.getName(), viewAssignment.getName());
+        assertEquals(modelDelivery.getState(), viewAssignment.getStatus());
     }
 	
 }

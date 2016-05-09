@@ -30,6 +30,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +47,11 @@ import java.util.stream.Stream;
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class RubricImportResource extends Resource {
 
-    @Inject
+	public static final String ESCAPED_CSV_DELIMITER_PATTERN = ";(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
+	public static final String NEWLINE_PATTERN = "\\n";
+	public static final String NUMBER_PATTERN = "\\d+";
+
+	@Inject
     private CourseEditions courses;
 
     @Inject
@@ -89,21 +94,22 @@ public class RubricImportResource extends Resource {
 		Map<Long, Delivery> groupMap = deliveriesDAO.getLastDeliveries(assignment).stream()
 			.collect(Collectors.toMap(delivery -> delivery.getGroup().getGroupNumber(), Function.identity()));
 
-		Pattern digitPattern = Pattern.compile("\\d+");
+		Pattern digitPattern = Pattern.compile(NUMBER_PATTERN);
 
-		String[][] values = Stream.of(input.split("\n"))
-			.map(line -> line.split(";"))
+		String[][] values = Stream.of(input.split(NEWLINE_PATTERN))
+			.map(line -> line.split(ESCAPED_CSV_DELIMITER_PATTERN, -1))
 			.toArray(String[][]::new);
 
 		Task task = null;
 		Characteristic characteristic;
 		Map<Long, Mastery> masteryMap;
-		Delivery[] deliveries = new Delivery[0];
+		Delivery[] deliveries =  new Delivery[values[0].length];
 
 		for (int i = 0; i < values.length; i++) {
 			log.info("Parsing line {} of {}", i, values.length);
 			String[] lineParts = values[i];
-			deliveries = new Delivery[lineParts.length];
+
+			if (lineParts.length < 6) continue;
 
 			if (i == 0) {
 				for (int j = 7; j < lineParts.length; j++) {
@@ -114,6 +120,7 @@ public class RubricImportResource extends Resource {
 						log.info("Bound group {} to {}", value, deliveries[j]);
 					}
 				}
+				continue;
 			}
 
 			if (lineParts[0].isEmpty() || lineParts[1].isEmpty()) {
@@ -121,13 +128,14 @@ public class RubricImportResource extends Resource {
 				continue;
 			}
 
-			if (lineParts[2].concat(lineParts[3]).concat(lineParts[4]).concat(lineParts[5]).trim().isEmpty()) {
+			if (lineParts[2].isEmpty() && lineParts[3].isEmpty() && lineParts[4].isEmpty() && lineParts[5].isEmpty()) {
 				task = new Task();
 				task.setAssignment(assignment);
 				task.setDescription(lineParts[0]);
 				task.setCharacteristics(Lists.newArrayList());
 				entityManager.persist(task);
 				log.info("Persisted {}", task);
+				entityManager.flush();
 				entityManager.refresh(assignment);
 			}
 			else {
@@ -139,18 +147,18 @@ public class RubricImportResource extends Resource {
 				characteristic.setWeightAddsToTotalWeight(!isPenalty);
 				entityManager.persist(characteristic);
 				log.info("Persisted {}", characteristic);
+				entityManager.flush();
 				entityManager.refresh(task);
 
-				List<Mastery> masteries = IntStream.range(0, 4)
-					.filter(index -> !lineParts[2+index].isEmpty())
-					.mapToObj(index -> {
-						Mastery a = new Mastery();
-						a.setDescription(lineParts[2+index]);
-						a.setCharacteristic(characteristic);
-						a.setPoints(index);
-						return a;
-					})
-					.collect(Collectors.toList());
+				List<Mastery> masteries = Lists.newArrayList();
+				for (int index = 0; index < 4; index++) {
+					if (lineParts[2+i].isEmpty()) continue;
+					Mastery a = new Mastery();
+					a.setDescription(lineParts[2+index]);
+					a.setCharacteristic(characteristic);
+					a.setPoints(index);
+					masteries.add(a);
+				}
 
 				if (masteries.isEmpty()) {
 					log.info("Removing empty characteristic {}", characteristic);
@@ -163,6 +171,7 @@ public class RubricImportResource extends Resource {
 					log.info("Persisted {}", mastery);
 				});
 
+				entityManager.flush();
 				entityManager.refresh(characteristic);
 
 				masteryMap = masteries.stream()
@@ -180,10 +189,10 @@ public class RubricImportResource extends Resource {
 			}
 		}
 
-		for (Delivery delivery : deliveries) {
+		Stream.of(deliveries).filter(Objects::nonNull).forEach(delivery -> {
 			deliveriesDAO.merge(delivery);
 			log.info("Updated {}", delivery);
-		}
+		});
 	}
 
 }

@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,9 +48,11 @@ import java.util.stream.Stream;
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class RubricImportResource extends Resource {
 
-	public static final String ESCAPED_CSV_DELIMITER_PATTERN = ";(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
-	public static final String NEWLINE_PATTERN = "\\n";
-	public static final String NUMBER_PATTERN = "\\d+";
+	private static final String ESCAPED_CSV_DELIMITER_PATTERN = ";(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
+
+	private static final String NEWLINE_PATTERN = "\\n";
+
+	private static final String NUMBER_PATTERN = "\\d+";
 
 	@Inject
     private CourseEditions courses;
@@ -101,7 +104,7 @@ public class RubricImportResource extends Resource {
 			.toArray(String[][]::new);
 
 		Task task = null;
-		Characteristic characteristic;
+		AtomicReference<Characteristic> characteristic = new AtomicReference<>();
 		Map<Long, Mastery> masteryMap;
 		Delivery[] deliveries =  new Delivery[values[0].length];
 
@@ -123,12 +126,16 @@ public class RubricImportResource extends Resource {
 				continue;
 			}
 
-			if (lineParts[0].isEmpty() || lineParts[1].isEmpty()) {
-				log.info("Skipping empty line");
+			if (lineParts[0].isEmpty()) {
+				log.debug("Skipping empty line");
 				continue;
 			}
 
-			if (lineParts[2].isEmpty() && lineParts[3].isEmpty() && lineParts[4].isEmpty() && lineParts[5].isEmpty()) {
+			if (lineParts[2].concat(lineParts[3]).concat(lineParts[4]).concat(lineParts[5]).trim().isEmpty()) {
+				if (task != null && task.getCharacteristics().isEmpty()) {
+					entityManager.remove(task);
+				}
+
 				task = new Task();
 				task.setAssignment(assignment);
 				task.setDescription(lineParts[0]);
@@ -139,25 +146,34 @@ public class RubricImportResource extends Resource {
 				entityManager.refresh(assignment);
 			}
 			else {
-				boolean isPenalty = lineParts[3].concat(lineParts[4]).concat(lineParts[5]).trim().isEmpty();
-				characteristic = new Characteristic();
-				characteristic.setTask(task);
-				characteristic.setDescription(lineParts[0]);
-				characteristic.setWeight(Double.parseDouble(lineParts[1].trim()));
-				characteristic.setWeightAddsToTotalWeight(!isPenalty);
+				final boolean isPenalty = lineParts[3].concat(lineParts[4]).concat(lineParts[5]).trim().isEmpty();
+				Characteristic c = new Characteristic();
+				c.setTask(task);
+				c.setDescription(lineParts[0]);
+				if (!lineParts[1].trim().isEmpty())
+					c.setWeight(Double.parseDouble(lineParts[1]));
+				c.setWeightAddsToTotalWeight(!isPenalty);
+				characteristic.set(c);
 				entityManager.persist(characteristic);
 				log.info("Persisted {}", characteristic);
 				entityManager.flush();
 				entityManager.refresh(task);
 
-				List<Mastery> masteries = Lists.newArrayList();
-				for (int index = 0; index < 4; index++) {
-					if (lineParts[2+i].isEmpty()) continue;
-					Mastery a = new Mastery();
-					a.setDescription(lineParts[2+index]);
-					a.setCharacteristic(characteristic);
-					a.setPoints(index);
-					masteries.add(a);
+				final List<Mastery> masteries;
+
+				if (isPenalty) {
+					masteries = Lists.newArrayList();
+					masteries.add(Mastery.build(characteristic.get(), "No penalty", 0));
+					if (!lineParts[2].trim().isEmpty())
+						masteries.add(Mastery.build(characteristic.get(), lineParts[2], -2));
+					if (!lineParts[3].trim().isEmpty())
+						masteries.add(Mastery.build(characteristic.get(), lineParts[3], -2));
+				}
+				else {
+					masteries = IntStream.range(0, 4)
+						.filter(index -> !lineParts[2+index].isEmpty())
+						.mapToObj(index -> Mastery.build(characteristic.get(), lineParts[2+index], index))
+						.collect(Collectors.toList());
 				}
 
 				if (masteries.isEmpty()) {
@@ -182,8 +198,9 @@ public class RubricImportResource extends Resource {
 					Delivery delivery = deliveries[j];
 					String linePart = lineParts[j];
 					if (delivery == null || linePart.isEmpty()) continue;
-					Mastery mastery = masteryMap.get(Long.parseLong(linePart.trim()));
-					delivery.getRubrics().put(characteristic, mastery);
+					linePart = isPenalty ? linePart.equals("-1") ? "-2" : linePart.equals("-0.5") ? "-1" : linePart : linePart;
+					Mastery mastery = masteryMap.get(Long.parseLong(linePart));
+					delivery.getRubrics().put(characteristic.get(), mastery);
 					log.info("Putting {} for {} in {}", characteristic, mastery, delivery.getGroup());
 				}
 			}

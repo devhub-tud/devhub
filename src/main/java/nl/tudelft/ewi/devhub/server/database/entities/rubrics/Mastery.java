@@ -57,4 +57,12 @@ public class Mastery implements Comparable<Mastery> {
 	public int compareTo(Mastery o) {
 		return Double.compare(getPoints(), o.getPoints());
 	}
+
+	public static Mastery build(Characteristic characteristic, String description, double points) {
+		final Mastery mastery = new Mastery();
+		mastery.setCharacteristic(characteristic);
+		mastery.setDescription(description);
+		mastery.setPoints(points);
+		return mastery;
+	}
 }

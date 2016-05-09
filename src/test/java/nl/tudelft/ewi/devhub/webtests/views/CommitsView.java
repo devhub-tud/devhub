@@ -82,10 +82,10 @@ public class CommitsView extends ProjectSidebarView {
 		return branches;
 	}
 	
-	public PullRequestView openCreatePullRequestView(){
+	public PullRequestOverViewView openCreatePullRequestView(){
 		invariant();
 		getDriver().findElement(By.cssSelector("button.pull-right")).click();
-		return new PullRequestView(getDriver());
+		return new PullRequestOverViewView(getDriver());
 		
 	}
 

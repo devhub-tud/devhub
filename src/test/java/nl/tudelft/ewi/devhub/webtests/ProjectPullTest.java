@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -13,6 +14,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView;
+import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
@@ -22,10 +24,12 @@ import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
 import nl.tudelft.ewi.gitolite.repositories.Repository;
 import nl.tudelft.ewi.gitolite.repositories.RepositoryNotFoundException;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.URIish;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,11 +42,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 
 @Slf4j
 public class ProjectPullTest extends WebTest {
@@ -211,6 +217,13 @@ public class ProjectPullTest extends WebTest {
 		PullRequest pullRequest = getPullRequest(BRANCH_NAME);
 		assertTrue(pullRequest.isClosed());
 		assertTrue(pullRequest.isMerged());
+		
+		CommitModel lastMasterCommit = masterApi.get().getCommit();		
+		Commit lastBranchCommit = pullRequest.getDestination();
+		
+		assertTrue(Pattern.matches("^Merge pull request #\\d+ from " + BRANCH_NAME, lastMasterCommit.getMessage()));		
+		assertEquals(2, lastMasterCommit.getParents().length);
+		assertTrue(ArrayUtils.contains(lastMasterCommit.getParents(), lastBranchCommit.getCommitId()));
 	}
 	
 	@After

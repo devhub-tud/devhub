@@ -38,8 +38,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 @Slf4j
 public class ProjectPullTest extends WebTest {
@@ -121,38 +124,81 @@ public class ProjectPullTest extends WebTest {
 		PullRequestOverViewView pullRequestOverViewView =
 			newBranch.click().openCreatePullRequestView();
 
-		// Grab the pull request instance for BRANCH_NAME from the DB.
-		PullRequest pullRequest = pullRequests.findOpenPullRequest(groupRepository, "refs/heads/" + BRANCH_NAME).get();
-
 		// Wait for the view to load
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			log.warn("", e);
 		}
-		
+
+		// Grab the pull request instance for BRANCH_NAME from the DB.
+		PullRequest pullRequest = getPullRequest(BRANCH_NAME);
+
 		// Assertions on pullRequestView against pullRequest
 		assertEquals(pullRequest.isOpen(), pullRequestOverViewView.isOpen());
 
-		// Assert opening users name and email are in the header (currently failing)
 		String author = pullRequest.getDestination().getAuthor();
 		assertEquals(author, pullRequestOverViewView.getAuthorHeader());
 		
 		// Assert message header is latest commit message
 		assertEquals(COMMIT_MESSAGE, pullRequestOverViewView.getMessageHeader());
+
+	}
+
+	@Test
+	public void testClosePullRequest() {
+		// Assert branch is visible
+		Branch newBranch = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toCoursesView()
+				.listMyProjects()
+				.get(0).click()
+				.listBranches().get(1);
+
+		assertEquals(BRANCH_NAME, newBranch.getName());
+
+		// Navigate to pull request view
+		PullRequestOverViewView pullRequestOverViewView = newBranch.click().openCreatePullRequestView();
 		
+		assertTrue(pullRequestOverViewView.isOpen());
+		pullRequestOverViewView.close();
+		
+		// Wait for the view to load
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			log.warn("", e);
+		}
+		
+		assertFalse(pullRequestOverViewView.isOpen());
+		assertTrue(pullRequestOverViewView.isClosed());
+		assertFalse(pullRequestOverViewView.isMerged());
+		
+		PullRequest pullRequest = getPullRequest(BRANCH_NAME);
+		assertTrue(pullRequest.isClosed());
+		assertFalse(pullRequest.isMerged());
 	}
 	
 	@After
 	public void teardown() throws RepositoryNotFoundException, URISyntaxException{
 		// Delete pullrequest after test
-		PullRequest pullRequest = pullRequests.findOpenPullRequest(groupRepository, "refs/heads/" + BRANCH_NAME).get();
+		PullRequest pullRequest = getPullRequest(BRANCH_NAME);
 		pullRequests.delete(pullRequest);
 
 		// Delete branch after test
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(groupRepository.getRepositoryName());
 	
 		repositoryApi.getBranch(BRANCH_NAME).deleteBranch();
+	}
+
+
+	private PullRequest getPullRequest(String branchName) {
+		
+		String branchPath = String.format("refs/heads/%s", branchName);
+		
+		return pullRequests.openPullRequestExists(groupRepository, branchPath)? 
+				pullRequests.findOpenPullRequest(groupRepository, branchPath).get() :
+				pullRequests.findClosedPullRequests(groupRepository).stream().filter(x -> x.getBranchName().equals(branchPath)).collect(Collectors.toList()).get(0);
 	}
 
 }

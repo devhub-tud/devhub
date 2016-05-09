@@ -1,10 +1,15 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.Assert.assertTrue;
 
+@Slf4j
 public class PullRequestOverViewView extends PullRequestView {
 
 	public PullRequestOverViewView(WebDriver driver) {
@@ -22,7 +27,41 @@ public class PullRequestOverViewView extends PullRequestView {
 	 * @return Returns true if the pull request is open.
      */
 	public boolean isOpen() {
-		return getDriver().findElement(By.id("btn-close")) != null;
+		try {
+			WebElement closeButton = getDriver().findElement(By.id("btn-close"));
+			return closeButton.isEnabled();
+		} catch (NoSuchElementException e) {
+			log.warn(e.getMessage(), e);
+			return false;
+		}
+	}
+
+	/**
+	 * Check if the pull request is closed.
+	 * @return Returns true if the pull request is open.
+     */
+	public boolean isClosed() {
+		try {
+			WebElement closeButton = getDriver().findElement(By.id("btn-close"));
+			return !closeButton.isEnabled();
+		} catch (NoSuchElementException e) {
+			log.warn(e.getMessage(), e);
+			return false;
+		}
+	}
+
+	/**
+	 * Check if the pull request is closed.
+	 * @return Returns true if the pull request is open.
+     */
+	public boolean isMerged() {
+		try {
+			WebElement mergeButton = getDriver().findElement(By.id("btn-merge"));
+			return !mergeButton.isEnabled();
+		} catch (NoSuchElementException e) {
+			log.warn(e.getMessage(), e);
+			return false;
+		}
 	}
 
 	/**

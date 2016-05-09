@@ -132,7 +132,7 @@ public class ProjectPullTest extends WebTest {
 			newBranch.click().openCreatePullRequestView();
 
 		// Wait for the view to load
-		Thread.sleep(500);
+		waitForCondition(3, x -> pullRequestOverViewView.isOpen());
 
 		// Grab the pull request instance for BRANCH_NAME from the DB.
 		PullRequest pullRequest = getPullRequest(BRANCH_NAME);

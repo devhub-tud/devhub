@@ -60,7 +60,7 @@ public class AssignmentTest extends WebTest {
 				.get(0).click()
 				.toAssignmentView()
 				.listAssignments()
-				.get(0).click();
+				.get(1).click();
 
         final CourseEdition course = courseEditions.find(1);
         final Group group = groups.find(course).get(0);

@@ -9,12 +9,21 @@
 			</div>
 [/#if]
 			<form role="form" id="project-setup-form" method="POST" action="">
-				<label for="course">${i18n.translate("form.project-setup.course-selected.label")}</label>
-				<div class="form-group">
-					<div class="well well-sm" id="course">
-						<code>${course.code} - ${course.name}</code>
-					</div>
-				</div>
+			[#if course?? && course?has_content]
+                <label for="course">${i18n.translate("form.project-setup.course-selected.label")}</label>
+                <div class="form-group">
+                    <div class="well well-sm" id="course">
+                        <code>${course.getCode()} - ${course.getName()}</code>
+                    </div>
+                </div>
+			[#elseif repositoryEntity?? && repositoryEntity?has_content ]
+                <label for="course">Selected repository</label>
+                <div class="form-group">
+                    <div class="well well-sm" id="course">
+                        <code>${repositoryEntity.repositoryName}</code>
+                    </div>
+                </div>
+			[/#if]
 				<div class="form-group">
 					<label for="members">${i18n.translate("form.project-setup.group-members.label")}</label>
 					<table class="table table-bordered">
@@ -33,7 +42,7 @@
 			</table>
 				</div>
 				<div class="form-group pull-right">
-					<a class="btn btn-xl btn-default" name="back" href="/courses/${course.code}/enroll?step=1">
+					<a class="btn btn-xl btn-default" name="back" href="?step=1">
 						<span class="glyphicon glyphicon-chevron-left"></span> ${i18n.translate("form.project-setup.buttons.previous.caption")}
 					</a>
 					<button type="submit" class="btn btn-xl btn-success" name="finish">

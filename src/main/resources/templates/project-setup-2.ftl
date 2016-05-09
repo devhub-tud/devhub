@@ -9,12 +9,21 @@
 			</div>
 [/#if]
 			<form role="form" method="POST" action="">
+	[#if course?? && course?has_content]
 				<label for="course">${i18n.translate("form.project-setup.course-selected.label")}</label>
 				<div class="form-group">
 					<div class="well well-sm" id="course">
 						<code>${course.getCode()} - ${course.getName()}</code>
 					</div>
 				</div>
+	[#elseif repositoryEntity?? && repositoryEntity?has_content ]
+				<label for="course">Selected repository</label>
+				<div class="form-group">
+					<div class="well well-sm" id="course">
+						<code>${repositoryEntity.repositoryName}</code>
+					</div>
+				</div>
+	[/#if]
 	[#list 1..maxGroupSize as x]
 				<div class="form-group member-field">
 					<label class="control-label" for="member-${x}">${i18n.translate("form.project-setup.group-member.label")} #${x}</label>
@@ -36,7 +45,7 @@
 					</button>
 		[/#if]
 					<div class="pull-right">
-						<a class="btn btn-xl btn-default" href="/courses">
+						<a class="btn btn-xl btn-default" href="../">
 							<span class="glyphicon glyphicon-chevron-left"></span> ${i18n.translate("form.project-setup.buttons.previous.caption")}
 						</a>
 						<button type="submit" class="btn btn-xl btn-success" name="next">

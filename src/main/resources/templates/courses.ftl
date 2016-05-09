@@ -28,7 +28,7 @@
         </tbody>
     </table>
 [#else]
-    <h2>${i18n.translate("block.my-projects.title")}</h2>
+    <h2>My courses</h2>
     <table class="table table-bordered">
         <tbody>
             [#assign groups=user.listGroups()]

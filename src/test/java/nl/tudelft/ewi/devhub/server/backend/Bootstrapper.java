@@ -17,6 +17,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
@@ -76,14 +77,8 @@ public class Bootstrapper {
 		private Integer buildTimeout;
 		private List<String> assistants;
 		private List<BGroup> groups;
-		private List<BAssignment> assignments;
+		private List<Assignment> assignments;
 	}
-
-    @Data
-    static class BAssignment {
-        private Long id;
-        private String name;
-    }
 	
 	@Data
 	static class BGroup {
@@ -200,16 +195,14 @@ public class Bootstrapper {
 
 				Map<Long, Assignment> assignmentEntities = new HashMap<Long, Assignment>();
 
-				for(BAssignment assignment : bCourseEdition.getAssignments()) {
-					Assignment assignmentEntity = new Assignment();
-					assignmentEntity.setCourseEdition(entity);
-					assignmentEntity.setName(assignment.getName());
-					assignmentEntity.setAssignmentId(assignment.getId());
-					assignments.merge(assignmentEntity);
-					log.debug("Persistted assignment {} in {}", assignmentEntity.getName(), course.getCode());
+				for(Assignment assignment : bCourseEdition.getAssignments()) {
+					assignment.setCourseEdition(entity);
+					assignment.setName(assignment.getName());
+					assignments.merge(assignment);
+					log.debug("Persistted assignment {} in {}", assignment.getName(), course.getCode());
 
 					// Store for later use to insert deliveries
-					assignmentEntities.put(assignmentEntity.getAssignmentId(), assignmentEntity);
+					assignmentEntities.put(assignment.getAssignmentId(), assignment);
 				}
 
 				GroupModel courseGroupModel = new GroupModel();
@@ -243,8 +236,17 @@ public class Bootstrapper {
 		groupEntity.setMembers(Sets.newHashSet());
 		groupEntity.setGroupNumber(group.getGroupNumber());
 
+		MavenBuildInstructionEntity mavenBuildInstructionEntity = new MavenBuildInstructionEntity();
+		mavenBuildInstructionEntity.setCheckstyle(true);
+		mavenBuildInstructionEntity.setFindbugs(true);
+		mavenBuildInstructionEntity.setPmd(true);
+		mavenBuildInstructionEntity.setWithDisplay(true);
+		mavenBuildInstructionEntity.setBuildTimeout(600);
+		mavenBuildInstructionEntity.setCommand("test");
+
 		GroupRepository groupRepository = new GroupRepository();
 		groupRepository.setRepositoryName(entity.createRepositoryName(groupEntity).toASCIIString());
+		groupRepository.setBuildInstruction(mavenBuildInstructionEntity);
 		groupEntity.setRepository(groupRepository);
 
 		groups.persist(groupEntity);

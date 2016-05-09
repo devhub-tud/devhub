@@ -112,7 +112,7 @@ public class ProjectPullTest extends WebTest {
 	}
 
 	@Test
-	public void testCreatePullRequest() {
+	public void testCreatePullRequest() throws InterruptedException {
 		
 		// Assert branch is visible
 		Branch newBranch = openLoginScreen()
@@ -131,11 +131,7 @@ public class ProjectPullTest extends WebTest {
 			newBranch.click().openCreatePullRequestView();
 
 		// Wait for the view to load
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			log.warn("", e);
-		}
+		Thread.sleep(500);
 
 		// Grab the pull request instance for BRANCH_NAME from the DB.
 		PullRequest pullRequest = getPullRequest(BRANCH_NAME);
@@ -152,7 +148,7 @@ public class ProjectPullTest extends WebTest {
 	}
 
 	@Test
-	public void testClosePullRequest() {
+	public void testClosePullRequest() throws InterruptedException {
 		// Assert branch is visible
 		Branch newBranch = openLoginScreen()
 				.login(NET_ID, PASSWORD)
@@ -170,11 +166,7 @@ public class ProjectPullTest extends WebTest {
 		pullRequestOverViewView.close();
 		
 		// Wait for the view to load
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			log.warn("", e);
-		}
+		Thread.sleep(500);
 		
 		assertFalse(pullRequestOverViewView.isOpen());
 		assertTrue(pullRequestOverViewView.isClosed());
@@ -186,7 +178,7 @@ public class ProjectPullTest extends WebTest {
 	}
 	
 	@Test
-	public void testMergePullRequest() {
+	public void testMergePullRequest() throws InterruptedException {
 		// Assert branch is visible
 		Branch newBranch = openLoginScreen()
 				.login(NET_ID, PASSWORD)
@@ -204,11 +196,7 @@ public class ProjectPullTest extends WebTest {
 		pullRequestOverViewView.merge();
 		
 		// Wait for the view to load
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			log.warn("", e);
-		}
+		Thread.sleep(500);
 		
 		assertFalse(pullRequestOverViewView.isOpen());
 		assertFalse(pullRequestOverViewView.isClosed());

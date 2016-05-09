@@ -6,6 +6,9 @@ import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
 import com.mysema.query.jpa.impl.JPAQuery;
 
+import org.hibernate.Hibernate;
+import org.hibernate.engine.spi.SessionImplementor;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
@@ -58,6 +61,13 @@ public class Controller<T> {
 			throw new EntityNotFoundException(error);
 		}
 		return entry;
+	}
+
+	public <V> V unproxy(V object) {
+		Hibernate.initialize(object);
+		return (V) entityManager.unwrap(SessionImplementor.class)
+			.getPersistenceContext()
+			.unproxy(object);
 	}
 
 }

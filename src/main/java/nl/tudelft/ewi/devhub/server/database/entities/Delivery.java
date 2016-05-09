@@ -5,6 +5,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JoinColumnOrFormula;
@@ -26,15 +33,21 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyJoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Delivery for an assignment
@@ -44,10 +57,13 @@ import java.util.List;
 @Entity
 @Table(name = "assignment_deliveries")
 @ToString(exclude = {"notes", "attachments"})
-@EqualsAndHashCode(of={"deliveryId"}, callSuper = false)
+@EqualsAndHashCode(of={"deliveryId"})
 public class Delivery implements Event, Base {
 
-    /**
+	public static final Comparator<Delivery> DELIVERIES_BY_GROUP_NUMBER = (a, b) ->
+		Long.compare(a.getGroup().getGroupNumber(), b.getGroup().getGroupNumber());
+
+	/**
      * The State for the Delivery
      * @author Jan-Willem Gmelig Meyling
      */
@@ -96,6 +112,7 @@ public class Delivery implements Event, Base {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long deliveryId;
 
+	@JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumnsOrFormulas({
 		@JoinColumnOrFormula(formula = @JoinFormula(value = "course_edition_id", referencedColumnName = "course_edition_id")),
@@ -103,6 +120,7 @@ public class Delivery implements Event, Base {
 	})
     private Assignment assignment;
 
+	@JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumns({
 		@JoinColumn(name = "course_edition_id", referencedColumnName = "course_edition_id", nullable = false),
@@ -110,7 +128,7 @@ public class Delivery implements Event, Base {
 	})
     private Group group;
 
-	@ManyToOne(optional = true, fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumns({
 		@JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
 		@JoinColumn(name = "commit_id", referencedColumnName = "commit_id")
@@ -129,8 +147,9 @@ public class Delivery implements Event, Base {
     @Type(type = "org.hibernate.type.TextType")
     private String notes;
 
+	@JsonManagedReference
     @JoinColumn(name = "delivery_id")
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<DeliveryAttachment> attachments;
 
 	@CreationTimestamp
@@ -168,27 +187,53 @@ public class Delivery implements Event, Base {
 
     }
 
+	@JsonIgnore
+	@ManyToMany
+	@JoinTable(
+		name = "delivery_rubrics",
+		joinColumns = @JoinColumn(name = "delivery_id", referencedColumnName = "id"),
+		inverseJoinColumns = @JoinColumn(name = "mastery_id", referencedColumnName = "mastery_id")
+	)
+	@MapKeyJoinColumn(name = "characteristic_id", referencedColumnName = "characteristic_id")
+	private Map<Characteristic, Mastery> rubrics;
+
+	public Collection<Mastery> getMasteries() {
+		return getRubrics().values();
+	}
+
+	public double getAchievedNumberOfPoints() {
+		return Math.max(0, Math.min(getRubrics().entrySet().stream()
+			.mapToDouble(entry -> entry.getValue().getPoints() * entry.getKey().getWeight())
+			.sum(), getAssignment().getNumberOfAchievablePoints()));
+	}
+
+	@JsonIgnore
     public State getState() {
         Review review = getReview();
         return review == null ? State.SUBMITTED : review.getState() == null ? State.SUBMITTED : review.getState();
     }
 
+	@JsonIgnore
     public boolean isSubmitted() {
         return getState().equals(State.SUBMITTED);
     }
 
+	@JsonIgnore
     public boolean isApproved() {
         return getState().equals(State.APPROVED);
     }
 
+	@JsonIgnore
     public boolean isDisapproved() {
         return getState().equals(State.DISAPPROVED);
     }
 
+	@JsonIgnore
     public boolean isRejected() {
         return getState().equals(State.REJECTED);
     }
 
+	@JsonIgnore
     public boolean isLate() {
         Date dueDate = getAssignment().getDueDate();
         return dueDate != null && getTimestamp().after(dueDate);

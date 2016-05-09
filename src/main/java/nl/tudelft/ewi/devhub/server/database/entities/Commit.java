@@ -8,9 +8,11 @@ import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -42,7 +44,6 @@ import java.util.Objects;
 public class Commit implements Event, Base {
 
 	@Data
-	@Embeddable
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class CommitId implements Serializable {
@@ -54,6 +55,7 @@ public class Commit implements Event, Base {
 	}
 
 	@Id
+	@JsonBackReference
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "repository_id")
 	private RepositoryEntity repository;
@@ -63,7 +65,7 @@ public class Commit implements Event, Base {
 	private String commitId;
 
 	@Size(max = 255)
-	@Column(name = "author", length = 255)
+	@Column(name = "author")
 	private String author;
 
 	@Column(name = "committed")
@@ -73,17 +75,20 @@ public class Commit implements Event, Base {
 	@Column(name = "pushed")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date pushTime;
-	
-	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+
+	@JsonIgnore
+	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<CommitComment> comments;
 
-	@OneToOne(optional = true, cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
+	@JsonIgnore
+	@OneToOne(cascade = {CascadeType.DETACH, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
 	@PrimaryKeyJoinColumns({
 		@PrimaryKeyJoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
 		@PrimaryKeyJoinColumn(name = "commit_id", referencedColumnName = "commit_id")
 	})
 	private BuildResult buildResult;
 
+	@JsonIgnore
 	@ManyToMany
 	@JoinTable(name="commit_parent",
 		joinColumns = {
@@ -115,6 +120,7 @@ public class Commit implements Event, Base {
 		return getURI().resolve("diff/");
 	}
 
+	@JsonIgnore
 	public boolean hasNoBuildResult() {
 		return Objects.isNull(buildResult);
 	}

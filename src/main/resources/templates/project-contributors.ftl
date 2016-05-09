@@ -20,6 +20,10 @@
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
+			[#if courseEdition?? && !(user.isAdmin() || user.isAssisting(courseEdition))]
+			[#else]
+                <a href="contributors/edit" class="btn btn-default pull-right" >Edit</a>
+			[/#if]
             <h4 style="line-height:34px; margin-top:0;">${i18n.translate("group.contributors")}</h4>
         </div>
     </div>

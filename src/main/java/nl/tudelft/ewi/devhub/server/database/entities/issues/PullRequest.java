@@ -70,7 +70,7 @@ public class PullRequest extends AbstractIssue {
 	private Integer behind;
 
 	@OrderBy("timestamp ASC")
-	@OneToMany(mappedBy = "pullRequest", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "pullRequest", fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REMOVE}, orphanRemoval = true)
 	private List<PullRequestComment> comments;
 
 	@Override

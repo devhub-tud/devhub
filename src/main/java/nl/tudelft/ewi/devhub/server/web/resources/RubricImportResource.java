@@ -116,7 +116,7 @@ public class RubricImportResource extends Resource {
 					Matcher matcher = digitPattern.matcher(lineParts[j]);
 					if (matcher.find()) {
 						String value = matcher.group();
-						deliveries[j] = groupMap.get(Long.parseLong(value));
+						deliveries[j] = groupMap.get(Long.parseLong(value.trim()));
 						log.info("Bound group {} to {}", value, deliveries[j]);
 					}
 				}
@@ -143,7 +143,7 @@ public class RubricImportResource extends Resource {
 				characteristic = new Characteristic();
 				characteristic.setTask(task);
 				characteristic.setDescription(lineParts[0]);
-				characteristic.setWeight(Double.parseDouble(lineParts[1]));
+				characteristic.setWeight(Double.parseDouble(lineParts[1].trim()));
 				characteristic.setWeightAddsToTotalWeight(!isPenalty);
 				entityManager.persist(characteristic);
 				log.info("Persisted {}", characteristic);
@@ -182,7 +182,7 @@ public class RubricImportResource extends Resource {
 					Delivery delivery = deliveries[j];
 					String linePart = lineParts[j];
 					if (delivery == null || linePart.isEmpty()) continue;
-					Mastery mastery = masteryMap.get(Long.parseLong(linePart));
+					Mastery mastery = masteryMap.get(Long.parseLong(linePart.trim()));
 					delivery.getRubrics().put(characteristic, mastery);
 					log.info("Putting {} for {} in {}", characteristic, mastery, delivery.getGroup());
 				}

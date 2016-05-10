@@ -63,7 +63,7 @@
     <ul class="list-inline">
         [#list attachments as attachment]
             <li>
-                <a class="btn btn-link btn-sm" target="_blank" href="${attachment.getURI()?url('UTF-8')}">
+                <a class="btn btn-link btn-sm" target="_blank" href="${attachment.getURI()}">
                     <span class="glyphicon glyphicon-file aria-hidden="true"></span>
                     ${attachment.getFileName()}
                 </a>

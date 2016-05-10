@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
@@ -18,7 +19,10 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+import nl.tudelft.ewi.git.models.RepositoryModel;
+import nl.tudelft.ewi.git.models.RepositoryModel.Level;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Path;
@@ -26,6 +30,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +64,17 @@ public class PrivateRepositoryResource extends AbstractProjectResource<PrivateRe
 			members.stream().map(User::getId).map(users::find).collect(Collectors.toList())
 		);
 		privateRepositories.merge(privateRepository);
+
+		RepositoryApi repositoryApi = repositoriesApi.getRepository(getRepositoryEntity().getRepositoryName());
+
+		RepositoryModel repositoryModel = repositoryApi.getRepositoryModel();
+		Map<String, Level> permissions = Maps.newHashMap(repositoryModel.getPermissions());
+		permissions.entrySet().removeIf(entry -> entry.getValue().equals(Level.ADMIN));
+		permissions.putAll(
+			members.stream().collect(Collectors.toMap(User::getNetId, a -> Level.ADMIN))
+		);
+		repositoryModel.setPermissions(permissions);
+		repositoryApi.updateRepository(repositoryModel);
 	}
 
 	@Override

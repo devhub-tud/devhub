@@ -43,18 +43,17 @@ public class CourseEventFeed {
     Groups groups;
 
     @Transactional
-    public List<? extends Event> getEventsFor(CourseEdition courseEdition) {
+    public List<? extends Event> getEventsFor(CourseEdition courseEdition, int limit) {
         List<Group> groups = courseEdition.getGroups();
         List<GroupRepository> groupRepositories = Lists.transform(groups, Group::getRepository);
-        long n = 100;
 
         return CourseEventFeed.<Event>concatAll(
-            pullRequests.findLastPullRequests(groupRepositories, n),
-            commits.getMostRecentCommits(groupRepositories, n),
-            commitComments.getMostRecentCommitComments(groupRepositories, n),
-            pullRequestComments.getMostRecentPullRequestComments(groupRepositories, n),
-            deliveries.getMostRecentDeliveries(groups, n)
-        ).sorted(Ordering.natural().reversed()).limit(n).collect(Collectors.toList());
+            pullRequests.findLastPullRequests(groupRepositories, limit),
+            commits.getMostRecentCommits(groupRepositories, limit),
+            commitComments.getMostRecentCommitComments(groupRepositories, limit),
+            pullRequestComments.getMostRecentPullRequestComments(groupRepositories, limit),
+            deliveries.getMostRecentDeliveries(groups, limit)
+        ).sorted(Ordering.natural().reversed()).limit(limit).collect(Collectors.toList());
     }
 
     public static <T> Stream<? extends T> concatAll(Stream<? extends T>... streams) {

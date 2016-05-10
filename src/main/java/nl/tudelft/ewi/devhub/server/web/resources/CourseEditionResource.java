@@ -22,6 +22,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -189,13 +190,15 @@ public class CourseEditionResource extends Resource {
 	 * Get an event feed for the course.
 	 * @param courseCode the course code for the course
 	 * @param editionCode the course code for the course edition
+	 * @param limit The maximal number of events to retrieve
 	 * @return a Response containing the generated page
 	 * @throws IOException if an I/O error occurs
      */
 	@GET
 	@Path("feed")
 	public Response getEventFeed(@PathParam("courseCode") String courseCode,
-	                             @PathParam("editionCode") String editionCode) throws IOException {
+	                             @PathParam("editionCode") String editionCode,
+	                             @QueryParam("limit") @DefaultValue("100") int limit) throws IOException {
 
 
 		CourseEdition courseEdition = courseEditions.find(courseCode, editionCode);
@@ -207,7 +210,7 @@ public class CourseEditionResource extends Resource {
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("course", courseEdition);
-		parameters.put("events", courseEventFeed.getEventsFor(courseEdition));
+		parameters.put("events", courseEventFeed.getEventsFor(courseEdition, limit));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("courses/course-feed.ftl", locales, parameters));

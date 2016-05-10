@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static nl.tudelft.ewi.devhub.server.database.entities.comments.QCommitComment.commitComment;
 
@@ -81,6 +82,21 @@ public class CommitComments extends Controller<CommitComment> {
                     .and(commitComment.commit.commitId.in(commitIds)))
             .groupBy(commitComment.commit.commitId)
             .map(commitComment.commit.commitId, commitComment.commentId.count());
+    }
+
+    /**
+     * Get the most recent commit comments.
+     * @param repositoryEntities The repository entities to include.
+     * @param limit The maximal number of results.
+     * @return The list of most recent commit comments.
+     */
+    @Transactional
+    public Stream<CommitComment> getMostRecentCommitComments(List<? extends RepositoryEntity> repositoryEntities, long limit) {
+        return toStream(query().from(commitComment)
+            .where(commitComment.commit.repository.in(repositoryEntities))
+            .orderBy(commitComment.timestamp.desc())
+            .limit(limit)
+            .iterate(commitComment));
     }
 
 }

@@ -31,9 +31,7 @@
 	            <span class="caret"></span>
             </a>
             <ul uib-dropdown-menu>
-            [#list course.course.getEditions() as a]
 	            <li><a href="../">Overview</a></li>
-            [/#list]
             </ul>
           </span>
 		</li>

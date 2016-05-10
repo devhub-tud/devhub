@@ -9,6 +9,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
@@ -83,7 +84,6 @@ public class ProjectAssignmentsResource extends Resource {
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
     private final Assignments assignments;
-    private final ReviewMailer reviewMailer;
 
     @Inject
     public ProjectAssignmentsResource(final TemplateEngine templateEngine,
@@ -94,8 +94,7 @@ public class ProjectAssignmentsResource extends Resource {
                                       final RepositoriesApi repositoriesApi,
                                       final DeliveriesBackend deliveriesBackend,
                                       final Assignments assignments,
-                                      final Commits commits,
-                                      final ReviewMailer reviewMailer) {
+                                      final Commits commits) {
 
         this.templateEngine = templateEngine;
         this.group = group;
@@ -106,7 +105,6 @@ public class ProjectAssignmentsResource extends Resource {
         this.repositoriesApi = repositoriesApi;
         this.deliveriesBackend = deliveriesBackend;
         this.assignments = assignments;
-        this.reviewMailer = reviewMailer;
         this.commits = commits;
     }
 
@@ -116,6 +114,7 @@ public class ProjectAssignmentsResource extends Resource {
 		parameters.put("group", group);
 		parameters.put("course", group.getCourseEdition());
 		parameters.put("repositoryEntity", repositoryEntity);
+        parameters.put("submittedState", Delivery.State.SUBMITTED);
 		return parameters;
 	}
 
@@ -159,6 +158,8 @@ public class ProjectAssignmentsResource extends Resource {
         RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
         RepositoryModel repositoryModel = repositoryApi.getRepositoryModel();
 
+        boolean seesGrade = canSeeGrade(assignment);
+
         List<Delivery> myDeliveries = deliveries.getDeliveries(assignment, group);
         Map<String, Object> parameters = getBaseParameters();
         parameters.put("repository", repositoryModel);
@@ -166,6 +167,7 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("myDeliveries", myDeliveries);
         parameters.put("canSubmit", !deliveries.lastDeliveryIsApprovedOrDisapproved(assignment, group));
         parameters.put("recentCommits", repositoryApi.getBranch("master").retrieveCommitsInBranch(0, 25).getCommits());
+        parameters.put("seeGrade", seesGrade);
 
         Collection<String> commitIds = myDeliveries.stream()
                 .map(Delivery::getCommit)
@@ -177,6 +179,16 @@ public class ProjectAssignmentsResource extends Resource {
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/group-assignment-view.ftl", locales, parameters));
+    }
+
+    /**
+     * Admins and ta's should always be able to see the grades even if they aren't released yet
+     * @param assignment the assignment we are showing the grade for.
+     * @return  whether the current user can see the grade yet.
+     */
+    protected boolean canSeeGrade(Assignment assignment) {
+        CourseEdition edition = group.getCourseEdition();
+        return currentUser.isAdmin() || currentUser.isAssisting(edition) || assignment.isGradesReleased();
     }
 
     /**
@@ -356,7 +368,6 @@ public class ProjectAssignmentsResource extends Resource {
 
         try {
             deliveriesBackend.review(delivery, review);
-            reviewMailer.sendReviewMail(delivery);
         }
         catch (Exception e){
             throw new ApiError("error.could-not-review", e);

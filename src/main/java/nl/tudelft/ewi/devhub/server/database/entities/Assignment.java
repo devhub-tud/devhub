@@ -96,6 +96,9 @@ public class Assignment implements Comparable<Assignment>, Base {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dueDate;
 
+    @Column(name="released")
+    private boolean gradesReleased;
+
 	@JsonManagedReference
 	@OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<Task> tasks;

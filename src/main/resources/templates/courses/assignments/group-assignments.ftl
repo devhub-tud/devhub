@@ -41,6 +41,7 @@
                 <tbody>
                 [#if assignments?? && assignments?has_content]
                     [#list assignments as assignment]
+                    [#assign showGrade = assignment.isGradesReleased() || user.isAdmin() || user.isAssisting(course)]
                     [#assign delivery = deliveries.getLastDelivery(assignment, group)!]
                     <tr>
                         <td>
@@ -61,7 +62,7 @@
                             [/#if]
                         </td>
                         <td>
-                            [#if delivery?has_content && delivery.getReview()??]
+                            [#if delivery?has_content && delivery.getReview()?? && showGrade]
                             [#assign review = delivery.getReview()]
                             ${review.getGrade()!"-"}
                             [/#if]
@@ -88,6 +89,9 @@
                                 [/#if]
 
                                 [#assign state = delivery.getState()]
+                                [#if !showGrade]
+                                    [#assign state = submittedState]
+                                [/#if]
 	                            <span class="label label-${state.style}" data-toggle="tooltip" title="${i18n.translate(state.messageTranslationKey)}">
                                     ${i18n.translate(state.translationKey)}
 	                            </span>

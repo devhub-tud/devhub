@@ -26,9 +26,7 @@
                 <span class="caret"></span>
               </a>
               <ul uib-dropdown-menu>
-                [#list course.course.getEditions() as a]
-                  <li><a href="feed">Course Feed</a></li>
-                [/#list]
+                <li><a href="feed">Course Feed</a></li>
               </ul>
             </span>
         </li>

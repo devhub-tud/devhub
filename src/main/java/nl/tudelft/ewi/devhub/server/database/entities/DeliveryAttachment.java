@@ -47,7 +47,7 @@ public class DeliveryAttachment implements Base {
 
     @SneakyThrows
     static String encode(String value) {
-        return URLEncoder.encode(value, "UTF-8");
+        return URLEncoder.encode(value, "UTF-8").replaceAll("\\+", "%20");
     }
 
 }

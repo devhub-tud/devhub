@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.mysema.query.group.GroupBy.groupBy;
 import static com.mysema.query.group.GroupBy.list;
@@ -107,5 +108,27 @@ public class Deliveries extends Controller<Delivery> {
 					.and(delivery.group.eq(group)))
 				.singleResult(delivery),
             "No delivery found for id " + deliveryId);
+    }
+
+    /**
+     * Return the most recent deliveries.
+     * @param groups Groups to search deliveries for.
+     * @param limit Maximal number of results.
+     * @return A list of deliveries.
+     */
+    @Transactional
+    public Stream<Delivery> getMostRecentDeliveries(List<Group> groups, long limit) {
+        Map<Group, List<Delivery>> deliveriesMap = query().from(delivery)
+            .where(delivery.group.in(groups))
+            .orderBy(delivery.timestamp.desc())
+            .limit(limit)
+            .transform(groupBy(delivery.group).as(list(delivery)));
+
+        Comparator<Delivery> byState = Comparator.comparing(Delivery::getState);
+        Comparator<Delivery> bySubmissionDate = Comparator.<Delivery> naturalOrder();
+
+        return deliveriesMap.values().stream().map((deliveries) ->
+            deliveries.stream().max(bySubmissionDate).get())
+            .sorted(byState.thenComparing(bySubmissionDate));
     }
 }

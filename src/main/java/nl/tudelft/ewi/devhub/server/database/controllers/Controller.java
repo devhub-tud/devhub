@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.mysema.commons.lang.CloseableIterator;
 import lombok.extern.slf4j.Slf4j;
 
 import com.google.common.base.Preconditions;
@@ -12,6 +13,10 @@ import org.hibernate.engine.spi.SessionImplementor;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 public class Controller<T> {
@@ -68,6 +73,11 @@ public class Controller<T> {
 		return (V) entityManager.unwrap(SessionImplementor.class)
 			.getPersistenceContext()
 			.unproxy(object);
+	}
+
+	protected <V> Stream<V> toStream(CloseableIterator<V> closeableIterator) {
+		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(closeableIterator, Spliterator.ORDERED), false)
+			.onClose(closeableIterator::close);
 	}
 
 }

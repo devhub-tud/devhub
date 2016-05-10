@@ -1,7 +1,9 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.backend.CourseEventFeed;
 import nl.tudelft.ewi.devhub.server.backend.CoursesBackend;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
@@ -63,18 +65,22 @@ public class CourseEditionResource extends Resource {
 	@Inject
 	private TemplateEngine templateEngine;
 
+	@Inject
+	private CourseEventFeed courseEventFeed;
+
+	@Context
+	private HttpServletRequest request;
+
 	/**
 	 * Get an overview for a specific course. For users this redirects to the group page.
 	 * Administrators and assistants are presented with an overview of groups and assignments.
-	 * @param request the current HttpServletRequest
 	 * @param courseCode the course code for the course
 	 * @param editionCode the course code for the course edition
 	 * @return a Response containing the generated page
 	 * @throws IOException if an I/O error occurs
 	 */
 	@GET
-	public Response getCourse(@Context HttpServletRequest request,
-							  @PathParam("courseCode") String courseCode,
+	public Response getCourse(@PathParam("courseCode") String courseCode,
 							  @PathParam("editionCode") String editionCode) throws IOException {
 
 		CourseEdition courseEdition = courseEditions.find(courseCode, editionCode);
@@ -101,7 +107,6 @@ public class CourseEditionResource extends Resource {
 
 	/**
 	 * Edit a course
-	 * @param request the current HttpServletRequest
 	 * @param courseCode the course code for the course
 	 * @param editionCode the course code for the course edition
 	 * @param error an error message
@@ -110,8 +115,7 @@ public class CourseEditionResource extends Resource {
 	 */
 	@GET
 	@Path("edit")
-	public Response getEditPage(@Context HttpServletRequest request,
-								@PathParam("courseCode") String courseCode,
+	public Response getEditPage(@PathParam("courseCode") String courseCode,
 								@PathParam("editionCode") String editionCode,
 								@QueryParam("error") String error) throws IOException {
 
@@ -134,7 +138,6 @@ public class CourseEditionResource extends Resource {
 
 	/**
 	 * Submit changes to a course
-	 * @param request the current HttpServletRequest
 	 * @param courseCode the course code for the course
 	 * @param editionCode the course code for the course edition
 	 * @param courseName name for the course
@@ -146,8 +149,7 @@ public class CourseEditionResource extends Resource {
 	 */
 	@POST
 	@Path("edit")
-	public Response editCourse(@Context HttpServletRequest request,
-							   @PathParam("courseCode") String courseCode,
+	public Response editCourse(@PathParam("courseCode") String courseCode,
 							   @PathParam("editionCode") String editionCode,
 							   @FormParam("name") String courseName,
 							   @FormParam("template") String templateRepository,
@@ -181,6 +183,34 @@ public class CourseEditionResource extends Resource {
 		}
 
 		return redirect(Course.COURSE_BASE_PATH);
+	}
+
+	/**
+	 * Get an event feed for the course.
+	 * @param courseCode the course code for the course
+	 * @param editionCode the course code for the course edition
+	 * @return a Response containing the generated page
+	 * @throws IOException if an I/O error occurs
+     */
+	@GET
+	@Path("feed")
+	public Response getEventFeed(@PathParam("courseCode") String courseCode,
+	                             @PathParam("editionCode") String editionCode) throws IOException {
+
+
+		CourseEdition courseEdition = courseEditions.find(courseCode, editionCode);
+
+		if(!currentUser.isAdmin() && !currentUser.isAssisting(courseEdition)) {
+			throw new UnauthorizedException();
+		}
+
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("user", currentUser);
+		parameters.put("course", courseEdition);
+		parameters.put("events", courseEventFeed.getEventsFor(courseEdition));
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("courses/course-feed.ftl", locales, parameters));
 	}
 
 }

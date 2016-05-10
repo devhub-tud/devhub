@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 public class CoursesView extends AuthenticatedView {
 
-	private static final By MY_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'My projects')]");
+	private static final By MY_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'My courses')]");
 	private static final By ASSISTING_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Assisting projects')]");
 
 	CoursesView(WebDriver driver) {

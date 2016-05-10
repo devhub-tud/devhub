@@ -44,9 +44,18 @@ public class Warnings extends Controller<Warning> {
     public Map<String, Long> commitsWithWarningsFor(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
         return query().from(commitWarning)
             .where(commitWarning.repository.eq(repositoryEntity)
-                .and(commitWarning.commit.commitId.in(commitIds)))
+                .and(commitWarning.commit.commitId.in(commitIds))
+                    .and(commitWarning.notIn(getLineWarningsNotIntroducedInCommit(repositoryEntity, commitIds))))
             .groupBy(commitWarning.commit.commitId)
             .map(commitWarning.commit.commitId, commitWarning.id.count());
+    }
+
+    protected ListSubQuery<LineWarning> getLineWarningsNotIntroducedInCommit(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
+        return new JPASubQuery().from(lineWarning)
+            .where(lineWarning.repository.eq(repositoryEntity)
+                .and(lineWarning.commit.commitId.in(commitIds)
+                    .and(lineWarning.source.sourceCommit.commitId.ne(lineWarning.commit.commitId))))
+            .list(lineWarning);
     }
 
     /**
@@ -56,12 +65,12 @@ public class Warnings extends Controller<Warning> {
      * @param repositoryEntity {@link Group} to check for
      * @param commitId A commit id ids
      * @return a {@code List} of {@code CommitWarnings} for the given commits
+     * @see #getWarningsFor(RepositoryEntity, Collection)
      */
     @Transactional
     public List<CommitWarning> getWarningsFor(final RepositoryEntity repositoryEntity, final String commitId) {
         return getWarningsFor(repositoryEntity, ImmutableList.of(commitId));
     }
-
 
     /**
      * Get the {@link CommitWarning CommitWarnings} for the given commit ids.
@@ -72,7 +81,7 @@ public class Warnings extends Controller<Warning> {
      * @return a {@code List} of {@code CommitWarnings} for the given commits
      */
     @Transactional
-    public List<CommitWarning> getWarningsFor(final RepositoryEntity repositoryEntity, final List<String> commitIds) {
+    public List<CommitWarning> getWarningsFor(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
         return query().from(commitWarning)
                 .where(commitWarning.repository.eq(repositoryEntity)
                         .and(commitWarning.commit.commitId.in(commitIds))
@@ -80,7 +89,7 @@ public class Warnings extends Controller<Warning> {
                 .list(commitWarning);
     }
 
-    protected ListSubQuery<LineWarning> getLineWarningsForQuery(final RepositoryEntity repositoryEntity, final List<String> commitIds) {
+    protected ListSubQuery<LineWarning> getLineWarningsForQuery(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
         return new JPASubQuery().from(lineWarning)
             .where(lineWarning.repository.eq(repositoryEntity)
                     .and(lineWarning.commit.commitId.in(commitIds)))
@@ -102,20 +111,6 @@ public class Warnings extends Controller<Warning> {
             .list(lineWarning);
     }
 
-    /**
-     * Get the {@link LineWarning LineWarnings} for the given commit ids.
-     *
-     * @param repositoryEntity {@link Group} to check for
-     * @param commitIds A collection of commit ids
-     * @return a {@code List} of {@code LineWarnings}
-     */
-    @Transactional
-    public List<LineWarning> getLineWarningsFor(final RepositoryEntity repositoryEntity, final Collection<String> commitIds) {
-        return query().from(lineWarning)
-                .where(lineWarning.repository.eq(repositoryEntity)
-                        .and(lineWarning.commit.commitId.in(commitIds)))
-                .list(lineWarning);
-    }
 
     /**
      * Get all CommitWarnings including subclasses as LineWarnings
@@ -124,7 +119,7 @@ public class Warnings extends Controller<Warning> {
      * @return a List of warnings
      */
     @Transactional
-    public List<CommitWarning> getAllCommitWarningsFor(final RepositoryEntity repositoryEntity, final Set<Commit> commits) {
+    protected List<CommitWarning> getAllCommitWarningsFor(final RepositoryEntity repositoryEntity, final Set<Commit> commits) {
         return query().from(commitWarning)
             .where(commitWarning.repository.eq(repositoryEntity)
                     .and(commitWarning.commit.in(commits)))

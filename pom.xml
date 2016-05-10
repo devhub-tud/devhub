@@ -30,7 +30,7 @@
 		<logback.version>1.0.13</logback.version>
 		<selenium.version>2.52.0</selenium.version>
 		<build.server.version>1.2.0</build.server.version>
-		<git.server.version>1.0.6</git.server.version>
+		<git.server.version>1.0.9</git.server.version>
 	</properties>
 
     <repositories>
@@ -132,7 +132,12 @@
 			<artifactId>jackson-datatype-guava</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-hibernate4</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
 			<version>${jackson.version}</version>
@@ -386,6 +391,11 @@
 			<groupId>org.mindrot</groupId>
 			<artifactId>jbcrypt</artifactId>
 			<version>0.3m</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.53</version>
 		</dependency>
 	</dependencies>
 

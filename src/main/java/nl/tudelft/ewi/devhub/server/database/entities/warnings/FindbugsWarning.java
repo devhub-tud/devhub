@@ -19,10 +19,12 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @Entity
-@ToString(callSuper = true)
 @DiscriminatorValue("findbugs")
-@EqualsAndHashCode(callSuper = true)
+@ToString(of = {"message", "priority"}, callSuper = true)
+@EqualsAndHashCode(of = {"message", "priority"}, callSuper = true)
 public class FindbugsWarning extends LineWarning {
+
+    private static final String RESOURCE_KEY = "warning.findbugs";
 
     @NotEmpty
     @Column(name = "message", length = 255)
@@ -34,6 +36,6 @@ public class FindbugsWarning extends LineWarning {
 
     @Override
     public String getMessage(Translator translator) {
-        return message;
+        return translator.translate(RESOURCE_KEY, message, priority);
     }
 }

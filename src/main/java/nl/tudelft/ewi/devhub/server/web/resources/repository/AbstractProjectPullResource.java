@@ -52,6 +52,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
@@ -131,7 +132,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		Preconditions.checkNotNull(branchName);
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		if (pullRequests.findOpenPullRequest(repositoryEntity, branchName) != null) {
+		if (pullRequests.findOpenPullRequest(repositoryEntity, branchName).isPresent()) {
 			throw new IllegalArgumentException("There already is an open pull request for " + branchName);
 		}
 
@@ -200,7 +201,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		parameters.put("repository", repository);
 		parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, commitIds);
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, destinationId);
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		try {
@@ -269,7 +270,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		parameters.put("diffViewModel", diffBlameModel);
 		parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
 
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, commitIds);
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, pullRequest.getDestination().getCommitId());
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		List<Locale> locales = Collections.list(request.getLocales());

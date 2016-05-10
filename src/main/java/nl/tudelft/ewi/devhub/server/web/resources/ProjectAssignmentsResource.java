@@ -14,6 +14,9 @@ import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -36,6 +39,7 @@ import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.util.GenericType;
 
+import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
@@ -58,6 +62,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -287,18 +292,18 @@ public class ProjectAssignmentsResource extends Resource {
     /**
      * Get a file from a delivery
      * @param request the current HttpServletRequest
-     * @param assignmentId assignmentId for the assignment
+     * @param deliveryId deliveryId for the delivery
      * @param attachmentPath requested file
      * @return the requested file
      */
     @GET
-    @Path("{assignmentId : \\d+}/attachment/{path}")
+    @Path("{assignmentId : \\d+}/deliveries/{deliveryId}/attachment/{path}")
     public Response getAttachment(@Context HttpServletRequest request,
-                                  @PathParam("assignmentId") Long assignmentId,
+                                  @PathParam("deliveryId") long deliveryId,
                                   @PathParam("path") String attachmentPath) {
 
-        Assignment assignment = assignments.find(group.getCourse(), assignmentId);
-        File file = deliveriesBackend.getAttachment(assignment, group, attachmentPath);
+        Delivery delivery = deliveries.find(group, deliveryId);
+        File file = deliveriesBackend.getAttachment(delivery, group, attachmentPath);
         return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM).build();
     }
 
@@ -370,5 +375,45 @@ public class ProjectAssignmentsResource extends Resource {
 
         return redirect(request.getRequestURI());
     }
+
+	@GET
+	@Transactional
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("deliveries/{deliveryId}/masteries")
+	public Collection<Mastery> getMasteries(
+		@PathParam("deliveryId") long deliveryId) {
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourseEdition()))) {
+			throw new UnauthorizedException();
+		}
+
+		return deliveries.find(group, deliveryId).getRubrics().values();
+	}
+
+	@POST
+	@Transactional
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Path("deliveries/{deliveryId}/masteries")
+	public void persistMasteries(
+		@PathParam("deliveryId") long deliveryId,
+		List<Mastery> characteristics) {
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourseEdition()))) {
+			throw new UnauthorizedException();
+		}
+
+		Delivery delivery = deliveries.find(group, deliveryId);
+
+		delivery.getRubrics().putAll(
+			delivery.getAssignment().getTasks().stream()
+				.map(Task::getCharacteristics).flatMap(Collection::stream)
+				.map(Characteristic::getLevels).flatMap(Collection::stream)
+				.filter(characteristics::contains)
+				.collect(Collectors.toMap(Mastery::getCharacteristic, Function.identity()))
+		);
+
+		deliveries.merge(delivery);
+
+	}
 
 }

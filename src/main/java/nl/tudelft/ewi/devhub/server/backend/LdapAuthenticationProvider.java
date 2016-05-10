@@ -130,7 +130,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 				request.setName(netId + config.getLDAPExtension());
 			}
 			else {
-				request.setDn(new Dn("cn", netId, config.getLDAPPrimaryDomain()));
+				request.setDn(new Dn("uid", netId, config.getLDAPPrimaryDomain()));
 			}
 
 			request.setCredentials(password);
@@ -192,6 +192,11 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 				String id = getValue(entry, "uid");
 				String email = getValue(entry, "mail");
 				String name = getValue(entry, "displayName");
+
+				if (name == null) {
+					name = getValue(entry, "cn");
+				}
+
 				if (name.contains(" - ")) {
 					name = name.substring(0, name.indexOf(" - "));
 				}

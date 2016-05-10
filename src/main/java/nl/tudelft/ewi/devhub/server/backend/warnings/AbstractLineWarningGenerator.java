@@ -89,7 +89,15 @@ implements CommitWarningGenerator<T, A> {
                 blameModel = getBlameModel(filePath);
             }
             catch (NotFoundException e) {
-                log.warn(e.getMessage());
+                log.warn(
+                    String.format(
+                        "Failed to retrieve blame model for file %s at %s, failed with %s",
+                        file,
+                        commit,
+                        e.getMessage()
+                    ),
+                    e
+                );
                 return Stream.empty();
             }
 
@@ -134,6 +142,7 @@ implements CommitWarningGenerator<T, A> {
                 T warning = mapToWarning(violation);
                 Source source = getSource(violation);
                 warning.setSource(source);
+                warning.setCommit(commit);
                 return warning;
             }
 

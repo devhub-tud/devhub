@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CommitWarning;
 
@@ -7,9 +8,12 @@ import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
+import javax.ws.rs.NotFoundException;
+
 /**
  * @author Liam Clark
  */
+@Slf4j
 public abstract class AbstractCommitWarningGenerator<T extends CommitWarning, A> implements CommitWarningGenerator<T, A> {
 
     protected final RepositoriesApi repositoriesApi;
@@ -24,8 +28,21 @@ public abstract class AbstractCommitWarningGenerator<T extends CommitWarning, A>
      * @return a CommitApi for the Commit.
      */
     protected CommitApi getGitCommit(Commit commit) {
-        return getRepository(commit)
-            .getCommit(commit.getCommitId());
+        try {
+            return getRepository(commit)
+                .getCommit(commit.getCommitId());
+        }
+        catch (NotFoundException e) {
+            log.warn(
+                String.format(
+                    "Failed to retrieve commit %s in git server, failed with %s",
+                    commit,
+                    e.getMessage()
+                ),
+                e
+            );
+            throw e;
+        }
     }
 
     /**
@@ -34,8 +51,21 @@ public abstract class AbstractCommitWarningGenerator<T extends CommitWarning, A>
      * @return The RepositoryApi.
      */
     protected RepositoryApi getRepository(Commit commit) {
-        return repositoriesApi
-           .getRepository(commit.getRepository().getRepositoryName());
+        try {
+            return repositoriesApi
+               .getRepository(commit.getRepository().getRepositoryName());
+        }
+        catch (NotFoundException e) {
+            log.warn(
+                String.format(
+                    "Failed to retrieve repository %s in git server, failed with %s",
+                    commit.getRepository(),
+                    e.getMessage()
+                ),
+                e
+            );
+            throw e;
+        }
     }
 
 }

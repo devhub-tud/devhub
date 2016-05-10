@@ -7,7 +7,12 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import com.sun.istack.Nullable;
@@ -16,20 +21,24 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -37,9 +46,10 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name= "assignments")
-@ToString(exclude = "summary")
+@ToString(exclude = {"summary", "tasks"})
 @IdClass(Assignment.AssignmentId.class)
 @EqualsAndHashCode(of = {"courseEdition", "assignmentId" })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Assignment implements Comparable<Assignment>, Base {
 
 	public static final String ASSIGNMENTS_PATH_BASE = "assignments/";
@@ -56,11 +66,13 @@ public class Assignment implements Comparable<Assignment>, Base {
 	}
 
 	@Id
+	@JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumn(name = "course_edition_id")
     private CourseEdition courseEdition;
 
     @Id
+	@JsonProperty("id")
     @Column(name = "assignment_id")
 	@GeneratedValue(generator = "seq_group_number", strategy = GenerationType.AUTO)
 	@GenericGenerator(name = "seq_group_number", strategy = "nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator", parameters = {
@@ -87,6 +99,10 @@ public class Assignment implements Comparable<Assignment>, Base {
     @Column(name="released")
     private boolean gradesReleased;
 
+	@JsonManagedReference
+	@OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<Task> tasks;
+
     @Override
     public int compareTo(Assignment o) {
         return ComparisonChain.start()
@@ -96,6 +112,12 @@ public class Assignment implements Comparable<Assignment>, Base {
 			.compare(getAssignmentId(), o.getAssignmentId())
             .result();
     }
+
+	public double getNumberOfAchievablePoints() {
+		return getTasks().stream()
+			.mapToDouble(Task::getMaximalNumberOfPoints)
+			.sum();
+	}
 
 	@Override
 	public URI getURI() {

@@ -8,13 +8,14 @@ import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.controllers.Controller;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -29,22 +30,30 @@ import nl.tudelft.ewi.git.models.CommitSubList;
 import nl.tudelft.ewi.git.models.DiffBlameModel;
 import nl.tudelft.ewi.git.models.EntryType;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.SessionScoped;
 
 import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
+
 import org.hibernate.validator.constraints.NotEmpty;
+import org.jboss.resteasy.annotations.cache.Cache;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -53,7 +62,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -66,15 +77,24 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-public abstract class AbstractProjectResource extends Resource {
+public abstract class AbstractProjectResource<RepoType extends RepositoryEntity> extends Resource {
 
 	private static final int PAGE_SIZE = 25;
+	private final static int MIN_GROUP_SIZE = 1;
+	private final static int MAX_GROUP_SIZE = 20;
+
+	@Data
+	@SessionScoped
+	public static class EditContributorsState {
+		private final Map<RepositoryEntity, Collection<User>> selectedUsers = Maps.newHashMap();
+	}
 
 	protected final TemplateEngine templateEngine;
 	protected final User currentUser;
@@ -87,6 +107,9 @@ public abstract class AbstractProjectResource extends Resource {
 	protected final CommentMailer commentMailer;
 	protected final Commits commits;
 	protected final Warnings warnings;
+	protected final Controller<? super RepoType> repositoriesController;
+	protected final EditContributorsState editContributorsState;
+	protected final Users users;
 
 	protected AbstractProjectResource(final TemplateEngine templateEngine,
 							final @Named("current.user") User currentUser,
@@ -98,22 +121,28 @@ public abstract class AbstractProjectResource extends Resource {
 							final CommitComments comments,
 							final CommentMailer commentMailer,
 							final Commits commits,
-							final Warnings warnings) {
+							final Warnings warnings,
+						  	final Controller<? super RepoType> repositoriesController,
+						  	final EditContributorsState editContributorsState,
+						  	final Users users) {
 
 		this.templateEngine = templateEngine;
 		this.currentUser = currentUser;
 		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
-      this.buildBackend = buildBackend;
+		this.buildBackend = buildBackend;
 		this.repositoriesApi = repositoriesApi;
 		this.comments = comments;
 		this.commentMailer = commentMailer;
 		this.commits = commits;
 		this.warnings = warnings;
+		this.repositoriesController = repositoriesController;
+		this.editContributorsState = editContributorsState;
+		this.users = users;
 	}
 
-	protected abstract RepositoryEntity getRepositoryEntity();
+	protected abstract RepoType getRepositoryEntity();
 
 	protected Map<String, Object> getBaseParameters() {
 		Map<String, Object> parameters = Maps.newLinkedHashMap();
@@ -131,6 +160,7 @@ public abstract class AbstractProjectResource extends Resource {
 	}
 
 	@GET
+	@Cache(noStore = true)
 	@Path("/branch/{branchName}")
 	@Transactional
 	public Response showBranchOverview(@Context HttpServletRequest request,
@@ -169,7 +199,8 @@ public abstract class AbstractProjectResource extends Resource {
 		}
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("project-view.ftl", locales, parameters));
+		return display(templateEngine.process("project-view.ftl", locales, parameters));		
+		
 	}
 
 	protected List<String> getCommitIds(CommitSubList commits) {
@@ -191,6 +222,89 @@ public abstract class AbstractProjectResource extends Resource {
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-contributors.ftl", locales, parameters));
+	}
+
+
+	@GET
+	@Path("/contributors/edit")
+	@Transactional
+	public Response editContributors(@Context HttpServletRequest request,
+									 @QueryParam("error") String error,
+									 @QueryParam("step") @DefaultValue("1") int step) throws IOException, URISyntaxException {
+
+		editContributorsAllowedCheck();
+
+		if (step == 1) {
+			return editContributorsStep1(request, error);
+		}
+		else if (step == 2) {
+			return editContributorsStep2(request, error);
+		}
+		throw new BadRequestException("Invalid value for step");
+	}
+
+	private Response editContributorsStep1(@Context HttpServletRequest request,
+										   @QueryParam("error") String error) throws IOException {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		Collection<User> members = this.editContributorsState.getSelectedUsers()
+			.computeIfAbsent(repositoryEntity, c -> repositoryEntity.getCollaborators());
+
+		Map<String, Object> parameters = getBaseParameters();
+		if (members != null && !members.isEmpty()) {
+			parameters.put("members", members);
+		}
+		parameters.put("minGroupSize", getMinGroupSize());
+		parameters.put("maxGroupSize", getMaxGroupSize());
+		if (!Strings.isNullOrEmpty(error)) {
+			parameters.put("error", error);
+		}
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-setup-2.ftl", locales, parameters));
+	}
+
+	private Response editContributorsStep2(@Context HttpServletRequest request,
+										   @QueryParam("error") String error) throws IOException {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		Collection<User> members = this.editContributorsState.getSelectedUsers().get(repositoryEntity);
+
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("members", members);
+
+		if (!Strings.isNullOrEmpty(error)) {
+			parameters.put("error", error);
+		}
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-setup-3.ftl", locales, parameters));
+	}
+
+	@POST
+	@Path("/contributors/edit")
+	public Response processEditContributors(@Context HttpServletRequest request,
+											@QueryParam("step") @DefaultValue("1") int step) throws IOException, URISyntaxException {
+		try {
+			editContributorsAllowedCheck();
+
+			RepositoryEntity repositoryEntity = getRepositoryEntity();
+
+			if (step == 1) {
+				Collection<User> groupMembers = getGroupMembers(request);
+				validateCollaborators(groupMembers);
+				this.editContributorsState.getSelectedUsers().put(repositoryEntity, groupMembers);
+				return redirect(new URI(request.getRequestURI()).resolve("edit?step=2"));
+			}
+
+			Collection<User> members = this.editContributorsState.getSelectedUsers().get(repositoryEntity);
+			updateCollaborators(members);
+			this.editContributorsState.getSelectedUsers().remove(repositoryEntity);
+			return redirect(new URI(request.getRequestURI()).resolve("../contributors"));
+		}
+		catch (ApiError e) {
+			return redirect(new URI(request.getRequestURI()).resolve("edit?step=1&error=" + e.getResourceKey()));
+		}
 	}
 
     @POST
@@ -431,11 +545,86 @@ public abstract class AbstractProjectResource extends Resource {
 
 		Set<String> blameCommits = getCommitsForBlame(blame);
         parameters.put("comments", commentBackend.getCommentChecker(repositoryEntity, blameCommits));
-		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, blameCommits);
+		List<LineWarning> lineWarnings = warnings.getLineWarningsFor(repositoryEntity, commitId);
 		parameters.put("lineWarnings", new WarningResolver(lineWarnings));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-file-view.ftl", locales, parameters));
+	}
+
+	@DELETE
+	@Consumes(MediaType.WILDCARD)
+	@Transactional
+	public void deleteRepository() {
+		RepoType repositoryEntity = getRepositoryEntity();
+		log.info("Removing {} from git-server", repositoryEntity.getRepositoryName());
+		repositoriesApi.getRepository(repositoryEntity.getRepositoryName()).deleteRepository();
+		log.info("Removing {}", repositoryEntity);
+		repositoriesController.delete(repositoryEntity);
+	}
+
+	@GET
+	@Path("/settings")
+	@Transactional
+	public Response showSettings(@Context HttpServletRequest request) throws IOException, ApiError {
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repository", repository.getRepositoryModel());
+		parameters.put("buildInstruction", repositoriesController.unproxy(repositoryEntity.getBuildInstruction()));
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project/settings.ftl", locales, parameters));
+	}
+
+	/**
+	 * Security check for updating the collaborators.
+	 * @see AbstractProjectResource#editContributors(HttpServletRequest, String, int)
+	 */
+	protected void editContributorsAllowedCheck() throws ForbiddenException {};
+
+	/**
+	 * Validation hook for updating the collaborators.
+	 * @see AbstractProjectResource#editContributors(HttpServletRequest, String, int)
+	 */
+	protected void validateCollaborators(Collection<User> groupMembers) throws ApiError {}
+
+	/**
+	 * Update hook for updating the collaborators.
+	 * @see AbstractProjectResource#editContributors(HttpServletRequest, String, int)
+	 */
+	protected abstract void updateCollaborators(Collection<User> members);
+
+	/**
+	 * The maximal number of collaborators.
+	 * @return maximal number of collaborators.
+	 * @see AbstractProjectResource#editContributors(HttpServletRequest, String, int)
+	 */
+	protected int getMaxGroupSize() {
+		return MAX_GROUP_SIZE;
+	}
+
+	/**
+	 * The minimal number of collaborators.
+	 * @return minimal number of collaborators.
+	 * @see AbstractProjectResource#editContributors(HttpServletRequest, String, int)
+	 */
+	protected int getMinGroupSize() {
+		return MIN_GROUP_SIZE;
+	}
+
+	private Collection<User> getGroupMembers(HttpServletRequest request) {
+		String netId;
+		int memberId = 1;
+		Set<String> netIds = Sets.newHashSet();
+		while (!Strings.isNullOrEmpty((netId = request.getParameter("member-" + memberId)))) {
+			memberId++;
+			netIds.add(netId);
+		}
+
+		Map<String, User> members = users.mapByNetIds(netIds);
+		return members.values();
 	}
 
 	private Set<String> getCommitsForBlame(BlameModel blame) {

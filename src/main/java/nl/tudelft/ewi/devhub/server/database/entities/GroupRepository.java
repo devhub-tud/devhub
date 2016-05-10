@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -22,7 +23,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class GroupRepository extends RepositoryEntity {
 
-    @OneToOne(mappedBy = "repository", optional = false, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "repository", optional = false, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	@Delegate(types = {Base.class})
     private Group group;
 

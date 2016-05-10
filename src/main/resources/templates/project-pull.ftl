@@ -181,17 +181,17 @@ $(function() {
         var label = $('span', btn).html('${i18n.translate("pull-request.merging")}');
 		var message = $('#merge-message');
 
-        $.post("${pullRequest.getURI()}/merge")
+        $.post("${pullRequest.getURI()}merge")
             .done(function(res) {
                 if(res.success) {
                     label.html('${i18n.translate("pull-request.merged")}');
                     btn.removeClass('btn-primary').addClass('btn-success');
-                    message.html('${i18n.translate("pull-request.closed.message")}');
+                    message.html('${i18n.translate("pull-request.merged.message")}');
                 }
                 else {
                     label.html('${i18n.translate("pull-request.failed-to-merge")}');
                     btn.removeClass('btn-primary').addClass('btn-danger');
-                    message.html('${i18n.translate("pull-request.failed-to-merge.message")}');
+                    message.html("${i18n.translate("pull-request.failed-to-merge.message")}");
                     $('.pull-request-badge').addClass('failed');
                 }
 

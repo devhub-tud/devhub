@@ -1,6 +1,8 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,11 +10,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 
 @Data
 @Entity
 @Table(name = "build_servers")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BuildServer {
 	
 	@Id
@@ -20,15 +22,15 @@ public class BuildServer {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 	
-	@NotNull
+	@NotEmpty
 	@Column(name = "name")
 	private String name;
-	
-	@NotNull
+
+	@NotEmpty
 	@Column(name = "secret")
 	private String secret;
 
-	@NotNull
+	@NotEmpty
 	@Column(name = "host")
 	private String host;
 

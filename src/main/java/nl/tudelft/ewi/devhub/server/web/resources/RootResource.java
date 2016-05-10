@@ -97,7 +97,7 @@ public class RootResource {
 				if (Strings.isNullOrEmpty(redirectTo)) {
 					return Response.seeOther(new URI("/courses")).build();
 				}
-				return Response.seeOther(new URI("/" + URLDecoder.decode(redirectTo, "UTF-8"))).build();
+				return Response.seeOther(new URI("/" + redirectTo)).build();
 			}
 		}
 		catch (IllegalArgumentException e) {

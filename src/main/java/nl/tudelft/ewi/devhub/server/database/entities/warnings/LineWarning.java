@@ -17,16 +17,12 @@ import javax.persistence.Entity;
  */
 @Data
 @Entity
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@ToString(of = {"source"}, callSuper = true)
+@EqualsAndHashCode(of = {"source"}, callSuper = true)
 public abstract class LineWarning extends CommitWarning {
 
     @Getter
     @Embedded
     private Source source;
 
-    public void setSource(final Source source) {
-        this.source = source;
-        this.setCommit(source.getSourceCommit());
-    }
 }

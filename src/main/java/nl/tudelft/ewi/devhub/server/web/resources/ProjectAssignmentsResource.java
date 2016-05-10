@@ -332,6 +332,7 @@ public class ProjectAssignmentsResource extends Resource {
         parameters.put("assignment", delivery.getAssignment());
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("repository", repositoryApi.getRepositoryModel());
+        parameters.put("seeGrade", true);
 
         List<String> commitIds = delivery.getCommit() != null ?
 			Lists.newArrayList(delivery.getCommit().getCommitId()) : Collections.emptyList();

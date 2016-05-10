@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.google.common.collect.ComparisonChain;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -21,6 +22,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import java.util.List;
 
@@ -33,7 +35,7 @@ import java.util.List;
 @EqualsAndHashCode(of = {"id"})
 @ToString(exclude = {"assignment"})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Task {
+public class Task implements Comparable<Task> {
 
 	@Id
 	@Column(name = "task_id")
@@ -57,6 +59,7 @@ public class Task {
 	/**
 	 * The skills, knowledge, and/or behavior to be demonstrated.
 	 */
+	@OrderBy("id ASC")
 	@JsonManagedReference
 	@OneToMany(mappedBy = "task", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Characteristic> characteristics;
@@ -73,6 +76,11 @@ public class Task {
 			.filter(Characteristic::isWeightAddsToTotalWeight)
 			.mapToDouble(Characteristic::getMaximalNumberOfPointsWithWeight)
 			.sum();
+	}
+
+	@Override
+	public int compareTo(Task o) {
+		return Long.compare(getId(), o.getId());
 	}
 
 }

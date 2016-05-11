@@ -69,13 +69,15 @@ public class DeliveryReviewView extends ProjectSidebarView {
 
     @Data
     public class Review {
+
+        @Nullable
         public String getReviewer() {
-            final String footer = getFooter();
-            if (footer == null) {
+            final Optional<String> footer = getFooter();
+            if (!footer.isPresent()) {
                 return null;
             }
 
-            return footer.split(" on ")[0].trim();
+            return footer.get().split(" on ")[0].trim();
         }
 
         public double getGrade() {
@@ -104,21 +106,16 @@ public class DeliveryReviewView extends ProjectSidebarView {
 
         @Nullable
         public Date getReviewTime() throws ParseException {
-            final String footer = getFooter();
-            if (footer == null) {
+            final Optional<String> footer = getFooter();
+            if (!footer.isPresent()) {
                 return null;
             }
 
-            return new SimpleDateFormat("EEEE dd MMMM yyyy k:m", Locale.US).parse(footer.split(" on ")[1].trim());
+            return new SimpleDateFormat("EEEE dd MMMM yyyy k:m", Locale.US).parse(footer.get().split(" on ")[1].trim());
         }
 
-        @Nullable
-        private String getFooter() {
-            try {
-                return getDriver().findElement(By.cssSelector("footer.small")).getText();
-            } catch (Exception e) {
-                return null;
-            }
+        private Optional<String> getFooter() {
+            return getDriver().findElements(By.cssSelector("footer.small")).stream().findAny().map(WebElement::getText);
         }
     }
 

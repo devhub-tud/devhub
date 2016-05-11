@@ -87,7 +87,7 @@ public class AssignmentReviewTest extends WebTest{
 
         assertEquals(modelDelivery.getCreatedUser().getName(), viewAssignment.getAuthor());
         assertEquals(modelAssignment.getName(), viewAssignment.getName());
-//        assertEquals(modelDelivery.getReview().getState(), viewAssignment.getStatus());
+        assertEquals(modelDelivery.getReview().getState(), viewAssignment.getStatus());
         assertEquals(modelDelivery.getReview().getReviewUser().getName(), viewAssignment.getReview().getReviewer());
     }
 

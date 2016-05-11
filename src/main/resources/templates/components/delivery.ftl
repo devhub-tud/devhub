@@ -16,7 +16,7 @@
                 <span class="label label-danger">${i18n.translate("build.state.failed")}</span>
             [/#if]
         [#else]
-            <span class="label label-info">${commit.commitId?substring(0, 6)}</span>
+            <span class="label label-info">${commitId?substring(0, 6)}</span>
         [/#if]
     </a>
     [/#if]

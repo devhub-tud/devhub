@@ -80,6 +80,13 @@
         </developer>
     </developers>
 
+	<contributors>
+		<contributor>
+			<name>Douwe Koopmans</name>
+            <email>d.koopmans@student.tudelft.nl</email>
+		</contributor>
+	</contributors>
+
 	<dependencies>
 		<!-- Web -->
 		<dependency>

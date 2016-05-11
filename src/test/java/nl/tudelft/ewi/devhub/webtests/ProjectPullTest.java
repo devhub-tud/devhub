@@ -9,11 +9,13 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView;
+import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView.Comment;
 import nl.tudelft.ewi.git.models.BranchModel;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
@@ -43,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -58,6 +61,7 @@ public class ProjectPullTest extends WebTest {
 	private static final String FILE_NAME = "my-file.txt";
 	private static final String FILE_CONTENT_MASTER = "Initial content on master";
 	private static final String FILE_CONTENT_BRANCH = "Initial content on branch";
+	private static final String COMMENT_CONTENT = "Why is this useful?";
 	
 	@Inject Users users;
 	@Inject Groups groups;
@@ -298,7 +302,15 @@ public class ProjectPullTest extends WebTest {
 		
 		assertTrue(pullRequestOverViewView.isOpen());
 		
+		pullRequestOverViewView.addComment(COMMENT_CONTENT);		
+		waitForCondition(3, x -> pullRequestOverViewView.listComments().size() == 1);
 		
+		Comment comment = pullRequestOverViewView.listComments().get(0);		
+		assertEquals(COMMENT_CONTENT, comment.getContent());
+		
+		List<PullRequestComment> comments = getPullRequest(BRANCH_NAME).getComments();		
+		assertEquals(1, comments.size());
+		assertEquals(COMMENT_CONTENT, comments.get(0).getContent());
 				
 	}
 	

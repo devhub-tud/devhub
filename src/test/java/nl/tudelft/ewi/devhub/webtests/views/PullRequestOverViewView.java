@@ -114,7 +114,7 @@ public class PullRequestOverViewView extends PullRequestView {
 	private List<Comment> listComments(WebElement container){
 		
 		List<Comment> result = Lists.newArrayList();
-		List<WebElement> entries = container.findElements(By.tagName("div.panel-comment"));
+		List<WebElement> entries = container.findElements(By.cssSelector("div.panel-comment"));
 		
 		for (WebElement webElement : entries) {
 			result.add(new Comment(webElement));

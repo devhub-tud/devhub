@@ -11,7 +11,10 @@ import org.openqa.selenium.WebElement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+
+import javax.annotation.Nullable;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -41,6 +44,7 @@ public class AssignmentView extends ProjectSidebarView {
     public class Assignment {
         @Getter(AccessLevel.NONE)
         private final WebElement anchor;
+        private final Review review = new Review();
 
         public String getAuthor() {
             return getDriver().findElements(By.tagName("dd")).get(0).getText();
@@ -62,6 +66,61 @@ public class AssignmentView extends ProjectSidebarView {
         public DiffInCommitView click() {
             anchor.click();
             return new DiffInCommitView(getDriver());
+        }
+    }
+
+    @Data
+    public class Review {
+        public String getReviewer() {
+            final String footer = getFooter();
+            if (footer == null) {
+                return null;
+            }
+
+            return footer.split(" on ")[0].trim();
+        }
+
+        public double getGrade() {
+            final List<WebElement> ddElements = getDriver().findElements(By.cssSelector("blockquote dl dd"));
+            if (ddElements.size() == 2) {
+                ddElements.get(0).getText();
+            } else if (getDriver().findElement(By.cssSelector("blockquote dl dt")).getText().equalsIgnoreCase("Grade")) {
+                return Double.parseDouble(ddElements.get(0).getText());
+            }
+
+            return 0D;
+        }
+
+        @Nullable
+        public String getCommentary() {
+            final List<WebElement> ddElements = getDriver().findElements(By.cssSelector("blockquote dl dd"));
+            if (ddElements.size() == 2) {
+                ddElements.get(1).getText();
+            } else if (getDriver().findElement(By.cssSelector("blockquote dl dt")).getText().equalsIgnoreCase("Remarks")) {
+                    return ddElements.get(0).getText();
+            }
+
+            return null;
+        }
+
+
+        @Nullable
+        public Date getReviewTime() throws ParseException {
+            final String footer = getFooter();
+            if (footer == null) {
+                return null;
+            }
+
+            return new SimpleDateFormat("EEEE dd MMMM yyyy k:m", Locale.US).parse(footer.split(" on ")[1].trim());
+        }
+
+        @Nullable
+        private String getFooter() {
+            try {
+                return getDriver().findElement(By.cssSelector("footer.small")).getText();
+            } catch (Exception e) {
+                return null;
+            }
         }
     }
 }

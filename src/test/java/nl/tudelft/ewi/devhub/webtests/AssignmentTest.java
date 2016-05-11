@@ -17,6 +17,7 @@ import java.text.ParseException;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class AssignmentTest extends WebTest {
 
@@ -72,5 +73,27 @@ public class AssignmentTest extends WebTest {
         assertEquals(modelAssignment.getName(), viewAssignment.getName());
         assertEquals(modelDelivery.getState(), viewAssignment.getStatus());
     }
-	
+
+	@Test
+	public void testReviewedAssignment() throws ParseException {
+        final AssignmentView view = openLoginScreen()
+                .login(ASSISTANT_USERNAME, ASSISTANT_PASSWORD)
+                .listAssistingCourses()
+                .get(0).click()
+                .listGroups()
+                .get(0).click()
+                .toAssignmentView()
+                .listAssignments()
+                .get(0).click();
+
+        final CourseEdition course = courseEditions.find(1);
+        final Group group = groups.find(course).get(0);
+        final Delivery modelDelivery = deliveries.find(group,1L);
+        final Delivery.Review modelReview = modelDelivery.getReview();
+        final AssignmentView.Review viewReview = view.getAssignment().getReview();
+
+        assertTrue(modelReview.getGrade() == viewReview.getGrade());
+        assertEquals(modelReview.getReviewUser().getName(), viewReview.getReviewer());
+        assertEquals(modelReview.getCommentary(), viewReview.getCommentary());
+	}
 }

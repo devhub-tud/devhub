@@ -63,9 +63,9 @@ public class AssignmentView extends ProjectSidebarView {
                     getDriver().findElements(By.tagName("dd")).get(1).getText());
         }
 
-        public DiffInCommitView click() {
+        public DeliveryReviewView click() {
             anchor.click();
-            return new DiffInCommitView(getDriver());
+            return new DeliveryReviewView(getDriver());
         }
     }
 

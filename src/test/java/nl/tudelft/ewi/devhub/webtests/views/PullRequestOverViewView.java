@@ -69,6 +69,14 @@ public class PullRequestOverViewView extends PullRequestView {
 	public void merge() {
 		getMergeButton().click();
 	}
+	
+	/**
+	 * Open diff view
+	 */
+	public DiffInPullRequestView openDiff(){
+		getDriver().findElement(By.xpath("//a[contains(text(),'View diff')]"));
+		return new DiffInPullRequestView(getDriver());
+	}
 
 	/**
 	 * Remove the branch.

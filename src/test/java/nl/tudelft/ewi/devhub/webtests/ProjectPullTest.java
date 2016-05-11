@@ -281,6 +281,26 @@ public class ProjectPullTest extends WebTest {
 		
 	}
 	
+	@Test
+	public void testComment(){
+		// Assert branch is visible
+		Branch newBranch = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toCoursesView()
+				.listMyProjects()
+				.get(0).click()
+				.listBranches().get(1);
+
+		assertEquals(BRANCH_NAME, newBranch.getName());
+
+		// Navigate to pull request view
+		PullRequestOverViewView pullRequestOverViewView = newBranch.click().openCreatePullRequestView();
+		
+		assertTrue(pullRequestOverViewView.isOpen());
+		
+		
+				
+	}
 	
 	@After
 	public void teardown() throws RepositoryNotFoundException, URISyntaxException{

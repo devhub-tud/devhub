@@ -79,7 +79,7 @@ public class PullRequestOverViewView extends PullRequestView {
 	 * Open diff view
 	 */
 	public DiffInPullRequestView openDiffView(){
-		getDriver().findElement(By.xpath("//a[contains(text(),'View diff')]"));
+		getDriver().findElement(By.xpath("//a[contains(text(),'View diff')]")).click();
 		return new DiffInPullRequestView(getDriver());
 	}
 

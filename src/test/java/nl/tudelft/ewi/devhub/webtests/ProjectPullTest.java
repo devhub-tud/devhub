@@ -14,11 +14,17 @@ import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
+import nl.tudelft.ewi.devhub.webtests.views.DiffElement;
+import nl.tudelft.ewi.devhub.webtests.views.DiffInPullRequestView;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView.Comment;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffContext;
+import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffFile;
 import nl.tudelft.ewi.git.models.BranchModel;
+import nl.tudelft.ewi.git.models.ChangeType;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.models.DiffBlameModel.DiffBlameLine;
 import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
@@ -312,6 +318,40 @@ public class ProjectPullTest extends WebTest {
 		assertEquals(1, comments.size());
 		assertEquals(COMMENT_CONTENT, comments.get(0).getContent());
 				
+	}
+	
+	@Test
+	public void testDiff(){
+		// Assert branch is visible
+		Branch newBranch = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toCoursesView()
+				.listMyProjects()
+				.get(0).click()
+				.listBranches().get(1);
+
+		assertEquals(BRANCH_NAME, newBranch.getName());
+
+		// Navigate to pull request view
+		PullRequestOverViewView pullRequestOverViewView = newBranch.click().openCreatePullRequestView();
+		
+		assertTrue(pullRequestOverViewView.isOpen());
+		
+		List<DiffElement> diffs = pullRequestOverViewView.openDiffView().listDiffs();		
+		assertEquals(1, diffs.size());
+		
+		DiffFile<DiffContext<DiffBlameLine>> diffFile = diffs.get(0).getDiffModel();
+		
+		assertEquals(1, diffFile.getLinesAdded());
+		assertEquals(0, diffFile.getLinesRemoved());
+		assertEquals(ChangeType.ADD, diffFile.getType());
+		
+		DiffBlameLine diffLine = diffFile.getContexts().get(0).getLines().get(0);
+		
+		assertEquals(FILE_CONTENT_BRANCH, diffLine.getContent());
+		assertEquals(FILE_NAME, diffLine.getSourceFilePath());
+		
+		
 	}
 	
 	@After

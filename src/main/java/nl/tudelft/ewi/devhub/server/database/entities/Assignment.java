@@ -32,6 +32,7 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -96,6 +97,10 @@ public class Assignment implements Comparable<Assignment>, Base {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dueDate;
 
+    @Column(name="released")
+    private boolean gradesReleased;
+
+	@OrderBy("id ASC")
 	@JsonManagedReference
 	@OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<Task> tasks;

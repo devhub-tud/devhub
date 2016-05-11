@@ -6,7 +6,30 @@
     <ol class="breadcrumb hidden-xs">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
         <li><a href="${courseEdition.course.getURI()}">${courseEdition.course.code} - ${courseEdition.course.name}</a></li>
-        <li><a href="${courseEdition.getURI()}">${courseEdition.timeSpan.start?string["yyyy"]}[#if courseEdition.timeSpan.end??] - ${courseEdition.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+        <li>
+            <span uib-dropdown dropdown-append-to-body="true">
+              <a href id="simple-dropdown" uib-dropdown-toggle>
+              ${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]
+                <span class="caret"></span>
+              </a>
+              <ul uib-dropdown-menu>
+                [#list course.course.getEditions() as a]
+                  <li><a href="${a.getURI()}">${a.timeSpan.start?string["yyyy"]}[#if a.timeSpan.end??] - ${a.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+                [/#list]
+              </ul>
+            </span>
+        </li>
+        <li>
+            <span uib-dropdown dropdown-append-to-body="true">
+              <a href id="simple-dropdown" uib-dropdown-toggle>
+                Overview
+                <span class="caret"></span>
+              </a>
+              <ul uib-dropdown-menu>
+                <li><a href="feed">Course Feed</a></li>
+              </ul>
+            </span>
+        </li>
     </ol>
 [/#macro]
 
@@ -187,5 +210,12 @@
 
 
 </div>
-[@macros.renderScripts /]
+[@macros.renderScripts ]
+<script src="/static/vendor/angular/angular.min.js"></script>
+<script src="/static/vendor/angular-bootstrap/ui-bootstrap.min.js"></script>
+
+<script type="text/javascript">
+	angular.module('devhub', ['ui.bootstrap']);
+</script>
+[/@macros.renderScripts]
 [@macros.renderFooter /]

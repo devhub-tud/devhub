@@ -9,6 +9,7 @@ import com.google.inject.persist.Transactional;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static nl.tudelft.ewi.devhub.server.database.entities.issues.QPullRequest.pullRequest;
 
@@ -92,6 +93,21 @@ public class PullRequests extends Controller<PullRequest> {
 			.where(pullRequest.branchName.eq(branchName))
 			.where(pullRequest.open.isTrue())
 			.exists();
+	}
+
+	/**
+	 * Find the most recent pull requests for the given repositories.
+	 * @param repositoryEntities The repositories to query.
+	 * @param limit The maximal number of results.
+     * @return A list of pull requests.
+     */
+	@Transactional
+	public Stream<PullRequest> findLastPullRequests(final List<? extends RepositoryEntity> repositoryEntities, long limit) {
+		return toStream(query().from(pullRequest)
+			.where(pullRequest.repository.in(repositoryEntities))
+			.orderBy(pullRequest.timestamp.desc())
+			.limit(limit)
+			.iterate(pullRequest));
 	}
 
 }

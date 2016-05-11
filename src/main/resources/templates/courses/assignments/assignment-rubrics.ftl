@@ -78,9 +78,15 @@ body > .angular-bootstrap-contextmenu.dropdown {
 					</tbody>
             <tbody ng-repeat="task in assignment.tasks">
 				<tr class="active"  context-menu="contextMenuForTask(task)">
-					<td colspan="6">
+					<td>
 						<a editable-text="task.description" ng-bind="task.description"></a>
 					</td>
+					<td>
+						<strong ng-bind="task.totalWeight"></strong>
+					</td>
+					<td colspan="2"></td>
+					<td><strong ng-bind="task.totalAchievablePoints"></strong> <em>({{task.totalAchievablePointsWithWeight}})</em></td>
+					<td></td>
 				</tr>
                 <tr ng-repeat-start="characteristic in task.characteristics"  context-menu="contextMenuForCharacteristic(task, characteristic)">
                     <td rowspan="{{ characteristic.levels.length }}"><a editable-textarea="characteristic.description" ng-bind="characteristic.description"></a></td>
@@ -90,7 +96,7 @@ body > .angular-bootstrap-contextmenu.dropdown {
                     <td><a editable-number="characteristic.levels[0].points" ng-bind="characteristic.levels[0].points"></a></td>
 					<td ng-bind="characteristic.levels[0].count"></td>
                 </tr>
-				<tr ng-repeat-end ng-repeat="level in characteristic.levels" ng-hide="$first">
+				<tr ng-repeat-end ng-repeat="level in characteristic.levels" ng-hide="$first" context-menu="contextMenuForCharacteristic(task, characteristic)">
 					<td><a editable-textarea="level.description" ng-bind="level.description"></a></td>
 					<td><a editable-number="level.points" ng-bind="level.points"></a></td>
 					<td ng-bind="level.count"></td>

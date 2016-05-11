@@ -6,6 +6,7 @@ import lombok.ToString;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.google.common.collect.ComparisonChain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -55,7 +56,10 @@ public class Mastery implements Comparable<Mastery> {
 
 	@Override
 	public int compareTo(Mastery o) {
-		return Double.compare(getPoints(), o.getPoints());
+		return ComparisonChain.start()
+			.compare(getPoints(), o.getPoints())
+			.compare(getId(), o.getId())
+			.result();
 	}
 
 	public static Mastery build(Characteristic characteristic, String description, double points) {
@@ -65,4 +69,5 @@ public class Mastery implements Comparable<Mastery> {
 		mastery.setPoints(points);
 		return mastery;
 	}
+
 }

@@ -111,6 +111,7 @@ public class ProjectResource extends AbstractProjectResource<GroupRepository> {
 		permissions.putAll(
 			members.stream().collect(Collectors.toMap(User::getNetId, a -> RepositoryModel.Level.READ_WRITE))
 		);
+		repositoryModel.setPermissions(permissions);
 		repositoryApi.updateRepository(repositoryModel);
 	}
 

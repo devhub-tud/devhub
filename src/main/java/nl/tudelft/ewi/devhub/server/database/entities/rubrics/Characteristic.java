@@ -7,6 +7,7 @@ import lombok.ToString;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.google.common.collect.ComparisonChain;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -18,6 +19,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import java.util.List;
 
@@ -30,7 +32,7 @@ import java.util.List;
 @EqualsAndHashCode(of = {"id"})
 @ToString(exclude = {"task"})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Characteristic {
+public class Characteristic implements Comparable<Characteristic> {
 
 	@Id
 	@Column(name = "characteristic_id")
@@ -58,6 +60,7 @@ public class Characteristic {
 	 * 	<li>1, 2, 3, 4</li>
 	 * </ul>
 	 */
+	@OrderBy("points ASC, id ASC")
 	@JsonManagedReference
 	@OneToMany(mappedBy = "characteristic", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Mastery> levels;
@@ -69,18 +72,33 @@ public class Characteristic {
 	 * Hook that allows you to ignore this weight when computing the
 	 * total weight for a {@link Task}, allowing you to create
 	 * {@code Characteristics} for bonus points and penalties.
+	 *
+	 * @deprecated This is probably not necessary anymore, or not a
+	 * really favorable implementation. We have to think about having
+	 * something more clear for bonus points. Penalties are also supported
+	 * by making a characteristic with masteries with negative
+	 * points.
+	 *
+	 * @see Characteristic#getMaximalNumberOfPoints()
+	 * @see Characteristic#getMaximalNumberOfPointsWithWeight()
 	 */
+	@Deprecated
 	@Column(name = "weight_adds_to_total_weight")
 	private boolean weightAddsToTotalWeight = true;
 
 	public double getMaximalNumberOfPoints() {
-		return getLevels().stream()
+		return Math.max(0, getLevels().stream()
 			.mapToDouble(Mastery::getPoints)
-			.max().orElse(0);
+			.max().orElse(0));
 	}
 
 	public double getMaximalNumberOfPointsWithWeight() {
 		return getWeight() * getMaximalNumberOfPoints();
+	}
+
+	@Override
+	public int compareTo(Characteristic o) {
+		return Long.compare(getId(), o.getId());
 	}
 
 }

@@ -389,7 +389,8 @@ public class AssignmentsResource extends Resource {
                                    @PathParam("assignmentId") long assignmentId,
                                    @FormParam("name") String name,
                                    @FormParam("summary") String summary,
-                                   @FormParam("due-date") String dueDate) {
+                                   @FormParam("due-date") String dueDate,
+                                   @FormParam("release") String release) {
 
         CourseEdition course = courses.find(courseCode, editionCode);
 
@@ -401,6 +402,9 @@ public class AssignmentsResource extends Resource {
         assignment.setName(name);
         assignment.setSummary(summary);
 
+        //a little bit ugly, form params don't work nicely with checkboxes.
+        boolean releaseStatus = release != null && release.equals("on");
+        assignment.setGradesReleased(releaseStatus);
 
         if(!Strings.isNullOrEmpty(dueDate)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);

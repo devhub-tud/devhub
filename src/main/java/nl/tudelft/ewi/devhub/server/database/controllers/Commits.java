@@ -13,8 +13,7 @@ import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.persistence.EntityManager;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -102,5 +101,19 @@ public class Commits extends Controller<Commit> {
 			.where(commit.commitId.eq(commitId))
 			.exists();
 	}
-	
+
+	/**
+	 * List the most recent commits.
+	 * @param repositoryEntities The repository entities to include.
+	 * @param limit The maximal number of results.
+     * @return A list of commits.
+     */
+	@Transactional
+	public Stream<Commit> getMostRecentCommits(List<? extends RepositoryEntity> repositoryEntities, long limit) {
+		return toStream(query().from(commit)
+			.where(commit.repository.in(repositoryEntities))
+			.orderBy(commit.pushTime.desc())
+			.limit(limit)
+			.iterate(commit));
+	}
 }

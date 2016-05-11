@@ -22,8 +22,11 @@
     [/#if]
 [/#macro]
 
-[#macro deliveryStateLabel delivery]
+[#macro deliveryStateLabel delivery seesGrade]
     [#assign state = delivery.getState()]
+    [#if !seesGrade]
+        [#assign state = submittedState]
+    [/#if]
     <span class="label label-${state.style}" data-toggle="tooltip" title="${i18n.translate(state.messageTranslationKey)}">
         ${i18n.translate(state.translationKey)}
     </span>
@@ -37,7 +40,7 @@
             [@buildLabel delivery group states/]
         [/#if]
 
-        [@deliveryStateLabel delivery/]
+        [@deliveryStateLabel delivery seeGrade/]
     </div>
 
     <dl>
@@ -60,7 +63,7 @@
     <ul class="list-inline">
         [#list attachments as attachment]
             <li>
-                <a class="btn btn-link btn-sm" target="_blank" href="${attachment.getURI()?url('UTF-8')}">
+                <a class="btn btn-link btn-sm" target="_blank" href="${attachment.getURI()}">
                     <span class="glyphicon glyphicon-file aria-hidden="true"></span>
                     ${attachment.getFileName()}
                 </a>
@@ -69,9 +72,8 @@
     </ul>
     [/#if]
 
-
     [#assign review = delivery.getReview()!]
-    [#if review?? && review?has_content && (review.getGrade()?? || review.getCommentary()??)]
+    [#if review?? && seeGrade && review?has_content && (review.getGrade()?? || review.getCommentary()??)]
     <blockquote>
         <dl>
             [#if review.getGrade()??]

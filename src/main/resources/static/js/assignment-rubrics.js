@@ -95,17 +95,29 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
         if (!assignment) return;
 
         $scope.assignment.tasks.forEach(function(task) {
+            task.totalWeight = 0;
+            task.totalAchievablePoints = 0;
+            task.totalAchievablePointsWithWeight = 0;
+
             task.characteristics.forEach(function(characteristic) {
+                task.totalWeight += characteristic.weight;
+                characteristic.achievablePoints = 0;
+                characteristic.achievablePointsWithWeight = 0;
+
                 characteristic.levels.forEach(function(level) {
                     level.count = 0;
                     levels[level.id] = level;
+                    characteristic.achievablePoints = Math.max(0, Math.max(characteristic.achievablePoints, level.points));
 
                     Object.defineProperty(level, 'characteristic', {
                         value: characteristic,
                         enumerable: false,
                         configurable: false
                     });
-                })
+                });
+
+                task.totalAchievablePoints += characteristic.achievablePoints;
+                task.totalAchievablePointsWithWeight += characteristic.achievablePoints * characteristic.weight;
             })
         });
 

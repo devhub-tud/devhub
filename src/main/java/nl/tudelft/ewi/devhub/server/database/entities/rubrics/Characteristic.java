@@ -72,14 +72,24 @@ public class Characteristic implements Comparable<Characteristic> {
 	 * Hook that allows you to ignore this weight when computing the
 	 * total weight for a {@link Task}, allowing you to create
 	 * {@code Characteristics} for bonus points and penalties.
+	 *
+	 * @deprecated This is probably not necessary anymore, or not a
+	 * really favorable implementation. We have to think about having
+	 * something more clear for bonus points. Penalties are also supported
+	 * by making a characteristic with masteries with negative
+	 * points.
+	 *
+	 * @see Characteristic#getMaximalNumberOfPoints()
+	 * @see Characteristic#getMaximalNumberOfPointsWithWeight()
 	 */
+	@Deprecated
 	@Column(name = "weight_adds_to_total_weight")
 	private boolean weightAddsToTotalWeight = true;
 
 	public double getMaximalNumberOfPoints() {
-		return getLevels().stream()
+		return Math.max(0, getLevels().stream()
 			.mapToDouble(Mastery::getPoints)
-			.max().orElse(0);
+			.max().orElse(0));
 	}
 
 	public double getMaximalNumberOfPointsWithWeight() {

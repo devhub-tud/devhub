@@ -525,4 +525,13 @@
 
 	</build>
 
+	<contributors>
+		<contributor>
+			<name>Aron Zwaan</name>
+			<email>aronzwaan@solcon.nl</email>
+			<roles>
+				<role>tester</role>
+			</roles>
+		</contributor>
+	</contributors>
 </project>

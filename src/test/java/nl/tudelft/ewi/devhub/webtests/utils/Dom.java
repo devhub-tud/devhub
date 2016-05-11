@@ -3,16 +3,20 @@ package nl.tudelft.ewi.devhub.webtests.utils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Dom {
@@ -53,6 +57,13 @@ public class Dom {
 		catch (NoSuchElementException e) {
 			return false;
 		}
+	}
+	
+	public static void waitForCondition(WebDriver driver, long timeOutInSeconds, Predicate<WebDriver> condition){
+		
+		WebDriverWait wait = new WebDriverWait(driver, timeOutInSeconds);		
+		wait.until(condition);
+		
 	}
 
 }

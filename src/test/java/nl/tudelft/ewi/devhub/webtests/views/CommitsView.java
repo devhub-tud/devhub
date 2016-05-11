@@ -4,12 +4,15 @@ import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -57,6 +60,35 @@ public class CommitsView extends ProjectSidebarView {
 
 	}
 
+	/**
+	 * @return A {@link List} of all {@link Branch}es in the Branch selection dropdown.
+	 */
+	public List<Branch> listBranches(){
+		invariant();
+		WebElement dropdown = getDriver().findElement(By.cssSelector("ul.dropdown-menu"));
+		return listBranches(dropdown);
+		
+	}
+
+	private List<Branch> listBranches(WebElement dropdown) {
+		List<WebElement> entries = dropdown.findElements(By.tagName("li"));
+		List<Branch> branches = Lists.newArrayList();
+		
+		for(WebElement entry : entries){
+			WebElement anchor = entry.findElement(By.tagName("a"));
+			String name = anchor.getAttribute("text").split("\n")[1].trim();
+			branches.add(new Branch(name, anchor));
+		}
+		return branches;
+	}
+	
+	public PullRequestOverViewView openCreatePullRequestView(){
+		invariant();
+		getDriver().findElement(By.cssSelector("button.pull-right")).click();
+		return new PullRequestOverViewView(getDriver());
+		
+	}
+
 	@Data
 	public class Commit {
 
@@ -72,6 +104,25 @@ public class CommitsView extends ProjectSidebarView {
 			return new DiffInCommitView(getDriver());
 		}
 
+	}
+	
+	@Data
+	public class Branch {
+		
+		private final String name;
+		
+		private final WebElement anchor;
+
+		@SneakyThrows
+		public CommitsView click() {
+			// Open dropdown
+			getDriver().findElement(By.cssSelector("div.pull-right button.dropdown-toggle")).click();
+			// Wait for the animation to complete
+			Thread.sleep(100);
+			anchor.click();
+			return new CommitsView(getDriver());
+		}
+		
 	}
 
 }

@@ -1,8 +1,6 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
 import org.junit.Assert;
@@ -120,16 +118,15 @@ public class DeliveryReviewView extends ProjectSidebarView {
     }
 
 
-    @Data
     public class DeliveryForm {
-        @Getter(AccessLevel.NONE)
         private final WebElement anchor;
-        @Getter(AccessLevel.NONE)
         private final By STATE_SELECTOR = By.cssSelector("select#state");
-        @Getter(AccessLevel.NONE)
         private final By GRADE_SELECTOR = By.cssSelector("input#grade");
-        @Getter(AccessLevel.NONE)
         private final By COMMENTARY_SELECTOR = By.cssSelector("textarea#commentary");
+
+        DeliveryForm(WebElement anchor) {
+            this.anchor = anchor;
+        }
 
         public State getSelectedState() {
             final WebElement element = getDriver().findElement(STATE_SELECTOR);

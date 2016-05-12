@@ -78,26 +78,26 @@
 									</tr>
 								</thead>
 								[#list assignment.getTasks() as task]
-								<tbody class="task" data-id="${task.id}">
+								<tbody class="task" data-id="${task.id?c}">
 									<tr class="active">
 										<td colspan="2"><strong>${task.description}</strong></td>
-										<td><strong>${task.getTotalWeight()}</strong></td>
-										<td><strong id="lbl-total-task-${task.id}">0</strong></td>
+										<td><strong>${task.getTotalWeight()?c}</strong></td>
+										<td><strong id="lbl-total-task-${task.id?c}">0</strong></td>
 									</tr>
 									[#list task.getCharacteristics() as characteristic]
-									<tr data-id="${characteristic.id}" data-weight="${characteristic.weight}" class="characteristic">
+									<tr data-id="${characteristic.id?c}" data-weight="${characteristic.weight?c}" class="characteristic">
 										<td>${characteristic.description}</td>
 										<td>
 											[#list characteristic.getLevels() as level]
 											<label style="font-weight: normal; display: block;">
-												<input type="radio" name="characteristic-${characteristic.id}" id="option-characteristic-${characteristic.id}" value="${level.id}"
-													data-id="${level.id}" data-points="${level.points}" class="mastery" [#if delivery.getRubrics()?values?seq_contains(level)]checked[/#if]>
-												${level.description} <em>(${level.points})</em>
+												<input type="radio" name="characteristic-${characteristic.id?c}" id="option-characteristic-${characteristic.id?c}" value="${level.id?c}"
+													data-id="${level.id?c}" data-points="${level.points?c}" class="mastery" [#if delivery.getRubrics()?values?seq_contains(level)]checked[/#if]>
+												${level.description} <em>(${level.points?c})</em>
                                             </label>
 											[/#list]
 										</td>
-										<td>${characteristic.weight}</td>
-										<td id="lbl-total-characteristic-${characteristic.id}">0</td>
+										<td>${characteristic.weight?c}</td>
+										<td id="lbl-total-characteristic-${characteristic.id?c}">0</td>
 									</tr>
 									[/#list]
 								</tbody>
@@ -105,7 +105,7 @@
 								<tfoot>
 									<tr class="active">
 										<td colspan="3"><strong>Total</strong></td>
-										<td><strong><span  id="lbl-total">0</span>/${assignment.getNumberOfAchievablePoints()}</strong></td>
+										<td><strong><span  id="lbl-total">0</span>/${assignment.getNumberOfAchievablePoints()?c}</strong></td>
 									</tr>
                                 </tfoot>
 							</table>

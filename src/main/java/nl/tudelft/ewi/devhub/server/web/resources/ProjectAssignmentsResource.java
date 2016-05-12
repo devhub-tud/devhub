@@ -1,5 +1,14 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoped;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
@@ -23,32 +32,14 @@ import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.RepositoryModel;
 import nl.tudelft.ewi.git.models.TagModel;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.RequestScoped;
-
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.util.GenericType;
 
-import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -56,12 +47,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -414,7 +400,32 @@ public class ProjectAssignmentsResource extends Resource {
 		);
 
 		deliveries.merge(delivery);
-
 	}
 
+    @Data
+    public static class AutoGradeResult {
+        private List<Long> ids;
+    }
+
+
+    @POST
+    @Transactional
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("{assignmentId}/last-delivery/auto-masteries")
+    public void uploadAutoGradingGrade(@PathParam("assignmentId") long assignmentId, AutoGradeResult result) {
+        CourseEdition edition = group.getCourseEdition();
+        Assignment assignment = assignments.find(edition, assignmentId);
+        Delivery lastDelivery = deliveries.getLastDelivery(assignment, group);
+
+        List<Mastery> masteries = result.getIds().stream().map(id -> {
+            Mastery mastery = new Mastery();
+            mastery.setId(id);
+            return mastery;
+        }).collect(Collectors.toList());
+
+
+        persistMasteries(lastDelivery.getDeliveryId(), masteries);
+
+        log.info("auto-graded assignment {}", assignment);
+    }
 }

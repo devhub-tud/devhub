@@ -35,3 +35,5 @@ storage/
 
 # Devhub generated CSS file
 src/main/resources/static/css/devhub.css
+
+.DS_Store

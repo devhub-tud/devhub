@@ -93,7 +93,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	@Data
 	@SessionScoped
 	public static class EditContributorsState {
-		private final Map<RepositoryEntity, Collection<User>> selectedUsers = Maps.newHashMap();
+		private final Map<String, Collection<User>> selectedUsers = Maps.newHashMap();
 	}
 
 	protected final TemplateEngine templateEngine;
@@ -248,7 +248,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		Collection<User> members = this.editContributorsState.getSelectedUsers()
-			.computeIfAbsent(repositoryEntity, c -> repositoryEntity.getCollaborators());
+			.computeIfAbsent(repositoryEntity.getRepositoryName(), c -> repositoryEntity.getCollaborators());
 
 		Map<String, Object> parameters = getBaseParameters();
 		if (members != null && !members.isEmpty()) {
@@ -268,7 +268,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 										   @QueryParam("error") String error) throws IOException {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		Collection<User> members = this.editContributorsState.getSelectedUsers().get(repositoryEntity);
+		Collection<User> members = this.editContributorsState.getSelectedUsers().get(repositoryEntity.getRepositoryName());
 
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("members", members);
@@ -293,13 +293,13 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			if (step == 1) {
 				Collection<User> groupMembers = getGroupMembers(request);
 				validateCollaborators(groupMembers);
-				this.editContributorsState.getSelectedUsers().put(repositoryEntity, groupMembers);
+				this.editContributorsState.getSelectedUsers().put(repositoryEntity.getRepositoryName(), groupMembers);
 				return redirect(new URI(request.getRequestURI()).resolve("edit?step=2"));
 			}
 
-			Collection<User> members = this.editContributorsState.getSelectedUsers().get(repositoryEntity);
+			Collection<User> members = this.editContributorsState.getSelectedUsers().get(repositoryEntity.getRepositoryName());
 			updateCollaborators(members);
-			this.editContributorsState.getSelectedUsers().remove(repositoryEntity);
+			this.editContributorsState.getSelectedUsers().remove(repositoryEntity.getRepositoryName());
 			return redirect(new URI(request.getRequestURI()).resolve("../contributors"));
 		}
 		catch (ApiError e) {

@@ -17,12 +17,8 @@ import java.text.ParseException;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class AssignmentTest extends WebTest {
-
-	private static final String ASSISTANT_USERNAME = "assistant1";
-	private static final String ASSISTANT_PASSWORD = "assistant1";
 
     @Inject
 	private CourseEditions courseEditions;
@@ -92,8 +88,8 @@ public class AssignmentTest extends WebTest {
         final Delivery.Review modelReview = modelDelivery.getReview();
         final AssignmentView.Review viewReview = view.getAssignment().getReview();
 
-        assertTrue(modelReview.getGrade() == viewReview.getGrade());
-        assertEquals(modelReview.getReviewUser().getName(), viewReview.getReviewer());
+        assertEquals(modelReview.getGrade(), viewReview.getGrade().get(), 1e-4);
+        assertEquals(modelReview.getReviewUser().getName(), viewReview.getReviewer().get());
         assertEquals(modelReview.getCommentary(), viewReview.getCommentary());
 	}
 }

@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.webtests.views;
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
+import org.apache.commons.lang.WordUtils;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -14,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -23,6 +25,9 @@ import javax.annotation.Nullable;
  */
 public class DeliveryReviewView extends ProjectSidebarView {
 
+    private static final By STATE_SELECTOR = By.cssSelector("select#state");
+    private static final By GRADE_SELECTOR = By.cssSelector("input#grade");
+    private static final By COMMENTARY_SELECTOR = By.cssSelector("textarea#commentary");
 
     public DeliveryReviewView(WebDriver driver) {
         super(driver);
@@ -31,7 +36,7 @@ public class DeliveryReviewView extends ProjectSidebarView {
     @Override
     public void invariant() {
         super.invariant();
-        Assert.assertTrue(currentPathStartsWith("/courses/ti1705/TI1705/groups/"));
+        Assert.assertTrue(currentPathContains("deliveries"));
     }
 
     public Assignment getAssignment() {
@@ -44,6 +49,7 @@ public class DeliveryReviewView extends ProjectSidebarView {
 
     @Data
     public class Assignment {
+
         private final Review review = new Review();
 
         public String getAuthor() {
@@ -68,17 +74,11 @@ public class DeliveryReviewView extends ProjectSidebarView {
     @Data
     public class Review {
 
-        @Nullable
-        public String getReviewer() {
-            final Optional<String> footer = getFooter();
-            if (!footer.isPresent()) {
-                return null;
-            }
-
-            return footer.get().split(" on ")[0].trim();
+        public Optional<String> getReviewer() {
+            return getFooter().map(footer -> footer.split(" on ")[0].trim());
         }
 
-        public double getGrade() {
+        public Double getGrade() {
             final List<WebElement> ddElements = getDriver().findElements(By.cssSelector("blockquote dl dd"));
             if (ddElements.size() == 2) {
                 ddElements.get(0).getText();
@@ -86,7 +86,7 @@ public class DeliveryReviewView extends ProjectSidebarView {
                 return Double.parseDouble(ddElements.get(0).getText());
             }
 
-            return 0D;
+            return null;
         }
 
         @Nullable
@@ -115,14 +115,13 @@ public class DeliveryReviewView extends ProjectSidebarView {
         private Optional<String> getFooter() {
             return getDriver().findElements(By.cssSelector("footer.small")).stream().findAny().map(WebElement::getText);
         }
+
     }
 
 
     public class DeliveryForm {
+
         private final WebElement anchor;
-        private final By STATE_SELECTOR = By.cssSelector("select#state");
-        private final By GRADE_SELECTOR = By.cssSelector("input#grade");
-        private final By COMMENTARY_SELECTOR = By.cssSelector("textarea#commentary");
 
         DeliveryForm(WebElement anchor) {
             this.anchor = anchor;
@@ -135,46 +134,26 @@ public class DeliveryReviewView extends ProjectSidebarView {
             return State.valueOf(select.getFirstSelectedOption().getText().toUpperCase());
         }
 
-        /**
-         * options:
-         * - Submitted
-         * - Rejected
-         * - Approved
-         * - Disapproved
-         *
-         * @param newState
-         * @throws IllegalArgumentException
-         */
-        public void setState(String newState) throws IllegalArgumentException {
+        public void setState(Delivery.State state) throws IllegalArgumentException {
             invariant();
             final WebElement element = getDriver().findElement(STATE_SELECTOR);
             final Select select = new Select(element);
 
-            final Optional<WebElement> optionalNewStateElement = select.getOptions()
-                    .stream()
-                    .filter(webElement -> webElement.getText().equals(newState)).findAny();
-
-            if (optionalNewStateElement.isPresent()) {
-                optionalNewStateElement.get().click();
-            } else {
-                throw new IllegalArgumentException(newState + " is not a valid option");
-            }
+            select.getOptions()
+                .stream()
+                .filter(webElement -> WordUtils.capitalize(state.toString().toLowerCase()).equals(webElement.getText()))
+                .findAny().get().click();
         }
 
         public double getGrade() {
             return Double.parseDouble(getDriver().findElement(GRADE_SELECTOR).getAttribute("value"));
         }
 
-        public void setGrade(String newGrade) throws IllegalArgumentException {
+        public void setGrade(double newGrade) throws IllegalArgumentException {
             invariant();
-
-            if (Double.parseDouble(newGrade) < 1D || Double.parseDouble(newGrade) > 10D) {
-                throw new IllegalArgumentException(newGrade + " is not a valid grade, grades must be between 1.0 and 10");
-            }
-
             final WebElement element = getDriver().findElement(GRADE_SELECTOR);
             element.clear();
-            element.sendKeys(newGrade);
+            element.sendKeys(Objects.toString(newGrade));
         }
 
         public String getCommentary() {
@@ -192,5 +171,6 @@ public class DeliveryReviewView extends ProjectSidebarView {
             anchor.click();
             return new DeliveryReviewView(getDriver());
         }
+
     }
 }

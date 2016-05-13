@@ -12,12 +12,17 @@ import org.junit.ClassRule;
 import org.junit.rules.RuleChain;
 import org.openqa.selenium.WebDriver;
 
+import com.google.common.base.Predicate;
+
 import javax.inject.Inject;
 
 public abstract class WebTest {
 
 	public static final String NET_ID = "student1";
 	public static final String PASSWORD = "student1";
+
+	public static final String ASSISTANT_USERNAME = "assistant1";
+	public static final String ASSISTANT_PASSWORD = "assistant1";
 
 	public static ServerResource serverResource = new ServerResource();
 	public static DriverResource driverResource = new DriverResource();
@@ -41,5 +46,9 @@ public abstract class WebTest {
 	@After
 	public void logout() {
 		new AuthenticatedView(getDriver()).logout();
+	}
+	
+	protected void waitForCondition(int timeOutInSeconds, Predicate<WebDriver> condition) {
+		Dom.waitForCondition(getDriver(), timeOutInSeconds, condition);		
 	}
 }

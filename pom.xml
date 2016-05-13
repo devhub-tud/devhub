@@ -82,8 +82,15 @@
 
 	<contributors>
 		<contributor>
+			<name>Aron Zwaan</name>
+			<email>aronzwaan@solcon.nl</email>
+			<roles>
+				<role>tester</role>
+			</roles>
+		</contributor>
+		<contributor>
 			<name>Douwe Koopmans</name>
-            <email>d.koopmans@student.tudelft.nl</email>
+			<email>d.koopmans@student.tudelft.nl</email>
 		</contributor>
 	</contributors>
 
@@ -531,5 +538,4 @@
 		</plugins>
 
 	</build>
-
 </project>

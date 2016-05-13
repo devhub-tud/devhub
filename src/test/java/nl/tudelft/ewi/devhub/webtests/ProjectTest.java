@@ -11,7 +11,7 @@ import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Commit;
 import nl.tudelft.ewi.devhub.webtests.views.ContributorsView;
 import nl.tudelft.ewi.devhub.webtests.views.ContributorsView.Contributor;
 import nl.tudelft.ewi.devhub.webtests.views.DiffInCommitView;
-import nl.tudelft.ewi.devhub.webtests.views.DiffInCommitView.DiffElement;
+import nl.tudelft.ewi.devhub.webtests.views.DiffElement;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
 import nl.tudelft.ewi.git.models.DiffBlameModel;

@@ -5,6 +5,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.FlattenFolderTree;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.FolderView;
 import nl.tudelft.ewi.devhub.webtests.views.TextFileInCommitView;
@@ -42,6 +43,7 @@ public class FolderTest extends WebTest {
 	RepositoryApi repositoryApi;
 	BranchApi masterApi;
 	CommitApi commitApi;
+	FlattenFolderTree flattenFolderTree;
 	DetailedCommitModel commitModel;
 
 	@Before
@@ -52,6 +54,7 @@ public class FolderTest extends WebTest {
 		repositoryApi = repositoriesApi.getRepository(groupRepository.getRepositoryName());
 		masterApi = repositoryApi.getBranch("master");
 		commitApi = masterApi.getCommit();
+		flattenFolderTree = new FlattenFolderTree(commitApi);
 		commitModel = commitApi.get();
 	}
 
@@ -95,7 +98,7 @@ public class FolderTest extends WebTest {
 	public void testFileExplorer() throws InterruptedException {
 		FolderView view = getFolderView();
 		assertThat(view.getPath(), containsString(REPO_NAME));
-		Map<String, EntryType> expected = commitApi.showTree();
+		Map<String, EntryType> expected = flattenFolderTree.resolveEntries();
 		Map<String, EntryType> actual = view.getDirectoryEntries();
 		assertEquals(expected, actual);
 	}

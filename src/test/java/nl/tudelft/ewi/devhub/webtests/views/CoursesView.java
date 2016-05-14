@@ -18,6 +18,7 @@ public class CoursesView extends AuthenticatedView {
 
 	private static final By MY_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'My courses')]");
 	private static final By ASSISTING_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Assisting projects')]");
+    private static final By AVAILABLE_COURSES_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Available courses')]");
 
 	CoursesView(WebDriver driver) {
 		super(driver);
@@ -57,6 +58,16 @@ public class CoursesView extends AuthenticatedView {
 		WebElement table = Dom.nextSibling(assistingProjectsHeader, "table");
 		return listProjectOverviewsInTable(table);
 	}
+
+    /**
+     * @return A {@link List} of all {@link Project}s in the "Available courses" section.
+     */
+	public List<CourseOverview> listAvailableCourses() {
+        invariant();
+        WebElement availableHeader = getDriver().findElement(AVAILABLE_COURSES_HEADER);
+        WebElement table = Dom.nextSibling(availableHeader, "table");
+        return listProjectOverviewsInTable(table);
+    }
 
 	private List<Project> listProjectsInTable(WebElement table) {
 		List<WebElement> entries = table.findElements(By.tagName("td"));
@@ -116,6 +127,11 @@ public class CoursesView extends AuthenticatedView {
 			anchor.click();
 			return new CourseView(getDriver());
 		}
+
+        public GroupEnrollView clickEnroll() {
+            anchor.click();
+            return new GroupEnrollView(getDriver());
+        }
 	}
 	
 }

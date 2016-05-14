@@ -533,5 +533,9 @@
 				<role>tester</role>
 			</roles>
 		</contributor>
+		<contributor>
+			<name>Jurriaan Den Toonder</name>
+			<email>jurriaan.toonder@liquidpineapple.net</email>
+		</contributor>
 	</contributors>
 </project>

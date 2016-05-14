@@ -17,6 +17,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
+import nl.tudelft.ewi.devhub.server.util.FlattenFolderTree;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
@@ -62,9 +63,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -77,7 +76,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -435,7 +433,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	public Response getTree(@Context HttpServletRequest request,
 							@PathParam("commitId") String commitId)
 					throws ApiError, IOException {
-		return getTree(request, commitId, "");
+		return getTree(request, commitId, CommitApi.EMPTY_PATH);
 	}
 
 	public static Comparator<String> FOLDER_TREE_COMPARATOR = (o1, o2) -> {
@@ -464,7 +462,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
 		CommitApi commitApi = repository.getCommit(commitId);
 		CommitModel commit = commitApi.get();
-		entries.putAll(commitApi.showTree(path));
+		entries.putAll(new FlattenFolderTree(commitApi).resolveEntries(path));
 		
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("commit", commit);
@@ -482,6 +480,9 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-folder-view.ftl", locales, parameters));
 	}
+
+
+
 
 	@GET
 	@Path("/commits/{commitId}/raw/{path:.+}")

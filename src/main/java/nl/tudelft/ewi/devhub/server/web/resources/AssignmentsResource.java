@@ -8,8 +8,11 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -21,6 +24,8 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.jboss.resteasy.spi.NotImplementedYetException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,7 +55,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -248,32 +252,28 @@ public class AssignmentsResource extends Resource {
         if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
+
         StringBuilder sb = new StringBuilder();
-        sb.append("Assignment,NetId,StudentNo,Name,Group,State,Grade,").append(CSV_ROW_SEPARATOR);
+        CSVPrinter csvPrinter = new CSVPrinter(sb, CSVFormat.RFC4180);
+        csvPrinter.printRecord("Assignment", "NetId", "StudentNo", "Name", "Group", "State", "Grade", "Points");
 
-        deliveriesDAO.getLastDeliveries(assignment).forEach(delivery -> {
-            Delivery.Review review = delivery.getReview();
+        for (Delivery delivery : deliveriesDAO.getLastDeliveries(assignment)) {
+            Review review = delivery.getReview();
+            for (User user : delivery.getGroup().getMembers()) {
+                csvPrinter.printRecord(
+                    assignment.getName(),
+                    user.getNetId(),
+                    user.getStudentNumber(),
+                    user.getName(),
+                    delivery.getGroup().getGroupName(),
+                    review != null ? review.getState() : State.SUBMITTED,
+                    review != null ? review.getGrade() : "",
+                    delivery.getAchievedNumberOfPoints()
+                );
+            }
+        }
 
-            delivery.getGroup().getMembers().forEach(user -> {
-                sb.append(assignment.getName()).append(CSV_FIELD_SEPARATOR);
-                sb.append(user.getNetId()).append(CSV_FIELD_SEPARATOR);
-                sb.append(user.getStudentNumber()).append(CSV_FIELD_SEPARATOR);
-                sb.append(user.getName()).append(CSV_FIELD_SEPARATOR);
-                sb.append(delivery.getGroup().getGroupName()).append(CSV_FIELD_SEPARATOR);
-
-                if(review != null) {
-                    sb.append(review.getState()).append(CSV_FIELD_SEPARATOR);
-                    sb.append(review.getGrade()).append(CSV_FIELD_SEPARATOR);
-                }
-                else {
-                    sb.append(Delivery.State.SUBMITTED).append(CSV_FIELD_SEPARATOR);
-                }
-
-                sb.append(CSV_ROW_SEPARATOR);
-            });
-        });
-
-		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ ".csv\"");
+		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ "_grades.csv\"");
         return sb.toString();
     }
 
@@ -308,44 +308,53 @@ public class AssignmentsResource extends Resource {
 		List<Delivery> deliveries = Lists.newArrayList(deliveriesDAO.getLastDeliveries(assignment));
 		Collections.sort(deliveries, Delivery.DELIVERIES_BY_GROUP_NUMBER);
 
+        CSVPrinter csvPrinter = new CSVPrinter(sb, CSVFormat.RFC4180);
 		// Skip initial columns, list all groups
-		IntStream.range(0, 2 + numLevels).forEach(i -> sb.append(CSV_FIELD_SEPARATOR));
-		deliveries.forEach(delivery -> sb.append("Group ")
-			.append(Long.toString(delivery.getGroup().getGroupNumber()))
-			.append(CSV_FIELD_SEPARATOR));
-		sb.append(CSV_ROW_SEPARATOR);
+        for (int i = 0; i < 2 + numLevels; i++) {
+            csvPrinter.print("");
+        }
 
-		assignment.getTasks().forEach(task -> {
-			// Print exercise
-			sb.append(task.getDescription()).append(CSV_FIELD_SEPARATOR).append(CSV_FIELD_SEPARATOR);
-			IntStream.range(0, numLevels + deliveries.size()).forEach(i -> sb.append(CSV_FIELD_SEPARATOR));
-			sb.append(CSV_ROW_SEPARATOR);
+        // Print group numbers
+        for (Delivery delivery : deliveries) {
+            csvPrinter.print("Group " + delivery.getGroup().getGroupNumber());
+        }
+        csvPrinter.println();
 
-			task.getCharacteristics().forEach(characteristic -> {
-				sb.append("-> ").append(characteristic.getDescription()).append(CSV_FIELD_SEPARATOR)
-					.append(characteristic.getWeight()).append(CSV_FIELD_SEPARATOR);
+        for (Task task : assignment.getTasks()) {
+            // Print exercise
+            csvPrinter.print(task.getDescription());
+            csvPrinter.print("");
+            csvPrinter.println();
 
-				characteristic.getLevels().stream().sorted().forEach(mastery ->
-					sb.append(mastery.getDescription()).append(CSV_FIELD_SEPARATOR));
+            for (Characteristic characteristic : task.getCharacteristics()) {
+                csvPrinter.print(characteristic.getDescription());
+                csvPrinter.print(characteristic.getWeight());
 
-				IntStream.range(0, numLevels - characteristic.getLevels().size())
-					.forEach(a -> sb.append(CSV_FIELD_SEPARATOR));
+                for (Mastery mastery : characteristic.getLevels()) {
+                    csvPrinter.print(mastery.getDescription());
+                }
 
-				deliveries.forEach(delivery -> {
-					if (delivery.getRubrics().containsKey(characteristic)) {
-						sb.append(Double.toString(delivery.getRubrics().get(characteristic).getPoints()));
-					}
-					else {
-						sb.append(CSV_FIELD_SEPARATOR);
-					}
-					sb.append(CSV_FIELD_SEPARATOR);
-				});
+                for (int i = 0; i < numLevels - characteristic.getLevels().size(); i++) {
+                    csvPrinter.print("");
+                }
 
-				sb.append(CSV_ROW_SEPARATOR);
-			});
-		});
+                for (Delivery delivery : deliveries) {
+                    if (delivery.getRubrics().containsKey(characteristic)) {
+                        csvPrinter.print(
+                            delivery.getRubrics().get(characteristic).getPoints()
+                        );
+                    }
+                    else {
+                        csvPrinter.print("");
+                    }
+                }
 
-		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ ".csv\"");
+                csvPrinter.println();
+            }
+            csvPrinter.println();
+        }
+
+		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ "_rubrics.csv\"");
 		return sb.toString();
 	}
 

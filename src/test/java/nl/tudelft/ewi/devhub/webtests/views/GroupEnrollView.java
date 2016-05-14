@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
 import com.google.common.collect.Lists;
+import lombok.Data;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import org.openqa.selenium.By;
@@ -16,6 +17,7 @@ public class GroupEnrollView extends AuthenticatedView {
 
     private static final By MEMBER2_FIELD = By.name("member-2");
     private static final By NEXT_BUTTON = By.name("next");
+    private static final By CREATE_GROUP_BUTTON = By.name("finish");
     private static final By GROUP_MEMBERS_LABEL = By.xpath("//label[starts-with(normalize-space(.), 'Group members')]");
     private static final String TABLE_NETID_CLASSNAME = "truncate";
 
@@ -56,6 +58,23 @@ public class GroupEnrollView extends AuthenticatedView {
         return this;
     }
 
+    /**
+     * This method clicks the create group button.
+     *
+     * @return The current {@link GroupEnrollView}.
+     */
+    public GroupEnrollView clickCreateGroup() {
+        invariant();
+        WebElement next = getDriver().findElement(CREATE_GROUP_BUTTON);
+        next.click();
+        return this;
+    }
+
+    /**
+     * This method lists the members form the group that is about to be created.
+     *
+     * @return The current {@link GroupEnrollView}.
+     */
     public List<User> groupMembers() {
         invariant();
         WebElement label = getDriver().findElement(GROUP_MEMBERS_LABEL);
@@ -81,6 +100,15 @@ public class GroupEnrollView extends AuthenticatedView {
             users.add(user);
         }
         return users;
+    }
+
+    /**
+     * Navigate to the contributors view.
+     * @return A {@link ContributorsView} instance.
+     */
+    public ContributorsView toContributorsView() {
+        getDriver().findElement(By.linkText("Contributors")).click();
+        return new ContributorsView(getDriver());
     }
 
 }

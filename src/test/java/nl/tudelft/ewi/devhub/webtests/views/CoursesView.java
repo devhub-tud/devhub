@@ -96,8 +96,10 @@ public class CoursesView extends AuthenticatedView {
 
 		List<CourseOverview> projects = Lists.newArrayList();
 		for (WebElement entry : entries) {
+            String courseName = entry.getText().substring(0, entry.getText().length() - 7);
 			WebElement projectLink = entry.findElement(By.tagName("a"));
-			CourseOverview project = new CourseOverview(projectLink.getText(), projectLink);
+
+			CourseOverview project = new CourseOverview(projectLink.getText(), projectLink, courseName);
 			projects.add(project);
 		}
 		return projects;
@@ -122,6 +124,9 @@ public class CoursesView extends AuthenticatedView {
 		
 		@Getter(AccessLevel.NONE)
 		private final WebElement anchor;
+
+        @Getter(AccessLevel.NONE)
+        private final String courseName;
 		
 		public CourseView click() {
 			anchor.click();
@@ -131,6 +136,10 @@ public class CoursesView extends AuthenticatedView {
         public GroupEnrollView clickEnroll() {
             anchor.click();
             return new GroupEnrollView(getDriver());
+        }
+
+        public String getCourseName() {
+            return courseName;
         }
 	}
 	

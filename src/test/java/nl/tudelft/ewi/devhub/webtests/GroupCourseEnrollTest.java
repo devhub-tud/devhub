@@ -2,12 +2,16 @@ package nl.tudelft.ewi.devhub.webtests;
 
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
+import nl.tudelft.ewi.devhub.webtests.views.ContributorsView;
 import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
 import nl.tudelft.ewi.devhub.webtests.views.GroupEnrollView;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 import java.util.List;
 
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 public class GroupCourseEnrollTest extends WebTest {
@@ -18,6 +22,10 @@ public class GroupCourseEnrollTest extends WebTest {
     private static final String OTHER_STUDENT_ID = "student6";
     private static final String STUDENT_NAME = "Student Five";
     private static final String OTHER_STUDENT_NAME = "Student Six";
+    private static final String STUDENT_EMAIL = "student-5@student.tudelft.nl";
+    private static final String OTHER_STUDENT_EMAIL = "student-6@student.tudelft.nl";
+
+    private String courseName;
 
     /**
      * <h1>Scenario: Enrolling as a group</h1>
@@ -84,5 +92,53 @@ public class GroupCourseEnrollTest extends WebTest {
         assertEquals(OTHER_STUDENT_ID, groupMembers.get(1).getNetId());
         assertEquals(STUDENT_NAME, groupMembers.get(0).getName());
         assertEquals(OTHER_STUDENT_NAME, groupMembers.get(1).getName());
+    }
+
+    /**
+     * <h1>Scenario: Enrolling as a group</h1>
+     *
+     * Given that:
+     * <ol>
+     *     <li>I am successfully logged in.</li>
+     *     <li>I am setting up a group for a new course.</li>
+     *     <li>I entered a correct student id for my partner.</li>
+     * </ol>
+     * When:
+     * <ol>
+     *     <li>I click next</li>
+     * </ol>
+     * Then:
+     * <ol>
+     *     <li>I am in a group with the other student.</li>
+     *     <li>I enrolled for the course.</li>
+     * </ol>
+     */
+    @Test
+    public void testCorrectStudentNumberFullyEnroll() {
+        CoursesView view = openLoginScreen()
+                .login(NET_ID, PASSWORD)
+                .toCoursesView();
+
+        List<CoursesView.CourseOverview> courses = view.listAvailableCourses();
+        assertEquals(1, courses.size());
+
+        CoursesView.CourseOverview course = courses.get(0);
+        courseName = course.getCourseName();
+        System.out.println("\n\n\n=========\n" + courseName);
+        ContributorsView contributorsView = course.clickEnroll()
+                .setMember2Field(OTHER_STUDENT_ID)
+                .clickNext()
+                .clickCreateGroup()
+                .toContributorsView();
+
+        List<ContributorsView.Contributor> contributors = contributorsView.listContributors();
+        assertEquals(STUDENT_NAME, contributors.get(0).getName());
+        assertEquals(OTHER_STUDENT_NAME, contributors.get(1).getName());
+        assertEquals(NET_ID, contributors.get(0).getNetID());
+        assertEquals(OTHER_STUDENT_ID, contributors.get(1).getNetID());
+        assertEquals(STUDENT_EMAIL, contributors.get(0).getEmail());
+        assertEquals(OTHER_STUDENT_EMAIL, contributors.get(1).getEmail());
+
+        assertTrue(contributorsView.toCoursesView().listMyProjects().get(0).getName().contains(courseName));
     }
 }

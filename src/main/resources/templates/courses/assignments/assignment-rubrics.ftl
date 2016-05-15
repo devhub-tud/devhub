@@ -114,6 +114,23 @@
 				<div class="panel-heading">Histogram</div>
                 <div class="panel-body">
                     <canvas id="bar" class="chart chart-bar" chart-data="data" chart-labels="labels" chart-series="[assignment.name]" ng-if="data.length && labels.length"></canvas>
+
+					<table class="table table-bordered">
+						<tr>
+							<th>Mean</th>
+							<td>
+								<span ng-bind="mean"></span> /
+								<span ng-bind="assignment.totalAchievablePoints"></span>
+							</td>
+						</tr>
+						<tr>
+							<th>Median</th>
+							<td>
+								<span ng-bind="median"></span> /
+                                <span ng-bind="assignment.totalAchievablePoints"></span>
+							</td>
+						</tr>
+					</table>
                 </div>
 			</div>
 		</div>

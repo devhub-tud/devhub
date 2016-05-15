@@ -93,6 +93,8 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
     function calculateCountAndCorrel(assignment) {
         if (!assignment) return;
 
+        assignment.totalAchievablePoints = 0;
+
         $scope.assignment.tasks.forEach(function(task) {
             task.totalWeight = 0;
             task.totalAchievablePoints = 0;
@@ -118,6 +120,8 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
                 task.totalAchievablePoints += characteristic.achievablePoints;
                 task.totalAchievablePointsWithWeight += characteristic.achievablePoints * characteristic.weight;
             })
+
+            assignment.totalAchievablePoints += task.totalAchievablePointsWithWeight;
         });
 
         var numPointsToDeliveries = {};
@@ -143,7 +147,14 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
         $scope.data = [$scope.labels
             .map(function(name) { return numPointsToDeliveries[name]; })];
 
-        console.error($scope.labels, $scope.data)
+        // Construct an array of all actual achieved points per delivery
+        // [ 60, 72, 70, 60]
+        var achievedNumberOfPoints = $scope.deliveries.map(function(delivery) {
+            return delivery.achievedNumberOfPoints;
+        });
+
+        $scope.mean = jStat.mean(achievedNumberOfPoints)
+        $scope.median = jStat.median(achievedNumberOfPoints)
 
         $scope.assignment.tasks.forEach(function(task) {
             task.characteristics.forEach(function (characteristic) {
@@ -155,11 +166,7 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
                     });
                     return mastery ? mastery.points : null;
                 });
-                // Construct an array of all actual achieved points per delivery
-                // [ 60, 72, 70, 60]
-                var achievedNumberOfPoints = $scope.deliveries.map(function(delivery) {
-                    return delivery.achievedNumberOfPoints;
-                });
+
                 // Compute correlation
                 characteristic.correlation =
                     (jStat.corrcoeff(scoresForCharacteristic, achievedNumberOfPoints)).toFixed(2);

@@ -1,10 +1,9 @@
 
-var module = angular.module('devhub', ['ui.bootstrap', 'xeditable', 'ui.bootstrap.contextMenu']);
+var module = angular.module('devhub', ['ui.bootstrap', 'xeditable', 'ui.bootstrap.contextMenu', 'chart.js']);
 
 module.run(function(editableOptions) {
     editableOptions.theme = 'bs3'; // bootstrap3 theme. Can be also 'bs2', 'default'
 });
-
 
 function createLevel(n) {
     return {
@@ -121,6 +120,8 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
             })
         });
 
+        var numPointsToDeliveries = {};
+
         $scope.deliveries.forEach(function(delivery) {
             // Defaulting to null, so the value is null when a group is not graded (delivery.masteries.length == 0)
             delivery.achievedNumberOfPoints = null;
@@ -129,7 +130,20 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
                 mastery.count++;
                 delivery.achievedNumberOfPoints += mastery.points * mastery.characteristic.weight;
             })
+
+            if (delivery.achievedNumberOfPoints != null) {
+                var name = Math.round(delivery.achievedNumberOfPoints)
+                numPointsToDeliveries[name] = (numPointsToDeliveries[name] || 0) + 1;
+            }
         });
+
+        $scope.labels = Object.keys(numPointsToDeliveries)
+            .sort(function(a,b) { return a - b; });
+
+        $scope.data = [$scope.labels
+            .map(function(name) { return numPointsToDeliveries[name]; })];
+
+        console.error($scope.labels, $scope.data)
 
         $scope.assignment.tasks.forEach(function(task) {
             task.characteristics.forEach(function (characteristic) {

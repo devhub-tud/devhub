@@ -35,10 +35,7 @@
                                 <span class="text-danger octicon octicon-arrow-down"></span>
                                 <span class="text-muted">${pullRequest.behind}</span>
                               </div>
-                                [#assign numComments = pullRequest.comments?size]
-                                [#if numComments > 0]
-                                    <div class="pull-right"><i class="glyphicon glyphicon-comment"></i> ${numComments} </div>
-                                [/#if]
+                              <div class="pull-right"><i class="glyphicon glyphicon-comment"></i> ${pullRequest.comments?size} </div>
                             </span>
                             <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
                     [#if pullRequest.destination.author?? && pullRequest.destination.author?has_content]

@@ -25,6 +25,18 @@
       "password": "student4"
     },
     {
+      "name": "Student Five",
+      "email": "student-5@student.tudelft.nl",
+      "netId": "student5",
+      "password": "student5"
+    },
+    {
+      "name": "Student Six",
+      "email": "student-6@student.tudelft.nl",
+      "netId": "student6",
+      "password": "student6"
+    },
+    {
       "name": "Assistant One",
       "email": "assistant-1@student.tudelft.nl",
       "netId": "assistant1",

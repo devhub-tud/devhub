@@ -18,6 +18,7 @@ public class CoursesView extends AuthenticatedView {
 
 	private static final By MY_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'My courses')]");
 	private static final By ASSISTING_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Assisting projects')]");
+    private static final By AVAILABLE_COURSES_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Available courses')]");
 
 	CoursesView(WebDriver driver) {
 		super(driver);
@@ -58,6 +59,16 @@ public class CoursesView extends AuthenticatedView {
 		return listProjectOverviewsInTable(table);
 	}
 
+    /**
+     * @return A {@link List} of all {@link Project}s in the "Available courses" section.
+     */
+	public List<CourseOverview> listAvailableCourses() {
+        invariant();
+        WebElement availableHeader = getDriver().findElement(AVAILABLE_COURSES_HEADER);
+        WebElement table = Dom.nextSibling(availableHeader, "table");
+        return listProjectOverviewsInTable(table);
+    }
+
 	private List<Project> listProjectsInTable(WebElement table) {
 		List<WebElement> entries = table.findElements(By.tagName("td"));
 		if (entries.size() == 1) {
@@ -85,8 +96,10 @@ public class CoursesView extends AuthenticatedView {
 
 		List<CourseOverview> projects = Lists.newArrayList();
 		for (WebElement entry : entries) {
+            String courseName = entry.getText().substring(0, entry.getText().length() - 7);
 			WebElement projectLink = entry.findElement(By.tagName("a"));
-			CourseOverview project = new CourseOverview(projectLink.getText(), projectLink);
+
+			CourseOverview project = new CourseOverview(projectLink.getText(), projectLink, courseName);
 			projects.add(project);
 		}
 		return projects;
@@ -111,11 +124,23 @@ public class CoursesView extends AuthenticatedView {
 		
 		@Getter(AccessLevel.NONE)
 		private final WebElement anchor;
+
+        @Getter(AccessLevel.NONE)
+        private final String courseName;
 		
 		public CourseView click() {
 			anchor.click();
 			return new CourseView(getDriver());
 		}
+
+        public GroupEnrollView clickEnroll() {
+            anchor.click();
+            return new GroupEnrollView(getDriver());
+        }
+
+        public String getCourseName() {
+            return courseName;
+        }
 	}
 	
 }

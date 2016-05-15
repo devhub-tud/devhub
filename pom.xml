@@ -570,6 +570,7 @@
                 <configuration>
                     <excludes>
                         <exclude>**/Q*.java</exclude>
+                        <exclude>**/static/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>

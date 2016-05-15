@@ -1,11 +1,13 @@
 language: java
 sudo: false
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 jdk:
   - oraclejdk8
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 script:
-  - mvn verify -B
-after_success:
-  - mvn jacoco:report coveralls:report
+  - mvn verify -B jacoco:report coveralls:report

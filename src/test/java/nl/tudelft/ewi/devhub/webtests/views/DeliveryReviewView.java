@@ -12,11 +12,7 @@ import org.openqa.selenium.support.ui.Select;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import javax.annotation.Nullable;
 
@@ -134,7 +130,8 @@ public class DeliveryReviewView extends ProjectSidebarView {
             return State.valueOf(select.getFirstSelectedOption().getText().toUpperCase());
         }
 
-        public void setState(Delivery.State state) throws IllegalArgumentException {
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        public void setState(Delivery.State state) throws NoSuchElementException {
             invariant();
             final WebElement element = getDriver().findElement(STATE_SELECTOR);
             final Select select = new Select(element);

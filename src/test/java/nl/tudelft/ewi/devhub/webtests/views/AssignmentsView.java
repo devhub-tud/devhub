@@ -1,18 +1,16 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 public class AssignmentsView extends ProjectSidebarView {
 
@@ -45,7 +43,7 @@ public class AssignmentsView extends ProjectSidebarView {
 		
 		for (WebElement entry : entries) {
 			if(!first){
-				WebElement diffLink = entry.findElement(By.tagName("a"));
+				WebElement assignmentLink = entry.findElement(By.tagName("a"));
 				List<WebElement> entries2 = entry.findElements(By.tagName("td"));
 			
 				String number = "number", name = "name";
@@ -58,7 +56,7 @@ public class AssignmentsView extends ProjectSidebarView {
 					i++;
 				}
 			
-				assignments.add(new Assignment(number, name, diffLink));
+				assignments.add(new Assignment(number, name, assignmentLink));
 			}
 			first = false;
 		}
@@ -74,9 +72,9 @@ public class AssignmentsView extends ProjectSidebarView {
 		@Getter(AccessLevel.NONE)
 		private final WebElement anchor;
 		
-		public DiffInCommitView click() {
+		public AssignmentView click() {
 			anchor.click();
-			return new DiffInCommitView(getDriver());
+			return new AssignmentView(getDriver());
 		}
 	}
 	

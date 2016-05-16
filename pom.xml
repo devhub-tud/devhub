@@ -80,6 +80,24 @@
         </developer>
     </developers>
 
+	<contributors>
+		<contributor>
+			<name>Aron Zwaan</name>
+			<email>aronzwaan@solcon.nl</email>
+			<roles>
+				<role>tester</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Douwe Koopmans</name>
+			<email>d.koopmans@student.tudelft.nl</email>
+		</contributor>
+        <contributor>
+            <name>Jurriaan Den Toonder</name>
+            <email>jurriaan.toonder@liquidpineapple.net</email>
+        </contributor>
+	</contributors>
+
 	<dependencies>
 		<!-- Web -->
 		<dependency>
@@ -618,18 +636,4 @@
 		</plugins>
 
 	</build>
-
-	<contributors>
-		<contributor>
-			<name>Aron Zwaan</name>
-			<email>aronzwaan@solcon.nl</email>
-			<roles>
-				<role>tester</role>
-			</roles>
-		</contributor>
-		<contributor>
-			<name>Jurriaan Den Toonder</name>
-			<email>jurriaan.toonder@liquidpineapple.net</email>
-		</contributor>
-	</contributors>
 </project>

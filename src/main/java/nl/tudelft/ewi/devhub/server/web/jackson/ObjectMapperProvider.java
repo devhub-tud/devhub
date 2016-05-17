@@ -1,7 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 
 import javax.inject.Inject;
@@ -21,7 +20,6 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 	ObjectMapperProvider(ObjectMapper mapper) {
 		this.mapper = mapper;
 		mapper.registerModule(new Hibernate4Module());
-		mapper.registerModule(new GuavaModule());
 	}
 
 	@Override

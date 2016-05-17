@@ -42,7 +42,7 @@
                 [#if assignments?? && assignments?has_content]
                     [#list assignments as assignment]
                     [#assign showGrade = assignment.isGradesReleased() || user.isAdmin() || user.isAssisting(course)]
-                    [#assign delivery = deliveries.getLastDelivery(assignment, group)!]
+                    [#assign delivery = deliveries.getLastDelivery(assignment, group).orElse(null)!]
                     <tr>
                         <td>
                             <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">

@@ -136,7 +136,7 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
             })
 
             if (delivery.achievedNumberOfPoints != null) {
-                var name = Math.round(delivery.achievedNumberOfPoints)
+                var name = Math.round(delivery.achievedNumberOfPoints / assignment.totalAchievablePoints * 10);
                 numPointsToDeliveries[name] = (numPointsToDeliveries[name] || 0) + 1;
             }
         });

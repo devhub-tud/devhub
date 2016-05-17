@@ -78,7 +78,7 @@
         <dl>
             [#if review.getGrade()??]
                 <dt>${i18n.translate("delivery.grade")}</dt>
-                <dd>${review.getGrade()}</dd>
+                <dd>${review.getGrade()?string["0.#"]}</dd>
             [/#if]
             [#if review.getCommentary()??]
                 <dt>${i18n.translate("delivery.remarks")}</dt>

@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -114,6 +115,8 @@ public class DeliveriesBackendTest extends BackendTest {
 		when(deliveriesDAO.getDeliveries(Matchers.eq(assignment), Matchers.eq(group))).thenReturn(deliveries);
 		
 		when(attachment.getPath()).thenReturn(FULL_PATH_NAME);
+
+		when(deliveriesDAO.getLastDelivery(Matchers.eq(assignment), Matchers.eq(group))).thenReturn(Optional.empty());
 	}
 	
 	@Test

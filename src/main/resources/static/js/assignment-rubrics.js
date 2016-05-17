@@ -124,7 +124,7 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
             assignment.totalAchievablePoints += task.totalAchievablePointsWithWeight;
         });
 
-        var numPointsToDeliveries = {};
+        var numPointsToDeliveries = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10: 0 };
 
         $scope.deliveries.forEach(function(delivery) {
             // Defaulting to null, so the value is null when a group is not graded (delivery.masteries.length == 0)
@@ -136,8 +136,8 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
             })
 
             if (delivery.achievedNumberOfPoints != null) {
-                var name = Math.round(delivery.achievedNumberOfPoints / assignment.totalAchievablePoints * 10);
-                numPointsToDeliveries[name] = (numPointsToDeliveries[name] || 0) + 1;
+                var name = Math.max(1, Math.round(delivery.achievedNumberOfPoints / assignment.totalAchievablePoints * 10));
+                numPointsToDeliveries[name] = numPointsToDeliveries[name] + 1;
             }
         });
 
@@ -153,8 +153,8 @@ module.controller('StatisticsControl', function($scope, $http, $q) {
             return delivery.achievedNumberOfPoints;
         });
 
-        $scope.mean = jStat.mean(achievedNumberOfPoints)
-        $scope.median = jStat.median(achievedNumberOfPoints)
+        $scope.mean = (jStat.mean(achievedNumberOfPoints) / assignment.totalAchievablePoints * 10).toFixed(2);
+        $scope.median = (jStat.median(achievedNumberOfPoints) / assignment.totalAchievablePoints * 10).toFixed(2);
 
         $scope.assignment.tasks.forEach(function(task) {
             task.characteristics.forEach(function (characteristic) {

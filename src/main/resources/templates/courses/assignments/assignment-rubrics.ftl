@@ -112,26 +112,32 @@
 		<div class="col-md-4">
 			<div class="panel panel-default">
 				<div class="panel-heading">Histogram</div>
-                <div class="panel-body">
-                    <canvas id="bar" class="chart chart-bar" chart-data="data" chart-labels="labels" chart-series="[assignment.name]" ng-if="data.length && labels.length"></canvas>
-
-					<table class="table table-bordered">
-						<tr>
-							<th>Mean</th>
-							<td>
-								<span ng-bind="mean"></span> /
-								<span ng-bind="assignment.totalAchievablePoints"></span>
-							</td>
-						</tr>
-						<tr>
-							<th>Median</th>
-							<td>
-								<span ng-bind="median"></span> /
-                                <span ng-bind="assignment.totalAchievablePoints"></span>
-							</td>
-						</tr>
-					</table>
-                </div>
+        <div class="panel-body">
+            <canvas id="bar" class="chart chart-bar" chart-data="data" chart-labels="labels" chart-series="[assignment.name]" ng-if="data.length && labels.length"></canvas>
+        </div>
+				<table class="table table-bordered">
+					<tr>
+						<th>Mean</th>
+						<td ng-bind="mean"></td>
+					</tr>
+					<tr>
+						<th>Median</th>
+						<td ng-bind="median"></td>
+					</tr>
+					<tr>
+						<th>Achievable Points</th>
+						<td ng-bind="assignment.totalAchievablePoints"></td>
+					</tr>
+          <tr>
+            <th>Published</th>
+            <td>
+              <a href="${assignment.getURI()}edit">
+                <span class="label" ng-class="{ 'label-success' : assignment.gradesReleased, 'label-info': !assignment.gradesReleased}"
+                      ng-bind=" assignment.gradesReleased ? 'Published' : 'Not published'"></span>
+              </a>
+            </td>
+          </tr>
+				</table>
 			</div>
 		</div>
 	</div>

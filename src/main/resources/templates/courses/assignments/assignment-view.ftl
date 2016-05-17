@@ -93,7 +93,7 @@
 
                 [#assign review = delivery.getReview()![]]
                 [#if review?has_content && review.grade?? && review.grade?has_content]
-                    <span class="label label-default">${review.grade}</span>
+                    <span class="label label-default">${review.grade?string["0.#"]}</span>
                 [/#if]
 
                 [#assign state = delivery.getState()]

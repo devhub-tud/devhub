@@ -42,11 +42,15 @@
                 <tr>
                     <td>
                         [@deliveryElement.render delivery builds/]
-                        <div class="pull-right">
                     [#if user.isAdmin() || user.isAssisting(course)]
+                        [#if delivery_index == 0]
+                        <div class="pull-right">
                           <a href="deliveries/${delivery.getDeliveryId()}/review" class="btn btn-default">${i18n.translate("button.label.review")}</a>
-                    [/#if]
                         </div>
+                        [#else]
+	                      <a href="deliveries/${delivery.getDeliveryId()}/review" class="btn btn-link">${i18n.translate("button.label.previous-review")}</a>
+                        [/#if]
+                    [/#if]
                     </td>
                 </tr>
                 [/#list]

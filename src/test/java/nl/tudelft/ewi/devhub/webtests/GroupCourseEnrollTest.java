@@ -5,14 +5,13 @@ import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.ContributorsView;
 import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
 import nl.tudelft.ewi.devhub.webtests.views.GroupEnrollView;
-import org.hamcrest.CoreMatchers;
+import nl.tudelft.ewi.devhub.webtests.views.ProjectSidebarView;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class GroupCourseEnrollTest extends WebTest {
 
@@ -24,8 +23,6 @@ public class GroupCourseEnrollTest extends WebTest {
     private static final String OTHER_STUDENT_NAME = "Student Six";
     private static final String STUDENT_EMAIL = "student-5@student.tudelft.nl";
     private static final String OTHER_STUDENT_EMAIL = "student-6@student.tudelft.nl";
-
-    private String courseName;
 
     /**
      * <h1>Scenario: Enrolling as a group</h1>
@@ -84,7 +81,7 @@ public class GroupCourseEnrollTest extends WebTest {
 
         GroupEnrollView groupView = courses.get(0)
                 .clickEnroll()
-                .setMember2Field(OTHER_STUDENT_ID)
+                .setMemberField(2, OTHER_STUDENT_ID)
                 .clickNext();
 
         List<User> groupMembers = groupView.groupMembers();
@@ -123,10 +120,9 @@ public class GroupCourseEnrollTest extends WebTest {
         assertEquals(1, courses.size());
 
         CoursesView.CourseOverview course = courses.get(0);
-        courseName = course.getCourseName();
-        System.out.println("\n\n\n=========\n" + courseName);
+        String courseName = course.getCourseName();
         ContributorsView contributorsView = course.clickEnroll()
-                .setMember2Field(OTHER_STUDENT_ID)
+                .setMemberField(2, OTHER_STUDENT_ID)
                 .clickNext()
                 .clickCreateGroup()
                 .toContributorsView();
@@ -140,5 +136,30 @@ public class GroupCourseEnrollTest extends WebTest {
         assertEquals(OTHER_STUDENT_EMAIL, contributors.get(1).getEmail());
 
         assertTrue(contributorsView.toCoursesView().listMyProjects().get(0).getName().contains(courseName));
+    }
+
+    /**
+     * Test if the group will not be created with an invalid student number.
+     */
+    @Test
+    public void testWrongStudentNumber() {
+        CoursesView view = openLoginScreen()
+                .login(NET_ID, PASSWORD)
+                .toCoursesView();
+
+        List<CoursesView.CourseOverview> courses = view.listAvailableCourses();
+        assertEquals(1, courses.size());
+        GroupEnrollView groupView = courses.get(0)
+                .clickEnroll()
+                .setMemberField(1, "coffee")
+                .setMemberField(2, "is life");
+
+        assertTrue(groupView.memberFieldContainsError(1));
+        assertTrue(groupView.memberFieldContainsError(2));
+
+        CoursesView coursesView = groupView.clickNext()
+                .toCoursesView();
+
+        assertEquals(0, coursesView.listMyProjects().size());
     }
 }

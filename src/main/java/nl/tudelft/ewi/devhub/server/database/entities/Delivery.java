@@ -56,7 +56,7 @@ import java.util.Map;
 @Data
 @Entity
 @Table(name = "assignment_deliveries")
-@ToString(exclude = {"notes", "attachments"})
+@ToString(exclude = {"notes", "attachments", "rubrics"})
 @EqualsAndHashCode(of={"deliveryId"})
 public class Delivery implements Event, Base {
 

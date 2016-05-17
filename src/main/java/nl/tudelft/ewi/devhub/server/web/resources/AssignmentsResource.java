@@ -1,7 +1,9 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
+import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
@@ -12,6 +14,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingStrategy;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
@@ -51,22 +54,27 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
  * @author Jan-Willem Gmleig Meyling
  */
+@Slf4j
 @Path("courses/{courseCode}/{editionCode}/assignments")
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class AssignmentsResource extends Resource {
 
     private static final String DATE_FORMAT = "dd-MM-yyyy HH:mm";
+    public static final String CHECKBOX_CHECKED_VALUE = "on";
 
-	@Inject
+    @Inject
     private TemplateEngine templateEngine;
 
     @Inject
@@ -80,6 +88,9 @@ public class AssignmentsResource extends Resource {
 
     @Inject
     private Deliveries deliveriesDAO;
+
+    @Inject
+    private ReviewMailer reviewMailer;
 
     @Inject
     @Named("current.user")
@@ -228,8 +239,6 @@ public class AssignmentsResource extends Resource {
     }
 
     private final static String TEXT_CSV = "text/csv";
-    private final static char CSV_FIELD_SEPARATOR = ',';
-    private final static char CSV_ROW_SEPARATOR = '\n';
 
     /**
      * Download the grades for this assignment
@@ -393,6 +402,7 @@ public class AssignmentsResource extends Resource {
     }
 
     @POST
+    @Transactional
     @Path("{assignmentId : \\d+}/edit")
     public Response editAssignment(@PathParam("courseCode") String courseCode,
 								   @PathParam("editionCode") String editionCode,
@@ -413,8 +423,11 @@ public class AssignmentsResource extends Resource {
         assignment.setSummary(summary);
 
         //a little bit ugly, form params don't work nicely with checkboxes.
-        boolean releaseStatus = release != null && release.equals("on");
-        assignment.setGradesReleased(releaseStatus);
+        boolean gradesReleased = CHECKBOX_CHECKED_VALUE.equals(release);
+        if (gradesReleased && !assignment.isGradesReleased() && !assignment.getTasks().isEmpty()) {
+            releaseGrades(assignment);
+        }
+        assignment.setGradesReleased(gradesReleased);
 
         if(!Strings.isNullOrEmpty(dueDate)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
@@ -446,7 +459,79 @@ public class AssignmentsResource extends Resource {
         return redirect(course.getURI());
     }
 
-	/**
+    @POST
+    @Path("{assignmentId : \\d+}/release-grades")
+    public void releaseGrades(@PathParam("courseCode") String courseCode,
+                              @PathParam("editionCode") String editionCode,
+                              @PathParam("assignmentId") long assignmentId) {
+
+        CourseEdition course = courses.find(courseCode, editionCode);
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
+
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
+        releaseGrades(assignment);
+    }
+
+    /**
+     * Release the grades for a course.
+     * @param assignment Assignment to release grades for.
+     */
+    @Transactional
+    protected void releaseGrades(Assignment assignment) {
+        List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
+        GradingStrategy gradingStrategy = assignment.getGradingStrategy();
+
+        deliveries.forEach(delivery -> {
+            if (delivery.getMasteries().isEmpty()) {
+                log.info("Skipping {} as it has no masteries", delivery);
+                return;
+            }
+            Review review = getOrCreateReview(assignment, delivery);
+            State previousState = review.getState();
+            review.setGrade(gradingStrategy.createGrade(delivery));
+            review.setState(gradingStrategy.createState(delivery));
+            log.info("Updated review {} for {}", review, delivery);
+
+            if (previousState == null || previousState.equals(State.SUBMITTED)) {
+                reviewMailer.sendReviewMail(delivery);
+            }
+            
+            deliveriesDAO.merge(delivery);
+        });
+    }
+
+    /**
+     * Get the {@code Review} from the {@link Assignment}, or try to find a {@code Review}
+     * in one of the other {@link Delivery Deliveries}.
+     * @param assignment Assignment for which this is a delivery.
+     * @param delivery Delivery to find a review for.
+     * @return Review instance.
+     * @deprecated Only used for SQT where a review may be created on an older submission,
+     *  while the latest solution is a resubmission.
+     */
+    @Deprecated
+    private Review getOrCreateReview(Assignment assignment, Delivery delivery) {
+        return Optional.ofNullable(delivery.getReview())
+            .orElseGet(() -> {
+                Review r = deliveriesDAO.getDeliveries(assignment, delivery.getGroup()).stream()
+                    .map(Delivery::getReview)
+                    .filter(Objects::nonNull)
+                    .findAny().orElseGet(() -> {
+                        Review review = new Review();
+                        review.setReviewUser(currentUser);
+                        review.setCommentary("");
+                        review.setReviewTime(new Date());
+                        return review;
+                    });
+                delivery.setReview(r);
+                return r;
+            });
+    }
+
+    /**
 	 * Display the rubrics page for this {@link Assignment}.
 	 * @param courseCode the course to create an assignment for.
 	 * @param editionCode the course to create an assignment for.

@@ -272,7 +272,7 @@ public class ProjectAssignmentsResource extends Resource {
             }
         }
 
-        return null;
+        return "";
     }
 
     /**
@@ -403,12 +403,21 @@ public class ProjectAssignmentsResource extends Resource {
 	}
 
     @Data
+    @Deprecated
     public static class AutoGradeResult {
         private List<Long> ids;
     }
 
 
+    /**
+     * Hook that pushes autograding results.
+     * @param assignmentId Assignment id to push the result for.
+     * @param result The actual result.
+     * @see ProjectAssignmentsResource#persistMasteries(long, List)
+     * @deprecated Rubric hook for automatically grading parameterized assignment.
+     */
     @POST
+    @Deprecated
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("{assignmentId}/last-delivery/auto-masteries")
@@ -428,4 +437,5 @@ public class ProjectAssignmentsResource extends Resource {
 
         log.info("auto-graded assignment {}", assignment);
     }
+
 }

@@ -128,6 +128,15 @@
 						<th>Achievable Points</th>
 						<td ng-bind="assignment.totalAchievablePoints"></td>
 					</tr>
+          <tr>
+            <th>Published</th>
+            <td>
+              <a href="${assignment.getURI()}edit">
+                <span class="label" ng-class="{ 'label-success' : assignment.gradesReleased, 'label-info': !assignment.gradesReleased}"
+                      ng-bind=" assignment.gradesReleased ? 'Published' : 'Not published'"></span>
+              </a>
+            </td>
+          </tr>
 				</table>
 			</div>
 		</div>

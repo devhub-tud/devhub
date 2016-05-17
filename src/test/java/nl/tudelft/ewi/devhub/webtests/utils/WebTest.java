@@ -21,6 +21,9 @@ public abstract class WebTest {
 	public static final String NET_ID = "student1";
 	public static final String PASSWORD = "student1";
 
+	public static final String ASSISTANT_USERNAME = "assistant1";
+	public static final String ASSISTANT_PASSWORD = "assistant1";
+
 	public static ServerResource serverResource = new ServerResource();
 	public static DriverResource driverResource = new DriverResource();
 	@ClassRule public static RuleChain ruleChain = RuleChain.outerRule(serverResource).around(driverResource);

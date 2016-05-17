@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend.mail;
 
+import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -12,6 +13,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -44,6 +46,7 @@ public class ReviewMailer {
      * Send a notification for new messages
      * @param delivery Delivery to send
      */
+    @SneakyThrows
     public void sendReviewMail(Delivery delivery) {
         Assignment assignment = delivery.getAssignment();
         Group group = delivery.getGroup();
@@ -54,8 +57,7 @@ public class ReviewMailer {
         Preconditions.checkNotNull(delivery);
         Preconditions.checkNotNull(review);
 
-        String link = String.format("%s/courses/%s/groups/%d/assignments",
-                config.getHttpUrl(), course.getCode(), group.getGroupNumber());
+        String link = new URI(config.getHttpUrl()).resolve(group.getURI()).resolve("assignments").toString();
         List<Locale> locales = Collections.list(request.getLocales());
         Translator translator = factory.create(locales);
 

@@ -11,7 +11,6 @@ import com.google.inject.servlet.RequestScoped;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
-import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
@@ -198,6 +197,7 @@ public class ProjectAssignmentsResource extends Resource {
         String notes = extractString(formDataMap, "notes");
 
         Assignment assignment = assignments.find(group.getCourse(), assignmentId);
+
         Delivery delivery = new Delivery();
         delivery.setAssignment(assignment);
 
@@ -415,7 +415,7 @@ public class ProjectAssignmentsResource extends Resource {
     public void uploadAutoGradingGrade(@PathParam("assignmentId") long assignmentId, AutoGradeResult result) {
         CourseEdition edition = group.getCourseEdition();
         Assignment assignment = assignments.find(edition, assignmentId);
-        Delivery lastDelivery = deliveries.getLastDelivery(assignment, group);
+        Delivery lastDelivery = deliveries.getLastDelivery(assignment, group).orElseThrow(NotFoundException::new);
 
         List<Mastery> masteries = result.getIds().stream().map(id -> {
             Mastery mastery = new Mastery();

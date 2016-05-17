@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,12 +37,12 @@ public class Deliveries extends Controller<Delivery> {
      * @return most recent delivery or null if not exists
      */
     @Transactional
-    public Delivery getLastDelivery(Assignment assignment, Group group) {
-        return query().from(delivery)
+    public Optional<Delivery> getLastDelivery(Assignment assignment, Group group) {
+        return Optional.ofNullable(query().from(delivery)
             .where(delivery.assignment.eq(assignment))
             .where(delivery.group.eq(group))
             .orderBy(delivery.timestamp.desc())
-            .singleResult(delivery);
+            .singleResult(delivery));
     }
 
     /**

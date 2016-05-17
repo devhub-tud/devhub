@@ -1,9 +1,12 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
+import nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
 import nl.tudelft.ewi.devhub.server.database.entities.DeliveryAttachment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -24,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The DeliveriesBackend is used to create and update Deliveries.
@@ -75,6 +79,25 @@ public class DeliveriesBackend {
 
         if (deliveriesDAO.lastDeliveryIsApprovedOrDisapproved(assignment, group)) {
             throw new IllegalStateException(ALREADY_SUBMITTED);
+        }
+
+        Optional<Delivery> optionalLastDelivery = deliveriesDAO.getLastDelivery(assignment, group);
+
+        if (optionalLastDelivery.isPresent()) {
+            Delivery lastDelivery = optionalLastDelivery.get();
+            // Copy review from last delivery
+            Review lastReview = lastDelivery.getReview();
+            if (lastReview != null) {
+                Review review = new Review();
+                review.setCommentary(lastReview.getCommentary());
+                review.setReviewTime(lastReview.getReviewTime());
+                review.setReviewUser(lastReview.getReviewUser());
+                review.setState(State.SUBMITTED);
+                delivery.setReview(review);
+            }
+
+            // Copy the rubrics from the last delivery
+            delivery.setRubrics(Maps.newHashMap(lastDelivery.getRubrics()));
         }
 
         try {

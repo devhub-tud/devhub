@@ -25,3 +25,9 @@
 [submodule "src/main/resources/static/vendor/angular"]
 	path = src/main/resources/static/vendor/angular
 	url = https://github.com/components/angular.js.git
+[submodule "src/main/resources/static/vendor/Chartjs"]
+	path = src/main/resources/static/vendor/Chartjs
+	url = https://github.com/chartjs/Chart.js.git
+[submodule "src/main/resources/static/vendor/angular-chart"]
+	path = src/main/resources/static/vendor/angular-chart
+	url = https://github.com/jtblin/angular-chart.js.git

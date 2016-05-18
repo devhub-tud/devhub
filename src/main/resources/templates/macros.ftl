@@ -103,14 +103,18 @@
 	[/#list]
 [/#macro]
 
-[#macro renderCommitHeader i18n group commit currentView]
-	[#if group?? && group?has_content]
+[#macro renderCommitHeader i18n group repositoryEntity commit currentView]
+	[#if repositoryEntity?? && repositoryEntity?has_content]
 			<ol class="breadcrumb hidden-xs">
-
-                <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
-				<li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
-				<li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
-				<li><a href="${group.getURI()}">Group ${group.getGroupNumber()}</a></li>
+				[#if group?? && group?has_content]
+					<li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
+					<li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
+					<li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+					<li><a href="${group.getURI()}">Group ${group.getGroupNumber()}</a></li>
+				[#else]
+					<li><a href="/projects">${ i18n.translate("section.projects") }</a></li>
+					<li><a href="${repositoryEntity.getURI()}">${repositoryEntity.getTitle()}</a></li>
+				[/#if]
 	[#if commit.getMessage()?length > 30 ]		
 				<li class="active">${commit.getMessage()?substring(0,30)}...</li>
 	[#else]

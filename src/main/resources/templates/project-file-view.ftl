@@ -6,7 +6,7 @@
 [@macros.renderHeader i18n.translate("section.projects") /]
 [@macros.renderMenu i18n user /]
 		<div class="container">
-[@macros.renderCommitHeader i18n group![] commit i18n.translate("commit.view-files") /]
+[@macros.renderCommitHeader i18n group![] repositoryEntity commit i18n.translate("commit.view-files") /]
 			<div class="diff box">
 				<div class="header">
 				  	<span class="pull-right hidden-xs buttons">

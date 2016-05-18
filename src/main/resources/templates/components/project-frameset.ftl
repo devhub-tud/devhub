@@ -1,11 +1,11 @@
-[#macro renderBreadcrumb i18n group repository]
+[#macro renderBreadcrumb i18n group repositoryEntity]
 	<ol class="breadcrumb hidden-xs">
 		[#if group?? && group?has_content]
 			<li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
 			<li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
 			<li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
 			<li class="active">Group ${group.getGroupNumber()}</li>
-		[#elseif repository?? && repository?has_content]
+		[#elseif repositoryEntity?? && repositoryEntity?has_content]
 			<li><a href="/projects">${ i18n.translate("section.projects") }</a></li>
 			<li><a href="${repositoryEntity.getURI()}">${repositoryEntity.getTitle()}</a></li>
 		[/#if]

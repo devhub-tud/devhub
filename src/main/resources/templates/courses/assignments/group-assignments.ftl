@@ -62,9 +62,11 @@
                             [/#if]
                         </td>
                         <td>
-                            [#if delivery?has_content && delivery.getReview()?? && showGrade]
+                            [#if delivery?has_content && delivery.getReview()?? && showGrade && delivery.getReview().grade?? && delivery.getReview().grade?has_content]
                             [#assign review = delivery.getReview()]
-                            ${review.getGrade()!"-"}
+                              ${review.grade?string["0.#"]}
+                            [#else]
+                                -
                             [/#if]
                         </td>
                         <td>

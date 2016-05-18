@@ -9,16 +9,21 @@
 <div class="container">
 
 
-[#if group?? && group?has_content]
-    <ol class="breadcrumb">
-        <li><a href="/courses">${i18n.translate("section.projects")}</a></li>
-        [#-- <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li> --]
-	    <li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
-	    <li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
-	    <li><a href="${group.getURI()}">Group ${group.getGroupNumber()}</a></li>
-        <li><a href="${group.getURI()}pulls">${i18n.translate("section.pull-requests")}</a></li>
-        <li class="active">Pull Request ${pullRequest.getIssueId()}</li>
-    </ol>
+[#if repositoryEntity?? && repositoryEntity?has_content]
+	<ol class="breadcrumb">
+		[#if group?? && group?has_content]
+			<li><a href="/courses">${i18n.translate("section.projects")}</a></li>
+			[#-- <li><a href="/courses/${group.course.code}/groups/${group.groupNumber}">${group.getGroupName()}</a></li> --]
+			<li><a href="${group.course.course.getURI()}">${group.course.course.code} - ${group.course.course.name}</a></li>
+			<li><a href="${group.course.getURI()}">${group.course.timeSpan.start?string["yyyy"]}[#if group.course.timeSpan.end??] - ${group.course.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+			<li><a href="${group.getURI()}">Group ${group.getGroupNumber()}</a></li>
+			<li><a href="${group.getURI()}pulls">${i18n.translate("section.pull-requests")}</a></li>
+		[#else]	
+			<li><a href="/projects">${ i18n.translate("section.projects") }</a></li>
+			<li><a href="${repositoryEntity.getURI()}">${repositoryEntity.getTitle()}</a></li>
+		[/#if]
+		<li class="active">Pull Request ${pullRequest.getIssueId()}</li>
+	</ol>
 [/#if]
 
 [#assign buildResult = builds[pullRequest.destination.commitId]![]]

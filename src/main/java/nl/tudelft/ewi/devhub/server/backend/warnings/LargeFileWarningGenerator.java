@@ -27,7 +27,7 @@ public class LargeFileWarningGenerator extends AbstractCommitWarningGenerator<La
 implements CommitPushWarningGenerator<LargeFileWarning> {
 
     private static final int MAX_FILE_SIZE = 500;
-    private static final String MAX_FILE_SIZE_PROPERTY = "warnings.max-file-size";
+    static final String MAX_FILE_SIZE_PROPERTY = "warnings.max-file-size";
 
     private Commit commit;
     int maxFileSize;

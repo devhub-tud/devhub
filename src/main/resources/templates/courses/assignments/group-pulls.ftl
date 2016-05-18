@@ -7,7 +7,7 @@
 <div class="container">
 
   [#if group?? && group?has_content]
-      [@projectFrameset.renderBreadcrumb i18n group/]
+      [@projectFrameset.renderBreadcrumb i18n group repositoryEntity/]
   [/#if]
 
     <div class="row">

@@ -11,7 +11,7 @@
 [#import "../components/commit-row.ftl" as commitRow]
 
 [@macros.renderHeader i18n.translate("section.projects") /]
-[@macros.renderMenu i18n user /]
+[@macros.renderMenu i18n user repositoryEntity/]
 <div class="container">
 
 [#if group?? && group?has_content]

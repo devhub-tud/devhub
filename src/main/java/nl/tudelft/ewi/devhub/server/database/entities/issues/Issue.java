@@ -17,7 +17,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 @Data
 @Entity
-@Table(name="issues")
+@Table(name="repository_issues")
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class Issue extends AbstractIssue {
@@ -30,7 +30,6 @@ public class Issue extends AbstractIssue {
 	@Column(name="description", length=2048)
 	private String description; // Move this to AbstractIssue sometime?
 	
-	@Column(name="assignee")
 	@ManyToOne(optional = true, cascade=CascadeType.DETACH)
 	public User assignee;
 

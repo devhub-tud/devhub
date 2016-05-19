@@ -9,7 +9,7 @@
         <div class="container">
 
 
-    [@macros.renderCommitHeader i18n group![] commit i18n.translate("commit.view-diff")/]
+    [@macros.renderCommitHeader i18n group![] repositoryEntity commit i18n.translate("commit.view-diff")/]
 
     [#if diffViewModel?? && diffViewModel?has_content]
         [#list diffViewModel.diffs as diffModel]

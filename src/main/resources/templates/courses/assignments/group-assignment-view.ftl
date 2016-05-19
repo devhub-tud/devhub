@@ -6,7 +6,7 @@
 [@macros.renderMenu i18n user /]
 <div class="container">
 
-    [@projectFrameset.renderBreadcrumb i18n group/]
+    [@projectFrameset.renderBreadcrumb i18n group repositoryEntity/]
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">

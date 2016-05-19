@@ -14,8 +14,8 @@
 [@macros.renderMenu i18n user /]
 <div class="container">
 
-[#if group?? && group?has_content]
-	[@projectFrameset.renderBreadcrumb i18n group/]
+[#if repositoryEntity?? && repositoryEntity?has_content]
+	[@projectFrameset.renderBreadcrumb i18n group![] repositoryEntity/]
 [/#if]
 
     <div class="row">

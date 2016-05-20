@@ -7,11 +7,15 @@ import lombok.NoArgsConstructor;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
+import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -70,6 +74,18 @@ public abstract class AbstractIssue implements Event, Base {
 	@Column(name = "closed_date")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date closed;
+
+	// Left away @NotEmpty for now, since existing tests should be updated for it to work
+	@Column(name="title")
+	private String title;
+
+	@Column(name="description", nullable=true)
+	@Type(type = "org.hibernate.type.TextType")
+	private String description;
+	
+	@ManyToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name = "assignee")
+	public User assignee;
 
     /**
      * @return true if the pull request is closed

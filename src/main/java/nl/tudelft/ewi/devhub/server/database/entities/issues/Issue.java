@@ -22,17 +22,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 @NoArgsConstructor
 public class Issue extends AbstractIssue {
 
-	@NotNull	
-	@Column(name="title", length=128)
-	private String title;
-	
-	@NotNull
-	@Column(name="description", length=2048)
-	private String description; // Move this to AbstractIssue sometime?
-	
-	@ManyToOne(optional = true, cascade=CascadeType.DETACH)
-	public User assignee;
-
 	@Override
 	public URI getURI() {
 		return getRepository().getURI().resolve("issue/" + getIssueId() + "/");

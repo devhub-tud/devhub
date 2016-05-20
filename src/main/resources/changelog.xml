@@ -971,5 +971,41 @@
 			</column>
 		</addColumn>
 	</changeSet>
+	
+	<changeSet id="add_issues" author="Aron Zwaan">
+		<createTable tableName="repository_issues">
+			<column name="issue_id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="open" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
+			</column>			
+            <column name="created_date" type="datetime"></column>
+			<column name="closed_date" type="timestamp"></column>
+			<column name="title" type="varchar(255)"></column>
+			<column name="description" type="text"></column>
+			<column name="assignee" type="bigint"></column>
+		</createTable>		
+
+		<addForeignKeyConstraint baseTableName="repository_issues" baseColumnNames="assignee"
+			 constraintName="issue_assignee"
+			 referencedTableName="users"
+			 referencedColumnNames="id"/>
+		
+		<!-- Add columns added to AbstractIssue to the pull_requests table -->
+		<addColumn tableName="pull_requests">
+			<column name="title" type="varchar(255)"></column>
+			<column name="description" type="text"></column>
+			<column name="assignee" type="bigint"></column>
+		</addColumn>		
+
+		<addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="assignee"
+			 constraintName="pull_request_assignee"
+			 referencedTableName="users"
+			 referencedColumnNames="id"/>
+	</changeSet>
 
 </databaseChangeLog>

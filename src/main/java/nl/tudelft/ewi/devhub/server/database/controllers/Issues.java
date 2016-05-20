@@ -20,8 +20,8 @@ public class Issues extends Controller<Issue> {
 	}
 	
 	@Transactional
-	public List<Issue> findIssuesForRepo(RepositoryEntity repo){
-		return query()
+	public List<Issue> findIssues(final RepositoryEntity repo){
+		return query().from(issue)
 			.where(issue.repository.eq(repo))
 			.list(issue);
 	}

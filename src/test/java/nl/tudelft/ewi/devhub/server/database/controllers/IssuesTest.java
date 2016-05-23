@@ -52,16 +52,6 @@ public class IssuesTest extends PersistedBackendTest {
 		issue2 = persistIssue(user2);
 	}
 	
-	//@After
-	public void delete(){
-		issues.delete(issue1);
-		issues.delete(issue1);
-		
-		groups.delete(group);
-		users.delete(user2);
-		users.delete(user1);
-		
-	}
 
 	@Test
 	public void testCreateIssue() {
@@ -85,10 +75,7 @@ public class IssuesTest extends PersistedBackendTest {
 		GroupRepository groupRepository = group.getRepository();
 		
 		// Close issue 2
-		issue2.setClosed(new Date());
 		issue2.setOpen(false);
-		
-		issues.merge(issue2);
 		
 		List<Issue> issueQueryResult = issues.findOpenIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
@@ -103,8 +90,6 @@ public class IssuesTest extends PersistedBackendTest {
 		issue2.setClosed(new Date());
 		issue2.setOpen(false);
 		
-		issues.merge(issue2);
-		
 		List<Issue> issueQueryResult = issues.findClosedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
 		issueRequestEquals(issue2, issueQueryResult.get(0));
@@ -114,8 +99,6 @@ public class IssuesTest extends PersistedBackendTest {
 	public void testFindUnassignedIssues() {
 		GroupRepository groupRepository = group.getRepository();
 		issue1.setAssignee(null);
-		
-		issues.merge(issue1);
 		
 		List<Issue> issueQueryResult = issues.findUnassignedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
@@ -142,7 +125,7 @@ public class IssuesTest extends PersistedBackendTest {
 		issue.setOpen(true);
 		issue.setAssignee(user);
 		
-		issues.merge(issue);
+		issues.persist(issue);
 		
 		return issue;
 	}

@@ -23,16 +23,14 @@ public class Issues extends Controller<Issue> {
 	@Transactional
 	public List<Issue> findIssues(final RepositoryEntity repo, User user){
 		return query().from(issue)
-			.where(issue.repository.eq(repo))
-			.where(issue.assignee.id.eq(user.getId()))
+			.where(issue.repository.eq(repo).and(issue.assignee.eq(user)))
 			.list(issue);
 	}
 	
 	@Transactional
 	public List<Issue> findOpenIssues(final RepositoryEntity repo){
 		return query().from(issue)
-			.where(issue.repository.eq(repo))
-			.where(issue.open.isTrue())
+			.where(issue.repository.eq(repo).and(issue.open.isTrue()))
 			.list(issue);
 	}
 	
@@ -46,8 +44,7 @@ public class Issues extends Controller<Issue> {
 	@Transactional
 	public List<Issue> findUnassignedIssues(final RepositoryEntity repo){
 		return query().from(issue)
-			.where(issue.repository.eq(repo))
-			.where(issue.assignee.isNull())
+			.where(issue.repository.eq(repo).and(issue.assignee.isNull()))
 			.list(issue);
 	}
 

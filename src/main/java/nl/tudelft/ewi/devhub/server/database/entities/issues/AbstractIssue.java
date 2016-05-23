@@ -83,9 +83,9 @@ public abstract class AbstractIssue implements Event, Base {
 	@Type(type = "org.hibernate.type.TextType")
 	private String description;
 	
-	@ManyToOne(cascade=CascadeType.ALL)
+	@ManyToOne(cascade={CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "assignee")
-	public User assignee;
+	private User assignee;
 
     /**
      * @return true if the pull request is closed

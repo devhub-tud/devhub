@@ -39,7 +39,7 @@ public class Issues extends Controller<Issue> {
 	@Transactional
 	public List<Issue> findClosedIssues(final RepositoryEntity repo){
 		return query().from(issue)
-			.where(issue.repository.eq(repo))
+			.where(issue.repository.eq(repo).and(issue.open.isFalse()))
 			.list(issue);
 	}
 

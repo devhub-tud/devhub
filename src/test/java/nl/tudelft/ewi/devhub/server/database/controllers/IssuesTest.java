@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.Date;
 import java.util.List;
 
-@Ignore("Cleaning up database does not work as required")
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
 public class IssuesTest extends PersistedBackendTest {
@@ -63,12 +62,11 @@ public class IssuesTest extends PersistedBackendTest {
 		users.delete(user1);
 		
 	}
-	
-	
+
 	@Test
 	public void testCreateIssue() {
 		GroupRepository groupRepository = group.getRepository();
-		List<Issue> issueQueryResult = issues.findIssues(groupRepository, user1);
+		List<Issue> issueQueryResult = issues.findOpenIssues(groupRepository);
 		
 		assertEquals(2, issueQueryResult.size());
 		issueRequestEquals(issue1, issueQueryResult.get(0));
@@ -115,13 +113,11 @@ public class IssuesTest extends PersistedBackendTest {
 	@Test
 	public void testFindUnassignedIssues() {
 		GroupRepository groupRepository = group.getRepository();
-		// Close issue 2
-		issue2.setClosed(new Date());
-		issue2.setOpen(false);
+		issue1.setAssignee(null);
 		
-		issues.merge(issue2);
+		issues.merge(issue1);
 		
-		List<Issue> issueQueryResult = issues.findClosedIssues(groupRepository);
+		List<Issue> issueQueryResult = issues.findUnassignedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
 		issueRequestEquals(issue1, issueQueryResult.get(0));
 	}
@@ -142,7 +138,6 @@ public class IssuesTest extends PersistedBackendTest {
 		GroupRepository groupRepository = group.getRepository();
 		
 		Issue issue = new Issue();
-		issue.setIssueId(random.nextLong());
 		issue.setRepository(groupRepository);
 		issue.setOpen(true);
 		issue.setAssignee(user);

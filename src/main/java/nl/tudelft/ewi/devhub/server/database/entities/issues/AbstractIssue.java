@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
@@ -33,6 +34,7 @@ import java.util.Date;
  */
 @Data
 @MappedSuperclass
+@ToString(of = {"repository", "issueId"})
 @EqualsAndHashCode(of = {"repository", "issueId"})
 @IdClass(AbstractIssue.IssueId.class)
 public abstract class AbstractIssue implements Event, Base {

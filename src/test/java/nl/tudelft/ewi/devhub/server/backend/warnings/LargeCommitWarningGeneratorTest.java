@@ -1,7 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
 import com.google.common.collect.Sets;
-import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LargeCommitWarning;
@@ -16,15 +15,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.OngoingStubbing;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,12 +33,8 @@ import static org.mockito.Mockito.when;
 public class LargeCommitWarningGeneratorTest {
 
     private LargeCommitWarningGenerator generator;
-    private LargeCommitWarning warning;
+    private Set<LargeCommitWarning> testEquals;
 
-    private static final int MAX_AMOUNT_OF_FILES = 10;
-    private static final int MAX_AMOUNT_OF_LINES_TOUCHED = 500;
-    private static final String MAX_FILES_PROPERTY = "warnings.max-touched-files";
-    private static final String MAX_LINE_TOUCHED_PROPERTY = "warnings.max-line-edits";
     private static final String REPOSITORY_NAME = "John Cena";
     private static final String COMMIT_ID = "1";
 
@@ -50,38 +47,55 @@ public class LargeCommitWarningGeneratorTest {
     @Mock private CommitApi commitApi;
     @Mock private DiffModel diffModel;
     @Mock private RepositoryApi repositoryApi;
+    @Mock private Collection collection;
+    @Mock private Stream<AbstractDiffModel.DiffFile<AbstractDiffModel.DiffContext<AbstractDiffModel.DiffLine>>> stream;
+    @Mock private Stream<Object> objectStream;
 
     @Before
     public void setUp() {
         generator = new LargeCommitWarningGenerator(repositoriesApi);
-        warning = new LargeCommitWarning();
+
+        /* Build the mocked commit */
         when(commit.getRepository()).thenReturn(configurable);
         when(commit.getRepository().getRepositoryName()).thenReturn(REPOSITORY_NAME);
         when(commit.getCommitId()).thenReturn(COMMIT_ID);
+        when(commit.isMerge()).thenReturn(false);
+
         when(abstractCommitWarningGenerator.getRepository(commit)).thenReturn(repositoryApi);
         when(abstractCommitWarningGenerator.getGitCommit(commit)).thenReturn(commitApi);
+
+        /* Build the mocked repo */
+        when(repositoriesApi.getRepository(REPOSITORY_NAME)).thenReturn(repositoryApi);
         when(repositoryApi.getCommit(COMMIT_ID)).thenReturn(commitApi);
         when(commitApi.diff()).thenReturn(diffModel);
         when(diffModel.getDiffs()).thenReturn(diffs);
-        when(repositoriesApi.getRepository(REPOSITORY_NAME)).thenReturn(repositoryApi);
-        when(commit.isMerge()).thenReturn(false);
+
+        /* Used to prevent NullPointerExceptions in tooManyLineChanges */
+        when(diffs.stream()).thenReturn(stream);
+        when(stream.filter(anyObject())).thenReturn(stream);
+        when(stream.flatMap(anyObject())).thenReturn(objectStream);
+        when(objectStream.flatMap(anyObject())).thenReturn(objectStream);
+        when(objectStream.filter(anyObject())).thenReturn(objectStream);
+
+        /* Set up a warning, used to test if the generator returns an equal object */
+        LargeCommitWarning warning = new LargeCommitWarning();
+        warning.setCommit(commit);
+        testEquals = Sets.newHashSet(warning);
     }
 
     @Test
     public void testIsMerge() {
         when(commit.isMerge()).thenReturn(true);
-        Set empty = generator.generateWarnings(commit, gitPush);
+        Set<LargeCommitWarning> empty = generator.generateWarnings(commit, gitPush);
         assertTrue(empty.isEmpty());
     }
 
     @Test
     public void testTooManyFiles() {
         when(diffs.size()).thenReturn(1);
-        when(configurable.getIntegerProperty(MAX_FILES_PROPERTY, MAX_AMOUNT_OF_FILES)).thenReturn(0);
+        when(configurable.getIntegerProperty(anyString(), anyString())).thenReturn(0);
 
-        warning.setCommit(commit);
-        Set testEquals = Sets.newHashSet(warning);
-        Set warnings = generator.generateWarnings(commit, gitPush);
+        Set<LargeCommitWarning> warnings = generator.generateWarnings(commit, gitPush);
 
         verify(diffs).size();
 
@@ -89,4 +103,17 @@ public class LargeCommitWarningGeneratorTest {
         assertEquals(1, warnings.size());
         assertEquals(testEquals, warnings);
     }
+
+    @Test
+    public void testTooManyLineChanges() {
+        when(objectStream.count()).thenReturn((long) 1);
+        when(configurable.getIntegerProperty(anyString(), anyString())).thenReturn(0);
+
+        Set<LargeCommitWarning> warnings = generator.generateWarnings(commit, gitPush);
+
+        assertFalse(warnings.isEmpty());
+        assertEquals(1, warnings.size());
+        assertEquals(testEquals, warnings);
+    }
+
 }

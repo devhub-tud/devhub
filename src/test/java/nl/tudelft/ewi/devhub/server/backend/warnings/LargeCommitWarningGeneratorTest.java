@@ -116,4 +116,10 @@ public class LargeCommitWarningGeneratorTest {
         assertEquals(testEquals, warnings);
     }
 
+    @Test
+    public void testGoodCommit() {
+        Set<LargeCommitWarning> warnings = generator.generateWarnings(commit, gitPush);
+
+        assertTrue(warnings.isEmpty());
+    }
 }

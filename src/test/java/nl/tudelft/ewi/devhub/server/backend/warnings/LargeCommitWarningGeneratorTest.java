@@ -83,6 +83,9 @@ public class LargeCommitWarningGeneratorTest {
         testEquals = Sets.newHashSet(warning);
     }
 
+    /**
+     * Confirms that the warning is not generated when the commit is a merge.
+     */
     @Test
     public void testIsMerge() {
         when(commit.isMerge()).thenReturn(true);
@@ -90,6 +93,9 @@ public class LargeCommitWarningGeneratorTest {
         assertTrue(empty.isEmpty());
     }
 
+    /**
+     * Confirms that the warning is generated when there are too many files committed.
+     */
     @Test
     public void testTooManyFiles() {
         when(diffs.size()).thenReturn(1);
@@ -104,6 +110,9 @@ public class LargeCommitWarningGeneratorTest {
         assertEquals(testEquals, warnings);
     }
 
+    /**
+     * Confirms that the warning is generated when there are too many lines committed.
+     */
     @Test
     public void testTooManyLineChanges() {
         when(objectStream.count()).thenReturn((long) 1);
@@ -116,6 +125,9 @@ public class LargeCommitWarningGeneratorTest {
         assertEquals(testEquals, warnings);
     }
 
+    /**
+     * Confirms that no warning is generated when the commit is deemed good.
+     */
     @Test
     public void testGoodCommit() {
         Set<LargeCommitWarning> warnings = generator.generateWarnings(commit, gitPush);

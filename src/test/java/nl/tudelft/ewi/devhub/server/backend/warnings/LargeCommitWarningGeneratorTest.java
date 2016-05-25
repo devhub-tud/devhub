@@ -1,8 +1,11 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LargeCommitWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.models.AbstractDiffModel;
@@ -16,17 +19,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Collection;
-import java.util.List;
+import java.io.IOException;
 import java.util.Set;
-import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,48 +34,48 @@ public class LargeCommitWarningGeneratorTest {
 
     private LargeCommitWarningGenerator generator;
     private Set<LargeCommitWarning> testEquals;
+    private PrivateRepository repository;
+    private Commit commit;
+    private DiffModel diffModel;
 
     private static final String REPOSITORY_NAME = "John Cena";
     private static final String COMMIT_ID = "1";
 
     @Mock private RepositoriesApi repositoriesApi;
-    @Mock private Commit commit;
-    @Mock private RepositoryEntity configurable;
-    @Mock private GitPush gitPush;
-    @Mock private List<AbstractDiffModel.DiffFile<AbstractDiffModel.DiffContext<AbstractDiffModel.DiffLine>>> diffs;
-    @Mock private AbstractCommitWarningGenerator abstractCommitWarningGenerator;
-    @Mock private CommitApi commitApi;
-    @Mock private DiffModel diffModel;
     @Mock private RepositoryApi repositoryApi;
-    @Mock private Collection collection;
-    @Mock private Stream<AbstractDiffModel.DiffFile<AbstractDiffModel.DiffContext<AbstractDiffModel.DiffLine>>> stream;
-    @Mock private Stream<Object> objectStream;
+    @Mock private CommitApi commitApi;
+    @Mock private GitPush gitPush;
 
     @Before
     public void setUp() {
         generator = new LargeCommitWarningGenerator(repositoriesApi);
 
-        /* Build the mocked commit */
-        when(commit.getRepository()).thenReturn(configurable);
-        when(commit.getRepository().getRepositoryName()).thenReturn(REPOSITORY_NAME);
-        when(commit.getCommitId()).thenReturn(COMMIT_ID);
-        when(commit.isMerge()).thenReturn(false);
+        repository = new PrivateRepository();
+        repository.setRepositoryName(REPOSITORY_NAME);
 
-        when(abstractCommitWarningGenerator.getRepository(commit)).thenReturn(repositoryApi);
-        when(abstractCommitWarningGenerator.getGitCommit(commit)).thenReturn(commitApi);
+        commit = new Commit();
+        commit.setRepository(repository);
+        commit.setCommitId(COMMIT_ID);
+        commit.setParents(Lists.newArrayList());
 
-        /* Build the mocked repo */
-        when(repositoriesApi.getRepository(REPOSITORY_NAME)).thenReturn(repositoryApi);
-        when(repositoryApi.getCommit(COMMIT_ID)).thenReturn(commitApi);
+        diffModel = new DiffModel();
+
+        when(repositoriesApi.getRepository(anyString())).thenReturn(repositoryApi);
+        when(repositoryApi.getCommit(anyString())).thenReturn(commitApi);
         when(commitApi.diff()).thenReturn(diffModel);
-        when(diffModel.getDiffs()).thenReturn(diffs);
 
-        /* Used to prevent NullPointerExceptions in tooManyLineChanges */
-        when(diffs.stream()).thenReturn(stream);
-        when(stream.filter(anyObject())).thenReturn(stream);
-        when(stream.flatMap(anyObject())).thenReturn(objectStream);
-        when(objectStream.flatMap(anyObject())).thenReturn(objectStream);
-        when(objectStream.filter(anyObject())).thenReturn(objectStream);
+        /* I will convert this to a JSON resource */
+        AbstractDiffModel.DiffLine diffLine = new AbstractDiffModel.DiffLine();
+        diffLine.setNewLineNumber(1);
+        diffLine.setContent("Hiephoi");
+
+        AbstractDiffModel.DiffContext<AbstractDiffModel.DiffLine> diffContext = new AbstractDiffModel.DiffContext<>();
+        diffContext.setLines(Lists.newArrayList(diffLine));
+        AbstractDiffModel.DiffFile<AbstractDiffModel.DiffContext<AbstractDiffModel.DiffLine>> diffFile = new AbstractDiffModel.DiffFile<>();
+        diffFile.setContexts(Lists.newArrayList(diffContext));
+        diffModel.setDiffs(Lists.newArrayList(diffFile));
+
+        System.out.println(diffModel);
 
         /* Set up a warning, used to test if the generator returns an equal object */
         LargeCommitWarning warning = new LargeCommitWarning();
@@ -88,9 +88,9 @@ public class LargeCommitWarningGeneratorTest {
      */
     @Test
     public void testIsMerge() {
-        when(commit.isMerge()).thenReturn(true);
+        commit.setParents(Lists.newArrayList(commit, commit));
         Set<LargeCommitWarning> empty = generator.generateWarnings(commit, gitPush);
-        assertTrue(empty.isEmpty());
+        assertThat(empty, is(Sets.newHashSet()));
     }
 
     /**
@@ -98,14 +98,8 @@ public class LargeCommitWarningGeneratorTest {
      */
     @Test
     public void testTooManyFiles() {
-        when(diffs.size()).thenReturn(1);
-        when(configurable.getIntegerProperty(anyString(), anyString())).thenReturn(0);
-
         Set<LargeCommitWarning> warnings = generator.generateWarnings(commit, gitPush);
 
-        verify(diffs).size();
-
-        assertFalse(warnings.isEmpty());
         assertEquals(1, warnings.size());
         assertEquals(testEquals, warnings);
     }
@@ -115,13 +109,8 @@ public class LargeCommitWarningGeneratorTest {
      */
     @Test
     public void testTooManyLineChanges() {
-        when(objectStream.count()).thenReturn((long) 1);
-        when(configurable.getIntegerProperty(anyString(), anyString())).thenReturn(0);
-
         Set<LargeCommitWarning> warnings = generator.generateWarnings(commit, gitPush);
 
-        assertFalse(warnings.isEmpty());
-        assertEquals(1, warnings.size());
         assertEquals(testEquals, warnings);
     }
 

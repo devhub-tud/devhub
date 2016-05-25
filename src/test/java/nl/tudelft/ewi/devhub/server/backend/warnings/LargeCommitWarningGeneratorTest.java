@@ -9,10 +9,12 @@ import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LargeCommitWarning;
 import nl.tudelft.ewi.devhub.server.web.models.GitPush;
 import nl.tudelft.ewi.git.models.AbstractDiffModel;
+import nl.tudelft.ewi.git.models.ChangeType;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
+import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +49,7 @@ public class LargeCommitWarningGeneratorTest {
     @Mock private GitPush gitPush;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         generator = new LargeCommitWarningGenerator(repositoriesApi);
 
         repository = new PrivateRepository();
@@ -73,9 +75,12 @@ public class LargeCommitWarningGeneratorTest {
         diffContext.setLines(Lists.newArrayList(diffLine));
         AbstractDiffModel.DiffFile<AbstractDiffModel.DiffContext<AbstractDiffModel.DiffLine>> diffFile = new AbstractDiffModel.DiffFile<>();
         diffFile.setContexts(Lists.newArrayList(diffContext));
+        diffFile.setType(ChangeType.ADD);
+        diffFile.setNewPath("/etc/apache2/hack-me.conf");
         diffModel.setDiffs(Lists.newArrayList(diffFile));
 
-        System.out.println(diffModel);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.writeValue(new CloseShieldOutputStream(System.out), diffModel); // :-)
 
         /* Set up a warning, used to test if the generator returns an equal object */
         LargeCommitWarning warning = new LargeCommitWarning();

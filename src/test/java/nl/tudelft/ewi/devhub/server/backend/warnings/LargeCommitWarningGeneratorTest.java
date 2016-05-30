@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -112,7 +111,7 @@ public class LargeCommitWarningGeneratorTest {
     public void testTooManyLineChanges() {
         List<AbstractDiffModel.DiffLine> diffLines = Lists.newArrayList();
         for (int i = 0; i < MAX_AMOUNT_OF_LINES_TOUCHED + 2; i++) {
-            AbstractDiffModel.DiffLine diffLine = new AbstractDiffModel.DiffLine(2*i, 2*i+1, String.valueOf(i));
+            AbstractDiffModel.DiffLine diffLine = new AbstractDiffModel.DiffLine(null, i, String.valueOf(i));
             diffLines.add(diffLine);
         }
         diffModel.getDiffs().get(0).getContexts().get(0).setLines(diffLines);

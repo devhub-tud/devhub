@@ -1,7 +1,7 @@
 {
   "type":"ADD",
   "oldPath":null,
-  "newPath":"/etc/apache2/hack-me.conf",
+  "newPath":"/etc/apache2/hack-me.java",
   "contexts":[
     {
       "lines":[

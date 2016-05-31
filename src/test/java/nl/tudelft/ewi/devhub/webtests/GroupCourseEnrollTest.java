@@ -5,8 +5,9 @@ import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.ContributorsView;
 import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
 import nl.tudelft.ewi.devhub.webtests.views.GroupEnrollView;
-import nl.tudelft.ewi.devhub.webtests.views.ProjectSidebarView;
 import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
@@ -23,6 +24,9 @@ public class GroupCourseEnrollTest extends WebTest {
     private static final String OTHER_STUDENT_NAME = "Student Six";
     private static final String STUDENT_EMAIL = "student-5@student.tudelft.nl";
     private static final String OTHER_STUDENT_EMAIL = "student-6@student.tudelft.nl";
+
+    // Web elements
+    private static final By NEXT_BUTTON = By.name("next");
 
     /**
      * <h1>Scenario: Enrolling as a group</h1>
@@ -81,8 +85,13 @@ public class GroupCourseEnrollTest extends WebTest {
 
         GroupEnrollView groupView = courses.get(0)
                 .clickEnroll()
-                .setMemberField(2, OTHER_STUDENT_ID)
-                .clickNext();
+                .setMemberField(2, OTHER_STUDENT_ID);
+
+        this.waitForCondition(5000, webDriver -> {
+            WebElement nextBtn = getDriver().findElement(NEXT_BUTTON);
+            return nextBtn.isEnabled();
+        });
+        groupView.clickNext();
 
         List<User> groupMembers = groupView.groupMembers();
         assertEquals(NET_ID, groupMembers.get(0).getNetId());
@@ -121,9 +130,14 @@ public class GroupCourseEnrollTest extends WebTest {
 
         CoursesView.CourseOverview course = courses.get(0);
         String courseName = course.getCourseName();
-        ContributorsView contributorsView = course.clickEnroll()
-                .setMemberField(2, OTHER_STUDENT_ID)
-                .clickNext()
+        GroupEnrollView groupView = course.clickEnroll()
+                .setMemberField(2, OTHER_STUDENT_ID);
+
+        this.waitForCondition(5000, webDriver -> {
+            WebElement nextBtn = getDriver().findElement(NEXT_BUTTON);
+            return nextBtn.isEnabled();
+        });
+        ContributorsView contributorsView = groupView.clickNext()
                 .clickCreateGroup()
                 .toContributorsView();
 

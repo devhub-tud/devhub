@@ -1,18 +1,14 @@
 package nl.tudelft.ewi.devhub.webtests;
 
-import com.google.common.base.Predicate;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.ContributorsView;
 import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
 import nl.tudelft.ewi.devhub.webtests.views.GroupEnrollView;
-import nl.tudelft.ewi.devhub.webtests.views.ProjectSidebarView;
 import org.junit.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;

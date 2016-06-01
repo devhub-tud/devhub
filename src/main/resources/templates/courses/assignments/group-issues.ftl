@@ -23,7 +23,7 @@
         <div class="col-md-10">	
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <a id="btn-add-issue" class="btn btn-default pull-right" href="${repositoryEntity.getURI()}issues/create">Add Issue</a>
+                    <a id="btn-add-issue" class="btn btn-primary pull-right" href="${repositoryEntity.getURI()}issues/create">Add Issue</a>
                 </div>
             </div>
             <h4>${i18n.translate("issue.open-issues")}</h4>

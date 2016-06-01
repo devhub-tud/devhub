@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.AbstractIssue;
@@ -21,13 +22,15 @@ public abstract class AbstractIssueResource<IssueType extends AbstractIssue> ext
 	protected final CommentBackend commentBackend;
 	protected final CommentMailer commentMailer;
 	protected final RepositoriesApi repositoriesApi;
+	protected final Users users;
 	
 	
 	public AbstractIssueResource(final TemplateEngine templateEngine, 
 			final User currentUser, 
 			final CommentBackend commentBackend, 
 			final CommentMailer commentMailer,
-			final RepositoriesApi repositoriesApi) {
+			final RepositoriesApi repositoriesApi,
+			final Users users) {
 		
 		super();
 		this.templateEngine = templateEngine;
@@ -35,6 +38,7 @@ public abstract class AbstractIssueResource<IssueType extends AbstractIssue> ext
 		this.commentBackend = commentBackend;
 		this.commentMailer = commentMailer;
 		this.repositoriesApi = repositoriesApi;
+		this.users = users;
 	}
 
 	protected abstract RepositoryEntity getRepositoryEntity();

@@ -12,6 +12,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PrivateRepositories;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -36,8 +37,8 @@ public class PrivatePullResource extends AbstractProjectPullResource {
 	@Context @Getter private UriInfo uriInfo;
 
 	@Inject
-	public PrivatePullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser, CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests, PullRequestBackend pullRequestBackend, RepositoriesApi repositoriesApi, CommentMailer commentMailer, PullRequestMailer pullRequestMailer, PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings, PrivateRepositories privateRepositories) {
-		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend, repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings);
+	public PrivatePullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser, CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests, PullRequestBackend pullRequestBackend, RepositoriesApi repositoriesApi, CommentMailer commentMailer, PullRequestMailer pullRequestMailer, PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings, PrivateRepositories privateRepositories, Users users) {
+		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend, repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings, users);
 		this.privateRepositories = privateRepositories;
 	}
 

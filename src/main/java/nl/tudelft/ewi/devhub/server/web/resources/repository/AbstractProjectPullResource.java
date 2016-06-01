@@ -9,6 +9,7 @@ import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -87,9 +88,10 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 	                                      final PullRequestMailer pullRequestMailer,
 	                                      final PullRequestComments pullRequestComments,
 	                                      final HooksResource hooksResource,
-	                                      final Warnings warnings) {
+	                                      final Warnings warnings,
+	                          			  final Users users) {
 		
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi);
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
 
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;

@@ -33,6 +33,25 @@
             </form>
         [/#if]
     </div>
+[#elseif branch?? && branch.isBehind()]
+    <div class="alert alert-warning" role="alert" style="clear:both; line-height: 34px;">
+        <form method="POST" action="${repositoryEntity.getURI()}branches/delete" target="_self">
+            <span>${i18n.translate("group.branch.behind-message")}</span>
+            <input type="hidden" name="branchDeleteName" value="${branch.getName()}"/>
+            [#--TODO: change icon--]
+            <button type="submit" class="btn bnt-default pull-right">${i18n.translate("group.branch.remove-branch")}</button>
+        </form>
+    </div>
+[#elseif deleteSuccessful??]
+    [#if deleteSuccessful]
+        <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
+            <span>${i18n.translate("group.branch.delete-successful")}</span>
+        </div>
+    [#else]
+        <div class="alert alert-error" role="alert" style="clear:both; line-height: 34px;">
+            <span>${i18n.translate("group.branch.delete-error")}</span>
+        </div>
+    [/#if]
 [/#if]
 
     <div class="row">

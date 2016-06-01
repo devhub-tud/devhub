@@ -1,5 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
@@ -21,6 +23,7 @@ import nl.tudelft.ewi.devhub.server.util.FlattenFolderTree;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
+import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -578,6 +581,46 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project/settings.ftl", locales, parameters));
 	}
+
+	@POST
+	@Path("/branches/delete")
+	@Transactional
+	public Response deleteBehindBranch(@Context HttpServletRequest request,
+									   @FormParam("branchDeleteName") String branchDeleteName)
+			throws IOException {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+
+        List<Locale> locales = Collections.list(request.getLocales());
+
+        Map<String, Object> parameters = getBaseParameters();
+        parameters.put("repository", repositoryApi.getRepositoryModel());
+
+        if (branchDeleteName != null) {
+            BranchApi branchApi = repositoryApi.getBranch(branchDeleteName);
+
+            try {
+                BranchModel branchModel = branchApi.get();
+
+                if (!branchModel.isAhead()) {
+                    branchApi.deleteBranch();
+                    parameters.put("deleteSuccessful", true);
+                } else {
+                    parameters.put("deleteSuccessful", false);
+                }
+            } catch (NotFoundException ignored) {}
+        }
+
+        return display(templateEngine.process("project-view.ftl", locales, parameters));
+	}
+
+    @GET
+    @Path("/branches/delete")
+    @Transactional
+    public Response deleteBehindBranchPageReload(@Context HttpServletRequest request) throws URISyntaxException {
+        return Response.seeOther(new URI("/courses")).build();
+    }
 
 	/**
 	 * Security check for updating the collaborators.

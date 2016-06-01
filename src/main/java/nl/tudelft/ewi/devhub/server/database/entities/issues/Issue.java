@@ -5,15 +5,11 @@ import java.net.URI;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 
-@Data
 @Entity
 @Table(name="repository_issues")
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class Issue extends AbstractIssue {
 

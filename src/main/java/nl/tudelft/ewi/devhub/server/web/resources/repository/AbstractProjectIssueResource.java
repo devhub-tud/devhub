@@ -79,8 +79,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		Map<String, Object> parameters = getBaseParameters();
 		
 		parameters.put("repository", repository);
-		parameters.put("openPullRequests", openIssues);
-		parameters.put("closedPullRequests", closedIssues);
+		parameters.put("openIssues", openIssues);
+		parameters.put("closedIssues", closedIssues);
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("courses/assignments/group-issues.ftl", locales, parameters));

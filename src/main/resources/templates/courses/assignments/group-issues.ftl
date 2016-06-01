@@ -31,7 +31,13 @@
                 <tbody>
                 [#if openIssues?? && openIssues?has_content]
                     [#list openIssues as issue]
-                        [#assign title = issue.title![]]
+						<td class="commit ignored" id="${issue.title}">
+							<a href="${issue.getURI()}">
+								<span class="state glyphicon glyphicon-unchecked" title="${i18n.translate("issue.title")}"></span>
+								<div class="comment">Issue #${issue.issueId}: ${issue.title}</div>
+								<div class="timestamp" data-value="${issue.timestamp?date}">Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+							</a>
+						</td>
                     [/#list]
                 [#else]
                 <tr>
@@ -42,13 +48,18 @@
                 [/#if]
                 </tbody>
             </table>
-
             <h4>${i18n.translate("issue.closed-issues")}</h4>
             <table class="table table-bordered">
                 <tbody>
                 [#if closedIssues?? && closedIssues?has_content]
                     [#list closedIssues as issue]
-                        
+                        <td class="commit ignored" id="${issue.title}">
+							<a href="${issue.getURI()}">
+								<span class="state glyphicon glyphicon-unchecked" title="${i18n.translate("issue.title")}"></span>
+								<div class="comment">Issue #${issue.issueId}: ${issue.title}</div>
+								<div class="timestamp" data-value="${issue.timestamp?date}">Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+							</a>
+						</td>
                     [/#list]
                 [#else]
                 <tr>

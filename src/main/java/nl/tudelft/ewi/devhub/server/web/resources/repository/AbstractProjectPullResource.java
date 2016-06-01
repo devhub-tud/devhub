@@ -66,16 +66,11 @@ import java.util.Map;
  */
 @Slf4j
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-public abstract class AbstractProjectPullResource extends Resource {
+public abstract class AbstractProjectPullResource extends AbstractIssueResource<PullRequest> {
 
-	protected final TemplateEngine templateEngine;
-	protected final User currentUser;
 	protected final BuildResults buildResults;
 	protected final PullRequests pullRequests;
-	protected final CommentBackend commentBackend;
 	protected final PullRequestBackend pullRequestBackend;
-	protected final RepositoriesApi repositoriesApi;
-	protected final CommentMailer commentMailer;
 	protected final PullRequestComments pullRequestComments;
 	protected final PullRequestMailer pullRequestMailer;
 	protected final HooksResource hooksResource;
@@ -93,32 +88,16 @@ public abstract class AbstractProjectPullResource extends Resource {
 	                                      final PullRequestComments pullRequestComments,
 	                                      final HooksResource hooksResource,
 	                                      final Warnings warnings) {
+		
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi);
 
-		this.templateEngine = templateEngine;
-		this.currentUser = currentUser;
-		this.commentBackend = commentBackend;
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
 		this.pullRequestBackend = pullRequestBackend;
-		this.repositoriesApi = repositoriesApi;
-		this.commentMailer = commentMailer;
 		this.pullRequestComments = pullRequestComments;
 		this.pullRequestMailer = pullRequestMailer;
 		this.hooksResource = hooksResource;
 		this.warnings = warnings;
-	}
-
-	protected abstract RepositoryEntity getRepositoryEntity();
-
-	protected RepositoryApi getRepositoryApi(RepositoryEntity repositoryEntity) {
-		return repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
-	}
-
-	protected Map<String, Object> getBaseParameters() {
-		Map<String, Object> parameters = Maps.newLinkedHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("repositoryEntity", getRepositoryEntity());
-		return parameters;
 	}
 
 	@POST

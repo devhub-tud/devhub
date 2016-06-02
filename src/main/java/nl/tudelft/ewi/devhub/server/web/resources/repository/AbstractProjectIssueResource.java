@@ -149,6 +149,46 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		return display(templateEngine.process("courses/assignments/group-issue-create.ftl", locales, parameters));
 	}
 
+	@POST
+	@Transactional
+	@Path("/issue/{issueId}")
+	public Response updateIssue(@Context HttpServletRequest request, 
+			@PathParam("issueId") long issueId,
+			@FormParam("title") String title,
+			@FormParam("description") String description,
+			@FormParam("assignee") String assigneeNetID,
+			@FormParam("status") String status) throws IOException {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
+		RepositoryModel repository = repositoryApi.getRepositoryModel();
+		
+		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
+		
+		issue.setTitle(title);
+		issue.setDescription(description);
+		
+		User assignee = users.findByNetId(assigneeNetID);
+		checkCollaborator(assignee);
+		issue.setAssignee(assignee);
+
+		if(status.equals("open")){
+			issue.setOpen(true);
+		} else if (status.equals("closed")) {
+			issue.setOpen(false);
+			issue.setClosed(new Date());
+		}
+		
+		issues.merge(issue);
+		
+		Map<String, Object> parameters = getBaseParameters();		
+		parameters.put("repository", repository);		
+		parameters.put("issue", issue);
+		
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("courses/assignments/group-issue-create.ftl", locales, parameters));
+	}
+
 	private void checkCollaborator(User user) {
 		if (! getRepositoryEntity().getCollaborators().contains(user)){
 			throw new UnauthorizedException();

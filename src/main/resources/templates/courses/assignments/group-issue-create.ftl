@@ -78,7 +78,8 @@
                 <div class="form-group">
 					<label for="timestampClosed" class="col-sm-2 control-label">Closed on</label>
 					<div class="col-sm-10">
-						<input type="text" class="form-control" name="timestampClosed" id="timestampClosed" disabled value="${issue.closed?string["EEEE dd MMMM yyyy HH:mm"]}"></input>
+						[#assign closedDate = issue.getClosed()]
+						<input type="text" class="form-control" name="timestampClosed" id="timestampClosed" disabled value="${closedDate?string["EEEE dd MMMM yyyy HH:mm"]}"></input>
 					</div>
 				</div>
 				[/#if]

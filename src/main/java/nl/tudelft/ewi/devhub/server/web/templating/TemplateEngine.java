@@ -1,17 +1,13 @@
 package nl.tudelft.ewi.devhub.server.web.templating;
 
-import freemarker.cache.FileTemplateLoader;
-import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
-import lombok.SneakyThrows;
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.ext.beans.BeansWrapper;
+import freemarker.template.*;
+import lombok.SneakyThrows;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -19,6 +15,9 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 public class TemplateEngine {
 
@@ -29,6 +28,9 @@ public class TemplateEngine {
 	@SneakyThrows
 	public TemplateEngine(@Named("directory.templates") final File templatesDirectory, TranslatorFactory translatorFactory) {
 		this.translatorFactory = translatorFactory;
+		final BeansWrapper wrapper = new DefaultObjectWrapperBuilder(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS)
+		        .build();
+
 		this.conf = new Configuration() {
 			{
 				setDirectoryForTemplateLoading(templatesDirectory);
@@ -40,6 +42,7 @@ public class TemplateEngine {
 						return new WrappedReader(super.getReader(templateSource, encoding), "[#escape x as x?html]", "[/#escape]");
 					};
 				});
+				setObjectWrapper(wrapper);
 			}
 		};
 	}
@@ -54,6 +57,12 @@ public class TemplateEngine {
 		try {
 			Builder<String, Object> builder = ImmutableMap.<String, Object> builder();
 			builder.put("i18n", translator);
+
+			TemplateHashModel staticModels = ((BeansWrapper) this.conf.getObjectWrapper()).getStaticModels();
+			TemplateHashModel fileStatics = (TemplateHashModel) staticModels.get("nl.tudelft.ewi.devhub.server.util.MarkDownParser");
+
+			builder.put("MarkDownParser", fileStatics);
+
 			if (parameters != null) {
 				builder.putAll(parameters);
 			}

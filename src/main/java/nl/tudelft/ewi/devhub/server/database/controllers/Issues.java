@@ -21,7 +21,7 @@ public class Issues extends Controller<Issue> {
 	}
 	
 	@Transactional
-	public List<Issue> findIssues(final RepositoryEntity repo, User user){
+	public List<Issue> findAssignedIssues(final RepositoryEntity repo, User user){
 		return query().from(issue)
 			.where(issue.repository.eq(repo).and(issue.assignee.eq(user)))
 			.list(issue);

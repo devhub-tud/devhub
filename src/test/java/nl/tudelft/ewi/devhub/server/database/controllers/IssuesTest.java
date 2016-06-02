@@ -65,7 +65,7 @@ public class IssuesTest extends PersistedBackendTest {
 	public void testFindIssuesOfUser() {
 		GroupRepository groupRepository = group.getRepository();
 		
-		List<Issue> issueQueryResult = issues.findIssues(groupRepository, user1);
+		List<Issue> issueQueryResult = issues.findAssignedIssues(groupRepository, user1);
 		assertEquals(1, issueQueryResult.size());
 		issueEquals(issue1, issueQueryResult.get(0));
 	}

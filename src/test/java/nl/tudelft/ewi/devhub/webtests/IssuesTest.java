@@ -33,10 +33,10 @@ public class IssuesTest extends WebTest {
 	private static final int timeDifferenceTreshold = 65 * 1000;
 	
 	private final String issueTitle = "HTCPCP Compatbility";
-	private final String description = "We need to implement the HTCPCP protocol\r\nIn order to have coffee at all times";
+	private final String description = "We need to implement the HTCPCP protocol - In order to have coffee at all times";
 	
 	private final String issueTitleEdited = "HTCPCP Compatbility - v2";
-	private final String descriptionEdited = "We need to implement the HTCPCP protocol\r\nIn order to have coffee at all times, and be happy :D";
+	private final String descriptionEdited = "We need to implement the HTCPCP protocol - In order to have coffee at all times, and be happy :D";
 
 	private final String assignee = "student2";
 	
@@ -78,7 +78,7 @@ public class IssuesTest extends WebTest {
 		assertDatesEqual(new Date(), issue.getTimestamp(), timeDifferenceTreshold);
 		
 		assertEquals(issueTitle, editView.getTitle());
-		assertEquals(description.replace("\r", ""), editView.getDescription());
+		assertEquals(description, editView.getDescription());
 		assertEquals(assignee, editView.getAssignee());
 		assertDatesEqual(new Date(), editView.getOpened(), timeDifferenceTreshold);
 		
@@ -125,7 +125,7 @@ public class IssuesTest extends WebTest {
 		assertDatesEqual(new Date(), editView.getClosed(), timeDifferenceTreshold);
 
 		assertEquals(issueTitleEdited, newDetailsView.getTitle());
-		assertEquals(descriptionEdited.replace("\r", ""), newDetailsView.getDescription());
+		assertEquals(descriptionEdited, newDetailsView.getDescription());
 		assertEquals(NET_ID, newDetailsView.getAssignee());
 		assertEquals("closed", newDetailsView.getStatus());
 		assertDatesEqual(new Date(), newDetailsView.getClosed(), timeDifferenceTreshold);

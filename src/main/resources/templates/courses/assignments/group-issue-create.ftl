@@ -12,7 +12,7 @@
   
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-            <h4 style="line-height:34px; margin-top:0;">${i18n.translate("issue.create")}</h4>
+            <h4 style="line-height:34px; margin-top:0;">[#if issue?? && issue?has_content]Edit issue[#else]${i18n.translate("issue.create")}[/#if]</h4>
         </div>
     </div>
 
@@ -45,6 +45,14 @@
 						<textarea rows="8" class="form-control" name="description" id="description"[#if issue??]>${issue.description}</textarea>[#else]placeholder="${i18n.translate("label.description")}"></textarea>[/#if]
 					</div>
 				</div>
+				[#if issue?? && issue?has_content]				
+                <div class="form-group">
+					<label for="timestampOpened" class="col-sm-2 control-label">Opened on</label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" name="timestampOpened" id="timestampOpened" disabled value="${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}"></input>
+					</div>
+				</div>
+				[/#if]
                 <div class="form-group">
 					<label for="assignee" class="col-sm-2 control-label">${i18n.translate("label.assignee")}</label>
 					<div class="col-sm-10">
@@ -55,6 +63,25 @@
 						</select>
 					</div>
 				</div>
+				[#if issue?? && issue?has_content]				
+                <div class="form-group">
+					<label for="status" class="col-sm-2 control-label">${i18n.translate("delivery.status")}</label>
+					<div class="col-sm-10">
+						<select form="create-issue-form" class="form-control" name="status" id="status">
+							<option value="open" [#if issue?? && issue.open]selected[/#if]>Open</option>
+							<option value="closed" [#if issue?? && !issue.open]selected[/#if]>Closed</option>
+						</select>
+					</div>
+				</div>
+				[/#if]
+				[#if issue?? && issue?has_content && !issue.open]					
+                <div class="form-group">
+					<label for="timestampClosed" class="col-sm-2 control-label">Closed on</label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" name="timestampClosed" id="timestampClosed" disabled value="${issue.closed?string["EEEE dd MMMM yyyy HH:mm"]}"></input>
+					</div>
+				</div>
+				[/#if]
 				<div class="form-group">
 					<div class="col-sm-offset-2 col-sm-10">
 						<div class="pull-right">

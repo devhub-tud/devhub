@@ -33,17 +33,20 @@ public abstract class IssueDetailsView extends AuthenticatedView {
 	
 	public String getTitle(){
 		WebElement titleElement = getDriver().findElement(By.id("title"));
-		return titleElement.getText();		
+		return titleElement.getAttribute("value");		
 	}
 	
 	public String getDescription(){
-		WebElement descriptionElement = getDriver().findElement(By.id("title"));
+		WebElement descriptionElement = getDriver().findElement(By.id("description"));
 		return descriptionElement.getText();		
 	}
 	
+	/**
+	 * @return The netId of the assignee
+	 */
 	public String getAssignee(){
 		Select assigneeDropdown = new Select(getDriver().findElement(By.id("assignee")));
-		return assigneeDropdown.getFirstSelectedOption().getText();		
+		return assigneeDropdown.getFirstSelectedOption().getAttribute("value");		
 	}
 
 }

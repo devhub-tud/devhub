@@ -10,7 +10,7 @@ public class IssueCreateView extends IssueDetailsView {
 	}
 	
 	public IssueEditView create(){
-		getDriver().findElement(By.linkText("Create Issue")).click();
+		getDriver().findElement(By.cssSelector("button[type=\"submit\"]")).click();
 		return new IssueEditView(getDriver());
 	}
 

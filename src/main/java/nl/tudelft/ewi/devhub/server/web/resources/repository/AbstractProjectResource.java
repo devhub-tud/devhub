@@ -19,6 +19,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.FlattenFolderTree;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
@@ -343,6 +344,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		response.setDate(comment.getTimestamp().toString());
 		response.setName(currentUser.getName());
 		response.setCommentId(comment.getCommentId());
+		response.setHtmlForMarkdown(MarkDownParser.markdownToHtml(message));
 
 		return response;
     }

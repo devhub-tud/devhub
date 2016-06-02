@@ -15,6 +15,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
@@ -237,6 +238,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		response.setName(currentUser.getName());
 		response.setDate(comment.getTimestamp().toString());
 		response.setCommentId(comment.getCommentId());
+        response.setHtmlForMarkdown(MarkDownParser.markdownToHtml(content));
 
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);

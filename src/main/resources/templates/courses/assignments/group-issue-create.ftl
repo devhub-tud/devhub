@@ -30,13 +30,19 @@
 				<div class="form-group">
 					<label for="title" class="col-sm-2 control-label">${i18n.translate("label.title")}</label>
 					<div class="col-sm-10">
-						<input type="text" class="form-control" name="title" id="title" placeholder="${i18n.translate("label.title")}">
+						<input type="text" class="form-control" name="title" id="title" 
+							[#if issue??]
+							value="${issue.title}">
+							[#else]
+							placeholder="${i18n.translate("label.title")}">
+							[/#if]
+						</input>
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="description" class="col-sm-2 control-label">${i18n.translate("label.description")}</label>
 					<div class="col-sm-10">
-						<textarea rows="8" class="form-control" name="description" id="description" placeholder="${i18n.translate("label.description")}"></textarea>
+						<textarea rows="8" class="form-control" name="description" id="description"[#if issue??]>${issue.description}</textarea>[#else]placeholder="${i18n.translate("label.description")}"></textarea>[/#if]
 					</div>
 				</div>
                 <div class="form-group">
@@ -44,7 +50,7 @@
 					<div class="col-sm-10">
 						<select form="create-issue-form" class="form-control" name="assignee" id="assignee">
 							[#list repositoryEntity.getCollaborators() as collaborator]
-							<option value="${collaborator.netId}">${collaborator.name}</option>
+							<option value="${collaborator.netId}" [#if issue?? && issue.assignee.netId == collaborator.netId]selected[/#if]>${collaborator.name}</option>
 							[/#list]
 						</select>
 					</div>
@@ -53,7 +59,7 @@
 					<div class="col-sm-offset-2 col-sm-10">
 						<div class="pull-right">
 							<a href="#" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
-							<button type="submit" class="btn btn-primary">${i18n.translate("issue.create")}</button>
+							<button type="submit" class="btn btn-primary">[#if issue??]${i18n.translate("course.control.save")}[#else]${i18n.translate("issue.create")}[/#if]</button>
 						</div>
 					</div>
 				</div>

@@ -86,7 +86,7 @@
 				<div class="form-group">
 					<div class="col-sm-offset-2 col-sm-10">
 						<div class="pull-right">
-							<a href="#" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
+							<a href="${repositoryEntity.getURI()}issues" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
 							<button type="submit" class="btn btn-primary">[#if issue??]${i18n.translate("course.control.save")}[#else]${i18n.translate("issue.create")}[/#if]</button>
 						</div>
 					</div>

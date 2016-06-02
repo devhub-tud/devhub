@@ -12,7 +12,7 @@
   
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-            <h4 style="line-height:34px; margin-top:0;">[#if issue?? && issue?has_content]Edit issue[#else]${i18n.translate("issue.create")}[/#if]</h4>
+            <h4 style="line-height:34px; margin-top:0;">[#if issue?? && issue?has_content]${i18n.translate("issue.edit")}[#else]${i18n.translate("issue.create")}[/#if]</h4>
         </div>
     </div>
 
@@ -68,8 +68,8 @@
 					<label for="status" class="col-sm-2 control-label">${i18n.translate("delivery.status")}</label>
 					<div class="col-sm-10">
 						<select form="create-issue-form" class="form-control" name="status" id="status">
-							<option value="open" [#if issue?? && issue.open]selected[/#if]>Open</option>
-							<option value="closed" [#if issue?? && !issue.open]selected[/#if]>Closed</option>
+							<option value="open" [#if issue?? && issue.open]selected[/#if]>${i18n.translate("label.open")}</option>
+							<option value="closed" [#if issue?? && !issue.open]selected[/#if]>${i18n.translate("label.closed")}</option>
 						</select>
 					</div>
 				</div>

@@ -6,8 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
 
-import com.sun.jna.platform.win32.Netapi32;
-
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -133,9 +131,6 @@ public class IssuesTest extends WebTest {
 		assertDatesEqual(new Date(), newDetailsView.getClosed(), timeDifferenceTreshold);
 		
 	}
-	
-	
-	
 	
 	public static void assertDatesEqual(Date expected, Date actual, int millisTreshhold){
 		assertTrue(Math.abs(expected.getTime() - actual.getTime()) < millisTreshhold);

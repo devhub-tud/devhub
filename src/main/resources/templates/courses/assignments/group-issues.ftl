@@ -12,7 +12,7 @@
   
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-            <h4 style="line-height:34px; margin-top:0;">Issues</h4>
+            <h4 style="line-height:34px; margin-top:0;">${i18n.translate("issue.title")}</h4>
         </div>
     </div>
 
@@ -23,7 +23,7 @@
         <div class="col-md-10">	
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <a id="btn-add-issue" class="btn btn-primary pull-right" href="${repositoryEntity.getURI()}issues/create">Add Issue</a>
+                    <a id="btn-add-issue" class="btn btn-primary pull-right" href="${repositoryEntity.getURI()}issues/create">${i18n.translate("issue.create")}</a>
                 </div>
             </div>
             <h4>${i18n.translate("issue.open-issues")}</h4>

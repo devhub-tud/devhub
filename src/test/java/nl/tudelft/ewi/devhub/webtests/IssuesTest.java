@@ -25,7 +25,6 @@ import static org.junit.Assert.*;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.List;
 
 public class IssuesTest extends WebTest {
 

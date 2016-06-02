@@ -9,8 +9,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.Select;
 
-import nl.tudelft.ewi.devhub.webtests.utils.Dom;
-
 public class IssueEditView extends IssueDetailsView {
 	
 	private static final DateFormat dateFormat = new SimpleDateFormat("EEEE dd MMMM yyyy HH:mm");

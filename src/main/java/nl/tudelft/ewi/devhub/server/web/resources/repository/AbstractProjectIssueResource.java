@@ -13,6 +13,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -127,6 +128,25 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		issueBackend.createIssue(getRepositoryApi(getRepositoryEntity()), issue);
 		
 		return redirect(issue.getURI().toString());
+	}
+	@GET
+	@Transactional
+	@Path("/issue/{issueId}")
+	public Response viewIssue(@Context HttpServletRequest request, 
+			@PathParam("issueId") long issueId) throws IOException {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
+		RepositoryModel repository = repositoryApi.getRepositoryModel();
+		
+		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
+		
+		Map<String, Object> parameters = getBaseParameters();		
+		parameters.put("repository", repository);		
+		parameters.put("issue", issue);
+		
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("courses/assignments/group-issue-create.ftl", locales, parameters));
 	}
 
 	private void checkCollaborator(User user) {

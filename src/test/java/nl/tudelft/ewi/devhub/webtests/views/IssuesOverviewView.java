@@ -10,7 +10,7 @@ public class IssuesOverviewView extends AuthenticatedView {
 	}
 
 	public IssueCreateView addIssue() {
-		getDriver().findElement(By.linkText("Add Issue")).click();
+		getDriver().findElement(By.linkText("Create issue")).click();
 		return new IssueCreateView(getDriver());
 		
 	}

@@ -26,7 +26,10 @@
         </div>
         <div class="col-md-10">
             [#if assignment.getSummary()??]
-                <p>${assignment.getSummary()}</p>
+                [#--noinspection FtlWellformednessInspection--]
+                [#noescape]
+                ${MarkDownParser.markdownToHtml(assignment.getSummary())}
+                [/#noescape]
             [/#if]
 
             [#if assignment.getDueDate()??]

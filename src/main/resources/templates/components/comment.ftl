@@ -9,7 +9,8 @@
     [/#if]
       on <a href="#comment-${comment.commentId}" id="comment-${comment.commentId}">${comment.timestamp}</a></div>
     <div class="panel-body">
-        <p>[#list comment.content?split("\n") as line]${line}[#if line_has_next]<br/>[/#if][/#list]</p>
+        [#--noinspection FtlWellformednessInspection--]
+        [#noescape]${MarkDownParser.markdownToHtml(comment.content)}[/#noescape]
     </div>
 </div>
 [/#if]

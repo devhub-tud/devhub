@@ -9,6 +9,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.Select;
 
+import nl.tudelft.ewi.devhub.webtests.utils.Dom;
+
 public class IssueEditView extends IssueDetailsView {
 	
 	private static final DateFormat dateFormat = new SimpleDateFormat("EEEE dd MMMM yyyy HH:mm");
@@ -25,11 +27,12 @@ public class IssueEditView extends IssueDetailsView {
 	
 	public String getStatus(){
 		Select statusDropdown = new Select(getDriver().findElement(By.id("status")));
-		return statusDropdown.getFirstSelectedOption().getText();
+		return statusDropdown.getFirstSelectedOption().getAttribute("value");
 	}
 	
 	public IssueEditView save(){
-		getDriver().findElement(By.linkText("Save changes"));
+		By submitbutton = By.cssSelector("button[type=\"submit\"]");
+		getDriver().findElement(submitbutton).click();
 		return new IssueEditView(getDriver());
 	}
 	

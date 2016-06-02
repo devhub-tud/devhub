@@ -31,6 +31,7 @@
                 <tbody>
                 [#if openIssues?? && openIssues?has_content]
                     [#list openIssues as issue]
+					<tr>
 						<td class="commit ignored" id="${issue.title}">
 							<a href="${issue.getURI()}">
 								<span class="state glyphicon glyphicon-unchecked" title="${i18n.translate("issue.title")}"></span>
@@ -38,6 +39,7 @@
 								<div class="timestamp" data-value="${issue.timestamp?date}">Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
 							</a>
 						</td>
+					</tr>
                     [/#list]
                 [#else]
                 <tr>

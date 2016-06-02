@@ -59,7 +59,7 @@ public class IssuesTest extends PersistedBackendTest {
 		List<Issue> issueQueryResult = issues.findOpenIssues(groupRepository);
 		
 		assertEquals(2, issueQueryResult.size());
-		issueRequestEquals(issue1, issueQueryResult.get(0));
+		issueEquals(issue1, issueQueryResult.get(0));
 	}
 	@Test
 	public void testFindIssuesOfUser() {
@@ -67,7 +67,7 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		List<Issue> issueQueryResult = issues.findIssues(groupRepository, user1);
 		assertEquals(1, issueQueryResult.size());
-		issueRequestEquals(issue1, issueQueryResult.get(0));
+		issueEquals(issue1, issueQueryResult.get(0));
 	}
 
 	@Test
@@ -79,7 +79,7 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		List<Issue> issueQueryResult = issues.findOpenIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueRequestEquals(issue1, issueQueryResult.get(0));
+		issueEquals(issue1, issueQueryResult.get(0));
 	}
 
 	@Test
@@ -92,7 +92,7 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		List<Issue> issueQueryResult = issues.findClosedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueRequestEquals(issue2, issueQueryResult.get(0));
+		issueEquals(issue2, issueQueryResult.get(0));
 	}
 
 	@Test
@@ -102,10 +102,19 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		List<Issue> issueQueryResult = issues.findUnassignedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueRequestEquals(issue1, issueQueryResult.get(0));
+		issueEquals(issue1, issueQueryResult.get(0));
+	}
+	
+	@Test
+	public void testFindIssuesById(){
+		
+		List<Issue> issueQueryResult = issues.findIssueById(group.getRepository(), issue1.getIssueId());
+		
+		assertEquals(1, issueQueryResult.size());
+		issueEquals(issue1, issueQueryResult.get(0));
 	}
 
-	private static void issueRequestEquals(Issue expected, Issue actual) {
+	private static void issueEquals(Issue expected, Issue actual) {
 		try {
 			assertEquals(expected.getRepository(), actual.getRepository());
 			assertEquals(expected.isOpen(), actual.isOpen());

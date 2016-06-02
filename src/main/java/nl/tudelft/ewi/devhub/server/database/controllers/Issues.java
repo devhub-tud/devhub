@@ -48,4 +48,11 @@ public class Issues extends Controller<Issue> {
 			.list(issue);
 	}
 
+	@Transactional
+	public List<Issue> findIssueById(final RepositoryEntity repo, final long id){
+		return query().from(issue)
+			.where(issue.repository.eq(repo).and(issue.issueId.eq(id)))
+			.list(issue);
+	}
+
 }

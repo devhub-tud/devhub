@@ -34,12 +34,12 @@ public class IssueEditView extends IssueDetailsView {
 	}
 	
 	public Date getOpened() throws ParseException{
-		String dateString = getDriver().findElement(By.id("timestampOpened")).getText();
+		String dateString = getDriver().findElement(By.id("timestampOpened")).getAttribute("value");
 		return dateFormat.parse(dateString);
 	}
 	
 	public Date getClosed() throws ParseException{
-		String dateString = getDriver().findElement(By.id("timestampClosed")).getText();
+		String dateString = getDriver().findElement(By.id("timestampClosed")).getAttribute("value");
 		return dateFormat.parse(dateString);
 	}
 

@@ -2,11 +2,15 @@ package nl.tudelft.ewi.devhub.webtests;
 
 import javax.inject.Inject;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.IssueCreateView;
 import nl.tudelft.ewi.devhub.webtests.views.IssueEditView;
@@ -15,13 +19,19 @@ import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
 
 import static org.junit.Assert.*;
 
+import java.text.ParseException;
+import java.util.Date;
+
 public class IssuesTest extends WebTest {
 
 	private static final String NET_ID = "student1";
 	private static final String PASSWORD = "student1";
 	
+	// Time is displayed with minute precision, therefore the 65 seconds difference
+	private static final int timeDifferenceTreshold = 65 * 1000;
+	
 	private final String issueTitle = "HTCPCP Compatbility";
-	private final String description = "We need to implement the HTCPCP protocol\nIn order to have coffe at all times";
+	private final String description = "We need to implement the HTCPCP protocol\r\nIn order to have coffe at all times";
 
 	private final String assignee = "student2";
 	
@@ -29,10 +39,21 @@ public class IssuesTest extends WebTest {
 	@Inject Groups groups;
 	@Inject RepositoriesApi repositoriesApi;
 	@Inject RepositoriesManager repositoriesManager;
-	@Inject PullRequests pullRequests;
+	@Inject Issues issues;
+	
+	private Group group;
+	private User student1;
+	private User student2;
+	
+	@Before
+	public void setup(){
+		student1 = users.findByNetId(NET_ID);
+		student2 = users.findByNetId(assignee);
+		group = groups.listFor(student1).get(0);
+	}
 	
 	@Test
-	public void testCreateIssue(){
+	public void testCreateIssue() throws ParseException{
 		IssueCreateView createview = openLoginScreen().login(NET_ID, PASSWORD)
 			.toCoursesView().listMyProjects().get(0).click()
 			.toIssuesView().addIssue();
@@ -42,11 +63,24 @@ public class IssuesTest extends WebTest {
 		
 		IssueEditView editView = createview.create();
 		
+		Issue issue = issues.findOpenIssues(group.getRepository()).get(0);
+		
+		assertEquals(issueTitle, issue.getTitle());
+		assertEquals(description, issue.getDescription());
+		assertEquals(student2, issue.getAssignee());
+		assertTrue(issue.isOpen());
+		
+		assertDatesEqual(new Date(), issue.getTimestamp(), timeDifferenceTreshold);
+		
 		assertEquals(issueTitle, editView.getTitle());
-		assertEquals(description, editView.getDescription());
+		assertEquals(description.replace("\r", ""), editView.getDescription());
 		assertEquals(assignee, editView.getAssignee());
+		assertDatesEqual(new Date(), editView.getOpened(), timeDifferenceTreshold);
 		
-		
+	}
+	
+	public static void assertDatesEqual(Date expected, Date actual, int millisTreshhold){
+		assertTrue(Math.abs(expected.getTime() - actual.getTime()) < millisTreshhold);
 	}
 
 }

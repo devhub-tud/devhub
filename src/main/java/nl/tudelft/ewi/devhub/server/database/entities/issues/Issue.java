@@ -8,6 +8,7 @@ import javax.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 
 @Data
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 @Table(name="repository_issues")
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper=true, includeFieldNames=true)
 public class Issue extends AbstractIssue {
 
 	@Override

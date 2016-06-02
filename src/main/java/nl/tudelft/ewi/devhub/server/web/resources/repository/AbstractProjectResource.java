@@ -1,17 +1,18 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.SessionScoped;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
-import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
-import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.controllers.Controller;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
+import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -25,61 +26,28 @@ import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.models.BlameModel;
-import nl.tudelft.ewi.git.models.BranchModel;
-import nl.tudelft.ewi.git.models.CommitModel;
-import nl.tudelft.ewi.git.models.CommitSubList;
-import nl.tudelft.ewi.git.models.DiffBlameModel;
-import nl.tudelft.ewi.git.models.EntryType;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.google.inject.servlet.SessionScoped;
-
+import nl.tudelft.ewi.git.models.*;
 import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
-
 import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.annotations.cache.Cache;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
-import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Slf4j
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
@@ -528,16 +496,21 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 					.build();
 		}
 
-		String[] contents = commitApi.showTextFile(path).split("\\r?\\n");
+		// TODO: 2-6-16 replace some of these parameters with java statemetns inside the template
+		String contents = commitApi.showTextFile(path);
 		BlameModel blame = commitApi.blame(path);
+		final String[] split = path.split("\\.");
+		boolean isMarkdown = split[split.length -1].equals("md");
 
 		Map<String, Object> parameters  = getBaseParameters();
 		parameters.put("commit", commit);
 		parameters.put("blame", blame);
 		parameters.put("path", path);
 		parameters.put("contents", contents);
+		parameters.put("lines", contents.split("\\r?\\n"));
 		parameters.put("highlight", Highlight.forFileName(path));
 		parameters.put("repository", repository.getRepositoryModel());
+		parameters.put("isMarkdown", isMarkdown);
 
 		try {
 			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));

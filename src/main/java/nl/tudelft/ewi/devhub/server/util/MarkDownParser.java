@@ -7,6 +7,8 @@ import org.pegdown.PegDownProcessor;
 /**
  * Created by Douwe Koopmans on 1-6-16.
  */
+// TODO: 2-6-16 deal with bad markdown
+// TODO: 2-6-16 add preview panel when writing markdown
 public final class MarkDownParser {
 
     // initialising the processor takes a little bit, so it is smarter to reuse one initialisation

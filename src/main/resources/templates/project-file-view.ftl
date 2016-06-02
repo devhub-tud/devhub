@@ -16,40 +16,45 @@
 				</div>
 			[#if contents?? && contents?has_content]
 				<div class="scrollable">
-					<table class="table diffs">
-						<tbody>
-				[#list contents as line]
-					[#assign line_number = line_index + 1]
-                    [#assign blameBlock = blame.getBlameBlock(line_number)]
-                    [#assign sourceLineNumber = blameBlock.getFromLineNumber(line_number)]
-                    [#assign commentsForThisLine = comments.getCommentsForLine(blameBlock.fromCommitId, blameBlock.fromFilePath, sourceLineNumber)]
-
-                            <tr data-source-commit="${blameBlock.fromCommitId}"
-                                data-source-line-number="${sourceLineNumber}"
-                                data-source-file-name="${blameBlock.fromFilePath}"
-							  	data-link-commit="${blameBlock.fromCommitId}">
-                                <td class="ln">
-									[#if lineWarnings??]
-										[@warningBullet.renderBullet i18n lineWarnings blameBlock.fromCommitId blameBlock.fromFilePath sourceLineNumber 0 sourceLineNumber/]
-									[/#if]
-	                                <a href="#R${line_number}" id="R${line_number}">${line_number}</a>
-								</td>
-                                <td class="code"> <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a><pre>${line}</pre></td>
-                            </tr>
-
-                    [#if commentsForThisLine?has_content ]
-                            <tr>
-                                <td colspan="3" class="comment-block">
-                                    [#list commentsForThisLine as comment]
-                                        [@commentElement.renderComment comment][/@commentElement.renderComment]
-                                    [/#list]
-                                    <button class="btn btn-default btn-add-line-comment">${i18n.translate("button.label.add-line-note")}</button>
-                                </td>
-                            </tr>
+					[#if isMarkdown]
+                        <div class="panel-body" style="background-color: white;">
+                            [#--noinspection FtlWellformednessInspection--]
+                            [#noescape]${MarkDownParser.markdownToHtml(contents)}[/#noescape]
+                        </div>
+                    [#else]
+    					<table class="table diffs">
+    						<tbody>
+    				            [#list lines as line]
+    				            	[#assign line_number = line_index + 1]
+                                    [#assign blameBlock = blame.getBlameBlock(line_number)]
+                                    [#assign sourceLineNumber = blameBlock.getFromLineNumber(line_number)]
+                                    [#assign commentsForThisLine = comments.getCommentsForLine(blameBlock.fromCommitId, blameBlock.fromFilePath, sourceLineNumber)]
+                                        <tr data-source-commit="${blameBlock.fromCommitId}"
+                                            data-source-line-number="${sourceLineNumber}"
+                                            data-source-file-name="${blameBlock.fromFilePath}"
+                                            data-link-commit="${blameBlock.fromCommitId}">
+                                            <td class="ln">
+                                                [#if lineWarnings??]
+                                                    [@warningBullet.renderBullet i18n lineWarnings blameBlock.fromCommitId blameBlock.fromFilePath sourceLineNumber 0 sourceLineNumber/]
+                                                [/#if]
+                                                <a href="#R${line_number}" id="R${line_number}">${line_number}</a>
+                                            </td>
+                                            <td class="code"> <a class="btn btn-xs btn-primary pull-left btn-comment"> <span class="octicon octicon-plus"></span></a><pre>${line}</pre></td>
+                                        </tr>
+                                    [#if commentsForThisLine?has_content ]
+                                        <tr>
+                                            <td colspan="3" class="comment-block">
+                                                [#list commentsForThisLine as comment]
+                                                    [@commentElement.renderComment comment][/@commentElement.renderComment]
+                                                [/#list]
+                                                <button class="btn btn-default btn-add-line-comment">${i18n.translate("button.label.add-line-note")}</button>
+                                            </td>
+                                        </tr>
+                                    [/#if]
+    				            [/#list]
+                            </tbody>
+                        </table>
                     [/#if]
-				[/#list]
-						</tbody>
-					</table>
 				</div>
 			[/#if]
 			</div>

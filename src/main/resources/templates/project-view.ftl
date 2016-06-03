@@ -33,7 +33,7 @@
             </form>
         [/#if]
     </div>
-[#elseif branch?? && branch.isBehind()]
+[#elseif branch?? && branch.isBehind() && !branch.isAhead()]
     <div class="alert alert-warning" role="alert" style="clear:both; line-height: 34px;">
         <form method="POST" action="${repositoryEntity.getURI()}branches/delete" target="_self">
             <span>${i18n.translate("group.branch.behind-message")}</span>
@@ -48,7 +48,7 @@
             <span>${i18n.translate("group.branch.delete-successful")}</span>
         </div>
     [#else]
-        <div class="alert alert-error" role="alert" style="clear:both; line-height: 34px;">
+        <div class="alert alert-warning" role="alert" style="clear:both; line-height: 34px;">
             <span>${i18n.translate("group.branch.delete-error")}</span>
         </div>
     [/#if]

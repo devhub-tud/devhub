@@ -333,7 +333,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		response.setDate(comment.getTimestamp().toString());
 		response.setName(currentUser.getName());
 		response.setCommentId(comment.getCommentId());
-		response.setHtmlForMarkdown(markDownParser.markdownToHtml(message));
+		response.setFormattedContent(markDownParser.markdownToHtml(message));
 
 		return response;
     }

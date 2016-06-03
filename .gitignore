@@ -20,6 +20,9 @@ hs_err_pid*
 # IntelliJ files
 .idea/
 *.iml
+*.ids
+*.ipr
+*.iws
 
 # Eclipse files
 .classpath

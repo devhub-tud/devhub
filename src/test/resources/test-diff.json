@@ -1,0 +1,16 @@
+{
+  "type":"ADD",
+  "oldPath":null,
+  "newPath":"/etc/apache2/hack-me.java",
+  "contexts":[
+    {
+      "lines":[
+        {
+          "oldLineNumber":null,
+          "newLineNumber":1,
+          "content":"Hiephoi"
+        }
+      ]
+    }
+  ]
+}

@@ -1,35 +1,30 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
-
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.Version;
+import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Slf4j
 @Path("/")
@@ -107,5 +102,19 @@ public class RootResource {
 		return Response.seeOther(new URI("/login?error=error.invalid-credentials")).build();
 
 	}
-	
+
+    @GET
+    @Path("version")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SneakyThrows
+    public Version handleVersion() {
+        Properties properties = new Properties();
+        try (InputStream inputStream = RootResource.class.getResourceAsStream("/devhub.git.properties")) {
+            properties.load(inputStream);
+        }
+
+        return Version.of(properties.getProperty("git.build.version"), properties.getProperty("git.commit.id"),
+                properties.getProperty("git.closest.tag.name"));
+    }
+
 }

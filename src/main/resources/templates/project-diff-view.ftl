@@ -56,7 +56,7 @@
                 '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
                     '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
                 '<div class="panel-body">'+
-                '<p>' + res.htmlForMarkdown + '</p>' +
+                res.htmlForMarkdown +
                 '</div>'+
                 '</div>').appendTo('#comment-list');
                 // Clear input

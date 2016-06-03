@@ -9,11 +9,12 @@ import org.pegdown.PegDownProcessor;
  */
 // TODO: 2-6-16 add preview panel when writing markdown
 public final class MarkDownParser {
+    public static final int timeout = 2000;
 
     // initialising the processor takes a little bit, so it is smarter to reuse one initialisation
     // default parsing timeout is 2 seconds
-    // TODO: 3-6-16 look into setting the parsing timeout through the properties 
-    private static PegDownProcessor processor = new PegDownProcessor();
+    // TODO: 3-6-16 look into setting the parsing timeout through the properties
+    private static PegDownProcessor processor = new PegDownProcessor(timeout);
 
 	/**
      * converts the given markdown string into a valid html representation

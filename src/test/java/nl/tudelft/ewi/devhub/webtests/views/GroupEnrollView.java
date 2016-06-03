@@ -49,6 +49,12 @@ public class GroupEnrollView extends AuthenticatedView {
         WebElement memberField = getDriver().findElement(By.name(fullName));
         memberField.clear();
         memberField.sendKeys(studentNetId);
+        try {
+            /* This is necesarry to allow the field to update */
+            Thread.sleep(250);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return this;
     }
 

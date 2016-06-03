@@ -496,21 +496,16 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 					.build();
 		}
 
-		// TODO: 2-6-16 replace some of these parameters with java statemetns inside the template
 		String contents = commitApi.showTextFile(path);
 		BlameModel blame = commitApi.blame(path);
-		final String[] split = path.split("\\.");
-		boolean isMarkdown = split[split.length -1].equals("md");
 
 		Map<String, Object> parameters  = getBaseParameters();
 		parameters.put("commit", commit);
 		parameters.put("blame", blame);
 		parameters.put("path", path);
 		parameters.put("contents", contents);
-		parameters.put("lines", contents.split("\\r?\\n"));
 		parameters.put("highlight", Highlight.forFileName(path));
 		parameters.put("repository", repository.getRepositoryModel());
-		parameters.put("isMarkdown", isMarkdown);
 
 		try {
 			parameters.put("buildResult", buildResults.find(repositoryEntity, commitId));

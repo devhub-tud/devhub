@@ -109,10 +109,6 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	protected final EditContributorsState editContributorsState;
 	protected final Users users;
 
-	private final int BRANCH_DELETION_SUCCESSFUL = 1;
-	private final int BRANCH_DELETION_NONE = 0;
-	private final int BRANCH_DELETION_ERROR = -1;
-
 	protected AbstractProjectResource(final TemplateEngine templateEngine,
 							final @Named("current.user") User currentUser,
 							final CommentBackend commentBackend,
@@ -153,7 +149,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		return parameters;
 	}
 
-	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page, int branchDeletion) {
+	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page, Boolean branchDeletion) {
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 		Map<String, Object> parameters = getBaseParameters();
@@ -183,11 +179,8 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			} else throw e;
 		}
 
-		switch (branchDeletion) {
-			case -1:
-				parameters.put("deleteSuccessful", false); break;
-			case 1:
-				parameters.put("deleteSuccessful", true); break;
+		if (branchDeletion != null) {
+			parameters.put("deleteSuccessful", branchDeletion);
 		}
 
 		return parameters;
@@ -210,7 +203,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 									   @QueryParam("page") @DefaultValue("1") int page,
 									   @QueryParam("fatal") String fatal) throws IOException, ApiError {
 
-		Map<String, Object> parameters = getBranchOverviewParameters(branchName, page, BRANCH_DELETION_NONE);
+		Map<String, Object> parameters = getBranchOverviewParameters(branchName, page, null);
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));		
@@ -616,9 +609,9 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
 			if (!branchModel.isAhead()) {
 				branchApi.deleteBranch();
-				parameters = getBranchOverviewParameters("master", 1, BRANCH_DELETION_SUCCESSFUL);
+				parameters = getBranchOverviewParameters("master", 1, true);
 			} else {
-				parameters = getBranchOverviewParameters("master", 1, BRANCH_DELETION_ERROR);
+				parameters = getBranchOverviewParameters("master", 1, false);
 			}
         }
 

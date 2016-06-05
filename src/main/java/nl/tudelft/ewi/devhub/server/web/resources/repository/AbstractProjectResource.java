@@ -149,8 +149,17 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		return parameters;
 	}
 
-	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page, Boolean branchDeletion) {
-		RepositoryEntity repositoryEntity = getRepositoryEntity();
+	/**
+	 * Generates the parameters for the branch overview.
+	 * @param branchName Name of the branch
+	 * @param page Page number to display
+	 * @param branchDeletion Boolean value to indicate successfull branch deletion. <b>TRUE</b>
+	 *                          means success, <b>FALSE</b> means failure. <b>NULL</b> means no
+	 *                          branch deletion occurred.
+     * @return A map containing the response parameters.
+     */
+        protected Map<String, Object> getBranchOverviewParameters(String branchName, int page, Boolean branchDeletion) {
+            RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("repository", repositoryApi.getRepositoryModel());

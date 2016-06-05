@@ -149,6 +149,52 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		return parameters;
 	}
 
+	/**
+	 * Generates the parameters for the branch overview.
+	 * @param branchName Name of the branch
+	 * @param page Page number to display
+	 * @param branchDeletion Boolean value to indicate successfull branch deletion. <b>TRUE</b>
+	 *                          means success, <b>FALSE</b> means failure. <b>NULL</b> means no
+	 *                          branch deletion occurred.
+     * @return A map containing the response parameters.
+     */
+        protected Map<String, Object> getBranchOverviewParameters(String branchName, int page, Boolean branchDeletion) {
+            RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repository", repositoryApi.getRepositoryModel());
+
+		try {
+			BranchApi branchApi = repositoryApi.getBranch(branchName);
+			BranchModel branch = branchApi.get();
+			CommitSubList commits = branchApi.retrieveCommitsInBranch((page - 1) * PAGE_SIZE, PAGE_SIZE);
+
+			parameters.put("commits", commits);
+			parameters.put("branch", branch);
+			parameters.put("pagination", new Pagination(page, commits.getTotal()));
+
+			Collection<String> commitIds = getCommitIds(commits);
+			parameters.put("warnings", warnings.commitsWithWarningsFor(repositoryEntity, commitIds));
+			parameters.put("comments", comments.commentsFor(repositoryEntity, commitIds));
+			parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
+
+			pullRequests.findOpenPullRequest(repositoryEntity, branch.getName()).ifPresent(pullRequest ->
+					parameters.put("pullRequest", pullRequest));
+		}
+		catch (NotFoundException e) {
+			if (branchName.equals("master")) {
+				// Swallow exception for master, so an overview page can be generated for bare empty repositories
+				log.debug("Master branch is empty for {}", repositoryEntity);
+			} else throw e;
+		}
+
+		if (branchDeletion != null) {
+			parameters.put("deleteSuccessful", branchDeletion);
+		}
+
+		return parameters;
+	}
+
 	@GET
 	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request,
@@ -166,35 +212,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 									   @QueryParam("page") @DefaultValue("1") int page,
 									   @QueryParam("fatal") String fatal) throws IOException, ApiError {
 
-		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
-
-		Map<String, Object> parameters = getBaseParameters();
-		parameters.put("repository", repository.getRepositoryModel());
-
-		try {
-			BranchApi branchApi = repository.getBranch(branchName);
-			BranchModel branch = branchApi.get();
-			CommitSubList commits = branchApi.retrieveCommitsInBranch((page - 1) * PAGE_SIZE, PAGE_SIZE);
-
-			parameters.put("commits", commits);
-			parameters.put("branch", branch);
-			parameters.put("pagination", new Pagination(page, commits.getTotal()));
-
-			Collection<String> commitIds = getCommitIds(commits);
-			parameters.put("warnings", warnings.commitsWithWarningsFor(repositoryEntity, commitIds));
-			parameters.put("comments", comments.commentsFor(repositoryEntity, commitIds));
-			parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
-
-			pullRequests.findOpenPullRequest(repositoryEntity, branch.getName()).ifPresent(pullRequest ->
-				parameters.put("pullRequest", pullRequest));
-		}
-		catch (NotFoundException e) {
-			if (branchName.equals("master")) {
-				// Swallow exception for master, so an overview page can be generated for bare empty repositories
-				log.debug("Master branch is empty for {}", repositoryEntity);
-			} else throw e;
-		}
+		Map<String, Object> parameters = getBranchOverviewParameters(branchName, page, null);
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));		
@@ -578,6 +596,43 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project/settings.ftl", locales, parameters));
 	}
+
+	@POST
+	@Path("/branches/delete")
+	@Transactional
+	public Response deleteBehindBranch(@Context HttpServletRequest request,
+									   @FormParam("branchDeleteName") String branchDeleteName,
+									   @QueryParam("fatal") String fatal)
+			throws IOException, ApiError {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+
+        List<Locale> locales = Collections.list(request.getLocales());
+
+        Map<String, Object> parameters = getBaseParameters();
+
+        if (branchDeleteName != null) {
+            BranchApi branchApi = repositoryApi.getBranch(branchDeleteName);
+			BranchModel branchModel = branchApi.get();
+
+			if (!branchModel.isAhead()) {
+				branchApi.deleteBranch();
+				parameters = getBranchOverviewParameters("master", 1, true);
+			} else {
+				parameters = getBranchOverviewParameters("master", 1, false);
+			}
+        }
+
+        return display(templateEngine.process("project-view.ftl", locales, parameters));
+	}
+
+    @GET
+    @Path("/branches/delete")
+    @Transactional
+    public Response deleteBehindBranchPageReload(@Context HttpServletRequest request) throws URISyntaxException {
+        return Response.seeOther(new URI("/courses")).build();
+    }
 
 	/**
 	 * Security check for updating the collaborators.

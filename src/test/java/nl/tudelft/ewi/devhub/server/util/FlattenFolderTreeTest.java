@@ -56,18 +56,24 @@ public class FlattenFolderTreeTest {
         barFolderTree.put("Bar.java", EntryType.TEXT);
 
         when(commitApi.showTree()).thenReturn(rootTree);
-        when(commitApi.showTree("src")).thenReturn(srcFolderTree);
-        when(commitApi.showTree("src/main")).thenReturn(mainFolderTree);
-        when(commitApi.showTree("src/main/java")).thenReturn(javaFolderTree);
-        when(commitApi.showTree("src/main/resources")).thenReturn(resourcesFolderTree);
-        when(commitApi.showTree("src/main/java/com")).thenReturn(comFolderTree);
-        when(commitApi.showTree("src/main/java/com/foo")).thenReturn(fooFolderTree);
-        when(commitApi.showTree("src/main/java/com/foo/bar")).thenReturn(barFolderTree);
+        when(commitApi.showTree(CommitApi.EMPTY_PATH)).thenReturn(rootTree);
+        when(commitApi.showTree("src/")).thenReturn(srcFolderTree);
+        when(commitApi.showTree("src/main/")).thenReturn(mainFolderTree);
+        when(commitApi.showTree("src/main/java/")).thenReturn(javaFolderTree);
+        when(commitApi.showTree("src/main/resources/")).thenReturn(resourcesFolderTree);
+        when(commitApi.showTree("src/main/java/com/")).thenReturn(comFolderTree);
+        when(commitApi.showTree("src/main/java/com/foo/")).thenReturn(fooFolderTree);
+        when(commitApi.showTree("src/main/java/com/foo/bar/")).thenReturn(barFolderTree);
     }
 
     @Test
     public void testRoot() {
-        assertTrue(ffTree.resolveEntries().isEmpty());
+        final TreeMap<String, EntryType> expectedEntries = new TreeMap<>();
+        expectedEntries.put("README", EntryType.TEXT);
+        expectedEntries.put("foobar", EntryType.TEXT);
+        expectedEntries.put("src/main/", EntryType.FOLDER);
+
+        assertEquals(expectedEntries, ffTree.resolveEntries());
     }
 
     @Test
@@ -76,6 +82,6 @@ public class FlattenFolderTreeTest {
         expectedEntries.put("java/", EntryType.FOLDER);
         expectedEntries.put("resources/", EntryType.FOLDER);
 
-        assertEquals(expectedEntries,ffTree.resolveEntries("src/main"));
+        assertEquals(expectedEntries,ffTree.resolveEntries("src/main/"));
     }
 }

@@ -168,6 +168,14 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		return parameters;
 	}
 
+	public CommitComment commitCommentFactory(String message, RepositoryEntity repositoryEntity, String linkCommitId) {
+		CommitComment comment = new CommitComment();
+		comment.setContent(message);
+		comment.setCommit(commits.ensureExists(repositoryEntity, linkCommitId));
+		comment.setUser(currentUser);
+		return comment;
+	}
+
 	@GET
 	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request,
@@ -312,10 +320,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		throws IOException, ApiError {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		CommitComment comment = new CommitComment();
-		comment.setContent(message);
-		comment.setCommit(commits.ensureExists(repositoryEntity, linkCommitId));
-		comment.setUser(currentUser);
+		CommitComment comment = commitCommentFactory(message, repositoryEntity, linkCommitId);
 
 		if(sourceCommitId != null) {
 			// In-line comment

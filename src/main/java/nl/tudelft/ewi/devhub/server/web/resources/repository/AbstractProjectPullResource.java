@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
@@ -241,7 +242,9 @@ public abstract class AbstractProjectPullResource extends Resource {
 		response.setName(currentUser.getName());
 		response.setDate(comment.getTimestamp().toString());
 		response.setCommentId(comment.getCommentId());
-		response.setFormattedContent(markDownParser.markdownToHtml(content));
+
+		String contentWithEmojis = EmojiParser.parseToUnicode(content);
+        response.setFormattedContent(markDownParser.markdownToHtml(contentWithEmojis));
 
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);

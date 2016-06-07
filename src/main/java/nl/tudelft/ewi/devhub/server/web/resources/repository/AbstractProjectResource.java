@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.SessionScoped;
+import com.vdurmont.emoji.EmojiParser;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
@@ -333,7 +334,9 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		response.setDate(comment.getTimestamp().toString());
 		response.setName(currentUser.getName());
 		response.setCommentId(comment.getCommentId());
-		response.setFormattedContent(markDownParser.markdownToHtml(message));
+
+		String messageWithEmojis = EmojiParser.parseToUnicode(message);
+		response.setFormattedContent(markDownParser.markdownToHtml(messageWithEmojis));
 
 		return response;
     }

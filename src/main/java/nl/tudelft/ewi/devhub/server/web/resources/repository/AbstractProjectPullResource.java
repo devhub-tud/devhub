@@ -126,6 +126,14 @@ public abstract class AbstractProjectPullResource extends Resource {
 		return parameters;
 	}
 
+	public PullRequestComment pullRequestCommentFactory(String content, PullRequest pullRequest) {
+		PullRequestComment comment = new PullRequestComment();
+
+		comment.setContent(content);
+		comment.setPullRequest(pullRequest);
+		return comment;
+	}
+
 	@POST
 	@Path("/pull")
 	@Transactional
@@ -230,10 +238,9 @@ public abstract class AbstractProjectPullResource extends Resource {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
-		PullRequestComment comment = new PullRequestComment();
 
-		comment.setContent(content);
-		comment.setPullRequest(pullRequest);
+		PullRequestComment comment = pullRequestCommentFactory(content, pullRequest);
+
 		comment.setUser(currentUser);
 		pullRequestComments.persist(comment);
 

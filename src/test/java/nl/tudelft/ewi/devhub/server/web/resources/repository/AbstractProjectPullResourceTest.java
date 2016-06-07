@@ -1,12 +1,7 @@
-package nl.tudelft.ewi.devhub.webtests.resources.repository;
+package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
-import lombok.val;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
-import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
@@ -14,14 +9,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestCommen
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
-import nl.tudelft.ewi.devhub.server.web.resources.repository.ProjectPullResource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.models.CreateRepositoryModel;
-import nl.tudelft.ewi.git.models.DetailedRepositoryModel;
-import nl.tudelft.ewi.git.models.RepositoryModel;
-import nl.tudelft.ewi.git.web.CloneStepDefinitions;
 import nl.tudelft.ewi.git.web.CucumberModule;
-import nl.tudelft.ewi.git.web.MergeStepDefinitions;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
@@ -29,8 +18,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRule;
 

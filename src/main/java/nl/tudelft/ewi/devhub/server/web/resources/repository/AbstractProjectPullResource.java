@@ -242,9 +242,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		response.setName(currentUser.getName());
 		response.setDate(comment.getTimestamp().toString());
 		response.setCommentId(comment.getCommentId());
-
-		String contentWithEmojis = EmojiParser.parseToUnicode(content);
-        response.setFormattedContent(markDownParser.markdownToHtml(contentWithEmojis));
+		response.setFormattedContent(markDownParser.markdownToHtml(content));
 
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);

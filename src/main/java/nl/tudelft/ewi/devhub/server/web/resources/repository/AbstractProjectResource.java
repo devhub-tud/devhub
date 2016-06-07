@@ -334,9 +334,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		response.setDate(comment.getTimestamp().toString());
 		response.setName(currentUser.getName());
 		response.setCommentId(comment.getCommentId());
-
-		String messageWithEmojis = EmojiParser.parseToUnicode(message);
-		response.setFormattedContent(markDownParser.markdownToHtml(messageWithEmojis));
+		response.setFormattedContent(markDownParser.markdownToHtml(message));
 
 		return response;
     }

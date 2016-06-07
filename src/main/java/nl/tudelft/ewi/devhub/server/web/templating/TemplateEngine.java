@@ -62,6 +62,9 @@ public class TemplateEngine {
 			builder.put("i18n", translator);
 			builder.put("MarkDownParser", markDownParser);
 
+			TemplateHashModel emojiStatics = (TemplateHashModel) staticModels.get("com.vdurmont.emoji.EmojiParser");
+			builder.put("EmojiParser", emojiStatics);
+
 			if (parameters != null) {
 				builder.putAll(parameters);
 			}

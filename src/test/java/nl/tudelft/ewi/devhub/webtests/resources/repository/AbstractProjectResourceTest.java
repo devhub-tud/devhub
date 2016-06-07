@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.devhub.webtests.repository;
+package nl.tudelft.ewi.devhub.webtests.resources.repository;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
@@ -11,7 +11,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
-import nl.tudelft.ewi.devhub.server.web.resources.repository.AbstractProjectResource;
 import nl.tudelft.ewi.devhub.server.web.resources.repository.ProjectResource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.models.CreateRepositoryModel;
@@ -30,13 +29,10 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRule;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;

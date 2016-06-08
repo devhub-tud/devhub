@@ -1,8 +1,6 @@
 package nl.tudelft.ewi.devhub.webtests.views;
 
 import com.google.common.collect.Lists;
-import lombok.Data;
-import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -43,11 +41,12 @@ public class DiffInCommitView extends ProjectInCommitView {
 		return Lists.transform(elements, DiffElement::build);
 	}
     
-    public DiffInCommitView postInlineComment(String comment) {
+    public DiffInCommitView postInlineComment(int diffNumber, int lineNumber, String comment) {
         invariant();
-        WebElement diffLine = listDiffs().get(0)
+        WebElement diffLine = listDiffs().get(diffNumber)
                 .getElement();
-        diffLine.findElement(INLINE_COMMENT_BUTTON)
+        diffLine.findElements(INLINE_COMMENT_BUTTON)
+				.get(lineNumber)
                 .click();
         diffLine.findElement(INLINE_COMMENT_BOX)
                 .sendKeys(comment);
@@ -55,7 +54,18 @@ public class DiffInCommitView extends ProjectInCommitView {
                 .findElement(POST_INLINE_COMMENT_BUTTON)
                 .click();
 
-        return this;
+        return new DiffInCommitView(getDriver());
     }
+
+	public DiffInCommitView postCommentOnDiff(String comment) {
+		invariant();
+		WebElement commentArea = getDriver().findElement(By.id("pull-comment-form")),
+				   commentText = commentArea.findElement(By.tagName("textarea")),
+				   commentSubmit = commentArea.findElement(By.xpath("button[@type='submit']"));
+		commentText.sendKeys(comment);
+		commentSubmit.click();
+
+		return new DiffInCommitView(getDriver());
+	}
 	
 }

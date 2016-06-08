@@ -1009,5 +1009,28 @@
 			 referencedTableName="users"
 			 referencedColumnNames="id"/>
 	</changeSet>
+	<changeSet id="add_issue_comments" author="Aron Zwaan">
+	
+		<createTable tableName="repository_issue_comments">
+			<column name="id" type="bigint" autoIncrement="true" />
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="content" type="text" />
+			<column name="user_id" type="bigint">
+				<constraints  nullable="false" />
+			</column>
+			<column name="created_date" type="datetime" />
+		</createTable>
+		
+		<addForeignKeyConstraint referencedTableName="repository_issues" 
+			referencedColumnNames="repository_id, issue_id" 
+			constraintName="issue_for_comment" 
+			baseTableName="repository_issue_comments" 
+			baseColumnNames="repository_id, issue_id"/>
+	</changeSet>
 
 </databaseChangeLog>

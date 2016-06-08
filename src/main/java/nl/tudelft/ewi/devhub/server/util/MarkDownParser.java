@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.util;
 
+import com.google.common.html.HtmlEscapers;
 import lombok.NonNull;
 import lombok.Synchronized;
 import org.parboiled.errors.ParserRuntimeException;
@@ -27,10 +28,12 @@ public final class MarkDownParser {
      * @throws NullPointerException when the given markdown string input is null
      */
     public static @NotNull String markdownToHtml(@NonNull final String md) throws NullPointerException {
+        final String escapedMd = HtmlEscapers.htmlEscaper().escape(md);
+
         try {
-            return getProcessor().markdownToHtml(md);
+            return getProcessor().markdownToHtml(escapedMd);
         } catch (ParserRuntimeException ex) {
-            return md;
+            return escapedMd;
         }
     }
 

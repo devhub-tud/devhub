@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -74,5 +75,30 @@ public class DiffInCommitView extends ProjectInCommitView {
 		invariant(); // Should still be on the same page
 		return new DiffInCommitView(getDriver());
 	}
-	
+
+	public DiffInCommitView renderPreview() {
+		final WebElement previewButton = getDriver().findElement(By.id("btn-preview"));
+		previewButton.click();
+
+		return new DiffInCommitView(getDriver());
+	}
+
+	public String getPreviewPanelContent() {
+		final WebElement previewPanel =  getDriver().findElement(By.cssSelector("#preview-panel .panel-body"));
+		if (previewPanel.getText().isEmpty()) {
+			// in case the preview is filed with HTML instead of text
+			final List<WebElement> panelBodyElements = previewPanel.findElements(By.xpath(".//*"));
+			return String.join(" ", panelBodyElements
+					.stream()
+					.map(webElement -> webElement.getAttribute("innerHTML"))
+					.collect(Collectors.toList()));
+		} else {
+			return previewPanel.getText();
+		}
+	}
+
+	public void setCommentInput(String text) {
+		final WebElement textarea = getDriver().findElement(By.cssSelector("#pull-comment-form textarea"));
+		textarea.sendKeys(text);
+	}
 }

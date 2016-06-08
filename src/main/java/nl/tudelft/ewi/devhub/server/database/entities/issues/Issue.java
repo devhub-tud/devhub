@@ -31,7 +31,7 @@ public class Issue extends AbstractIssue {
 	}
 
 	@OrderBy("timestamp ASC")
-	@OneToMany(mappedBy = "issues", fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REMOVE}, orphanRemoval = true)
+	@OneToMany(mappedBy = "issue", fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REMOVE}, orphanRemoval = true)
 	private List<IssueComment> comments;
 	
 }

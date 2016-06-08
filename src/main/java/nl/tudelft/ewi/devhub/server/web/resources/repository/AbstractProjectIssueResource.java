@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -48,7 +49,8 @@ import nl.tudelft.ewi.git.web.api.RepositoryApi;
 public abstract class AbstractProjectIssueResource extends AbstractIssueResource<Issue> {
 
 	protected Issues issues;
-	protected IssueBackend issueBackend;	
+	protected IssueBackend issueBackend;
+	protected IssueComments issueComments;
 	
 	
 	public AbstractProjectIssueResource( final TemplateEngine templateEngine, 
@@ -58,12 +60,14 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			final RepositoriesApi repositoriesApi, 
 			final Issues issues, 
 			final IssueBackend issueBackend,
-			final Users users) {
+			final Users users,
+			final IssueComments issueComments) {
 		
 		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
 		
 		this.issues = issues;
 		this.issueBackend = issueBackend;
+		this.issueComments = issueComments;
 	}
 	
 	@GET
@@ -101,7 +105,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		parameters.put("repository", repository);
 		
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("courses/assignments/group-issue-create.ftl", locales, parameters));
+		return display(templateEngine.process("courses/assignments/group-issue-edit.ftl", locales, parameters));
 	}
 
 	@POST
@@ -131,6 +135,26 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	}
 	@GET
 	@Transactional
+	@Path("/issue/{issueId}/edit")
+	public Response editIssue(@Context HttpServletRequest request, 
+			@PathParam("issueId") long issueId) throws IOException {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
+		RepositoryModel repository = repositoryApi.getRepositoryModel();
+		
+		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
+		
+		Map<String, Object> parameters = getBaseParameters();		
+		parameters.put("repository", repository);		
+		parameters.put("issue", issue);
+		
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("courses/assignments/group-issue-edit.ftl", locales, parameters));
+	}
+
+	@GET
+	@Transactional
 	@Path("/issue/{issueId}")
 	public Response viewIssue(@Context HttpServletRequest request, 
 			@PathParam("issueId") long issueId) throws IOException {
@@ -146,12 +170,12 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		parameters.put("issue", issue);
 		
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("courses/assignments/group-issue-create.ftl", locales, parameters));
+		return display(templateEngine.process("courses/assignments/group-issue-view.ftl", locales, parameters));
 	}
 
 	@POST
 	@Transactional
-	@Path("/issue/{issueId}")
+	@Path("/issue/{issueId}/edit")
 	public Response updateIssue(@Context HttpServletRequest request, 
 			@PathParam("issueId") long issueId,
 			@FormParam("title") String title,
@@ -186,7 +210,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		parameters.put("issue", issue);
 		
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("courses/assignments/group-issue-create.ftl", locales, parameters));
+		return display(templateEngine.process("courses/assignments/group-issue-edit.ftl", locales, parameters));
 	}
 
 	private void checkCollaborator(User user) {

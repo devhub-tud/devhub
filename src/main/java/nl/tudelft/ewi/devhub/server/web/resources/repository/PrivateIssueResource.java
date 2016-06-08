@@ -14,6 +14,7 @@ import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.PrivateRepositories;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -39,9 +40,10 @@ public class PrivateIssueResource extends AbstractProjectIssueResource {
 			final Issues issues, 
 			final IssueBackend issueBackend,
 			final Users users,
-			final PrivateRepositories privateRepositories) {
+			final PrivateRepositories privateRepositories,
+			final IssueComments issueComments) {
 		
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, issues, issueBackend, users);
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, issues, issueBackend, users, issueComments);
 		
 		this.privateRepositories = privateRepositories;
 	}

@@ -11,6 +11,7 @@ import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -35,8 +36,9 @@ public class ProjectIssueResource extends AbstractProjectIssueResource {
 			final RepositoriesApi repositoriesApi, 
 			final Issues issues, 
 			final IssueBackend issueBackend,
-			final Users users ) {
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, issues, issueBackend, users);
+			final Users users,
+			final IssueComments issueComments ) {
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, issues, issueBackend, users, issueComments);
 
 		this.group = group;
 		

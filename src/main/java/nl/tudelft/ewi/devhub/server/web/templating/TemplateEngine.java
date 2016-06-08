@@ -40,7 +40,7 @@ public class TemplateEngine {
 				setTemplateLoader(new FileTemplateLoader(templatesDirectory) {
 					public Reader getReader(Object templateSource, String encoding) throws IOException {
 						return new WrappedReader(super.getReader(templateSource, encoding), "[#escape x as x?html]", "[/#escape]");
-					};
+					}
 				});
 				setObjectWrapper(wrapper);
 			}
@@ -59,9 +59,9 @@ public class TemplateEngine {
 			builder.put("i18n", translator);
 
 			TemplateHashModel staticModels = ((BeansWrapper) this.conf.getObjectWrapper()).getStaticModels();
-			TemplateHashModel fileStatics = (TemplateHashModel) staticModels.get("nl.tudelft.ewi.devhub.server.util.MarkDownParser");
+			TemplateHashModel markdownParserStatics = (TemplateHashModel) staticModels.get("nl.tudelft.ewi.devhub.server.util.MarkDownParser");
 
-			builder.put("MarkDownParser", fileStatics);
+			builder.put("MarkDownParser", markdownParserStatics);
 
 			if (parameters != null) {
 				builder.putAll(parameters);

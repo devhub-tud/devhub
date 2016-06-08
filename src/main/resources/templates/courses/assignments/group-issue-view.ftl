@@ -30,13 +30,13 @@
 				<div class="form-group">
 					<label for="title" class="col-sm-2 control-label">${i18n.translate("label.title")}</label>
 					<div class="col-sm-10">
-						<p type="text" class="form-control" name="title" id="title">${issue.title}"</p>
+						<p type="text" class="form-control" name="title" id="title">${issue.title}</p>
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="description" class="col-sm-2 control-label">${i18n.translate("label.description")}</label>
 					<div class="col-sm-10">
-						<textarea disabled style="background-color: #ffffff; cursor: auto" rows="8" class="form-control"[#if issue??]>${issue.description}</textarea>[#else]placeholder="${i18n.translate("label.description")}"></textarea>[/#if]
+						<textarea id="description" disabled style="background-color: #ffffff; cursor: auto" rows="8" class="form-control"[#if issue??]>${issue.description}</textarea>[#else]placeholder="${i18n.translate("label.description")}"></textarea>[/#if]
 					</div>
 				</div>				
                 <div class="form-group">
@@ -48,13 +48,13 @@
                 <div class="form-group">
 					<label for="assignee" class="col-sm-2 control-label">${i18n.translate("label.assignee")}</label>
 					<div class="col-sm-10">
-						<p type="text" class="form-control">${issue.assignee.name}</p>
+						<p id="assignee" type="text" class="form-control">${issue.assignee.name}</p>
 					</div>
 				</div>				
                 <div class="form-group">
 					<label for="status" class="col-sm-2 control-label">${i18n.translate("delivery.status")}</label>
 					<div class="col-sm-10">
-						<p type="text" class="form-control">[#if issue?? && issue.open]Open[#else]Closed[/#if]</p>
+						<p id="status" type="text" class="form-control">[#if issue?? && issue.open]Open[#else]Closed[/#if]</p>
 					</div>
 				</div>
 				[#if !issue.open]
@@ -62,7 +62,7 @@
 					<label for="timestampClosed" class="col-sm-2 control-label">Closed on</label>
 					<div class="col-sm-10">
 						[#assign closedDate = issue.getClosed()]
-						<input type="text" class="form-control" name="timestampClosed" id="timestampClosed" readonly value="${closedDate?string["EEEE dd MMMM yyyy HH:mm"]}"></input>
+						<p type="text" class="form-control" name="timestampClosed" id="timestampClosed">${closedDate?string["EEEE dd MMMM yyyy HH:mm"]}</p>
 					</div>
 				</div>
 				[/#if]

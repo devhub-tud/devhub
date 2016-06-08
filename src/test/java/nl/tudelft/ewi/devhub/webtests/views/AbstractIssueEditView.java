@@ -5,27 +5,27 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 
-public abstract class IssueDetailsView extends AuthenticatedView {
+public abstract class AbstractIssueEditView extends IssueView {
 
-	public IssueDetailsView(WebDriver driver) {
+	public AbstractIssueEditView(WebDriver driver) {
 		super(driver);
 	}
 	
-	public IssueDetailsView setTitle(String title){
+	public AbstractIssueEditView setTitle(String title){
 		WebElement titleElement = getDriver().findElement(By.id("title"));
 		titleElement.clear();
 		titleElement.sendKeys(title);
 		return this;
 	}
 	
-	public IssueDetailsView setDescription(String description){
+	public AbstractIssueEditView setDescription(String description){
 		WebElement descriptionElement = getDriver().findElement(By.id("description"));
 		descriptionElement.clear();
 		descriptionElement.sendKeys(description);
 		return this;
 	}
 	
-	public IssueDetailsView setAssignee(String assigneeNetId){
+	public AbstractIssueEditView setAssignee(String assigneeNetId){
 		Select assigneeDropdown = new Select(getDriver().findElement(By.id("assignee")));
 		assigneeDropdown.selectByValue(assigneeNetId);
 		return this;
@@ -46,7 +46,7 @@ public abstract class IssueDetailsView extends AuthenticatedView {
 	 */
 	public String getAssignee(){
 		Select assigneeDropdown = new Select(getDriver().findElement(By.id("assignee")));
-		return assigneeDropdown.getFirstSelectedOption().getAttribute("value");		
+		return assigneeDropdown.getFirstSelectedOption().getText();		
 	}
 
 }

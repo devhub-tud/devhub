@@ -9,7 +9,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.Select;
 
-public class IssueEditView extends IssueDetailsView {
+public class IssueEditView extends AbstractIssueEditView {
 	
 	private static final DateFormat dateFormat = new SimpleDateFormat("EEEE dd MMMM yyyy HH:mm");
 
@@ -17,7 +17,7 @@ public class IssueEditView extends IssueDetailsView {
 		super(driver);
 	}
 	
-	public IssueDetailsView setStatus(String status){
+	public AbstractIssueEditView setStatus(String status){
 		Select statusDropdown = new Select(getDriver().findElement(By.id("status")));
 		statusDropdown.selectByValue(status);
 		return this;
@@ -25,13 +25,13 @@ public class IssueEditView extends IssueDetailsView {
 	
 	public String getStatus(){
 		Select statusDropdown = new Select(getDriver().findElement(By.id("status")));
-		return statusDropdown.getFirstSelectedOption().getAttribute("value");
+		return statusDropdown.getFirstSelectedOption().getText();
 	}
 	
-	public IssueEditView save(){
+	public IssueOverviewView save(){
 		By submitbutton = By.cssSelector("button[type=\"submit\"]");
 		getDriver().findElement(submitbutton).click();
-		return new IssueEditView(getDriver());
+		return new IssueOverviewView(getDriver());
 	}
 	
 	public Date getOpened() throws ParseException{

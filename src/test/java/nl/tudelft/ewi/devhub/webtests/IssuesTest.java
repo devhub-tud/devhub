@@ -16,6 +16,7 @@ import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.IssueCreateView;
 import nl.tudelft.ewi.devhub.webtests.views.IssueEditView;
+import nl.tudelft.ewi.devhub.webtests.views.IssueOverviewView;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
 
@@ -28,6 +29,7 @@ public class IssuesTest extends WebTest {
 
 	private static final String NET_ID = "student1";
 	private static final String PASSWORD = "student1";
+	private static final String NAME = "Student One";
 	
 	// Time is displayed with minute precision, therefore the 65 seconds difference
 	private static final int timeDifferenceTreshold = 65 * 1000;
@@ -39,6 +41,7 @@ public class IssuesTest extends WebTest {
 	private final String descriptionEdited = "We need to implement the HTCPCP protocol - In order to have coffee at all times, and be happy :D";
 
 	private final String assignee = "student2";
+	private final String assigneeName = "Student Two";
 	
 	@Inject Users users;
 	@Inject Groups groups;
@@ -66,7 +69,7 @@ public class IssuesTest extends WebTest {
 		createview.setDescription(description);
 		createview.setAssignee(assignee);
 		
-		IssueEditView editView = createview.create();
+		IssueOverviewView overviewView = createview.create();
 		
 		Issue issue = issues.findOpenIssues(group.getRepository()).get(0);
 		
@@ -77,10 +80,10 @@ public class IssuesTest extends WebTest {
 		
 		assertDatesEqual(new Date(), issue.getTimestamp(), timeDifferenceTreshold);
 		
-		assertEquals(issueTitle, editView.getTitle());
-		assertEquals(description, editView.getDescription());
-		assertEquals(assignee, editView.getAssignee());
-		assertDatesEqual(new Date(), editView.getOpened(), timeDifferenceTreshold);
+		assertEquals(issueTitle, overviewView.getTitle());
+		assertEquals(description, overviewView.getDescription());
+		assertEquals(assigneeName, overviewView.getAssignee());
+		assertDatesEqual(new Date(), overviewView.getOpened(), timeDifferenceTreshold);
 		
 	}
 	
@@ -93,7 +96,7 @@ public class IssuesTest extends WebTest {
 		createview.setDescription(description);
 		createview.setAssignee(assignee);
 		
-		IssueEditView editView = createview.create();
+		IssueEditView editView = createview.create().edit();
 		
 		Issue issue = issues.findOpenIssues(group.getRepository()).get(0);		
 		Date creationDate = issue.getTimestamp(); // Save creation date to verify it has not changed
@@ -109,7 +112,7 @@ public class IssuesTest extends WebTest {
 		editView.setAssignee(NET_ID);
 		
 		editView.setStatus("closed");
-		IssueEditView newDetailsView = editView.save();
+		IssueOverviewView newDetailsView = editView.save();
 		this.waitForCondition(10, x -> Dom.isVisible(getDriver(), By.id("timestampClosed")));
 		
 		Issue issueEdited = issues.findClosedIssues(group.getRepository()).get(0);
@@ -126,8 +129,8 @@ public class IssuesTest extends WebTest {
 
 		assertEquals(issueTitleEdited, newDetailsView.getTitle());
 		assertEquals(descriptionEdited, newDetailsView.getDescription());
-		assertEquals(NET_ID, newDetailsView.getAssignee());
-		assertEquals("closed", newDetailsView.getStatus());
+		assertEquals(NAME, newDetailsView.getAssignee());
+		assertEquals("Closed", newDetailsView.getStatus());
 		assertDatesEqual(new Date(), newDetailsView.getClosed(), timeDifferenceTreshold);
 		
 	}

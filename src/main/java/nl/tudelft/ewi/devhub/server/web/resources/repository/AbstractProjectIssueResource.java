@@ -182,10 +182,6 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			@FormParam("description") String description,
 			@FormParam("assignee") String assigneeNetID,
 			@FormParam("status") String status) throws IOException {
-
-		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
-		RepositoryModel repository = repositoryApi.getRepositoryModel();
 		
 		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
 		
@@ -204,13 +200,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		}
 		
 		issues.merge(issue);
-		
-		Map<String, Object> parameters = getBaseParameters();		
-		parameters.put("repository", repository);		
-		parameters.put("issue", issue);
-		
-		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("courses/assignments/group-issue-edit.ftl", locales, parameters));
+
+		return redirect(issue.getURI());
 	}
 
 	private void checkCollaborator(User user) {

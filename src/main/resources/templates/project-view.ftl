@@ -26,11 +26,22 @@
             <span>${i18n.translate("group.branch.pull-request-message")}</span>
             <a href="${pullRequest.getURI()}" class="btn btn-default pull-right">${i18n.translate("group.branch.go-to-pull-request")}</a>
         [#else]
-            <form method="POST" action="${repositoryEntity.getURI()}pull" target="_self">
-                <span>${i18n.translate("group.branch.ahead-message")}</span>
-                <input type="hidden" name="branchName" value="${branch.getName()}"/>
-                <button type="submit" class="btn btn-default pull-right">${i18n.translate("group.branch.create-pull-request")}</button>
-            </form>
+            <span>${i18n.translate("group.branch.ahead-message")}</span>
+            <div class="btn-block">
+                <form method="POST" action="${repositoryEntity.getURI()}branches/delete" target="_self">
+                    <input type="hidden" name="branchDeleteName" value="${branch.getName()}"/>
+                    <button type="submit" class="btn btn-default pull-right">
+                        <i class="octicon octicon-trashcan"></i>
+                    ${i18n.translate("group.branch.remove-branch")}
+                    </button>
+                </form>
+                <form method="POST" action="${repositoryEntity.getURI()}pull" target="_self">
+                    <input type="hidden" name="branchName" value="${branch.getName()}"/>
+                    <button type="submit" class="btn btn-default pull-right">
+                        ${i18n.translate("group.branch.create-pull-request")}
+                    </button>
+                </form>
+            </div>
         [/#if]
     </div>
 [#elseif branch?? && branch.isBehind() && !branch.isAhead()]
@@ -38,8 +49,10 @@
         <form method="POST" action="${repositoryEntity.getURI()}branches/delete" target="_self">
             <span>${i18n.translate("group.branch.behind-message")}</span>
             <input type="hidden" name="branchDeleteName" value="${branch.getName()}"/>
-            [#--TODO: change icon--]
-            <button type="submit" class="btn bnt-default pull-right">${i18n.translate("group.branch.remove-branch")}</button>
+            <button type="submit" class="btn btn-default pull-right">
+                <i class="octicon octicon-trashcan"></i>
+                ${i18n.translate("group.branch.remove-branch")}
+            </button>
         </form>
     </div>
 [#elseif deleteSuccessful??]

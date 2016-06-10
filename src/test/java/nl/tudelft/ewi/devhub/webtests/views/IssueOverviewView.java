@@ -14,7 +14,6 @@ public class IssueOverviewView extends IssueView {
 
 	public IssueOverviewView(WebDriver driver) {
 		super(driver);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

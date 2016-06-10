@@ -15,7 +15,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -27,11 +26,10 @@ import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -200,6 +198,24 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		}
 		
 		issues.merge(issue);
+
+		return redirect(issue.getURI());
+	}
+	
+	@POST
+	@Transactional
+	@Path("/issue/{issueId}/comment")
+	public Response addComment(@Context HttpServletRequest request, 
+			@PathParam("issueId") long issueId,
+			@FormParam("content") String content) throws IOException {
+		
+		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
+		IssueComment comment = new IssueComment();
+		comment.setContent(content);
+		comment.setIssue(issue);
+		comment.setUser(currentUser);
+		
+		issueComments.persist(comment);
 
 		return redirect(issue.getURI());
 	}

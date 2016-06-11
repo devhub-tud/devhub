@@ -61,34 +61,7 @@ public class IssuesTest extends WebTest {
 	}
 	
 	@Test
-	public void testCreateIssue() throws ParseException{
-		IssueCreateView createview = openLoginScreen().login(NET_ID, PASSWORD)
-			.toCoursesView().listMyProjects().get(0).click()
-			.toIssuesView().addIssue();
-		createview.setTitle(issueTitle);
-		createview.setDescription(description);
-		createview.setAssignee(assignee);
-		
-		IssueOverviewView overviewView = createview.create();
-		
-		Issue issue = issues.findOpenIssues(group.getRepository()).get(0);
-		
-		assertEquals(issueTitle, issue.getTitle());
-		assertEquals(description, issue.getDescription());
-		assertEquals(student2, issue.getAssignee());
-		assertTrue(issue.isOpen());
-		
-		assertDatesEqual(new Date(), issue.getTimestamp(), timeDifferenceTreshold);
-		
-		assertEquals(issueTitle, overviewView.getTitle());
-		assertEquals(description, overviewView.getDescription());
-		assertEquals(assigneeName, overviewView.getAssignee());
-		assertDatesEqual(new Date(), overviewView.getOpened(), timeDifferenceTreshold);
-		
-	}
-	
-	@Test
-	public void testEditIssue() throws ParseException{
+	public void testCreateEditIssue() throws ParseException{
 		IssueCreateView createview = openLoginScreen().login(NET_ID, PASSWORD)
 			.toCoursesView().listMyProjects().get(0).click()
 			.toIssuesView().addIssue();
@@ -105,7 +78,7 @@ public class IssuesTest extends WebTest {
 		assertEquals(description, issue.getDescription());
 		assertEquals(student2, issue.getAssignee());
 		assertTrue(issue.isOpen());		
-		assertDatesEqual(new Date(), creationDate, timeDifferenceTreshold);
+		assertDatesEqual(new Date(), creationDate, 5000);
 		
 		editView.setTitle(issueTitleEdited);
 		editView.setDescription(descriptionEdited);
@@ -132,6 +105,10 @@ public class IssuesTest extends WebTest {
 		assertEquals(NAME, newDetailsView.getAssignee());
 		assertEquals("Closed", newDetailsView.getStatus());
 		assertDatesEqual(new Date(), newDetailsView.getClosed(), timeDifferenceTreshold);
+		
+	}
+	
+	public void testAddComment(){
 		
 	}
 	

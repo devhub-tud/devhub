@@ -55,12 +55,30 @@
             </button>
         </form>
     </div>
-[#elseif deleteSuccessful??]
-    [#if deleteSuccessful]
+[#elseif deleteStatus??]
+    [#if deleteStatus == "success"]
         <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
-            <span>${i18n.translate("group.branch.delete-successful")}</span>
+            <span>${i18n.translate("group.branch.delete-successful", deletedBranchSimpleName)}</span>
         </div>
-    [#else]
+    [#elseif deleteStatus == "confirm" || deleteStatus == "confirmAgain"]
+        <div class="alert alert-danger" role="alert" style="clear:both; line-height: 34px;">
+            [#if deleteStatus == "confirm"]
+                <span>${i18n.translate("group.branch.delete-ahead-warning", aheadBranchSimpleName)}</span>
+            [#else]
+                <span>${i18n.translate("group.branch.delete-ahead-warning-again", aheadBranchSimpleName)}</span>
+            [/#if]
+            <form method="POST" action="${repositoryEntity.getURI()}branches/delete"
+                  target="_self">
+                <input type="hidden" name="branchDeleteName" value="${aheadBranchName}"/>
+                <input type="text" name="branchDeleteNameConfirmation"
+                       placeholder="Type branch name here" />
+                <button type="submit" class="btn btn-default">
+                    <i class="octicon octicon-trashcan"></i>
+                ${i18n.translate("group.branch.remove-branch")}
+                </button>
+            </form>
+        </div>
+    [#elseif deleteStatus == "error"]
         <div class="alert alert-warning" role="alert" style="clear:both; line-height: 34px;">
             <span>${i18n.translate("group.branch.delete-error")}</span>
         </div>

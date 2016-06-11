@@ -6,6 +6,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
 
+import com.mchange.util.AssertException;
+
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
@@ -17,6 +19,9 @@ import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.IssueCreateView;
 import nl.tudelft.ewi.devhub.webtests.views.IssueEditView;
 import nl.tudelft.ewi.devhub.webtests.views.IssueOverviewView;
+import nl.tudelft.ewi.devhub.webtests.views.IssueOverviewView.Comment;
+import nl.tudelft.ewi.devhub.webtests.views.IssuesOverviewView;
+import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
 
@@ -24,6 +29,7 @@ import static org.junit.Assert.*;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.List;
 
 public class IssuesTest extends WebTest {
 
@@ -41,7 +47,9 @@ public class IssuesTest extends WebTest {
 	private final String descriptionEdited = "We need to implement the HTCPCP protocol - In order to have coffee at all times, and be happy :D";
 
 	private final String assignee = "student2";
-	private final String assigneeName = "Student Two";
+	
+	private final String comment1Content = "That seems like a good idea";
+	private final String comment2Content = "I like coffee a lot";
 	
 	@Inject Users users;
 	@Inject Groups groups;
@@ -108,7 +116,42 @@ public class IssuesTest extends WebTest {
 		
 	}
 	
+	@Test
 	public void testAddComment(){
+		
+		Issue issue = new Issue();
+		issue.setAssignee(student1);
+		issue.setDescription(description);
+		issue.setOpen(true);
+		issue.setRepository(group.getRepository());
+		issue.setTitle(issueTitle);
+		
+		issues.persist(issue);
+		
+		List<IssuesOverviewView.Issue> openIssues = openLoginScreen().login(NET_ID, PASSWORD).toCoursesView()
+			.listMyProjects().get(0).click()
+			.toIssuesView().listOpenIssues();
+		
+		assertEquals(1, openIssues.size());
+		IssueOverviewView issueOverview = openIssues.get(0).click();
+		
+		issueOverview.addComment(comment1Content);
+		issueOverview.addComment(comment2Content);
+		
+		List<IssueOverviewView.Comment> comments = issueOverview.listComments();
+		
+		assertEquals(2, comments.size());
+		IssueOverviewView.Comment comment1 = comments.get(0);
+		
+		assertEquals(comment1Content, comment1.getContent());
+		assertEquals(NAME, comment1.getPosterName());
+
+		IssueOverviewView.Comment comment2 = comments.get(1);
+		
+		assertEquals(comment2Content, comment2.getContent());
+		assertEquals(NAME, comment2.getPosterName());
+		
+		
 		
 	}
 	

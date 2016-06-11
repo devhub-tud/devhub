@@ -4,9 +4,17 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.SneakyThrows;
 
 public class IssueOverviewView extends IssueView {
 		
@@ -48,6 +56,41 @@ public class IssueOverviewView extends IssueView {
 	public Date getClosed() throws ParseException{
 		String dateString = getDriver().findElement(By.id("timestampClosed")).getText();
 		return dateFormat.parse(dateString);
+	}
+
+	public void addComment(String comment) {
+		
+		getDriver().findElement(By.cssSelector("textarea[name=\"content\"]")).sendKeys(comment);
+		getDriver().findElement(By.cssSelector("button[type=\"submit\"]")).click();
+		
+	}
+	
+	public List<Comment> listComments(){
+		return getDriver().findElement(By.cssSelector("div.pull-feed"))
+				.findElements(By.cssSelector("div.panel-comment"))
+				.stream().map(x -> new Comment(x)).collect(Collectors.toList());
+	}
+	
+	@Data
+	public class Comment {
+
+		@Getter(AccessLevel.NONE)
+		private final DateFormat commentDateFormat = new SimpleDateFormat("MMM dd, yyyy HH:mm:ss a");
+		
+		private String posterName;
+		
+		private String content;
+		
+		private Date postedTime;
+		
+		@SneakyThrows
+		public Comment(WebElement element){
+			posterName = element.findElement(By.cssSelector("div.panel-heading strong")).getText();
+			content = element.findElement(By.cssSelector("div.panel-body p")).getText();
+			String postedTimeString = element.findElement(By.cssSelector("div.panel-heading a")).getText();
+			postedTime = commentDateFormat.parse(postedTimeString);
+		}
+		
 	}
 	
 	

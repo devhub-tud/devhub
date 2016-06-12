@@ -7,6 +7,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -20,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRule;
+import org.pegdown.PegDownProcessor;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -66,7 +68,7 @@ public class AbstractProjectPullResourceTest {
 
         projectPullResource = spy(new ProjectPullResource(templateEngine, currentUser, group, null,
                 null, pullRequests, null, repositoriesApi, commentMailer, null,
-                pullRequestComments, null, null));
+                pullRequestComments, null, null, new MarkDownParser(new PegDownProcessor())));
 
         when(pullRequestComment.getTimestamp()).thenReturn(commentDate);
         when(currentUser.getName()).thenReturn(REPOSITORY_NAME);
@@ -74,8 +76,7 @@ public class AbstractProjectPullResourceTest {
         doReturn(pullRequestComment).when(projectPullResource).pullRequestCommentFactory(anyString(),
                 anyObject());
 
-        Vector<Locale> vector = new Vector<>();
-        when(request.getLocales()).thenReturn(vector.elements());
+        when(request.getLocales()).thenReturn(new Vector<Locale>().elements());
 
     }
 

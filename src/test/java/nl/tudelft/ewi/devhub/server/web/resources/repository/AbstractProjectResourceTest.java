@@ -9,6 +9,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -29,6 +30,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRule;
+import org.pegdown.PegDownProcessor;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -91,15 +93,14 @@ public class AbstractProjectResourceTest {
 
         projectResource = spy(new ProjectResource(templateEngine, currentUser, group, null, null,
                 null, repositoriesApi, null, commitComments, commentMailer, commits, null, null,
-                null, null, null));
+                null, null, null, new MarkDownParser(new PegDownProcessor())));
 
         when(commitComment.getTimestamp()).thenReturn(commentDate);
         when(currentUser.getName()).thenReturn(REPOSITORY_NAME);
         doReturn(commitComment).when(projectResource).commitCommentFactory(anyString(), anyObject(),
                 eq(COMMIT_ID));
 
-        Vector<Locale> vector = new Vector<>();
-        when(request.getLocales()).thenReturn(vector.elements());
+        when(request.getLocales()).thenReturn(new Vector<Locale>().elements());
 
         mergeStepDefinitions = new MergeStepDefinitions();
         injector.injectMembers(mergeStepDefinitions);

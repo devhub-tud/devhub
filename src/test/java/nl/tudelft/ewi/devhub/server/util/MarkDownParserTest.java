@@ -1,8 +1,8 @@
 package nl.tudelft.ewi.devhub.server.util;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.pegdown.PegDownProcessor;
 
 import static org.junit.Assert.assertEquals;
 
@@ -10,33 +10,26 @@ import static org.junit.Assert.assertEquals;
  * Created by Douwe Koopmans on 3-6-16.
  */
 public class MarkDownParserTest {
-	private String testMd;
-	private String expectedHtml;
 
+	private MarkDownParser markDownParser;
 	@Before
 	public void setup() {
-		testMd = "*Hello World!*";
-	}
-
-	@After
-	public void tearDown() {
-		testMd = null;
-		expectedHtml = null;
-		MarkDownParser.setProcessorTimeout(2000L);
+		markDownParser = new MarkDownParser(new PegDownProcessor(2000l));
 	}
 
 	@Test
 	public void markdownToHtml() throws Exception {
-		expectedHtml = "<p><em>Hello World!</em></p>";
+		String testMd = "*Hello World!*";
+		String expectedHtml = "<p><em>Hello World!</em></p>";
 
-		assertEquals(expectedHtml, MarkDownParser.markdownToHtml(testMd));
+		assertEquals(expectedHtml, markDownParser.markdownToHtml(testMd));
 	}
 
 	@Test
 	public void testTimeout() {
-		MarkDownParser.setProcessorTimeout(2);
-		expectedHtml = testMd;
-
-		assertEquals(expectedHtml, MarkDownParser.markdownToHtml(testMd));
+		markDownParser = new MarkDownParser(new PegDownProcessor(2000l));
+		String testMd = "*Hello World!*";
+		String expectedHtml = "<p><em>Hello World!</em></p>";
+		assertEquals(expectedHtml, markDownParser.markdownToHtml(testMd));
 	}
 }

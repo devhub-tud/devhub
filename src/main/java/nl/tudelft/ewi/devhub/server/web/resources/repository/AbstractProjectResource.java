@@ -77,6 +77,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	protected final Controller<? super RepoType> repositoriesController;
 	protected final EditContributorsState editContributorsState;
 	protected final Users users;
+	protected MarkDownParser markDownParser;
 
 	protected AbstractProjectResource(final TemplateEngine templateEngine,
 							final @Named("current.user") User currentUser,
@@ -91,7 +92,8 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 							final Warnings warnings,
 						  	final Controller<? super RepoType> repositoriesController,
 						  	final EditContributorsState editContributorsState,
-						  	final Users users) {
+						  	final Users users,
+						  	final MarkDownParser markDownParser) {
 
 		this.templateEngine = templateEngine;
 		this.currentUser = currentUser;
@@ -107,6 +109,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		this.repositoriesController = repositoriesController;
 		this.editContributorsState = editContributorsState;
 		this.users = users;
+		this.markDownParser = markDownParser;
 	}
 
 	protected abstract RepoType getRepositoryEntity();
@@ -330,7 +333,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		response.setDate(comment.getTimestamp().toString());
 		response.setName(currentUser.getName());
 		response.setCommentId(comment.getCommentId());
-		response.setHtmlForMarkdown(MarkDownParser.markdownToHtml(message));
+		response.setHtmlForMarkdown(markDownParser.markdownToHtml(message));
 
 		return response;
     }

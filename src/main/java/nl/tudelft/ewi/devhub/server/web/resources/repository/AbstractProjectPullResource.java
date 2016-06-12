@@ -81,6 +81,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 	protected final PullRequestMailer pullRequestMailer;
 	protected final HooksResource hooksResource;
 	protected final Warnings warnings;
+	protected final MarkDownParser markDownParser;
 
 	protected AbstractProjectPullResource(final TemplateEngine templateEngine,
 	                                      final @Named("current.user") User currentUser,
@@ -93,7 +94,8 @@ public abstract class AbstractProjectPullResource extends Resource {
 	                                      final PullRequestMailer pullRequestMailer,
 	                                      final PullRequestComments pullRequestComments,
 	                                      final HooksResource hooksResource,
-	                                      final Warnings warnings) {
+	                                      final Warnings warnings,
+										  final MarkDownParser markDownParser) {
 
 		this.templateEngine = templateEngine;
 		this.currentUser = currentUser;
@@ -107,6 +109,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		this.pullRequestMailer = pullRequestMailer;
 		this.hooksResource = hooksResource;
 		this.warnings = warnings;
+		this.markDownParser = markDownParser;
 	}
 
 	protected abstract RepositoryEntity getRepositoryEntity();
@@ -238,7 +241,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		response.setName(currentUser.getName());
 		response.setDate(comment.getTimestamp().toString());
 		response.setCommentId(comment.getCommentId());
-        response.setHtmlForMarkdown(MarkDownParser.markdownToHtml(content));
+        response.setHtmlForMarkdown(markDownParser.markdownToHtml(content));
 
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);

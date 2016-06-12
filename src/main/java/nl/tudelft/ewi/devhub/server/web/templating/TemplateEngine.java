@@ -7,6 +7,7 @@ import freemarker.cache.FileTemplateLoader;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.*;
 import lombok.SneakyThrows;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,10 +24,16 @@ public class TemplateEngine {
 
 	private final Configuration conf;
 	private final TranslatorFactory translatorFactory;
+	private final MarkDownParser markDownParser;
+
 
 	@Inject
 	@SneakyThrows
-	public TemplateEngine(@Named("directory.templates") final File templatesDirectory, TranslatorFactory translatorFactory) {
+	public TemplateEngine(
+		@Named("directory.templates") final File templatesDirectory,
+		TranslatorFactory translatorFactory,
+		MarkDownParser markDownParser
+	) {
 		this.translatorFactory = translatorFactory;
 		final BeansWrapper wrapper = new DefaultObjectWrapperBuilder(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS)
 		        .build();
@@ -45,6 +52,8 @@ public class TemplateEngine {
 				setObjectWrapper(wrapper);
 			}
 		};
+
+		this.markDownParser = markDownParser;
 	}
 
 	public String process(String template, List<Locale> locales) throws IOException {
@@ -57,11 +66,7 @@ public class TemplateEngine {
 		try {
 			Builder<String, Object> builder = ImmutableMap.<String, Object> builder();
 			builder.put("i18n", translator);
-
-			TemplateHashModel staticModels = ((BeansWrapper) this.conf.getObjectWrapper()).getStaticModels();
-			TemplateHashModel markdownParserStatics = (TemplateHashModel) staticModels.get("nl.tudelft.ewi.devhub.server.util.MarkDownParser");
-
-			builder.put("MarkDownParser", markdownParserStatics);
+			builder.put("MarkDownParser", markDownParser);
 
 			if (parameters != null) {
 				builder.putAll(parameters);

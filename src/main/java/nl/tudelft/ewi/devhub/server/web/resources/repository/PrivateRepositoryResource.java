@@ -18,6 +18,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.models.RepositoryModel;
 import nl.tudelft.ewi.git.models.RepositoryModel.Level;
@@ -46,13 +47,13 @@ public class PrivateRepositoryResource extends AbstractProjectResource<PrivateRe
 
 	@Inject
 	public PrivateRepositoryResource(TemplateEngine templateEngine, @Named("current.user") User currentUser,
-	                                 CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests,
-	                                 RepositoriesApi repositoriesApi, BuildsBackend buildBackend, CommitComments comments,
-	                                 CommentMailer commentMailer, Commits commits, Warnings warnings,
-	                                 PrivateRepositories privateRepositories, EditContributorsState editContributorsState,
-									 Users users) {
+									 CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests,
+									 RepositoriesApi repositoriesApi, BuildsBackend buildBackend, CommitComments comments,
+									 CommentMailer commentMailer, Commits commits, Warnings warnings,
+									 PrivateRepositories privateRepositories, EditContributorsState editContributorsState,
+									 Users users, MarkDownParser markDownParser) {
 		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, repositoriesApi, buildBackend,
-			comments, commentMailer, commits, warnings, privateRepositories, editContributorsState, users);
+			comments, commentMailer, commits, warnings, privateRepositories, editContributorsState, users, markDownParser);
 		this.privateRepositories = privateRepositories;
 	}
 

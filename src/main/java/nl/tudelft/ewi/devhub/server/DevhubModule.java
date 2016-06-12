@@ -32,6 +32,7 @@ import com.google.inject.servlet.ServletModule;
 
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
+import org.pegdown.PegDownProcessor;
 import org.reflections.Reflections;
 
 import javax.persistence.EntityNotFoundException;
@@ -86,6 +87,8 @@ public class DevhubModule extends ServletModule {
 
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);
+
+		bindConstant().annotatedWith(Names.named("pegdown.timeout")).to(2000l);
 	}
 
 	private void bindWarningGenerators() {
@@ -127,6 +130,12 @@ public class DevhubModule extends ServletModule {
 	@RequestScoped
 	public Group provideCurrentGroup() {
 		throw new IllegalStateException("Group must be manually seeded");
+	}
+
+	@Provides
+	@RequestScoped
+	public PegDownProcessor getProcessor(@Named("pegdown.timeout") long timeout) {
+		return new PegDownProcessor(timeout);
 	}
 
 }

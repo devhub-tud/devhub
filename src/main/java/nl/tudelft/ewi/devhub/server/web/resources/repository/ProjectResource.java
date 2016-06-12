@@ -16,6 +16,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -54,9 +55,9 @@ public class ProjectResource extends AbstractProjectResource<GroupRepository> {
 						   BuildResults buildResults, PullRequests pullRequests, RepositoriesApi repositoriesApi, BuildsBackend buildBackend,
 						   CommitComments comments, CommentMailer commentMailer, Commits commits, Warnings warnings,
 						   RepositoriesController repositoriesController, EditContributorsState editContributorsState,
-						   Users users, Groups groups) {
+						   Users users, Groups groups, MarkDownParser markDownParser) {
 		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, repositoriesApi, buildBackend,
-			comments, commentMailer, commits, warnings, repositoriesController, editContributorsState, users);
+			comments, commentMailer, commits, warnings, repositoriesController, editContributorsState, users, markDownParser);
 		this.group = group;
 		this.groups = groups;
 	}

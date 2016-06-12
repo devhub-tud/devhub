@@ -9,8 +9,7 @@
     [/#if]
       on <a href="#comment-${comment.commentId}" id="comment-${comment.commentId}">${comment.timestamp}</a></div>
     <div class="panel-body">
-        [#--noinspection FtlWellformednessInspection--]
-        [#noescape]${MarkDownParser.markdownToHtml(comment.content)}[/#noescape]
+        [@MarkDownParser message=comment.content]${comment.content}[/@MarkDownParser]
     </div>
 </div>
 [/#if]

@@ -18,9 +18,8 @@
 				<div class="scrollable">
 					[#if path?ends_with(".md")]
                         <div class="panel-body" style="background-color: white;">
-                            [#--noinspection FtlWellformednessInspection--]
-                            [#noescape]${MarkDownParser.markdownToHtml(contents)}[/#noescape]
-                        </div>
+							[@MarkDownParser message=contents][/@MarkDownParser]
+                       </div>
                     [#else]
     					<table class="table diffs">
     						<tbody>

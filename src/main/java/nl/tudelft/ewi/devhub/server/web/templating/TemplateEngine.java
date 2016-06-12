@@ -4,7 +4,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import freemarker.cache.FileTemplateLoader;
-import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.*;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
@@ -35,9 +34,7 @@ public class TemplateEngine {
 		MarkDownParser markDownParser
 	) {
 		this.translatorFactory = translatorFactory;
-		final BeansWrapper wrapper = new DefaultObjectWrapperBuilder(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS)
-		        .build();
-
+		this.markDownParser = markDownParser;
 		this.conf = new Configuration() {
 			{
 				setDirectoryForTemplateLoading(templatesDirectory);
@@ -49,11 +46,8 @@ public class TemplateEngine {
 						return new WrappedReader(super.getReader(templateSource, encoding), "[#escape x as x?html]", "[/#escape]");
 					}
 				});
-				setObjectWrapper(wrapper);
 			}
 		};
-
-		this.markDownParser = markDownParser;
 	}
 
 	public String process(String template, List<Locale> locales) throws IOException {

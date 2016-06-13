@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +30,7 @@ import javax.ws.rs.core.Response;
 @Slf4j
 @Path("/")
 @RequestScoped
-public class RootResource {
+public class RootResource extends Resource {
 	
 	private final TemplateEngine engine;
 	private final AuthenticationBackend authenticationBackend;
@@ -82,16 +83,21 @@ public class RootResource {
 	
 	@POST
 	@Path("login")
-	public Response handleLogin(@Context HttpServletRequest request, @FormParam("netID") String netId, 
-			@FormParam("password") String password, @QueryParam("redirect") String redirectTo) 
+	public Response handleLogin(@Context HttpServletRequest request, @FormParam("netID") String netId,
+			@FormParam("password") String password, @QueryParam("redirect") @DefaultValue("courses") String redirectTo)
 			throws URISyntaxException, LdapException, IOException {
 		
 		try {
 			if (authenticationBackend.authenticate(netId, password)) {
 				request.getSession().setAttribute("netID", netId);
-				if (Strings.isNullOrEmpty(redirectTo)) {
-					return Response.seeOther(new URI("/courses")).build();
+
+				User currentUser = currentUserProvider.get();
+				if (Strings.isNullOrEmpty(currentUser.getStudentNumber()) &&
+					!currentUser.getGroups().isEmpty()) {
+					return Response.seeOther(new URI(StudyNumberResource.STUDY_NUMBER_PATH +
+						"?redirect=" + URLEncoder.encode(redirectTo, "UTF-8"))).build();
 				}
+
 				return Response.seeOther(new URI("/" + redirectTo)).build();
 			}
 		}

@@ -38,6 +38,9 @@
                     <tr>
                         <th>${i18n.translate("course.control.username")}</th>
                         <th>${i18n.translate("course.control.name")}</th>
+            [#if group?? && group?has_content]
+                        <th>Student Number</th>
+            [/#if]
                         <th>${i18n.translate("course.control.email")}</th>
                     </tr>
                 </thead>
@@ -46,6 +49,9 @@
                     <tr>
                         <td>${member.getNetId()}</td>
                         <td>${member.getName()}</td>
+            [#if group?? && group?has_content]
+                        <td>${member.getStudentNumber()!"-"}</td>
+            [/#if]
                         <td><a href="mailto:${member.getEmail()}">${member.getEmail()}</a></td>
                     </tr>
             [/#list]

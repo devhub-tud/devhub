@@ -68,8 +68,8 @@
 					<label for="status" class="col-sm-2 control-label">${i18n.translate("delivery.status")}</label>
 					<div class="col-sm-10">
 						<select form="create-issue-form" class="form-control" name="status" id="status">
-							<option value="open" [#if issue?? && issue.open]selected[/#if]>${i18n.translate("label.open")}</option>
-							<option value="closed" [#if issue?? && !issue.open]selected[/#if]>${i18n.translate("label.closed")}</option>
+							<option value="true" [#if issue?? && issue.open]selected[/#if]>${i18n.translate("label.open")}</option>
+							<option value="false" [#if issue?? && !issue.open]selected[/#if]>${i18n.translate("label.closed")}</option>
 						</select>
 					</div>
 				</div>

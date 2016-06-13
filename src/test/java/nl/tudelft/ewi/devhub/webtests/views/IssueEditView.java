@@ -19,7 +19,7 @@ public class IssueEditView extends AbstractIssueEditView {
 	
 	public AbstractIssueEditView setStatus(String status){
 		Select statusDropdown = new Select(getDriver().findElement(By.id("status")));
-		statusDropdown.selectByValue(status);
+		statusDropdown.selectByVisibleText(status);
 		return this;
 	}
 	

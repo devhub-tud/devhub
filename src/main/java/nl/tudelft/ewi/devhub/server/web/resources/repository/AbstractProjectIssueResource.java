@@ -178,7 +178,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			@FormParam("title") String title,
 			@FormParam("description") String description,
 			@FormParam("assignee") String assigneeNetID,
-			@FormParam("status") String status) throws IOException {
+			@FormParam("status") Boolean status) throws IOException {
 		
 		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
 		
@@ -189,9 +189,9 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		checkCollaborator(assignee);
 		issue.setAssignee(assignee);
 
-		if(status.equals("open")){
+		if(status != null && status){
 			issue.setOpen(true);
-		} else if (status.equals("closed")) {
+		} else if (status != null && !status) {
 			issue.setOpen(false);
 			issue.setClosed(new Date());
 		}

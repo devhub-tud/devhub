@@ -92,7 +92,7 @@ public class IssuesTest extends WebTest {
 		editView.setDescription(descriptionEdited);
 		editView.setAssignee(NET_ID);
 		
-		editView.setStatus("closed");
+		editView.setStatus("Closed");
 		IssueOverviewView newDetailsView = editView.save();
 		this.waitForCondition(10, x -> Dom.isVisible(getDriver(), By.id("timestampClosed")));
 		

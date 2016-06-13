@@ -45,19 +45,12 @@ private static final By CONTRIBUTORS_HEADER = By.xpath("//h4[starts-with(normali
 			if(!first){
 				List<WebElement> entries2 = entry.findElements(By.tagName("td"));
 			
-				String netID = "netID", name = "name", email = "email";
-				int i=0;
-				for(WebElement entry2 : entries2){
-					if(i==0)
-						netID = entry2.getText();
-					if(i==1)
-						name = entry2.getText();
-					if(i==2)
-						email = entry2.getText();
-					i++;
-				}
-			
-				contributors.add(new Contributor(netID, name, email));
+				contributors.add(new Contributor(
+					entries2.get(0).getText(),
+					entries2.get(1).getText(),
+					entries2.get(2).getText(),
+					entries2.get(3).getText()
+				));
 			}
 			first = false;
 		}
@@ -69,7 +62,7 @@ private static final By CONTRIBUTORS_HEADER = By.xpath("//h4[starts-with(normali
 	@Data
 	public class Contributor {
 		
-		private final String netID, name, email;
+		private final String netID, name, studentNumber, email;
 
 	}
 	

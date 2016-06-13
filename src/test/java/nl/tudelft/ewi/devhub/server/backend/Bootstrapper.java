@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
@@ -51,10 +52,12 @@ public class Bootstrapper {
 	}
 	
 	@Data
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	static class BUser {
 		private String name;
 		private String email;
 		private String netId;
+		private String studentNumber;
 		private String password;
 		private boolean admin;
 	}
@@ -145,6 +148,7 @@ public class Bootstrapper {
 			entity.setName(user.getName());
 			entity.setEmail(user.getEmail());
 			entity.setNetId(user.getNetId());
+			entity.setStudentNumber(user.getStudentNumber());
 			entity.setAdmin(user.isAdmin());
 			users.persist(entity);
 			

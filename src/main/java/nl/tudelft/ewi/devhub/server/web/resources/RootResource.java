@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -93,7 +94,8 @@ public class RootResource extends Resource {
 				User currentUser = currentUserProvider.get();
 				if (Strings.isNullOrEmpty(currentUser.getStudentNumber()) &&
 					!currentUser.getGroups().isEmpty()) {
-					return Response.seeOther(new URI(StudyNumberResource.STUDY_NUMBER_PATH)).build();
+					return Response.seeOther(new URI(StudyNumberResource.STUDY_NUMBER_PATH +
+						"?redirect=" + URLEncoder.encode(redirectTo, "UTF-8"))).build();
 				}
 
 				return Response.seeOther(new URI("/" + redirectTo)).build();

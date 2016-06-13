@@ -81,7 +81,14 @@ public class DevhubModule extends ServletModule {
 			.build(GitPushHandlerWorkerFactory.class));
 
 		filter("/*").through(PersistFilter.class);
-		filter("/accounts*", "/build-servers*", "/projects*", "/validation*", "/courses*").through(UserAuthorizeFilter.class);
+		filter(
+			"/accounts*",
+			"/study-number",
+			"/build-servers*",
+			"/projects*",
+			"/validation*",
+			"/courses*"
+		).through(UserAuthorizeFilter.class);
 		filterRegex("^/courses/[^/]+/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
 
 		findResourcesWith(Path.class);

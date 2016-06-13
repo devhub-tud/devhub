@@ -616,7 +616,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
         List<Locale> locales = Collections.list(request.getLocales());
 
-        Map<String, Object> parameters = getBaseParameters();
+        Map<String, Object> parameters;
 
         if (branchDeleteName != null) {
             BranchApi branchApi = repositoryApi.getBranch(branchDeleteName);
@@ -629,8 +629,9 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			} else {
                 // Branch is ahead
                 if (branchDeleteNameConfirmation != null) {
-                    if (branchDeleteName.endsWith(branchDeleteNameConfirmation)
-                            && !branchDeleteName.equals("refs/heads/master")) {
+					String branchSimpleName = branchDeleteName.split("refs/heads/")[1];
+                    if (branchSimpleName.equals(branchDeleteNameConfirmation)
+							&& !branchDeleteName.equals("refs/heads/master")) {
                         // Confirmation is correct and branch is not master, delete ahead branch.
                         branchApi = repositoryApi.getBranch(branchDeleteName);
                         branchModel = branchApi.get();

@@ -84,9 +84,14 @@ public class CommitsView extends ProjectSidebarView {
 	
 	public PullRequestOverViewView openCreatePullRequestView(){
 		invariant();
-		getDriver().findElement(By.cssSelector("button.pull-right")).click();
+		getDriver().findElements(By.cssSelector("button.pull-right")).get(1).click();
 		return new PullRequestOverViewView(getDriver());
-		
+	}
+
+	public DeleteAheadBranchView deleteBranch(){
+		invariant();
+		getDriver().findElements(By.cssSelector("button.pull-right")).get(0).click();
+		return new DeleteAheadBranchView(getDriver());
 	}
 
 	@Data

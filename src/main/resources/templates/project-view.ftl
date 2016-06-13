@@ -58,14 +58,14 @@
 [#elseif deleteStatus??]
     [#if deleteStatus == "success"]
         <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
-            <span>${i18n.translate("group.branch.delete-successful", deletedBranchSimpleName)}</span>
+            <span>${i18n.translate("group.branch.delete-successful", branchSimpleName)}</span>
         </div>
     [#elseif deleteStatus == "confirm" || deleteStatus == "confirmAgain"]
         <div class="alert alert-danger" role="alert" style="clear:both; line-height: 34px;">
             [#if deleteStatus == "confirm"]
-                <span>${i18n.translate("group.branch.delete-ahead-warning", aheadBranchSimpleName)}</span>
+                <span>${i18n.translate("group.branch.delete-ahead-warning", branchSimpleName)}</span>
             [#else]
-                <span>${i18n.translate("group.branch.delete-ahead-warning-again", aheadBranchSimpleName)}</span>
+                <span>${i18n.translate("group.branch.delete-ahead-warning-again", branchSimpleName)}</span>
             [/#if]
             <form method="POST" action="${repositoryEntity.getURI()}branches/delete"
                   target="_self">

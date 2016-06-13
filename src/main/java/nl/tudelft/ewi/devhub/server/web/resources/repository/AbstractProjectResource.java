@@ -158,12 +158,14 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	 *                  <li><b>success</b> means that the branch was successfully deleted</li>
 	 *                  <li><b>error</b> means that an error occurred
 	 *                  <li><b>confirm</b> means that the branch deletion requires confirmation</li>
+	 *                  <li><b>confirmAgain</b> means that the confirmation was wrong and it
+	 *                                needs to be entered again</li>
 	 *                </ul>
      * @return A map containing the response parameters.
      */
-        protected Map<String, Object> getBranchOverviewParameters(String branchName, int page,
-																  String branchDeletionStatus) {
-            RepositoryEntity repositoryEntity = getRepositoryEntity();
+	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page,
+															  String branchDeletionStatus) {
+        RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("repository", repositoryApi.getRepositoryModel());
@@ -618,38 +620,32 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
         Map<String, Object> parameters;
 
-        if (branchDeleteName != null) {
+        if (!(branchDeleteName == null || branchDeleteName.equals("refs/heads/master"))) {
             BranchApi branchApi = repositoryApi.getBranch(branchDeleteName);
 			BranchModel branchModel = branchApi.get();
 
 			if (!branchModel.isAhead()) {
                 // Branch is not ahead and can be safely removed
-				branchApi.deleteBranch();
-				parameters = getBranchOverviewParameters("master", 1, "success");
-			} else {
+				parameters = deleteBranch(branchApi);
+			} else if (branchDeleteNameConfirmation != null) {
                 // Branch is ahead
-                if (branchDeleteNameConfirmation != null) {
-					String branchSimpleName = branchDeleteName.split("refs/heads/")[1];
-                    if (branchSimpleName.equals(branchDeleteNameConfirmation)
-							&& !branchDeleteName.equals("refs/heads/master")) {
-                        // Confirmation is correct and branch is not master, delete ahead branch.
-                        branchApi = repositoryApi.getBranch(branchDeleteName);
-                        branchModel = branchApi.get();
-                        branchApi.deleteBranch();
-                        parameters = getBranchOverviewParameters("master", 1, "success");
-                        parameters.put("deletedBranchSimpleName", branchModel.getSimpleName());
-                    } else {
-                        // Wrong confirmation, prompt user again
-                        parameters = getBranchOverviewParameters("master", 1, "confirmAgain");
-                        parameters.put("aheadBranchName", branchModel.getName());
-                        parameters.put("aheadBranchSimpleName", branchModel.getSimpleName());
-                    }
-                } else {
-                    // Need confirmation to delete this branch
-                    parameters = getBranchOverviewParameters("master", 1, "confirm");
-                    parameters.put("aheadBranchName", branchModel.getName());
-                    parameters.put("aheadBranchSimpleName", branchModel.getSimpleName());
-                }
+				String branchSimpleName = branchDeleteName.split("refs/heads/")[1];
+				if (branchSimpleName.equals(branchDeleteNameConfirmation)) {
+					// Confirmation is correct and branch is not master, delete ahead branch.
+					parameters = deleteBranch(branchApi);
+					parameters.put("branchSimpleName", branchModel.getSimpleName());
+				} else {
+					// Wrong confirmation, prompt user again for confirmation
+					parameters = getBranchOverviewParameters("master", 1, "confirmAgain");
+					parameters.put("aheadBranchName", branchModel.getName());
+					parameters.put("branchSimpleName", branchModel.getSimpleName());
+				}
+			} else {
+				// Received no confirmation to delete branch, ask user to put in the branch
+				// name before deleting branch
+				parameters = getBranchOverviewParameters("master", 1, "confirm");
+				parameters.put("aheadBranchName", branchModel.getName());
+				parameters.put("branchSimpleName", branchModel.getSimpleName());
 			}
         } else {
 			parameters = getBranchOverviewParameters("master", 1, "error");
@@ -658,7 +654,19 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
         return display(templateEngine.process("project-view.ftl", locales, parameters));
 	}
 
-    @GET
+	/**
+	 * Delete the branch and generate parameters to display.
+	 * @param branchApi Branch to be deleted.
+	 * @return Parameters that will show the correct alert when rendering project-view.ftl.
+     */
+	private Map<String, Object> deleteBranch(BranchApi branchApi) {
+		Map<String, Object> parameters;
+		branchApi.deleteBranch();
+		parameters = getBranchOverviewParameters("master", 1, "success");
+		return parameters;
+	}
+
+	@GET
     @Path("/branches/delete")
     @Transactional
     public Response deleteBehindBranchPageReload(@Context HttpServletRequest request) throws URISyntaxException {

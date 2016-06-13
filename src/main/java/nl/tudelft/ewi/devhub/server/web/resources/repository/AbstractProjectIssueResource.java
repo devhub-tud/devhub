@@ -124,7 +124,6 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		checkCollaborator(assignee);
 		
 		issue.setAssignee(assignee);
-		issue.setTimestamp(new Date());
 		issue.setRepository(getRepositoryEntity());
 		
 		issueBackend.createIssue(getRepositoryApi(getRepositoryEntity()), issue);

@@ -1,12 +1,18 @@
 package nl.tudelft.ewi.devhub.webtests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
-
-import com.mchange.util.AssertException;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
@@ -19,17 +25,9 @@ import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.IssueCreateView;
 import nl.tudelft.ewi.devhub.webtests.views.IssueEditView;
 import nl.tudelft.ewi.devhub.webtests.views.IssueOverviewView;
-import nl.tudelft.ewi.devhub.webtests.views.IssueOverviewView.Comment;
 import nl.tudelft.ewi.devhub.webtests.views.IssuesOverviewView;
-import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
-
-import static org.junit.Assert.*;
-
-import java.text.ParseException;
-import java.util.Date;
-import java.util.List;
 
 public class IssuesTest extends WebTest {
 

@@ -32,7 +32,7 @@ public class DeleteAheadBranchView extends ProjectSidebarView {
     }
 
     public DeleteAheadBranchView typeBranchName(String branchName) {
-        getDriver().findElement(By.cssSelector("input[name=branchDeleteNameConfirmation]"))
+        getDriver().findElement(By.cssSelector("input[name=branchNameConf]"))
                 .sendKeys(branchName);
         return new DeleteAheadBranchView(getDriver());
     }

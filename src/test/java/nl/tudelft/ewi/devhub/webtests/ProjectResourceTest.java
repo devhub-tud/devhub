@@ -157,5 +157,4 @@ public class ProjectResourceTest extends WebTest {
         assertEquals(1, deleteAheadBranchView.listBranches().size());
         assertNotEquals(COMMIT_MESSAGE, deleteAheadBranchView.listCommits().get(0).getMessage());
     }
-
 }

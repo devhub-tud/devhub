@@ -109,6 +109,24 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	protected final EditContributorsState editContributorsState;
 	protected final Users users;
 
+	/**
+	 * Used to display different types of alerts on a branch view.
+	 * <ul>
+	 *     <li>SUCCESS: Deletion of a branch was successful.</li>
+	 *     <li>CONFIRM: Prompt the user for confirmation before deleting the branch. This is
+	 *     used on branches that are ahead of master to prevent accidental deletion. The
+	 *     confirmation requires the user to type in the branch name.</li>
+	 *     <li>CONFIRM_AGAIN: The user entered the confirmation wrong. Tell him and prompt
+	 *     again for confirmation.</li>
+	 *     <li>ERROR: Something has gone wrong wile attempting to delete the branch. Either
+	 *     one of the parameters did not get sent correctly, or the user attempted to remove the
+	 *     master branch.</li>
+	 * </ul>
+	 */
+	private enum DELETION_STATUS {
+		SUCCESS, CONFIRM, CONFIRM_AGAIN, ERROR
+	}
+
 	protected AbstractProjectResource(final TemplateEngine templateEngine,
 							final @Named("current.user") User currentUser,
 							final CommentBackend commentBackend,
@@ -153,7 +171,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	 * Generates the parameters for the branch overview.
 	 * @param branchName Name of the branch
 	 * @param page Page number to display
-	 * @param branchDeletionStatus String representing the status of a branch deletion.
+	 * @param branchDeletionStatus Enum representing the status of a branch deletion.
 	 *                <ul>
 	 *                  <li><b>success</b> means that the branch was successfully deleted</li>
 	 *                  <li><b>error</b> means that an error occurred
@@ -164,7 +182,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
      * @return A map containing the response parameters.
      */
 	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page,
-															  String branchDeletionStatus) {
+															  Enum branchDeletionStatus) {
         RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 		Map<String, Object> parameters = getBaseParameters();
@@ -604,12 +622,12 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	}
 
 	@POST
-	@Path("/branches/delete")
+	@Path("/branch/delete")
 	@Transactional
 	public Response deleteBranch(@Context HttpServletRequest request,
-                                 @FormParam("branchDeleteName") String branchDeleteName,
-                                 @FormParam("branchDeleteNameConfirmation")
-                                             String branchDeleteNameConfirmation,
+                                 @FormParam("branchName") String branchName,
+                                 @FormParam("branchNameConf")
+                                             String branchNameConf,
                                  @QueryParam("fatal") String fatal)
 			throws IOException, ApiError {
 
@@ -620,50 +638,28 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
         Map<String, Object> parameters;
 
-        if (!(branchDeleteName == null || branchDeleteName.equals("refs/heads/master"))) {
-            BranchApi branchApi = repositoryApi.getBranch(branchDeleteName);
+        if (!(branchName == null || branchName.equals("refs/heads/master"))) {
+            BranchApi branchApi = repositoryApi.getBranch(branchName);
 			BranchModel branchModel = branchApi.get();
 
 			if (!branchModel.isAhead()) {
-                // Branch is not ahead and can be safely removed
-				parameters = deleteBranch(branchApi);
-			} else if (branchDeleteNameConfirmation != null) {
-                // Branch is ahead
-				String branchSimpleName = branchDeleteName.split("refs/heads/")[1];
-				if (branchSimpleName.equals(branchDeleteNameConfirmation)) {
-					// Confirmation is correct and branch is not master, delete ahead branch.
-					parameters = deleteBranch(branchApi);
-					parameters.put("branchSimpleName", branchModel.getSimpleName());
+				branchApi.deleteBranch();
+				parameters = getBranchOverviewParameters("master", 1, DELETION_STATUS.SUCCESS);
+			} else if (branchNameConf != null) {
+				if (branchNameConf.equals(branchModel.getSimpleName())) {
+					branchApi.deleteBranch();
+					parameters = getBranchOverviewParameters("master", 1, DELETION_STATUS.SUCCESS);
 				} else {
-					// Wrong confirmation, prompt user again for confirmation
-					parameters = getBranchOverviewParameters("master", 1, "confirmAgain");
-					parameters.put("aheadBranchName", branchModel.getName());
-					parameters.put("branchSimpleName", branchModel.getSimpleName());
+					parameters = getBranchOverviewParameters(branchName, 1, DELETION_STATUS.CONFIRM_AGAIN);
 				}
 			} else {
-				// Received no confirmation to delete branch, ask user to put in the branch
-				// name before deleting branch
-				parameters = getBranchOverviewParameters("master", 1, "confirm");
-				parameters.put("aheadBranchName", branchModel.getName());
-				parameters.put("branchSimpleName", branchModel.getSimpleName());
+				parameters = getBranchOverviewParameters(branchName, 1, DELETION_STATUS.CONFIRM);
 			}
         } else {
-			parameters = getBranchOverviewParameters("master", 1, "error");
+			parameters = getBranchOverviewParameters("master", 1, DELETION_STATUS.ERROR);
 		}
 
         return display(templateEngine.process("project-view.ftl", locales, parameters));
-	}
-
-	/**
-	 * Delete the branch and generate parameters to display.
-	 * @param branchApi Branch to be deleted.
-	 * @return Parameters that will show the correct alert when rendering project-view.ftl.
-     */
-	private Map<String, Object> deleteBranch(BranchApi branchApi) {
-		Map<String, Object> parameters;
-		branchApi.deleteBranch();
-		parameters = getBranchOverviewParameters("master", 1, "success");
-		return parameters;
 	}
 
 	@GET

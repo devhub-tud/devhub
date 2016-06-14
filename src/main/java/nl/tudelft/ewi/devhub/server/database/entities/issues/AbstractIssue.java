@@ -77,7 +77,7 @@ public abstract class AbstractIssue implements Event, Base {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date closed;
 
-	// Left away @NotEmpty for now, since existing tests should be updated for it to work
+	@NotEmpty
 	@Column(name="title")
 	private String title;
 

@@ -33,6 +33,8 @@
                 }).bind(this));
 
                 this.$form.find('#btn-cancel').click(this.dismissForm.bind(this));
+                var textArea = this.$form.find('textarea');
+                textArea.bind(showEmojiHint(textArea));
             },
 
             comment: function() {

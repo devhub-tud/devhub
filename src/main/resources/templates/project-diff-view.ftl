@@ -28,7 +28,13 @@
         </div>
 
         <div class="panel panel-default panel-comment-form">
-            <div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
+            <div class="panel-heading">
+                ${i18n.translate("panel.label.add-comment")}
+                <span> - </span>
+                <a href="https://github.com/vdurmont/emoji-java#available-emojis" target="_blank">
+                    ${i18n.translate("panel.label.add-comment-emoji-link")}
+                </a>
+            </div>
             <div class="panel-body">
                 <form class="form-horizontal" id="pull-comment-form" >
                     <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>

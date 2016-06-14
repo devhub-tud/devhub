@@ -864,3 +864,35 @@ img.emoji {
 	margin: 0 !important;
 	display: inline !important;
 }
+
+.textcomplete-dropdown {
+	border: 1px solid #ddd;
+	background-color: white;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	white-space: nowrap;
+	width: auto;
+
+	li {
+		border-top: 1px solid #ddd;
+		padding: 2px 5px;
+		white-space: nowrap;
+	}
+
+	li:first-child {
+		border-top: none;
+	}
+
+	li:hover, .active {
+		background-color: #3699d2;
+
+		a {
+			background-color: inherit;
+		}
+	}
+
+	a:hover {
+		cursor: pointer;
+	}
+}

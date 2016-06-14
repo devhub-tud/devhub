@@ -18,4 +18,46 @@ $(function () {
 	// This parses all unicode emojis to image spans on page load (using size defined above)
 	twemoji.parse(document.body);
 
+	// This shows the emoji hint dropdown when typing a comment
+	$('.panel-comment-form textarea.form-control').each(function() {
+		showEmojiHint(this);
+	});
+
 });
+
+var showEmojiHint = function(textarea) {
+	// Defined by the emojies.json file.
+	$.getJSON("/static/js/emojies.json", function(json) {
+		emojies = json;
+	});
+	$(textarea).textcomplete([
+		{ // emoji strategy
+			match: /(^|\s):(\w*)$/,
+			search: function (term, callback) {
+				term = term.toLowerCase();
+				var regexp = new RegExp('^' + term);
+				callback($.grep(emojies, function (emoji) {
+					var len = emoji.aliases.length,
+						i = 0;
+					for (; i < len; i++) {
+						if (regexp.test(emoji.aliases[i]))
+							return true;
+					}
+					return false;
+				}));
+			},
+			template: function (value, term) {
+				var emojiString = '';
+				value.aliases.forEach(function(alias) {
+					emojiString += ':' + alias + ':, ';
+				});
+				emojiString = emojiString.substring(0, emojiString.length - 2);
+				emojiString += " - " + value.description;
+				return emojiString;
+			},
+			replace: function (value) {
+				return '$1:' + value.aliases[0] + ': ';
+			}
+		}
+	], { maxCount: 8, debounce: 0 });
+};

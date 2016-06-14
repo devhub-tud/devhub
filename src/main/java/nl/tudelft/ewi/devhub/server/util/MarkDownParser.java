@@ -7,21 +7,20 @@ import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 import lombok.NonNull;
-
 import org.parboiled.errors.ParserRuntimeException;
 import org.pegdown.PegDownProcessor;
 
-import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
+
 /**
  * Created by Douwe Koopmans on 1-6-16.
  */
-// TODO: 2-6-16 add preview panel when writing markdown
 public final class MarkDownParser implements TemplateDirectiveModel {
 
     private final PegDownProcessor pegDownProcessor;

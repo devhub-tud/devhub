@@ -31,3 +31,6 @@
 [submodule "src/main/resources/static/vendor/angular-chart"]
 	path = src/main/resources/static/vendor/angular-chart
 	url = https://github.com/jtblin/angular-chart.js.git
+[submodule "src/main/resources/static/vendor/twemoji"]
+	path = src/main/resources/static/vendor/twemoji
+	url = https://github.com/twitter/twemoji.git

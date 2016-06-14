@@ -12,4 +12,10 @@ $(function () {
 		});
 	});
 
+	// Size can be set to 16x16, 36x36, or 72x72
+	twemoji.size = '16x16';
+
+	// This parses all unicode emojis to image spans on page load (using size defined above)
+	twemoji.parse(document.body);
+
 });

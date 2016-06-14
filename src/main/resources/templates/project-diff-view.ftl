@@ -56,7 +56,7 @@
                 '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
                     '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
                 '<div class="panel-body">'+
-                 res.formattedContent +
+                 twemoji.parse(res.formattedContent) +
                '</div>'+
                 '</div>').appendTo('#comment-list');
                 // Clear input

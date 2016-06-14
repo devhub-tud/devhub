@@ -9,6 +9,8 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class DiffInCommitViewTest extends WebTest {
@@ -17,6 +19,10 @@ public class DiffInCommitViewTest extends WebTest {
     private static final By COMMENT_BODY = By.className("panel-body");
     private static final By INLINE_COMMENT_BUTTON = By.className("btn-comment");
     private static final By DIFF_COMMENT_LIST = By.id("comment-list");
+    private static final String EXPECTED_IMG_URL_FIRST_COMMENT = "http://twemoji.maxcdn.com/16x16/1f44d.png";
+    private static final String EXPECTED_IMG_URL_SECOND_COMMENT = "http://twemoji.maxcdn.com/16x16/1f600.png";
+    private static final String FIRST_COMMENT_TEXT = ":+1:";
+    private static final String SECOND_COMMENT_TEXT = ":grinning:";
 
     @Test
     public void testEmojiCommentInline() {
@@ -35,19 +41,36 @@ public class DiffInCommitViewTest extends WebTest {
 
         assertThat("Diff should have at least 2 lines changed for tests to work", diffLines >= 2);
 
-        commitView = commitView.postInlineComment(0, 0, ":+1:");
-        this.waitForCondition(5, webDriver -> {
-            WebElement comment = webDriver.findElement(INLINE_DIFF_COMMENT);
-            String commentText = comment.findElement(COMMENT_BODY).getText();
-            return commentText.charAt(0) == '\uD83D' && commentText.charAt(1) == '\uDC4D';
+        commitView = commitView.postInlineComment(0, 0, FIRST_COMMENT_TEXT);
+        waitForCondition(5, webDriver -> {
+            String imgUrl = webDriver.findElement(INLINE_DIFF_COMMENT)
+                    .findElement(COMMENT_BODY)
+                    .findElement(By.tagName("img"))
+                    .getAttribute("src");
+            return imgUrl.equals(EXPECTED_IMG_URL_FIRST_COMMENT);
         });
 
-        commitView.postInlineComment(diffs.size() / 2, diffLines / 2, ":grinning:");
-        this.waitForCondition(5, webDriver -> {
-            WebElement comment = webDriver.findElements(INLINE_DIFF_COMMENT).get(1);
-            String commentText = comment.findElement(COMMENT_BODY).getText();
-            return commentText.charAt(0) == '\uD83D' && commentText.charAt(1) == '\uDE00';
+        commitView.postInlineComment(diffs.size() / 2, diffLines / 2, SECOND_COMMENT_TEXT);
+        waitForCondition(5, webDriver -> {
+            String imgUrl = webDriver.findElements(INLINE_DIFF_COMMENT).get(1)
+                    .findElement(COMMENT_BODY)
+                    .findElement(By.tagName("img"))
+                    .getAttribute("src");
+            return imgUrl.equals(EXPECTED_IMG_URL_SECOND_COMMENT);
         });
+
+        commitView.reloadPage();
+        String imgUrl = getDriver().findElement(INLINE_DIFF_COMMENT)
+                .findElement(COMMENT_BODY)
+                .findElement(By.tagName("img"))
+                .getAttribute("src");
+        assertEquals(EXPECTED_IMG_URL_FIRST_COMMENT, imgUrl);
+
+        imgUrl = getDriver().findElements(INLINE_DIFF_COMMENT).get(1)
+                .findElement(COMMENT_BODY)
+                .findElement(By.tagName("img"))
+                .getAttribute("src");
+        assertEquals(EXPECTED_IMG_URL_SECOND_COMMENT, imgUrl);
     }
 
     @Test
@@ -61,16 +84,35 @@ public class DiffInCommitViewTest extends WebTest {
                 .listCommits()
                 .get(0).click();
 
-        commitView = commitView.postCommentOnDiff(":+1:");
-        this.waitForCondition(5, webDriver -> {
-            WebElement comment = webDriver.findElement(DIFF_COMMENT_LIST).findElement(COMMENT_BODY);
-            return comment.getText().charAt(0) == '\uD83D' && comment.getText().charAt(1) == '\uDC4D';
+        commitView = commitView.postCommentOnDiff(FIRST_COMMENT_TEXT);
+        waitForCondition(5, webDriver -> {
+            String imgUrl = webDriver.findElement(DIFF_COMMENT_LIST)
+                    .findElement(COMMENT_BODY)
+                    .findElement(By.tagName("img"))
+                    .getAttribute("src");
+            return imgUrl.equals(EXPECTED_IMG_URL_FIRST_COMMENT);
         });
 
-        commitView.postCommentOnDiff(":grinning:");
-        this.waitForCondition(5, webDriver -> {
-            WebElement comment = webDriver.findElement(DIFF_COMMENT_LIST).findElements(COMMENT_BODY).get(1);
-            return comment.getText().charAt(0) == '\uD83D' && comment.getText().charAt(1) == '\uDE00';
+        commitView.postCommentOnDiff(SECOND_COMMENT_TEXT);
+        waitForCondition(5, webDriver -> {
+            String imgUrl = webDriver.findElement(DIFF_COMMENT_LIST)
+                    .findElements(COMMENT_BODY).get(1)
+                    .findElement(By.tagName("img"))
+                    .getAttribute("src");
+            return imgUrl.equals(EXPECTED_IMG_URL_SECOND_COMMENT);
         });
+
+        commitView.reloadPage();
+        String imgUrl = getDriver().findElement(DIFF_COMMENT_LIST)
+                .findElement(COMMENT_BODY)
+                .findElement(By.tagName("img"))
+                .getAttribute("src");
+        assertEquals(EXPECTED_IMG_URL_FIRST_COMMENT, imgUrl);
+
+        imgUrl = getDriver().findElement(DIFF_COMMENT_LIST)
+                .findElements(COMMENT_BODY).get(1)
+                .findElement(By.tagName("img"))
+                .getAttribute("src");
+        assertEquals(EXPECTED_IMG_URL_SECOND_COMMENT, imgUrl);
     }
 }

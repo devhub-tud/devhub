@@ -67,5 +67,12 @@ public class DiffInCommitView extends ProjectInCommitView {
 
 		return new DiffInCommitView(getDriver());
 	}
+
+	public DiffInCommitView reloadPage() {
+		invariant();
+		getDriver().navigate().refresh();
+		invariant(); // Should still be on the same page
+		return new DiffInCommitView(getDriver());
+	}
 	
 }

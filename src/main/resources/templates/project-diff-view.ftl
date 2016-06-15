@@ -90,6 +90,7 @@
                         '</div>' +
                         '</div>').appendTo('.panel-comment-form .panel-body');
                 }
+                twemoji.parse(document.body);
                 event.preventDefault();
             });
         });

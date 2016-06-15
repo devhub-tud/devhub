@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
+import com.vdurmont.emoji.EmojiParser;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
@@ -123,7 +124,7 @@ public class RootResource extends Resource {
 	@Produces(MediaType.TEXT_HTML)
 	public String getCommentPreview(@Context HttpServletRequest request,
 	                                @DefaultValue("Hello World!") @QueryParam("content") String content) {
-		String result = content;
+		String result = EmojiParser.parseToUnicode(content);
 
 		result = markDownParser.markdownToHtml(result);
 		return result;

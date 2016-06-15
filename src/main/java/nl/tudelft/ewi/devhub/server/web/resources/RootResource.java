@@ -122,7 +122,7 @@ public class RootResource extends Resource {
 	@Path("/comment/preview")
 	@Produces(MediaType.TEXT_HTML)
 	public String getCommentPreview(@Context HttpServletRequest request,
-	                                @DefaultValue("Hello World!") @QueryParam("content") String content) {
+	                                @QueryParam("content") String content) {
 		String result = content;
 
 		result = markDownParser.markdownToHtml(result);

@@ -49,6 +49,16 @@ public abstract class ProjectSidebarView extends AuthenticatedView {
 	}
 
 	/**
+	 * Navigate to the issues view
+	 * @return A {@link IssuesOverviewView} instance.
+	 */
+	public IssuesOverviewView toIssuesView() {
+		getDriver().findElement(By.linkText("Issues")).click();
+		return new IssuesOverviewView(getDriver());
+		
+	}
+
+	/**
 	 * Navigate to the contributors view.
 	 * @return A {@link ContributorsView} instance.
 	 */

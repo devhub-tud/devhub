@@ -1,17 +1,13 @@
 package nl.tudelft.ewi.devhub.server.web.templating;
 
-import freemarker.cache.FileTemplateLoader;
-import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
-import lombok.SneakyThrows;
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.template.*;
+import lombok.SneakyThrows;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -20,15 +16,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 public class TemplateEngine {
 
 	private final Configuration conf;
 	private final TranslatorFactory translatorFactory;
+	private final MarkDownParser markDownParser;
+
 
 	@Inject
 	@SneakyThrows
-	public TemplateEngine(@Named("directory.templates") final File templatesDirectory, TranslatorFactory translatorFactory) {
+	public TemplateEngine(
+		@Named("directory.templates") final File templatesDirectory,
+		TranslatorFactory translatorFactory,
+		MarkDownParser markDownParser
+	) {
 		this.translatorFactory = translatorFactory;
+		this.markDownParser = markDownParser;
 		this.conf = new Configuration() {
 			{
 				setDirectoryForTemplateLoading(templatesDirectory);
@@ -38,7 +44,7 @@ public class TemplateEngine {
 				setTemplateLoader(new FileTemplateLoader(templatesDirectory) {
 					public Reader getReader(Object templateSource, String encoding) throws IOException {
 						return new WrappedReader(super.getReader(templateSource, encoding), "[#escape x as x?html]", "[/#escape]");
-					};
+					}
 				});
 			}
 		};
@@ -54,6 +60,8 @@ public class TemplateEngine {
 		try {
 			Builder<String, Object> builder = ImmutableMap.<String, Object> builder();
 			builder.put("i18n", translator);
+			builder.put("MarkDownParser", markDownParser);
+
 			if (parameters != null) {
 				builder.putAll(parameters);
 			}

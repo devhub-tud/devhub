@@ -14,6 +14,8 @@ public class CommentResponse {
 
     private String content;
 
+    private String formattedContent;
+
     private long commentId;
 
 }

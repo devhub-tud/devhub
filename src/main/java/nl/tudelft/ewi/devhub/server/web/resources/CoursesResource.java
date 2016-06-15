@@ -7,6 +7,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
@@ -17,6 +18,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -66,6 +68,9 @@ public class CoursesResource extends Resource {
     @Inject
     private TemplateEngine templateEngine;
 
+    @Context
+    private HttpServletRequest request;
+
     /**
      * Get an course overview. This page lists the participating courses, assisting courses
      * and administrating courses.
@@ -84,10 +89,20 @@ public class CoursesResource extends Resource {
 
     @GET
     @Path("{courseCode}")
-    public Response getCourse(@PathParam("courseCode") String courseCode) {
+    public Response getCourse(@PathParam("courseCode") String courseCode) throws IOException {
         Course course = courses.find(courseCode);
-        CourseEdition courseEdition = courseEditions.getActiveCourseEdition(course);
-        return redirect(courseEdition.getURI());
+
+        if(!(currentUser.isAdmin() || course.getEditions().stream().anyMatch(currentUser::isAssisting))) {
+            CourseEdition courseEdition = courseEditions.getActiveCourseEdition(course);
+            return redirect(courseEdition.getURI());
+        }
+
+        Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("course", course);
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("course-view.ftl", locales, parameters));
     }
 
     /**

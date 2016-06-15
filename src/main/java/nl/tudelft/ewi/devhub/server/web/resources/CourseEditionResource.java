@@ -103,7 +103,7 @@ public class CourseEditionResource extends Resource {
 		parameters.put("groups", courseEdition.getGroups());
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("course-view.ftl", locales, parameters));
+		return display(templateEngine.process("course-edition-view.ftl", locales, parameters));
 	}
 
 	/**

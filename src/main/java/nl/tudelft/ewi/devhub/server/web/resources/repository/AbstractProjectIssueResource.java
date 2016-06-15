@@ -124,6 +124,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			User assignee = users.findByNetId(assigneeNetID);
 			checkCollaborator(assignee);
 			issue.setAssignee(assignee);
+		} else {
+			issue.setAssignee(null);
 		}
 		
 		issue.setRepository(getRepositoryEntity());
@@ -191,6 +193,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			User assignee = users.findByNetId(assigneeNetID);
 			checkCollaborator(assignee);
 			issue.setAssignee(assignee);
+		} else {
+			issue.setAssignee(null);
 		}
 		if(status != null && status){
 			issue.setOpen(true);

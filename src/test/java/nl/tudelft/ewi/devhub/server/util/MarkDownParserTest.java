@@ -1,7 +1,6 @@
 package nl.tudelft.ewi.devhub.server.util;
 
 import org.jukito.JukitoRunner;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,7 +45,6 @@ public class MarkDownParserTest {
 		assertEquals(expectedHtml, markDownParser.markdownToHtml("\\<script\\>" + script + "\\</script\\>"));
 	}
 
-	@Ignore
 	@Test
 	public void testCodeblock() {
 		String codeBlock =
@@ -55,7 +53,7 @@ public class MarkDownParserTest {
 				"```";
 		String expectedHtml =
 				"<p><code>\n" +
-				"System.out.println(\"Hello World!\");\n" +
+				"System.out.println(&quot;Hello World!&quot;);\n" +
 				"</code></p>";
 
 		assertEquals(expectedHtml, markDownParser.markdownToHtml(codeBlock));

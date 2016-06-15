@@ -5,8 +5,11 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueLabels;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
 /**
@@ -17,12 +20,16 @@ import nl.tudelft.ewi.git.web.api.RepositoryApi;
 @Slf4j
 public class IssueBackend {
 	
-	private final Issues issues;
+	private final Issues issues;	
+
+	private final IssueLabels issueLabels;
 	
 	@Inject
-	public IssueBackend(final Issues issues){
+	public IssueBackend(final Issues issues, final IssueLabels issueLabels){
 		Preconditions.checkNotNull(issues);
+		Preconditions.checkNotNull(issueLabels);
 		this.issues = issues;
+		this.issueLabels = issueLabels;
 	}
 	
 	/**
@@ -35,5 +42,24 @@ public class IssueBackend {
 		log.info("Persisting issue {}", issue);
 		issues.persist(issue);
 	}
+	
+	@Transactional
+	public IssueLabel addIssueLabelToRepository(RepositoryEntity repository, String tag, int color){
+		log.info("Adding label {} to repository {}", tag, repository);
+		IssueLabel label = new IssueLabel();
+		label.setColor(color);
+		label.setRepository(repository);
+		label.setTag(tag);
+		issueLabels.persist(label);
+		repository.getLabels().add(label);
+		return label;
+	}
+	
+	@Transactional
+	public void addLabelToIssue(Issue issue, IssueLabel label){
+		log.info("Adding label {} to issue {}", label, issue);
+		issue.getLabels().add(label);
+	}
+	
 
 }

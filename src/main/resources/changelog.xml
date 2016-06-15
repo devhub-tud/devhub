@@ -1035,7 +1035,7 @@
 	
 	<changeSet id="add_issue_labels" author="Aron Zwaan">	
 		<createTable tableName="repository_labels">
-			<column name="label_id" type="bigint">
+			<column name="label_id" type="bigint" autoIncrement="true" >
 				<constraints primaryKey="true" nullable="false" />
 			</column>
 			<column name="repository_id" type="bigint">

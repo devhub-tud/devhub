@@ -15,6 +15,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
+import com.google.common.collect.Lists;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -85,7 +87,7 @@ public abstract class RepositoryEntity implements Configurable, Base {
 	private List<PullRequest> pullRequests;
 	
 	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-	private List<IssueLabel> labels;
+	private List<IssueLabel> labels = Lists.newArrayList();
 
     /**
      * @return a list of collaborators for this repository.

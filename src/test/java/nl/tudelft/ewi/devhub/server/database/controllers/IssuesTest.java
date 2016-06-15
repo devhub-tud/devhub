@@ -1,27 +1,29 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import lombok.Getter;
+import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.EntityManager;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
@@ -33,6 +35,15 @@ public class IssuesTest extends PersistedBackendTest {
 
 	@Inject
 	private Issues issues;
+	
+	@Inject
+	private IssueLabels issueLabels;
+	
+	@Inject
+	private EntityManager entityManager;
+	
+	@Inject
+	private IssueBackend issueBackend;
 
 	private User user1;
 	private User user2;
@@ -112,6 +123,33 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		assertEquals(1, issueQueryResult.size());
 		issueEquals(issue1, issueQueryResult.get(0));
+	}
+
+	
+	@Test
+	public void testAddLabel() {
+		
+		IssueLabel issueLabel = issueBackend.addIssueLabelToRepository(group.getRepository(), "My Label", 0xcccccc);
+		issueBackend.addLabelToIssue(issue1, issueLabel);
+		
+		clearEntityManager();
+		issue1 = issues.findIssueById(group.getRepository(), issue1.getIssueId()).get(0);
+		
+		assertEquals(1, issue1.getLabels().size());
+		
+		IssueLabel label = issue1.getLabels().iterator().next();
+		assertSame(issueLabel, label);
+		
+		assertEquals(1, group.getRepository().getLabels().size());
+		
+		label = group.getRepository().getLabels().iterator().next();
+		assertSame(issueLabel, label);
+		
+	}
+	
+	@Transactional
+	public void clearEntityManager(){
+		entityManager.flush();
 	}
 
 	private static void issueEquals(Issue expected, Issue actual) {

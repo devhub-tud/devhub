@@ -16,6 +16,8 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import com.google.common.collect.Sets;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.FetchType;
@@ -103,7 +105,7 @@ public abstract class AbstractIssue implements Event, Base {
 			@JoinColumn(name = "label_id", nullable = false, updatable = false) 
 		}
 	)
-	private Set<IssueLabel> labels;
+	private Set<IssueLabel> labels = Sets.newHashSet();
 
     /**
      * @return true if the pull request is closed

@@ -111,20 +111,30 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
 	/**
 	 * Used to display different types of alerts on a branch view.
-	 * <ul>
-	 *     <li>SUCCESS: Deletion of a branch was successful.</li>
-	 *     <li>CONFIRM: Prompt the user for confirmation before deleting the branch. This is
-	 *     used on branches that are ahead of master to prevent accidental deletion. The
-	 *     confirmation requires the user to type in the branch name.</li>
-	 *     <li>CONFIRM_AGAIN: The user entered the confirmation wrong. Tell him and prompt
-	 *     again for confirmation.</li>
-	 *     <li>ERROR: Something has gone wrong wile attempting to delete the branch. Either
-	 *     one of the parameters did not get sent correctly, or the user attempted to remove the
-	 *     master branch.</li>
-	 * </ul>
 	 */
-	private enum DELETION_STATUS {
-		SUCCESS, CONFIRM, CONFIRM_AGAIN, ERROR
+	private enum DeletionStatus {
+		/**
+		 * Deletion of a branch was successful.
+		 */
+		SUCCESS,
+		/**
+		 * Prompt the user for confirmation before deleting the branch. This is
+		 * used on branches that are ahead of master to prevent accidental deletion. The
+		 * confirmation requires the user to type in the branch name.
+		 */
+		CONFIRM,
+		/**
+		 * The user entered the confirmation wrong. Tell him and prompt
+		 * again for confirmation.
+		 */
+		CONFIRM_AGAIN,
+		/**
+		 * Something has gone wrong wile attempting to delete the branch. Either
+		 * one of the parameters did not get sent correctly, or the user attempted to remove the
+		 * master branch.
+		 */
+		ERROR
+
 	}
 
 	protected AbstractProjectResource(final TemplateEngine templateEngine,
@@ -172,17 +182,10 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	 * @param branchName Name of the branch
 	 * @param page Page number to display
 	 * @param branchDeletionStatus Enum representing the status of a branch deletion.
-	 *                <ul>
-	 *                  <li><b>success</b> means that the branch was successfully deleted</li>
-	 *                  <li><b>error</b> means that an error occurred
-	 *                  <li><b>confirm</b> means that the branch deletion requires confirmation</li>
-	 *                  <li><b>confirmAgain</b> means that the confirmation was wrong and it
-	 *                                needs to be entered again</li>
-	 *                </ul>
      * @return A map containing the response parameters.
      */
 	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page,
-															  Enum branchDeletionStatus) {
+	                                                          DeletionStatus branchDeletionStatus) {
         RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 		Map<String, Object> parameters = getBaseParameters();
@@ -644,19 +647,19 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
 			if (!branchModel.isAhead()) {
 				branchApi.deleteBranch();
-				parameters = getBranchOverviewParameters("master", 1, DELETION_STATUS.SUCCESS);
+				parameters = getBranchOverviewParameters("master", 1, DeletionStatus.SUCCESS);
 			} else if (branchNameConf != null) {
 				if (branchNameConf.equals(branchModel.getSimpleName())) {
 					branchApi.deleteBranch();
-					parameters = getBranchOverviewParameters("master", 1, DELETION_STATUS.SUCCESS);
+					parameters = getBranchOverviewParameters("master", 1, DeletionStatus.SUCCESS);
 				} else {
-					parameters = getBranchOverviewParameters(branchName, 1, DELETION_STATUS.CONFIRM_AGAIN);
+					parameters = getBranchOverviewParameters(branchName, 1, DeletionStatus.CONFIRM_AGAIN);
 				}
 			} else {
-				parameters = getBranchOverviewParameters(branchName, 1, DELETION_STATUS.CONFIRM);
+				parameters = getBranchOverviewParameters(branchName, 1, DeletionStatus.CONFIRM);
 			}
         } else {
-			parameters = getBranchOverviewParameters("master", 1, DELETION_STATUS.ERROR);
+			parameters = getBranchOverviewParameters("master", 1, DeletionStatus.ERROR);
 		}
 
         return display(templateEngine.process("project-view.ftl", locales, parameters));

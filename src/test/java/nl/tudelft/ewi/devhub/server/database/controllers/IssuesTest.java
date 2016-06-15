@@ -130,6 +130,7 @@ public class IssuesTest extends PersistedBackendTest {
 		GroupRepository groupRepository = group.getRepository();
 		
 		Issue issue = new Issue();
+		issue.setTitle("Issue x");
 		issue.setRepository(groupRepository);
 		issue.setOpen(true);
 		issue.setAssignee(user);

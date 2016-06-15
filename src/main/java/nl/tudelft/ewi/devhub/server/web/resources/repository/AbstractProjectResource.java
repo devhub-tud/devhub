@@ -109,6 +109,34 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	protected final EditContributorsState editContributorsState;
 	protected final Users users;
 
+	/**
+	 * Used to display different types of alerts on a branch view.
+	 */
+	private enum DeletionStatus {
+		/**
+		 * Deletion of a branch was successful.
+		 */
+		SUCCESS,
+		/**
+		 * Prompt the user for confirmation before deleting the branch. This is
+		 * used on branches that are ahead of master to prevent accidental deletion. The
+		 * confirmation requires the user to type in the branch name.
+		 */
+		CONFIRM,
+		/**
+		 * The user entered the confirmation wrong. Tell him and prompt
+		 * again for confirmation.
+		 */
+		CONFIRM_AGAIN,
+		/**
+		 * Something has gone wrong wile attempting to delete the branch. Either
+		 * one of the parameters did not get sent correctly, or the user attempted to remove the
+		 * master branch.
+		 */
+		ERROR
+
+	}
+
 	protected AbstractProjectResource(final TemplateEngine templateEngine,
 							final @Named("current.user") User currentUser,
 							final CommentBackend commentBackend,
@@ -153,13 +181,12 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	 * Generates the parameters for the branch overview.
 	 * @param branchName Name of the branch
 	 * @param page Page number to display
-	 * @param branchDeletion Boolean value to indicate successfull branch deletion. <b>TRUE</b>
-	 *                          means success, <b>FALSE</b> means failure. <b>NULL</b> means no
-	 *                          branch deletion occurred.
+	 * @param branchDeletionStatus Enum representing the status of a branch deletion.
      * @return A map containing the response parameters.
      */
-        protected Map<String, Object> getBranchOverviewParameters(String branchName, int page, Boolean branchDeletion) {
-            RepositoryEntity repositoryEntity = getRepositoryEntity();
+	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page,
+	                                                          DeletionStatus branchDeletionStatus) {
+        RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("repository", repositoryApi.getRepositoryModel());
@@ -188,8 +215,8 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			} else throw e;
 		}
 
-		if (branchDeletion != null) {
-			parameters.put("deleteSuccessful", branchDeletion);
+		if (branchDeletionStatus != null) {
+			parameters.put("deleteStatus", branchDeletionStatus);
 		}
 
 		return parameters;
@@ -598,11 +625,13 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	}
 
 	@POST
-	@Path("/branches/delete")
+	@Path("/branch/delete")
 	@Transactional
-	public Response deleteBehindBranch(@Context HttpServletRequest request,
-									   @FormParam("branchDeleteName") String branchDeleteName,
-									   @QueryParam("fatal") String fatal)
+	public Response deleteBranch(@Context HttpServletRequest request,
+                                 @FormParam("branchName") String branchName,
+                                 @FormParam("branchNameConf")
+                                             String branchNameConf,
+                                 @QueryParam("fatal") String fatal)
 			throws IOException, ApiError {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
@@ -610,24 +639,33 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 
         List<Locale> locales = Collections.list(request.getLocales());
 
-        Map<String, Object> parameters = getBaseParameters();
+        Map<String, Object> parameters;
 
-        if (branchDeleteName != null) {
-            BranchApi branchApi = repositoryApi.getBranch(branchDeleteName);
+        if (!(branchName == null || branchName.equals("refs/heads/master"))) {
+            BranchApi branchApi = repositoryApi.getBranch(branchName);
 			BranchModel branchModel = branchApi.get();
 
 			if (!branchModel.isAhead()) {
 				branchApi.deleteBranch();
-				parameters = getBranchOverviewParameters("master", 1, true);
+				parameters = getBranchOverviewParameters("master", 1, DeletionStatus.SUCCESS);
+			} else if (branchNameConf != null) {
+				if (branchNameConf.equals(branchModel.getSimpleName())) {
+					branchApi.deleteBranch();
+					parameters = getBranchOverviewParameters("master", 1, DeletionStatus.SUCCESS);
+				} else {
+					parameters = getBranchOverviewParameters(branchName, 1, DeletionStatus.CONFIRM_AGAIN);
+				}
 			} else {
-				parameters = getBranchOverviewParameters("master", 1, false);
+				parameters = getBranchOverviewParameters(branchName, 1, DeletionStatus.CONFIRM);
 			}
-        }
+        } else {
+			parameters = getBranchOverviewParameters("master", 1, DeletionStatus.ERROR);
+		}
 
         return display(templateEngine.process("project-view.ftl", locales, parameters));
 	}
 
-    @GET
+	@GET
     @Path("/branches/delete")
     @Transactional
     public Response deleteBehindBranchPageReload(@Context HttpServletRequest request) throws URISyntaxException {

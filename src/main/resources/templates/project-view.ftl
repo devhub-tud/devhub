@@ -20,34 +20,65 @@
 [@projectFrameset.renderBreadcrumb i18n group![] repositoryEntity/]
 [/#if]
 
-[#if branch?? && branch.isAhead() ]
+[#if branch?? && branch.isAhead() && !deleteStatus?? ]
     <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
         [#if pullRequest??]
             <span>${i18n.translate("group.branch.pull-request-message")}</span>
             <a href="${pullRequest.getURI()}" class="btn btn-default pull-right">${i18n.translate("group.branch.go-to-pull-request")}</a>
         [#else]
-            <form method="POST" action="${repositoryEntity.getURI()}pull" target="_self">
-                <span>${i18n.translate("group.branch.ahead-message")}</span>
-                <input type="hidden" name="branchName" value="${branch.getName()}"/>
-                <button type="submit" class="btn btn-default pull-right">${i18n.translate("group.branch.create-pull-request")}</button>
-            </form>
+            <span>${i18n.translate("group.branch.ahead-message")}</span>
+            <div class="btn-block">
+                <form method="POST" action="${repositoryEntity.getURI()}branch/delete" target="_self">
+                    <input type="hidden" name="branchName" value="${branch.getName()}"/>
+                    <button type="submit" class="btn btn-default pull-right">
+                        <i class="octicon octicon-trashcan"></i>
+                    ${i18n.translate("group.branch.remove-branch")}
+                    </button>
+                </form>
+                <form method="POST" action="${repositoryEntity.getURI()}pull" target="_self">
+                    <input type="hidden" name="branchName" value="${branch.getName()}"/>
+                    <button type="submit" class="btn btn-default pull-right">
+                        ${i18n.translate("group.branch.create-pull-request")}
+                    </button>
+                </form>
+            </div>
         [/#if]
     </div>
 [#elseif branch?? && branch.isBehind() && !branch.isAhead()]
     <div class="alert alert-warning" role="alert" style="clear:both; line-height: 34px;">
-        <form method="POST" action="${repositoryEntity.getURI()}branches/delete" target="_self">
+        <form method="POST" action="${repositoryEntity.getURI()}branch/delete" target="_self">
             <span>${i18n.translate("group.branch.behind-message")}</span>
-            <input type="hidden" name="branchDeleteName" value="${branch.getName()}"/>
-            [#--TODO: change icon--]
-            <button type="submit" class="btn bnt-default pull-right">${i18n.translate("group.branch.remove-branch")}</button>
+            <input type="hidden" name="branchName" value="${branch.getName()}"/>
+            <button type="submit" class="btn btn-default pull-right">
+                <i class="octicon octicon-trashcan"></i>
+                ${i18n.translate("group.branch.remove-branch")}
+            </button>
         </form>
     </div>
-[#elseif deleteSuccessful??]
-    [#if deleteSuccessful]
+[#elseif deleteStatus??]
+    [#if deleteStatus == "SUCCESS"]
         <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
-            <span>${i18n.translate("group.branch.delete-successful")}</span>
+            <span>${i18n.translate("group.branch.delete-successful", branch.getSimpleName())}</span>
         </div>
-    [#else]
+    [#elseif deleteStatus == "CONFIRM" || deleteStatus == "CONFIRM_AGAIN"]
+        <div class="alert alert-danger" role="alert" style="clear:both; line-height: 34px;">
+            [#if deleteStatus == "CONFIRM"]
+                <span>${i18n.translate("group.branch.delete-ahead-warning", branch.getSimpleName())}</span>
+            [#else]
+                <span>${i18n.translate("group.branch.delete-ahead-warning-again", branch.getSimpleName())}</span>
+            [/#if]
+            <form method="POST" action="${repositoryEntity.getURI()}branch/delete"
+                  target="_self">
+                <input type="hidden" name="branchName" value="${branch.getName()}"/>
+                <input type="text" name="branchNameConf"
+                       placeholder="Type branch name here" />
+                <button type="submit" class="btn btn-default">
+                    <i class="octicon octicon-trashcan"></i>
+                ${i18n.translate("group.branch.remove-branch")}
+                </button>
+            </form>
+        </div>
+    [#elseif deleteStatus == "ERROR"]
         <div class="alert alert-warning" role="alert" style="clear:both; line-height: 34px;">
             <span>${i18n.translate("group.branch.delete-error")}</span>
         </div>

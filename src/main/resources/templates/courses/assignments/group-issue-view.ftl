@@ -90,7 +90,13 @@
 				</div>
 				[#if issue?? && issue?has_content]
 				<div class="col-sm-offset-2 panel panel-default panel-comment-form" style="position: relative">
-					<div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
+                    <div class="panel-heading">
+					${i18n.translate("panel.label.add-comment")}
+                        <span> - </span>
+                        <a href="https://github.com/vdurmont/emoji-java#available-emojis" target="_blank">
+						${i18n.translate("panel.label.add-comment-emoji-link")}
+                        </a>
+                    </div>
 					<div class="panel-body">
 						<textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
 						<button type="submit" class="btn btn-primary pull-right">${i18n.translate("button.label.submit")}</button>

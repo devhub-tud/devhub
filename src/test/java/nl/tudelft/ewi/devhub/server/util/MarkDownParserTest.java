@@ -41,7 +41,7 @@ public class MarkDownParserTest {
 		assertEquals(expectedHtml, markDownParser.markdownToHtml("<script>" + script + "</script>"));
 
 		script = "alert(\\\"Hello World!\\\")";
-		expectedHtml = "<p>&amp;lt;script&amp;gt;alert(&amp;quot;Hello World!&amp;quot;)&amp;lt;/script&amp;gt;</p>";
+		expectedHtml = "<p>&lt;script&gt;alert(&quot;Hello World!&quot;)&lt;/script&gt;</p>";
 		assertEquals(expectedHtml, markDownParser.markdownToHtml("\\<script\\>" + script + "\\</script\\>"));
 	}
 

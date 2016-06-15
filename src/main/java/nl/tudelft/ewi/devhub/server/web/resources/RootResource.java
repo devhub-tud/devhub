@@ -10,6 +10,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.util.Version;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -35,14 +36,16 @@ public class RootResource extends Resource {
 	private final TemplateEngine engine;
 	private final AuthenticationBackend authenticationBackend;
 	private final Provider<User> currentUserProvider;
+	private final MarkDownParser markDownParser;
 
 	@Inject
 	public RootResource(TemplateEngine engine,
 			AuthenticationBackend authenticationBackend,
-			@Named("current.user") Provider<User> currentUserProvider) {
+			@Named("current.user") Provider<User> currentUserProvider, MarkDownParser markDownParser) {
 		this.engine = engine;
 		this.authenticationBackend = authenticationBackend;
 		this.currentUserProvider = currentUserProvider;
+		this.markDownParser = markDownParser;
 	}
 	
 	@GET
@@ -120,8 +123,10 @@ public class RootResource extends Resource {
 	@Produces(MediaType.TEXT_HTML)
 	public String getCommentPreview(@Context HttpServletRequest request,
 	                                @DefaultValue("Hello World!") @QueryParam("content") String content) {
-		// apply any processors for things like markdown and emojis here
-		return content;
+		String result = content;
+
+		result = markDownParser.markdownToHtml(result);
+		return result;
 	}
 
     @GET

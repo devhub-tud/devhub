@@ -18,16 +18,20 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Created by Jan-Willem on 8/11/2015.
@@ -88,6 +92,14 @@ public abstract class AbstractIssue implements Event, Base {
 	@ManyToOne(cascade={CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "assignee")
 	private User assignee;
+	
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JoinTable(name = "issue_labels", joinColumns = { 
+			@JoinColumn(name = "STOCK_ID", nullable = false, updatable = false) }, 
+			inverseJoinColumns = { @JoinColumn(name = "label_id", 
+					nullable = false, updatable = false) })
+	public Set<IssueLabel> labels;
+	
 
     /**
      * @return true if the pull request is closed

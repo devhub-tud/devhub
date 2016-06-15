@@ -13,7 +13,7 @@
   
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-            <h4 style="line-height:34px; margin-top:0;">[#if issue?? && issue?has_content]${i18n.translate("issue.edit")}[#else]${i18n.translate("issue.create")}[/#if]</h4>
+            <h4 style="line-height:34px; margin-top:0;">${i18n.translate("issue.title")}</h4>
         </div>
     </div>
 

@@ -120,10 +120,12 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		issue.setDescription(description);
 		issue.setOpen(true);
 		
-		User assignee = users.findByNetId(assigneeNetID);
-		checkCollaborator(assignee);
+		if (!assigneeNetID.isEmpty()) {
+			User assignee = users.findByNetId(assigneeNetID);
+			checkCollaborator(assignee);
+			issue.setAssignee(assignee);
+		}
 		
-		issue.setAssignee(assignee);
 		issue.setRepository(getRepositoryEntity());
 		
 		issueBackend.createIssue(getRepositoryApi(getRepositoryEntity()), issue);
@@ -185,10 +187,11 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		issue.setTitle(title);
 		issue.setDescription(description);
 		
-		User assignee = users.findByNetId(assigneeNetID);
-		checkCollaborator(assignee);
-		issue.setAssignee(assignee);
-
+		if (!assigneeNetID.isEmpty()) {
+			User assignee = users.findByNetId(assigneeNetID);
+			checkCollaborator(assignee);
+			issue.setAssignee(assignee);
+		}
 		if(status != null && status){
 			issue.setOpen(true);
 		} else if (status != null && !status) {

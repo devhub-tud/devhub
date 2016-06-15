@@ -54,7 +54,7 @@
 						<div class="form-group">
 							<label for="assignee" class="col-sm-2 control-label">${i18n.translate("label.assignee")}</label>
 							<div class="col-sm-10">
-								<p id="assignee" type="text" class="form-control">${issue.assignee.name}</p>
+								<p id="assignee" type="text" class="form-control">[#if issue.assignee??]${issue.assignee.name}[/#if]</p>
 							</div>
 						</div>				
 						<div class="form-group">

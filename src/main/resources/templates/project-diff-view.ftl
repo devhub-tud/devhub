@@ -40,6 +40,7 @@
                     <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
                     <button type="submit" class="btn btn-primary">${i18n.translate("button.label.submit")}</button>
                     <button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>
+                    <button type="button" class="btn btn-default" id="btn-preview">${i18n.translate("button.label.preview")}</button>
                 </form>
             </div>
         </div>
@@ -69,6 +70,28 @@
                 $('[name="content"]', '#pull-comment-form').val('');
             });
             event.preventDefault();
+        });
+    });
+    $(function () {
+        $('#btn-preview').click(function (event) {
+            $.get('/comment/preview', {
+                "content": $('textarea.form-control').val()
+            }).done(function (res) {
+                var previewPanel = $('#preview-panel');
+                if (previewPanel.length){
+                    previewPanel.find('.panel-body:first').empty();
+                    previewPanel.find('.panel-body').append(res);
+                } else {
+                    $('<hr style="border-color: #DDD;">'+
+                        '<div class="panel panel-default" id ="preview-panel">'+
+                        '<div class="panel-heading">Preview</div>'+
+                        '<div class="panel-body">'+
+                        res +
+                        '</div>' +
+                        '</div>').appendTo('.panel-comment-form .panel-body');
+                }
+                event.preventDefault();
+            });
         });
     });
 </script>

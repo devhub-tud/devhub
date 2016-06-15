@@ -68,7 +68,7 @@ public class AbstractProjectPullResourceTest {
 
         projectPullResource = spy(new ProjectPullResource(templateEngine, currentUser, group, null,
                 null, pullRequests, null, repositoriesApi, commentMailer, null,
-                pullRequestComments, null, null, new MarkDownParser(new PegDownProcessor())));
+                pullRequestComments, null, null, new MarkDownParser(new PegDownProcessor()), null));
 
         when(pullRequestComment.getTimestamp()).thenReturn(commentDate);
         when(currentUser.getName()).thenReturn(REPOSITORY_NAME);

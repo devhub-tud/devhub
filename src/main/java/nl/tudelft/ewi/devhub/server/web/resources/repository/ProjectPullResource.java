@@ -7,6 +7,7 @@ import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
@@ -39,9 +40,10 @@ public class ProjectPullResource extends AbstractProjectPullResource {
 							   PullRequestBackend pullRequestBackend, RepositoriesApi repositoriesApi,
 							   CommentMailer commentMailer, PullRequestMailer pullRequestMailer,
 							   PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings,
-							   MarkDownParser markDownParser) {
+							   MarkDownParser markDownParser, Users users) {
 		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend,
-			repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings, markDownParser);
+			repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings,
+			markDownParser, users);
 		this.group = group;
 	}
 

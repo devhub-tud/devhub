@@ -57,7 +57,7 @@ public class Controller<T> {
 		return entity;
 	}
 
-	JPAQuery query() {
+	public JPAQuery query() {
 		return new JPAQuery(entityManager);
 	}
 

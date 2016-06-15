@@ -4,14 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
+import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -29,6 +34,7 @@ import java.util.Date;
  */
 @Data
 @MappedSuperclass
+@ToString(of = {"repository", "issueId"})
 @EqualsAndHashCode(of = {"repository", "issueId"})
 @IdClass(AbstractIssue.IssueId.class)
 public abstract class AbstractIssue implements Event, Base {
@@ -70,6 +76,18 @@ public abstract class AbstractIssue implements Event, Base {
 	@Column(name = "closed_date")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date closed;
+
+	@NotEmpty
+	@Column(name="title")
+	private String title;
+
+	@Column(name="description", nullable=true)
+	@Type(type = "org.hibernate.type.TextType")
+	private String description;
+	
+	@ManyToOne(cascade={CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "assignee")
+	private User assignee;
 
     /**
      * @return true if the pull request is closed

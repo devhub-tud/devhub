@@ -55,7 +55,7 @@ public class Course implements Comparable<Course>, Base {
      * The editions for this course.
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
-    @OrderBy("start_date ASC")
+    @OrderBy("timeSpan.start ASC")
     private List<CourseEdition> editions;
 
     /**

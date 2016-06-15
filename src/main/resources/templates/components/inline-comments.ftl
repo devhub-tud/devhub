@@ -33,6 +33,8 @@
                 }).bind(this));
 
                 this.$form.find('#btn-cancel').click(this.dismissForm.bind(this));
+                var textArea = this.$form.find('textarea');
+                textArea.bind(showEmojiHint(textArea));
             },
 
             comment: function() {
@@ -59,7 +61,7 @@
                     '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
                     '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
                     '<div class="panel-body">'+
-                    '<p>' + (res.htmlForMarkdown ||'') + '</p>'+
+                    '<p>' + (twemoji.parse(res.formattedContent) ||'') + '</p>'+
                     '</div>'+
                     '</div>').appendTo(this.getCommentContainer());
             },

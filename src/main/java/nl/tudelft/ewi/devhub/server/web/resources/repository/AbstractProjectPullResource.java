@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
@@ -125,6 +126,14 @@ public abstract class AbstractProjectPullResource extends Resource {
 		return parameters;
 	}
 
+	public PullRequestComment pullRequestCommentFactory(String content, PullRequest pullRequest) {
+		PullRequestComment comment = new PullRequestComment();
+
+		comment.setContent(content);
+		comment.setPullRequest(pullRequest);
+		return comment;
+	}
+
 	@POST
 	@Path("/pull")
 	@Transactional
@@ -229,10 +238,9 @@ public abstract class AbstractProjectPullResource extends Resource {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
-		PullRequestComment comment = new PullRequestComment();
 
-		comment.setContent(content);
-		comment.setPullRequest(pullRequest);
+		PullRequestComment comment = pullRequestCommentFactory(content, pullRequest);
+
 		comment.setUser(currentUser);
 		pullRequestComments.persist(comment);
 
@@ -241,7 +249,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		response.setName(currentUser.getName());
 		response.setDate(comment.getTimestamp().toString());
 		response.setCommentId(comment.getCommentId());
-        response.setHtmlForMarkdown(markDownParser.markdownToHtml(content));
+		response.setFormattedContent(markDownParser.markdownToHtml(content));
 
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);

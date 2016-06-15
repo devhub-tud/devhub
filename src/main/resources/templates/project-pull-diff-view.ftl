@@ -103,7 +103,13 @@
     </div>
 
     <div class="panel panel-default" style="position: relative">
-        <div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
+        <div class="panel-heading">
+        ${i18n.translate("panel.label.add-comment")}
+            <span> - </span>
+            <a href="https://github.com/vdurmont/emoji-java#available-emojis" target="_blank">
+            ${i18n.translate("panel.label.add-comment-emoji-link")}
+            </a>
+        </div>
         <div class="panel-body">
             <form class="form-horizontal" id="pull-comment-form" >
                 <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
@@ -127,7 +133,7 @@
                         '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
                             '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
                         '<div class="panel-body">'+
-                        '<p>' + res.htmlForMarkdown + '</p>'+
+                        '<p>' + twemoji.parse(res.formattedContent) + '</p>'+
                         '</div>'+
                         '</div>').appendTo('#list-comments');
                         // Clear input

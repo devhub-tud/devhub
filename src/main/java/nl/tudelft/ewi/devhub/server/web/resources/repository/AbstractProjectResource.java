@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.SessionScoped;
+import com.vdurmont.emoji.EmojiParser;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
@@ -167,6 +168,14 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		return parameters;
 	}
 
+	public CommitComment commitCommentFactory(String message, RepositoryEntity repositoryEntity, String linkCommitId) {
+		CommitComment comment = new CommitComment();
+		comment.setContent(message);
+		comment.setCommit(commits.ensureExists(repositoryEntity, linkCommitId));
+		comment.setUser(currentUser);
+		return comment;
+	}
+
 	@GET
 	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request,
@@ -311,10 +320,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		throws IOException, ApiError {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		CommitComment comment = new CommitComment();
-		comment.setContent(message);
-		comment.setCommit(commits.ensureExists(repositoryEntity, linkCommitId));
-		comment.setUser(currentUser);
+		CommitComment comment = commitCommentFactory(message, repositoryEntity, linkCommitId);
 
 		if(sourceCommitId != null) {
 			// In-line comment
@@ -333,7 +339,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		response.setDate(comment.getTimestamp().toString());
 		response.setName(currentUser.getName());
 		response.setCommentId(comment.getCommentId());
-		response.setHtmlForMarkdown(markDownParser.markdownToHtml(message));
+		response.setFormattedContent(markDownParser.markdownToHtml(message));
 
 		return response;
     }

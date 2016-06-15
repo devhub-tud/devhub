@@ -133,7 +133,7 @@ public class GroupCourseEnrollTest extends WebTest {
         GroupEnrollView groupView = course.clickEnroll()
                 .setMemberField(2, OTHER_STUDENT_ID);
 
-        this.waitForCondition(5000, webDriver -> {
+        this.waitForCondition(5, webDriver -> {
             WebElement nextBtn = getDriver().findElement(NEXT_BUTTON);
             return nextBtn.isEnabled();
         });

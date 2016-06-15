@@ -14,7 +14,7 @@ public class CommentResponse {
 
     private String content;
 
-    private String htmlForMarkdown;
+    private String formattedContent;
 
     private long commentId;
 

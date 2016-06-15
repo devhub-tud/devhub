@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.util;
 
 import com.google.common.html.HtmlEscapers;
+import com.vdurmont.emoji.EmojiParser;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
@@ -38,8 +39,8 @@ public final class MarkDownParser implements TemplateDirectiveModel {
      * @throws NullPointerException when the given markdown string input is null
      */
     public @NotNull String markdownToHtml(@NonNull final String md) throws NullPointerException {
-        final String escapedMd = HtmlEscapers.htmlEscaper().escape(md);
-
+        String escapedMd = HtmlEscapers.htmlEscaper().escape(md);
+        escapedMd = EmojiParser.parseToUnicode(escapedMd);
         try {
             return pegDownProcessor.markdownToHtml(escapedMd);
         }

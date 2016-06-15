@@ -1032,5 +1032,42 @@
 			baseTableName="repository_issue_comments" 
 			baseColumnNames="repository_id, issue_id"/>
 	</changeSet>
+	
+	<changeSet id="add_issue_labels" author="Aron Zwaan">	
+		<createTable tableName="repository_labels">
+			<column name="label_id" type="bigint">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="tag" type="varchar(64)" />
+			<column name="color" type="int" />
+		</createTable>
+		
+		<createTable tableName="issue_labels">
+			<column name="label_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint referencedTableName="repository_issues" 
+			referencedColumnNames="repository_id, issue_id" 
+			constraintName="repository_for_label" 
+			baseTableName="issue_labels" 
+			baseColumnNames="repository_id, issue_id"/>
+			
+		<addForeignKeyConstraint referencedTableName="repository_labels" 
+			referencedColumnNames="label_id" 
+			constraintName="issue_for_label" 
+			baseTableName="issue_labels" 
+			baseColumnNames="label_id"/>
+	</changeSet>
 
 </databaseChangeLog>

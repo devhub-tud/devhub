@@ -26,19 +26,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString(includeFieldNames=true)
-@IdClass(IssueLabel.LabelId.class)
 public class IssueLabel {
-	
-    @Data
-    @NoArgsConstructor
-	@AllArgsConstructor
-    public static class LabelId implements Serializable {
-
-        private long repository;
-
-        private long labelId;
-
-    }
    
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,10 +37,10 @@ public class IssueLabel {
 	@JoinColumn(name = "repository_id")
     private RepositoryEntity repository;
 	
-	@Column(name="label_tag")
+	@Column(name="tag")
 	private String tag;
 	
-	@Column(name="label_color")
+	@Column(name="color")
 	private int color;
 
 }

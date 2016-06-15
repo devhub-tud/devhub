@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 import com.google.common.base.Strings;
@@ -109,26 +110,35 @@ public class DiffElement {
 
 			for(WebElement tr : rows) {
 				List<WebElement> columns = tr.findElements(By.tagName("td"));
-				assertEquals("Expected three columns per row", 3, columns.size());
+				WebElement commentBox = null;
+				try {
+					commentBox = columns.get(0).findElement(By.cssSelector("div.panel.panel-comment"));
+				} catch(NoSuchElementException ignored) {}
 
-				String oldLineNumberStr = columns.get(0).getText();
-				String newLineNumberStr = columns.get(1).getText();
-				Integer oldLineNumber = Strings.isNullOrEmpty(oldLineNumberStr) ? null : Integer.parseInt(oldLineNumberStr);
-				Integer newLineNumber = Strings.isNullOrEmpty(newLineNumberStr) ? null : Integer.parseInt(newLineNumberStr);
+				if (commentBox == null) {
+					assertEquals("Expected three columns per row", 3, columns.size());
 
-				String sourceCommitId = tr.getAttribute("data-source-commit");
-				Integer sourceLineNumber = Integer.parseInt(tr.getAttribute("data-source-line-number"));
-				String sourcePath = tr.getAttribute("data-source-file-name");
-				String content = columns.get(2).getText();
-				DiffBlameModel.DiffBlameLine line = new DiffBlameModel.DiffBlameLine();
+					String oldLineNumberStr = columns.get(0).getText();
+					String newLineNumberStr = columns.get(1).getText();
+					Integer oldLineNumber = Strings.isNullOrEmpty(oldLineNumberStr) ? null : Integer.parseInt(oldLineNumberStr);
+					Integer newLineNumber = Strings.isNullOrEmpty(newLineNumberStr) ? null : Integer.parseInt(newLineNumberStr);
 
-				line.setSourceCommitId(sourceCommitId);
-				line.setSourceFilePath(sourcePath);
-				line.setSourceLineNumber(sourceLineNumber);
-				line.setOldLineNumber(oldLineNumber);
-				line.setNewLineNumber(newLineNumber);
-				line.setContent(content);
-				diffLines.add(line);
+					String sourceCommitId = tr.getAttribute("data-source-commit");
+					Integer sourceLineNumber = Integer.parseInt(tr.getAttribute("data-source-line-number"));
+					String sourcePath = tr.getAttribute("data-source-file-name");
+					String content = columns.get(2).getText();
+					DiffBlameModel.DiffBlameLine line = new DiffBlameModel.DiffBlameLine();
+
+					line.setSourceCommitId(sourceCommitId);
+					line.setSourceFilePath(sourcePath);
+					line.setSourceLineNumber(sourceLineNumber);
+					line.setOldLineNumber(oldLineNumber);
+					line.setNewLineNumber(newLineNumber);
+					line.setContent(content);
+					diffLines.add(line);
+				} else {
+					assertEquals("Expected one column for row", 1, columns.size());
+				}
 			}
 
 			result.add(context);

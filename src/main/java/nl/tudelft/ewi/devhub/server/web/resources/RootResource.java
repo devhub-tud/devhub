@@ -109,6 +109,21 @@ public class RootResource extends Resource {
 
 	}
 
+	/**
+	 * formats a input string (for example for comments)
+	 * @param request
+	 * @param content the input string
+	 * @return the formatted sting, might be raw HTML
+	 */
+	@GET
+	@Path("/comment/preview")
+	@Produces(MediaType.TEXT_HTML)
+	public String getCommentPreview(@Context HttpServletRequest request,
+	                                @DefaultValue("Hello World!") @QueryParam("content") String content) {
+		// apply any processors for things like markdown and emojis here
+		return content;
+	}
+
     @GET
     @Path("version")
     @Produces(MediaType.APPLICATION_JSON)

@@ -28,11 +28,11 @@ public class EntityNotFoundExceptionMapper implements ExceptionMapper<EntityNotF
 	@Context
 	private HttpServletRequest request;
 
-	private final TemplateEngine templateEngine;
+	private final Provider<TemplateEngine> templateEngine;
 	private final Provider<User> currentUserProvider;
 
 	@Inject
-	public EntityNotFoundExceptionMapper(TemplateEngine templateEngine,
+	public EntityNotFoundExceptionMapper(Provider<TemplateEngine> templateEngine,
 										 @Named("current.user") Provider<User> currentUserProvider) {
 		this.templateEngine = templateEngine;
 		this.currentUserProvider = currentUserProvider;
@@ -54,7 +54,7 @@ public class EntityNotFoundExceptionMapper implements ExceptionMapper<EntityNotF
 
 			return Response
 				.status(Response.Status.NOT_FOUND)
-				.entity(templateEngine.process("error.not-found.ftl", locales, params))
+				.entity(templateEngine.get().process("error.not-found.ftl", locales, params))
 				.build();
 		}
 		catch (IOException e) {

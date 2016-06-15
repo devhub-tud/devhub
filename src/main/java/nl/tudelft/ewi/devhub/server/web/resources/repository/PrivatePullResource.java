@@ -15,6 +15,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.resources.HooksResource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
@@ -36,8 +37,13 @@ public class PrivatePullResource extends AbstractProjectPullResource {
 	@Context @Getter private UriInfo uriInfo;
 
 	@Inject
-	public PrivatePullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser, CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests, PullRequestBackend pullRequestBackend, RepositoriesApi repositoriesApi, CommentMailer commentMailer, PullRequestMailer pullRequestMailer, PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings, PrivateRepositories privateRepositories) {
-		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend, repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings);
+	public PrivatePullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser, CommentBackend commentBackend,
+							   BuildResults buildResults, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
+							   RepositoriesApi repositoriesApi, CommentMailer commentMailer, PullRequestMailer pullRequestMailer,
+							   PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings,
+							   PrivateRepositories privateRepositories, MarkDownParser markDownParser) {
+		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend,
+			repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings, markDownParser);
 		this.privateRepositories = privateRepositories;
 	}
 

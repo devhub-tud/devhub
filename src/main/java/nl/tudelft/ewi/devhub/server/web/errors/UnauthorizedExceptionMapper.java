@@ -27,11 +27,11 @@ public class UnauthorizedExceptionMapper implements ExceptionMapper<Unauthorized
 	@Context
 	private HttpServletRequest request;
 
-	private final TemplateEngine templateEngine;
+	private final Provider<TemplateEngine> templateEngine;
 	private final Provider<User> currentUserProvider;
 
 	@Inject
-	public UnauthorizedExceptionMapper(TemplateEngine templateEngine,
+	public UnauthorizedExceptionMapper(Provider<TemplateEngine> templateEngine,
 			@Named("current.user") Provider<User> currentUserProvider) {
 		this.templateEngine = templateEngine;
 		this.currentUserProvider = currentUserProvider;
@@ -52,7 +52,7 @@ public class UnauthorizedExceptionMapper implements ExceptionMapper<Unauthorized
 			params.put("error_id", id);
 
 			return Response.ok()
-				.entity(templateEngine.process("error.unauthorized.ftl", locales, params))
+				.entity(templateEngine.get().process("error.unauthorized.ftl", locales, params))
 				.build();
 		}
 		catch (IOException e) {

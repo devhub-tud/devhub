@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 @Singleton
 public class RepositoryAuthorizeFilter implements Filter {
 
-	private final TemplateEngine templateEngine;
+	private final Provider<TemplateEngine> templateEngine;
 	private final Provider<Groups> groupsProvider;
 	private final Provider<CourseEditions> coursesProvider;
 	private final Provider<User> currentUserProvider;
@@ -52,7 +52,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 	@Inject
 	public RepositoryAuthorizeFilter(
 			final @Named("current.user") Provider<User> currentUserProvider,
-			final TemplateEngine templateEngine,
+			final Provider<TemplateEngine> templateEngine,
 			final Provider<Groups> groupsProvider,
 			final Provider<CourseEditions> coursesProvider) {
 		this.currentUserProvider = currentUserProvider;
@@ -124,7 +124,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 		params.put("user", user);
 		params.put("error_id", id);
 
-		String template = templateEngine.process("error.not-found.ftl", locales, params);
+		String template = templateEngine.get().process("error.not-found.ftl", locales, params);
 		response.setStatus(HttpStatus.NOT_FOUND_404);
 		response.addHeader("Content-Type", "text/html");
 		response.addHeader("Content-Length", Integer.toString(template.length()));
@@ -141,7 +141,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 		params.put("user", user);
 		params.put("error_id", id);
 		
-		String template = templateEngine.process("error.unauthorized.ftl", locales, params);
+		String template = templateEngine.get().process("error.unauthorized.ftl", locales, params);
 		response.setStatus(HttpStatus.FORBIDDEN_403);
 		response.addHeader("Content-Type", "text/html");
 		response.addHeader("Content-Length", Integer.toString(template.length()));
@@ -158,7 +158,7 @@ public class RepositoryAuthorizeFilter implements Filter {
 		params.put("user", user);
 		params.put("error_id", id);
 		
-		String template = templateEngine.process("error.fatal.ftl", locales, params);
+		String template = templateEngine.get().process("error.fatal.ftl", locales, params);
 		response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
 		response.addHeader("Content-Type", "text/html");
 		response.addHeader("Content-Length", Integer.toString(template.length()));

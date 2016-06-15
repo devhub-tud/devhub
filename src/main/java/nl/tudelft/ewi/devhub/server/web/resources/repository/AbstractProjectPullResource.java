@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
@@ -15,6 +16,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
@@ -80,6 +82,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 	protected final PullRequestMailer pullRequestMailer;
 	protected final HooksResource hooksResource;
 	protected final Warnings warnings;
+	protected final MarkDownParser markDownParser;
 
 	protected AbstractProjectPullResource(final TemplateEngine templateEngine,
 	                                      final @Named("current.user") User currentUser,
@@ -92,7 +95,8 @@ public abstract class AbstractProjectPullResource extends Resource {
 	                                      final PullRequestMailer pullRequestMailer,
 	                                      final PullRequestComments pullRequestComments,
 	                                      final HooksResource hooksResource,
-	                                      final Warnings warnings) {
+	                                      final Warnings warnings,
+										  final MarkDownParser markDownParser) {
 
 		this.templateEngine = templateEngine;
 		this.currentUser = currentUser;
@@ -106,6 +110,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		this.pullRequestMailer = pullRequestMailer;
 		this.hooksResource = hooksResource;
 		this.warnings = warnings;
+		this.markDownParser = markDownParser;
 	}
 
 	protected abstract RepositoryEntity getRepositoryEntity();
@@ -119,6 +124,14 @@ public abstract class AbstractProjectPullResource extends Resource {
 		parameters.put("user", currentUser);
 		parameters.put("repositoryEntity", getRepositoryEntity());
 		return parameters;
+	}
+
+	public PullRequestComment pullRequestCommentFactory(String content, PullRequest pullRequest) {
+		PullRequestComment comment = new PullRequestComment();
+
+		comment.setContent(content);
+		comment.setPullRequest(pullRequest);
+		return comment;
 	}
 
 	@POST
@@ -225,10 +238,9 @@ public abstract class AbstractProjectPullResource extends Resource {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
-		PullRequestComment comment = new PullRequestComment();
 
-		comment.setContent(content);
-		comment.setPullRequest(pullRequest);
+		PullRequestComment comment = pullRequestCommentFactory(content, pullRequest);
+
 		comment.setUser(currentUser);
 		pullRequestComments.persist(comment);
 
@@ -237,6 +249,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		response.setName(currentUser.getName());
 		response.setDate(comment.getTimestamp().toString());
 		response.setCommentId(comment.getCommentId());
+		response.setFormattedContent(markDownParser.markdownToHtml(content));
 
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);

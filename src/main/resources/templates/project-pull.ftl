@@ -108,11 +108,18 @@
     </div>
 
     <div class="panel panel-default panel-comment-form" style="position: relative">
-        <div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>
+        <div class="panel-heading">
+        ${i18n.translate("panel.label.add-comment")}
+            <span> - </span>
+            <a href="https://github.com/vdurmont/emoji-java#available-emojis" target="_blank">
+            ${i18n.translate("panel.label.add-comment-emoji-link")}
+            </a>
+        </div>
         <div class="panel-body">
             <form class="form-horizontal" id="pull-comment-form" >
                 <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
                 <button type="submit" class="btn btn-primary">${i18n.translate("button.label.submit")}</button>
+                <button type="button" class="btn btn-default" id="btn-preview">${i18n.translate("button.label.preview")}</button>
             </form>
         </div>
     </div>
@@ -168,13 +175,35 @@
                 '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
                 '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
                     '<div class="panel-body">'+
-                        '<p>' + res.content.replace(/\n/g, '<br/>') + '</p>'+
+                        '<p>' + twemoji.parse(res.formattedContent) + '</p>'+
                     '</div>'+
                 '</div>').appendTo('.pull-feed');
                 // Clear input
                 $('[name="content"]', '#pull-comment-form').val('');
             });
             event.preventDefault();
+        });
+    });
+    $(function () {
+        $('#btn-preview').click(function (event) {
+            $.get('/comment/preview', {
+                "content": $('textarea.form-control').val()
+            }).done(function (res) {
+                var previewPanel = $('#preview-panel');
+                if (previewPanel.length){
+                    previewPanel.find('.panel-body:first').empty();
+                    previewPanel.find('.panel-body').append(res);
+                } else {
+                    $('<hr style="border-color: #DDD;">'+
+                            '<div class="panel panel-default" id ="preview-panel">'+
+                            '<div class="panel-heading">Preview</div>'+
+                            '<div class="panel-body">'+
+                            res +
+                            '</div>' +
+                            '</div>').appendTo('.panel-comment-form .panel-body');
+                }
+                event.preventDefault();
+            });
         });
     });
 </script>

@@ -122,8 +122,7 @@ public class RootResource extends Resource {
 	@GET
 	@Path("/comment/preview")
 	@Produces(MediaType.TEXT_HTML)
-	public String getCommentPreview(@Context HttpServletRequest request,
-	                                @DefaultValue("Hello World!") @QueryParam("content") String content) {
+	public String getCommentPreview(@Context HttpServletRequest request, @QueryParam("content") String content) {
 		String result = EmojiParser.parseToUnicode(content);
 
 		result = markDownParser.markdownToHtml(result);

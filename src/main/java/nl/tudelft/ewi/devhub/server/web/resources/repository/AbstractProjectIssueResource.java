@@ -19,6 +19,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Strings;
+
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
@@ -120,7 +122,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		issue.setDescription(description);
 		issue.setOpen(true);
 		
-		if (!assigneeNetID.isEmpty()) {
+		if (!Strings.isNullOrEmpty(assigneeNetID)) {
 			User assignee = users.findByNetId(assigneeNetID);
 			checkCollaborator(assignee);
 			issue.setAssignee(assignee);
@@ -189,7 +191,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		issue.setTitle(title);
 		issue.setDescription(description);
 		
-		if (!assigneeNetID.isEmpty()) {
+		if (!Strings.isNullOrEmpty(assigneeNetID)) {
 			User assignee = users.findByNetId(assigneeNetID);
 			checkCollaborator(assignee);
 			issue.setAssignee(assignee);

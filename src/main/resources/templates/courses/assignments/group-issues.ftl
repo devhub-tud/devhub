@@ -87,13 +87,10 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr>
-						<td>
-							<p style="background-color:#ff0000; color="#ffffff">
-								Fatal
-							</p>
-						</td>
-					</tr>
+					[#assign labels = repositoryEntity.getLabels()]
+					[#list labels as label]
+					[@macros.renderLabel label.tag label.color/]
+					[/#list]
 				</tbody>
 			</table>
 		</div>
@@ -102,7 +99,7 @@
 <!-- Add label Modal -->
 <div class="modal fade" id="addLabelModal" tabindex="-1" role="dialog" aria-labelledby="addLabelModalLabel">
 	<div class="modal-dialog" role="document">
-		<form class="form-horizontal modal-content" action="addlabel" target="_none" method="POST" role="form">
+		<form class="form-horizontal modal-content" action="${repositoryEntity.getURI()}addlabel" target="_self" method="POST" role="form">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 				<h4 class="modal-title" id="addLabelModalLabel">Add Label</h4>
@@ -117,7 +114,7 @@
 				<div class="form-group">
 					<label for="repositoryName" class="col-sm-2 control-label">Color</label>
 					<div class="col-sm-10">
-						<input type="color" class="form-control jscolor" id="color" name="color" placeholder="Color">
+						<input class="form-control jscolor {zIndex:2000}" id="color" name="color" placeholder="Color">
 					</div>
 				</div>
 			</div>
@@ -128,5 +125,7 @@
 		</form>
 	</div>
 </div>
-[@macros.renderScripts /]
+[@macros.renderScripts ]
+	<script src="/static/vendor/jscolor/jscolor.min.js"></script>
+[/@macros.renderScripts ]
 [@macros.renderFooter /]

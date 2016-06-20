@@ -37,3 +37,6 @@
 [submodule "src/main/resources/static/vendor/jquery-textcomplete"]
 	path = src/main/resources/static/vendor/jquery-textcomplete
 	url = https://github.com/yuku-t/jquery-textcomplete.git
+[submodule "src/main/resources/static/vendor/jscolor"]
+	path = src/main/resources/static/vendor/jscolor
+	url = https://github.com/EastDesire/jscolor.git

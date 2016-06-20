@@ -18,6 +18,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
@@ -30,6 +31,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -84,7 +86,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		parameters.put("repository", repository);
 		parameters.put("openIssues", openIssues);
 		parameters.put("closedIssues", closedIssues);
-
+		parameters.put("repositoryEntity", repositoryEntity);
+		
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("courses/assignments/group-issues.ftl", locales, parameters));
 	
@@ -217,6 +220,36 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		issueComments.persist(comment);
 
 		return redirect(issue.getURI());
+	}
+	
+
+	@POST
+	@Transactional
+	@Path("addlabel")
+	public Response addLabel(@Context HttpServletRequest request, @FormParam("tag") String tag, @FormParam("color") String colorString) throws IOException{
+		
+		int color = Integer.parseInt(colorString, 16);		
+		issueBackend.addIssueLabelToRepository(getRepositoryEntity(), tag, color);
+		
+		//return Response.status(Status.NO_CONTENT).build();
+		
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
+		RepositoryModel repository = repositoryApi.getRepositoryModel();
+		
+		List<Issue> openIssues = issues.findOpenIssues(repositoryEntity);
+		List<Issue> closedIssues = issues.findClosedIssues(repositoryEntity);
+
+		Map<String, Object> parameters = getBaseParameters();
+		
+		parameters.put("repository", repository);
+		parameters.put("openIssues", openIssues);
+		parameters.put("closedIssues", closedIssues);
+		parameters.put("repositoryEntity", repositoryEntity);
+		
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("courses/assignments/group-issues.ftl", locales, parameters));
+		
 	}
 
 	private void checkCollaborator(User user) {

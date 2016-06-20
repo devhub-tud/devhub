@@ -185,6 +185,10 @@
 			</div>
 [/#macro]
 
+[#macro renderLabel tag color]
+
+[/#macro]
+
 [#macro renderScripts]
 	<script src="/static/vendor/jquery/jquery.min.js"></script>
 	<script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>

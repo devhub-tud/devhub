@@ -18,6 +18,7 @@ import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.FlattenFolderTree;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
@@ -705,6 +706,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			.map(BlameModel.BlameBlock::getFromCommitId)
 			.collect(Collectors.toSet());
 	}
+	
 	
 	@Data
 	static public class Pagination {

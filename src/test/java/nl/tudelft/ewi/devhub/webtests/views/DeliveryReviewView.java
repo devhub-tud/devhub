@@ -3,7 +3,6 @@ package nl.tudelft.ewi.devhub.webtests.views;
 import lombok.Data;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
-import org.apache.commons.lang.WordUtils;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -138,7 +137,10 @@ public class DeliveryReviewView extends ProjectSidebarView {
 
             select.getOptions()
                 .stream()
-                .filter(webElement -> WordUtils.capitalize(state.toString().toLowerCase()).equals(webElement.getText()))
+                .filter(webElement -> 
+                    webElement.getText()
+                	    .replaceAll("\\s+", "")
+                	    .equalsIgnoreCase(state.toString()))
                 .findAny().get().click();
         }
 

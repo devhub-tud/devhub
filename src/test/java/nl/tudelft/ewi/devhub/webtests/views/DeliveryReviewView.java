@@ -125,8 +125,9 @@ public class DeliveryReviewView extends ProjectSidebarView {
         public State getSelectedState() {
             final WebElement element = getDriver().findElement(STATE_SELECTOR);
             Select select = new Select(element);
+            String selected = select.getFirstSelectedOption().getText().replaceAll("\\s+", "");
 
-            return State.valueOf(select.getFirstSelectedOption().getText().toUpperCase());
+            return State.valueOf(selected.toUpperCase());
         }
 
         @SuppressWarnings("OptionalGetWithoutIsPresent")

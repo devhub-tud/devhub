@@ -9,37 +9,47 @@ import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import com.google.common.collect.Sets;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Created by Jan-Willem on 8/11/2015.
  */
 @Data
-@MappedSuperclass
+@Entity
+@Table(name="repository_issues")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorFormula("CASE WHEN branch_name IS NOT NULL THEN 'PULL_REQUEST' " +
+	"WHEN branch_name IS NULL THEN 'ISSUE' end")
 @ToString(of = {"repository", "issueId"})
 @EqualsAndHashCode(of = {"repository", "issueId"})
 @IdClass(AbstractIssue.IssueId.class)
@@ -105,7 +115,11 @@ public abstract class AbstractIssue implements Event, Base {
 			@JoinColumn(name = "label_id", nullable = false, updatable = false) 
 		}
 	)
-	private Set<IssueLabel> labels = Sets.newHashSet();
+	private Set<IssueLabel> labels;
+
+	@OrderBy("timestamp ASC")
+	@OneToMany(mappedBy = "issue", fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REMOVE}, orphanRemoval = true)
+	private List<IssueComment> comments;
 
     /**
      * @return true if the pull request is closed

@@ -1,16 +1,14 @@
 package nl.tudelft.ewi.devhub.server.database.entities.issues;
 
-import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,7 +19,9 @@ import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 
 @Data
 @Entity
-@Table(name="repository_labels")
+@Table(name="repository_labels", uniqueConstraints = {
+	@UniqueConstraint(name = "unique_tag_name_in_repo", columnNames = {"repository_id", "tag"})
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
@@ -34,7 +34,7 @@ public class IssueLabel {
 	private long labelId;
 	
     @ManyToOne(optional = false)
-	@JoinColumn(name = "repository_id")
+	@JoinColumn(name = "repository_id", referencedColumnName = "id", nullable = false)
     private RepositoryEntity repository;
 	
 	@Column(name="tag")
@@ -42,5 +42,9 @@ public class IssueLabel {
 	
 	@Column(name="color")
 	private int color;
+
+	public String getColorAsHexString() {
+		return String.format("#%06X", 0xFFFFFF & color);
+	}
 
 }

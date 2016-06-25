@@ -2,10 +2,10 @@ package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
 import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
-import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -43,12 +43,12 @@ public class AbstractProjectPullResourceTest {
 
     @Mock TemplateEngine templateEngine;
     @Mock HttpServletRequest request;
-    @Mock PullRequestComment pullRequestComment;
+    @Mock IssueComment pullRequestComment;
     @Mock CommentMailer commentMailer;
     @Mock User currentUser;
     @Mock PullRequests pullRequests;
     @Mock PullRequest pullRequest;
-    @Mock PullRequestComments pullRequestComments;
+    @Mock IssueComments pullRequestComments;
 
     @Inject private RepositoriesApi repositoriesApi;
 

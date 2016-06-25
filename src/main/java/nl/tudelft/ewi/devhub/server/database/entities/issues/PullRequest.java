@@ -3,28 +3,23 @@ package nl.tudelft.ewi.devhub.server.database.entities.issues;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
-import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
 import org.hibernate.annotations.JoinColumnOrFormula;
 import org.hibernate.annotations.JoinColumnsOrFormulas;
 import org.hibernate.annotations.JoinFormula;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.net.URI;
-import java.util.List;
 
 @Data
 @Entity
-@Table(name="pull_requests")
+@DiscriminatorValue("PULL_REQUEST")
 @EqualsAndHashCode(callSuper = true)
 public class PullRequest extends AbstractIssue {
 
@@ -51,7 +46,7 @@ public class PullRequest extends AbstractIssue {
 	@ManyToOne(optional = false, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	@JoinColumnsOrFormulas({
 		@JoinColumnOrFormula(formula = @JoinFormula(value = "repository_id", referencedColumnName = "repository_id")),
-		@JoinColumnOrFormula(column = @JoinColumn(name = "merge_commit_id", referencedColumnName = "commit_id", nullable = false))
+		@JoinColumnOrFormula(column = @JoinColumn(name = "merge_commit_id", referencedColumnName = "commit_id"))
 	})
 	private Commit mergeBase;
 
@@ -59,7 +54,7 @@ public class PullRequest extends AbstractIssue {
 	@ManyToOne(optional = false, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	@JoinColumnsOrFormulas({
 		@JoinColumnOrFormula(formula = @JoinFormula(value = "repository_id", referencedColumnName = "repository_id")),
-		@JoinColumnOrFormula(column = @JoinColumn(name = "destination_commit_id", referencedColumnName = "commit_id", nullable = false))
+		@JoinColumnOrFormula(column = @JoinColumn(name = "destination_commit_id", referencedColumnName = "commit_id"))
 	})
 	private Commit destination;
 
@@ -68,10 +63,6 @@ public class PullRequest extends AbstractIssue {
 
 	@Column(name="behind")
 	private Integer behind;
-
-	@OrderBy("timestamp ASC")
-	@OneToMany(mappedBy = "pullRequest", fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REMOVE}, orphanRemoval = true)
-	private List<PullRequestComment> comments;
 
 	@Override
 	public URI getURI() {

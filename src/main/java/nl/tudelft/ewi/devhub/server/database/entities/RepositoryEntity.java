@@ -9,13 +9,12 @@ import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 
 import org.hibernate.validator.constraints.NotEmpty;
-
-import com.google.common.collect.Lists;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -85,9 +84,14 @@ public abstract class RepositoryEntity implements Configurable, Base {
 	@Getter(AccessLevel.NONE)
 	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<PullRequest> pullRequests;
+
+    @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Issue> issues;
 	
 	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-	private List<IssueLabel> labels = Lists.newArrayList();
+	private List<IssueLabel> labels;
 
     /**
      * @return a list of collaborators for this repository.

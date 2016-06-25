@@ -51,7 +51,6 @@ public class IssueBackend {
 		label.setRepository(repository);
 		label.setTag(tag);
 		issueLabels.persist(label);
-		repository.getLabels().add(label);
 		return label;
 	}
 	

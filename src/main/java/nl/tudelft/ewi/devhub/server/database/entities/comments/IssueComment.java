@@ -4,8 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.AbstractIssue;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -28,7 +27,7 @@ public class IssueComment extends Comment  {
 		@JoinColumn(name="repository_id", referencedColumnName="repository_id"),
 		@JoinColumn(name="issue_id", referencedColumnName="issue_id")
 	})
-	private Issue issue;
+	private AbstractIssue issue;
 
 	@Override
 	public RepositoryEntity getRepository() {

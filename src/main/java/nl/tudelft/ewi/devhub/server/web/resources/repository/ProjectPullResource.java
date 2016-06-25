@@ -5,7 +5,7 @@ import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
@@ -35,14 +35,14 @@ public class ProjectPullResource extends AbstractProjectPullResource {
 
 	@Inject
 	public ProjectPullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser,
-							   final @Named("current.group") Group group,
-							   CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests,
-							   PullRequestBackend pullRequestBackend, RepositoriesApi repositoriesApi,
-							   CommentMailer commentMailer, PullRequestMailer pullRequestMailer,
-							   PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings,
-							   MarkDownParser markDownParser, Users users) {
+	                           final @Named("current.group") Group group,
+	                           CommentBackend commentBackend, BuildResults buildResults, PullRequests pullRequests,
+	                           PullRequestBackend pullRequestBackend, RepositoriesApi repositoriesApi,
+	                           CommentMailer commentMailer, PullRequestMailer pullRequestMailer,
+	                           IssueComments issueComments, HooksResource hooksResource, Warnings warnings,
+	                           MarkDownParser markDownParser, Users users) {
 		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend,
-			repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings,
+			repositoriesApi, commentMailer, pullRequestMailer, issueComments, hooksResource, warnings,
 			markDownParser, users);
 		this.group = group;
 	}

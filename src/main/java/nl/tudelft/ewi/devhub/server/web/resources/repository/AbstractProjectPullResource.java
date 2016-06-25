@@ -7,13 +7,13 @@ import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
@@ -73,7 +73,7 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 	protected final BuildResults buildResults;
 	protected final PullRequests pullRequests;
 	protected final PullRequestBackend pullRequestBackend;
-	protected final PullRequestComments pullRequestComments;
+	protected final IssueComments issueComments;
 	protected final PullRequestMailer pullRequestMailer;
 	protected final HooksResource hooksResource;
 	protected final Warnings warnings;
@@ -88,7 +88,7 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 	                                      final RepositoriesApi repositoriesApi,
 	                                      final CommentMailer commentMailer,
 	                                      final PullRequestMailer pullRequestMailer,
-	                                      final PullRequestComments pullRequestComments,
+	                                      final IssueComments issueComments,
 	                                      final HooksResource hooksResource,
 	                                      final Warnings warnings,
 										  final MarkDownParser markDownParser,
@@ -98,7 +98,7 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
 		this.pullRequestBackend = pullRequestBackend;
-		this.pullRequestComments = pullRequestComments;
+		this.issueComments = issueComments;
 		this.pullRequestMailer = pullRequestMailer;
 		this.hooksResource = hooksResource;
 		this.warnings = warnings;
@@ -118,11 +118,11 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 		return parameters;
 	}
 
-	public PullRequestComment pullRequestCommentFactory(String content, PullRequest pullRequest) {
-		PullRequestComment comment = new PullRequestComment();
+	public IssueComment pullRequestCommentFactory(String content, PullRequest pullRequest) {
+		IssueComment comment = new IssueComment();
 
 		comment.setContent(content);
-		comment.setPullRequest(pullRequest);
+		comment.setIssue(pullRequest);
 		return comment;
 	}
 
@@ -231,10 +231,10 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
 
-		PullRequestComment comment = pullRequestCommentFactory(content, pullRequest);
+		IssueComment comment = pullRequestCommentFactory(content, pullRequest);
 
 		comment.setUser(currentUser);
-		pullRequestComments.persist(comment);
+		issueComments.persist(comment);
 
 		CommentResponse response = new CommentResponse();
 		response.setContent(content);

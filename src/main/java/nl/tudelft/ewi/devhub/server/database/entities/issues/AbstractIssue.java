@@ -108,11 +108,11 @@ public abstract class AbstractIssue implements Event, Base {
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinTable(name = "issue_labels", joinColumns = 
 		{ 
-			@JoinColumn(name = "repository_id", nullable = false, updatable = false),
-			@JoinColumn(name = "issue_id", nullable = false, updatable = false) 
+			@JoinColumn(name = "repository_id", referencedColumnName = "repository_id", nullable = false),
+			@JoinColumn(name = "issue_id", referencedColumnName = "issue_id", nullable = false)
 		}, 
 		inverseJoinColumns = { 
-			@JoinColumn(name = "label_id", nullable = false, updatable = false) 
+			@JoinColumn(name = "label_id", referencedColumnName = "label_id", nullable = false)
 		}
 	)
 	private Set<IssueLabel> labels;

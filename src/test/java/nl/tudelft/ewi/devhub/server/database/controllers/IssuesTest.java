@@ -40,6 +40,7 @@ public class IssuesTest extends PersistedBackendTest {
 	@Inject private Provider<Users> usersProvider;
 	@Inject private Provider<Issues> issuesProvider;
 	@Inject private Provider<IssueLabels> issueLabelsProvider;
+	@Inject private Provider<EntityManager> entityManagerProvider;
 	@Inject private Provider<IssueBackend> issueBackendProvider;
 
 	private User user1;
@@ -151,9 +152,10 @@ public class IssuesTest extends PersistedBackendTest {
 		issue.setRepository(groupRepository);
 		issue.setOpen(true);
 		issue.setAssignee(user);
-		
-		issuesProvider.get().persist(issue);
-		
+
+		Issues issues = issuesProvider.get();
+		issues.persist(issue);
+		entityManagerProvider.get().refresh(issue);
 		return issue;
 	}
 

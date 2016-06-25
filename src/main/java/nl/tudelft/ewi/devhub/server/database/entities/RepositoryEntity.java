@@ -9,6 +9,7 @@ import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.AbstractIssue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
@@ -80,15 +81,15 @@ public abstract class RepositoryEntity implements Configurable, Base {
 	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Warning> warnings;
 
-	@Setter(AccessLevel.NONE)
-	@Getter(AccessLevel.NONE)
-	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-	private List<PullRequest> pullRequests;
-
+    /**
+     * Mapping to issues and pull requests. Do not use this method, but use
+     * {@link nl.tudelft.ewi.devhub.server.database.controllers.Issues} and
+     * {@link nl.tudelft.ewi.devhub.server.database.controllers.PullRequests} instead.
+     */
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
     @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Issue> issues;
+    private List<AbstractIssue> issues;
 	
 	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<IssueLabel> labels;

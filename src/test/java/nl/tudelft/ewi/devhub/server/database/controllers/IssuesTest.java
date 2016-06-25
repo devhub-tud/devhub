@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.inject.Provider;
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
@@ -12,9 +13,11 @@ import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
+import nl.tudelft.ewi.devhub.webtests.rules.UnitOfWorkRule;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -29,21 +32,13 @@ import javax.persistence.EntityManager;
 @UseModules(TestDatabaseModule.class)
 public class IssuesTest extends PersistedBackendTest {
 
-	@Inject @Getter private Groups groups;
-	@Inject @Getter private CourseEditions courses;
-	@Inject @Getter private Users users;
-
-	@Inject
-	private Issues issues;
-	
-	@Inject
-	private IssueLabels issueLabels;
-	
-	@Inject
-	private EntityManager entityManager;
-	
-	@Inject
-	private IssueBackend issueBackend;
+	@Rule @Inject public UnitOfWorkRule unitOfWorkRule;
+	@Inject private Provider<Groups> groupsProvider;
+	@Inject private Provider<CourseEditions> coursesProvider;
+	@Inject private Provider<Users> usersProvider;
+	@Inject private Provider<Issues> issuesProvider;
+	@Inject private Provider<IssueLabels> issueLabelsProvider;
+	@Inject private Provider<IssueBackend> issueBackendProvider;
 
 	private User user1;
 	private User user2;
@@ -67,7 +62,7 @@ public class IssuesTest extends PersistedBackendTest {
 	@Test
 	public void testCreateIssue() {
 		GroupRepository groupRepository = group.getRepository();
-		List<Issue> issueQueryResult = issues.findOpenIssues(groupRepository);
+		List<Issue> issueQueryResult = issuesProvider.get().findOpenIssues(groupRepository);
 		
 		assertEquals(2, issueQueryResult.size());
 		issueEquals(issue1, issueQueryResult.get(0));
@@ -76,7 +71,7 @@ public class IssuesTest extends PersistedBackendTest {
 	public void testFindIssuesOfUser() {
 		GroupRepository groupRepository = group.getRepository();
 		
-		List<Issue> issueQueryResult = issues.findAssignedIssues(groupRepository, user1);
+		List<Issue> issueQueryResult = issuesProvider.get().findAssignedIssues(groupRepository, user1);
 		assertEquals(1, issueQueryResult.size());
 		issueEquals(issue1, issueQueryResult.get(0));
 	}
@@ -88,7 +83,7 @@ public class IssuesTest extends PersistedBackendTest {
 		// Close issue 2
 		issue2.setOpen(false);
 		
-		List<Issue> issueQueryResult = issues.findOpenIssues(groupRepository);
+		List<Issue> issueQueryResult = issuesProvider.get().findOpenIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
 		issueEquals(issue1, issueQueryResult.get(0));
 	}
@@ -101,7 +96,7 @@ public class IssuesTest extends PersistedBackendTest {
 		issue2.setClosed(new Date());
 		issue2.setOpen(false);
 		
-		List<Issue> issueQueryResult = issues.findClosedIssues(groupRepository);
+		List<Issue> issueQueryResult = issuesProvider.get().findClosedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
 		issueEquals(issue2, issueQueryResult.get(0));
 	}
@@ -111,7 +106,7 @@ public class IssuesTest extends PersistedBackendTest {
 		GroupRepository groupRepository = group.getRepository();
 		issue1.setAssignee(null);
 		
-		List<Issue> issueQueryResult = issues.findUnassignedIssues(groupRepository);
+		List<Issue> issueQueryResult = issuesProvider.get().findUnassignedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
 		issueEquals(issue1, issueQueryResult.get(0));
 	}
@@ -119,7 +114,7 @@ public class IssuesTest extends PersistedBackendTest {
 	@Test
 	public void testFindIssuesById(){
 		
-		List<Issue> issueQueryResult = issues.findIssueById(group.getRepository(), issue1.getIssueId());
+		List<Issue> issueQueryResult = issuesProvider.get().findIssueById(group.getRepository(), issue1.getIssueId());
 		
 		assertEquals(1, issueQueryResult.size());
 		issueEquals(issue1, issueQueryResult.get(0));
@@ -129,11 +124,10 @@ public class IssuesTest extends PersistedBackendTest {
 	@Test
 	public void testAddLabel() {
 		
-		IssueLabel issueLabel = issueBackend.addIssueLabelToRepository(group.getRepository(), "My Label", 0xcccccc);
-		issueBackend.addLabelToIssue(issue1, issueLabel);
-		
-		clearEntityManager();
-		issue1 = issues.findIssueById(group.getRepository(), issue1.getIssueId()).get(0);
+		IssueLabel issueLabel = issueBackendProvider.get().addIssueLabelToRepository(group.getRepository(), "My Label", 0xcccccc);
+		issueBackendProvider.get().addLabelToIssue(issue1, issueLabel);
+
+		issue1 = issuesProvider.get().findIssueById(group.getRepository(), issue1.getIssueId()).get(0);
 		
 		assertEquals(1, issue1.getLabels().size());
 		
@@ -145,11 +139,6 @@ public class IssuesTest extends PersistedBackendTest {
 		label = group.getRepository().getLabels().iterator().next();
 		assertSame(issueLabel, label);
 		
-	}
-	
-	@Transactional
-	public void clearEntityManager(){
-		entityManager.flush();
 	}
 
 	private static void issueEquals(Issue expected, Issue actual) {
@@ -173,9 +162,24 @@ public class IssuesTest extends PersistedBackendTest {
 		issue.setOpen(true);
 		issue.setAssignee(user);
 		
-		issues.persist(issue);
+		issuesProvider.get().persist(issue);
 		
 		return issue;
 	}
-	
+
+	@Override
+	protected CourseEditions getCourses() {
+		return coursesProvider.get();
+	}
+
+	@Override
+	protected Users getUsers() {
+		return usersProvider.get();
+	}
+
+	@Override
+	protected Groups getGroups() {
+		return groupsProvider.get();
+	}
+
 }

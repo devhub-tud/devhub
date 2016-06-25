@@ -26,6 +26,10 @@ public class EntityEqualsMatcher<T> extends TypeSafeMatcher<T> {
     @Override
     @SneakyThrows
     protected boolean matchesSafely(T actualValue) {
+        if (expectedValue == actualValue) {
+            return true;
+        }
+
         Class<?> clasz = Hibernate.getClass(expectedValue);
         Class<?> otherClasz = Hibernate.getClass(actualValue);
 

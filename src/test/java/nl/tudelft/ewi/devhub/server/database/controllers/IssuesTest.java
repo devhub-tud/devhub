@@ -115,19 +115,21 @@ public class IssuesTest extends PersistedBackendTest {
 	
 	@Test
 	public void testFindIssuesById() {
-		List<Issue> issueQueryResult = issuesProvider.get().findIssueById(group.getRepository(), issue1.getIssueId());
-		
-		assertEquals(1, issueQueryResult.size());
-		assertThat(issueQueryResult.get(0), isEntity(issue1));
+		Issue actualIssue = issuesProvider.get()
+			.findIssueById(group.getRepository(), issue1.getIssueId())
+			.get();
+
+		assertThat(actualIssue, isEntity(issue1));
 	}
 
 	@Test
+	@Transactional
 	public void testAddLabel() {
 		
 		IssueLabel issueLabel = issueBackendProvider.get().addIssueLabelToRepository(group.getRepository(), "My Label", 0xcccccc);
 		issueBackendProvider.get().addLabelToIssue(issue1, issueLabel);
 
-		issue1 = issuesProvider.get().findIssueById(group.getRepository(), issue1.getIssueId()).get(0);
+		issue1 = issuesProvider.get().findIssueById(group.getRepository(), issue1.getIssueId()).get();
 		
 		assertEquals(1, issue1.getLabels().size());
 		

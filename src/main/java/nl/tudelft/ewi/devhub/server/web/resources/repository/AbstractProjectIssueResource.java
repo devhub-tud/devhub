@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -144,7 +145,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
 		RepositoryModel repository = repositoryApi.getRepositoryModel();
 		
-		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
+		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId)
+			.orElseThrow(NotFoundException::new);
 		
 		Map<String, Object> parameters = getBaseParameters();		
 		parameters.put("repository", repository);		
@@ -163,7 +165,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
 		RepositoryModel repository = repositoryApi.getRepositoryModel();
 		
-		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
+		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId)
+			.orElseThrow(NotFoundException::new);
 		
 		Map<String, Object> parameters = getBaseParameters();		
 		parameters.put("repository", repository);		
@@ -183,7 +186,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			@FormParam("assignee") String assigneeNetID,
 			@FormParam("status") Boolean status) throws IOException {
 		
-		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
+		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId)
+			.orElseThrow(NotFoundException::new);
 		
 		issue.setTitle(title);
 		issue.setDescription(description);
@@ -211,7 +215,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			@PathParam("issueId") long issueId,
 			@FormParam("content") String content) throws IOException {
 		
-		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId).get(0);
+		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId)
+			.orElseThrow(NotFoundException::new);
 		IssueComment comment = new IssueComment();
 		comment.setContent(content);
 		comment.setIssue(issue);

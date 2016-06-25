@@ -1,6 +1,8 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -51,7 +53,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	protected Issues issues;
 	protected IssueBackend issueBackend;
 	protected IssueComments issueComments;
-	
+	@Context HttpServletRequest request;
 	
 	public AbstractProjectIssueResource( final TemplateEngine templateEngine, 
 			final User currentUser, 
@@ -73,7 +75,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	@GET
 	@Transactional
 	@Path("/issues")
-	public Response getIssues(@Context HttpServletRequest request) throws IOException{
+	public Response getIssues() throws IOException{
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
 		RepositoryModel repository = repositoryApi.getRepositoryModel();
@@ -96,7 +98,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	@GET
 	@Transactional
 	@Path("/issues/create")
-	public Response openCreateIssuePage(@Context HttpServletRequest request) throws IOException{
+	public Response openCreateIssuePage() throws IOException{
 		
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
@@ -112,7 +114,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	@POST
 	@Transactional
 	@Path("/issues/create")
-	public Response createIssue(@Context HttpServletRequest request,
+	public Response createIssue(
 			@FormParam("title") String title,
 			@FormParam("description") String description,
 			@FormParam("assignee") String assigneeNetID) throws IOException{
@@ -136,8 +138,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	@GET
 	@Transactional
 	@Path("/issue/{issueId}/edit")
-	public Response editIssue(@Context HttpServletRequest request, 
-			@PathParam("issueId") long issueId) throws IOException {
+	public Response editIssue(@PathParam("issueId") long issueId) throws IOException {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
@@ -156,8 +157,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	@GET
 	@Transactional
 	@Path("/issue/{issueId}")
-	public Response viewIssue(@Context HttpServletRequest request, 
-			@PathParam("issueId") long issueId) throws IOException {
+	public Response viewIssue(@PathParam("issueId") long issueId) throws IOException {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
@@ -176,7 +176,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	@POST
 	@Transactional
 	@Path("/issue/{issueId}/edit")
-	public Response updateIssue(@Context HttpServletRequest request, 
+	public Response updateIssue(
 			@PathParam("issueId") long issueId,
 			@FormParam("title") String title,
 			@FormParam("description") String description,
@@ -207,7 +207,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	@POST
 	@Transactional
 	@Path("/issue/{issueId}/comment")
-	public Response addComment(@Context HttpServletRequest request, 
+	public Response addComment(
 			@PathParam("issueId") long issueId,
 			@FormParam("content") String content) throws IOException {
 		
@@ -224,32 +224,15 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	
 
 	@POST
-	@Transactional
 	@Path("addlabel")
-	public Response addLabel(@Context HttpServletRequest request, @FormParam("tag") String tag, @FormParam("color") String colorString) throws IOException{
-		
+	public Response addLabel(@FormParam("tag") String tag, @FormParam("color") String colorString) throws IOException, URISyntaxException {
 		int color = Integer.parseInt(colorString, 16);		
-		issueBackend.addIssueLabelToRepository(getRepositoryEntity(), tag, color);
-		
-		//return Response.status(Status.NO_CONTENT).build();
-		
-		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		RepositoryApi repositoryApi = getRepositoryApi(repositoryEntity);
-		RepositoryModel repository = repositoryApi.getRepositoryModel();
-		
-		List<Issue> openIssues = issues.findOpenIssues(repositoryEntity);
-		List<Issue> closedIssues = issues.findClosedIssues(repositoryEntity);
-
-		Map<String, Object> parameters = getBaseParameters();
-		
-		parameters.put("repository", repository);
-		parameters.put("openIssues", openIssues);
-		parameters.put("closedIssues", closedIssues);
-		parameters.put("repositoryEntity", repositoryEntity);
-		
-		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("courses/assignments/group-issues.ftl", locales, parameters));
-		
+		issueBackend.addIssueLabelToRepository(
+			getRepositoryEntity(),
+			tag,
+			color
+		);
+		return redirect(new URI(request.getRequestURI()).resolve("issues"));
 	}
 
 	private void checkCollaborator(User user) {

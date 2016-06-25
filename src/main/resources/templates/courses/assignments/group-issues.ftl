@@ -87,10 +87,14 @@
 					</tr>
 				</thead>
 				<tbody>
+				<tr>
+					<td>
 					[#assign labels = repositoryEntity.getLabels()]
 					[#list labels as label]
-					[@macros.renderLabel label.tag label.color/]
+						[@macros.renderLabel label/]
 					[/#list]
+					</td>
+				</tr>
 				</tbody>
 			</table>
 		</div>

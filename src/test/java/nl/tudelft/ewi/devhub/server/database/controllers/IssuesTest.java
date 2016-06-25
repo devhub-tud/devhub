@@ -14,6 +14,7 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
 import nl.tudelft.ewi.devhub.webtests.rules.UnitOfWorkRule;
+import nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
@@ -21,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher.isEntity;
 import static org.junit.Assert.*;
 
 import java.util.Date;
@@ -65,7 +67,7 @@ public class IssuesTest extends PersistedBackendTest {
 		List<Issue> issueQueryResult = issuesProvider.get().findOpenIssues(groupRepository);
 		
 		assertEquals(2, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 	@Test
 	public void testFindIssuesOfUser() {
@@ -73,7 +75,7 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		List<Issue> issueQueryResult = issuesProvider.get().findAssignedIssues(groupRepository, user1);
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 
 	@Test
@@ -85,7 +87,7 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		List<Issue> issueQueryResult = issuesProvider.get().findOpenIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 
 	@Test
@@ -98,7 +100,7 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		List<Issue> issueQueryResult = issuesProvider.get().findClosedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue2, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue2));
 	}
 
 	@Test
@@ -108,19 +110,17 @@ public class IssuesTest extends PersistedBackendTest {
 		
 		List<Issue> issueQueryResult = issuesProvider.get().findUnassignedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 	
 	@Test
-	public void testFindIssuesById(){
-		
+	public void testFindIssuesById() {
 		List<Issue> issueQueryResult = issuesProvider.get().findIssueById(group.getRepository(), issue1.getIssueId());
 		
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 
-	
 	@Test
 	public void testAddLabel() {
 		
@@ -139,18 +139,6 @@ public class IssuesTest extends PersistedBackendTest {
 		label = group.getRepository().getLabels().iterator().next();
 		assertSame(issueLabel, label);
 		
-	}
-
-	private static void issueEquals(Issue expected, Issue actual) {
-		try {
-			assertEquals(expected.getRepository(), actual.getRepository());
-			assertEquals(expected.isOpen(), actual.isOpen());
-			assertEquals(expected.getAssignee(), actual.getAssignee());
-		}
-		catch(AssertionError e) {
-			throw new AssertionError(String.format("Expected %s but was %s",
-					expected, actual), e);
-		}
 	}
 	
 	private Issue persistIssue(User user){

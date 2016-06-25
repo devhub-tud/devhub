@@ -8,13 +8,16 @@ import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 
 import com.google.inject.Inject;
 
+import nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher.isEntity;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
@@ -51,19 +54,10 @@ public class PullRequestsTest extends PersistedBackendTest {
 		pr.setTitle("super-branch");
 
 		pullRequests.persist(pr);
-		pullRequestEquals(pr, pullRequests.findOpenPullRequest(groupRepository, "super-branch").get());
-	}
-
-	private static void pullRequestEquals(PullRequest expected, PullRequest actual) {
-		try {
-			assertEquals(expected.getBranchName(), actual.getBranchName());
-			assertEquals(expected.getRepository(), actual.getRepository());
-			assertEquals(expected.isOpen(), actual.isOpen());
-		}
-		catch(AssertionError e) {
-			throw new AssertionError(String.format("Expected %s but was %s",
-					expected, actual), e);
-		}
+		assertThat(
+			pullRequests.findOpenPullRequest(groupRepository, "super-branch").get(),
+			isEntity(pr)
+		);
 	}
 	
 }

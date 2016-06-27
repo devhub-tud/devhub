@@ -60,7 +60,7 @@
 							<a href="${issue.getURI()}">
 								<span class="state glyphicon glyphicon-unchecked" title="${i18n.translate("issue.title")}"></span>
 								<div class="comment">Issue #${issue.issueId}: ${issue.title}</div>
-								<div class="timestamp" data-value="${issue.timestamp?date}">Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+								<div class="timestamp" data-value="${issue.timestamp?date}">[#assign labels = repositoryEntity.getLabels()][#list labels as label][@macros.renderLabel label/][/#list]Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
 							</a>
 						</td>
 					</tr>

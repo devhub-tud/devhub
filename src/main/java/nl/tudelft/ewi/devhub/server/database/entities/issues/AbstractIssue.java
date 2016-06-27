@@ -18,6 +18,8 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import com.google.common.collect.Sets;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -115,7 +117,7 @@ public abstract class AbstractIssue implements Event, Base {
 			@JoinColumn(name = "label_id", referencedColumnName = "label_id", nullable = false)
 		}
 	)
-	private Set<IssueLabel> labels;
+	private Set<IssueLabel> labels = Sets.newHashSet();
 
 	@OrderBy("timestamp ASC")
 	@OneToMany(mappedBy = "issue", fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REMOVE}, orphanRemoval = true)

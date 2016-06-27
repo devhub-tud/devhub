@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
@@ -118,7 +119,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	public Response createIssue(
 			@FormParam("title") String title,
 			@FormParam("description") String description,
-			@FormParam("assignee") String assigneeNetID) throws IOException{
+			@FormParam("assignee") String assigneeNetID,
+			@FormParam("labels") List<Long> labels) throws IOException{
 		
 		Issue issue = new Issue();
 		
@@ -131,6 +133,11 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		
 		issue.setAssignee(assignee);
 		issue.setRepository(getRepositoryEntity());
+		
+		issue.getLabels().clear();
+		issue.getLabels().addAll(getRepositoryEntity().getLabels().stream().filter(
+				x -> labels.contains(x.getLabelId()))
+				.collect(Collectors.toSet()));
 		
 		issueBackend.createIssue(getRepositoryApi(getRepositoryEntity()), issue);
 		
@@ -184,7 +191,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			@FormParam("title") String title,
 			@FormParam("description") String description,
 			@FormParam("assignee") String assigneeNetID,
-			@FormParam("status") Boolean status) throws IOException {
+			@FormParam("status") Boolean status,
+			@FormParam("labels") List<Long> labels) throws IOException {
 		
 		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId)
 			.orElseThrow(NotFoundException::new);
@@ -202,6 +210,11 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			issue.setOpen(false);
 			issue.setClosed(new Date());
 		}
+				
+		issue.getLabels().clear();
+		issue.getLabels().addAll(getRepositoryEntity().getLabels().stream().filter(
+				x -> labels.contains(x.getLabelId()))
+				.collect(Collectors.toSet()));
 		
 		issues.merge(issue);
 

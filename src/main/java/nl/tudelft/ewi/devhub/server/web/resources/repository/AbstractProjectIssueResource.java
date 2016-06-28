@@ -30,6 +30,7 @@ import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
+import nl.tudelft.ewi.devhub.server.database.controllers.RepositoriesController;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -52,6 +53,8 @@ import nl.tudelft.ewi.git.web.api.RepositoryApi;
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public abstract class AbstractProjectIssueResource extends AbstractIssueResource<Issue> {
 
+	protected RepositoriesController repositoriesController;
+	
 	protected Issues issues;
 	protected IssueBackend issueBackend;
 	protected IssueComments issueComments;
@@ -61,13 +64,16 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			final User currentUser, 
 			final CommentBackend commentBackend,
 			final CommentMailer commentMailer, 
-			final RepositoriesApi repositoriesApi, 
+			final RepositoriesApi repositoriesApi,
+			final RepositoriesController repositoriesController, 
 			final Issues issues, 
 			final IssueBackend issueBackend,
 			final Users users,
 			final IssueComments issueComments) {
 		
 		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
+		
+		this.repositoriesController = repositoriesController;
 		
 		this.issues = issues;
 		this.issueBackend = issueBackend;
@@ -251,6 +257,25 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			color
 		);
 		return redirect(new URI(request.getRequestURI()).resolve("issues"));
+	}
+	
+	@POST
+	@Path("deleteLabel/{labelId}")
+	public Response deleteLabel(@PathParam("labelId") long labelId) throws IOException, URISyntaxException {
+			
+		checkCollaborator(currentUser);
+		
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		
+		// Removed label from all issues
+		issues.findAllIssues(repositoryEntity).forEach(
+				repo -> repo.getLabels().removeIf( label -> label.getLabelId() == labelId ));
+		
+		// Remove label from repository set
+		repositoryEntity.getLabels().removeIf(x -> x.getLabelId() == labelId);
+		repositoriesController.merge(repositoryEntity);
+		
+		return Response.noContent().build();
 	}
 
 	private void checkCollaborator(User user) {

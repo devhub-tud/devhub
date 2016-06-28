@@ -13,6 +13,7 @@ import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
+import nl.tudelft.ewi.devhub.server.database.controllers.RepositoriesController;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
@@ -33,12 +34,13 @@ public class ProjectIssueResource extends AbstractProjectIssueResource {
 			@Named("current.group") final Group group,
 			final CommentBackend commentBackend,
 			final CommentMailer commentMailer, 
+			final RepositoriesController repositoriesController,
 			final RepositoriesApi repositoriesApi, 
 			final Issues issues, 
 			final IssueBackend issueBackend,
 			final Users users,
 			final IssueComments issueComments ) {
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, issues, issueBackend, users, issueComments);
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, repositoriesController, issues, issueBackend, users, issueComments);
 
 		this.group = group;
 		

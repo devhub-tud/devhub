@@ -87,14 +87,17 @@
 					</tr>
 				</thead>
 				<tbody>
+				[#assign labels = repositoryEntity.getLabels()]
+				[#list labels as label]
 				<tr>
 					<td>
-					[#assign labels = repositoryEntity.getLabels()]
-					[#list labels as label]
 						[@macros.renderLabel label/]
-					[/#list]
+						<a class="btn-sm pull-right" onclick="deleteLabel(${label.labelId})">
+							<i class="glyphicon glyphicon-minus-sign"></i>
+						</a>
 					</td>
 				</tr>
+				[/#list]
 				</tbody>
 			</table>
 		</div>
@@ -131,5 +134,11 @@
 </div>
 [@macros.renderScripts ]
 	<script src="/static/vendor/jscolor/jscolor.min.js"></script>
+	<script type="text/javascript">
+		deleteLabel = function(id){
+			console.log(id);
+			$.post('${repositoryEntity.getURI()}deleteLabel/' + id, new Object(), function() {location.reload();});
+		}
+	</script>
 [/@macros.renderScripts ]
 [@macros.renderFooter /]

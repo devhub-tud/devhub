@@ -57,4 +57,12 @@ public class Issues extends Controller<Issue> {
 		);
 	}
 
+	@Transactional
+	public List<Issue> findAllIssues(final RepositoryEntity repo) {
+		return query().from(issue)
+				.where(issue.repository.eq(repo))
+				.list(issue);
+		
+	}
+
 }

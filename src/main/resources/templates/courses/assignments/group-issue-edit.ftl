@@ -32,7 +32,7 @@
 				<div class="form-group">
 					<label for="title" class="col-sm-2 control-label">${i18n.translate("label.title")}</label>
 					<div class="col-sm-10">
-						<input type="text" class="form-control" name="title" id="title" 
+						<input type="text" class="form-control" name="title" id="title" required 
 							[#if issue??]
 							value="${issue.title}">
 							[#else]
@@ -96,7 +96,7 @@
 						[#assign repoLabels = repositoryEntity.getLabels()]
 						<select form="create-issue-form" class="form-control" name="labels" id="labels" multiple="multiple">
 							[#list repoLabels as label]
-							<option value="${label.labelId}" [#if issuelabels?seq_contains(label)]selected[/#if] style="background-color:${label.getColorAsHexString()}">${label.getTag()}</option>
+							<option value="${label.labelId}" [#if issuelabels?seq_contains(label)]selected[/#if]>label.tag</option>
 							[/#list]
 						</select>
 					</div>
@@ -117,7 +117,14 @@
 	<script type="text/javascript">
 	$(function() {
 		$('#labels').multipleSelect({
-			selectAll: false
+			selectAll: false,
+			styler: function(value){
+				[#list repositoryEntity.getLabels() as label]
+				if(value == ${label.labelId}){
+					return 'background-color: ${label.getColorAsHexString()};';
+				}
+				[/#list]
+			}
 		});
 	});
 	</script>

@@ -912,11 +912,21 @@ img.emoji {
 // remove the paddings in <select>s using multiple-select
 .ms-parent {
 	padding: 0px !important;
+	width: 100% !important;
 }
 .ms-choice {
 	padding: 0px !important;
 	height: 100% !important;
 }
-.ms-drop ul > li label span {
-	padding: 3px 3px;
+.ms-drop ul > li {
+
+	border-radius: 3px;
+
+	label span {
+		padding: 3px 3px;
+	}
+}
+.ms-drop input[type="checkbox"] {
+	margin-left: 2px !important;
+	margin-top: -3px !important;
 }

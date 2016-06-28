@@ -155,7 +155,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId)
 			.orElseThrow(NotFoundException::new);
 		
-		Map<String, Object> parameters = getBaseParameters();		
+		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("repository", repository);		
 		parameters.put("issue", issue);
 		

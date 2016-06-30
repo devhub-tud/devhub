@@ -88,6 +88,7 @@
 				</thead>
 				<tbody>
 				[#assign labels = repositoryEntity.getLabels()]
+				[#if labels?? && labels?has_content]
 				[#list labels as label]
 				<tr>
 					<td>
@@ -98,6 +99,13 @@
 					</td>
 				</tr>
 				[/#list]
+				[#else]
+				<tr>
+					<td>
+						${i18n.translate("label.none")}
+					</td>
+				</tr>
+				[/#if]
 				</tbody>
 			</table>
 		</div>

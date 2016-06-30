@@ -96,7 +96,7 @@
 						[#assign repoLabels = repositoryEntity.getLabels()]
 						<select form="create-issue-form" class="form-control" name="labels" id="labels" multiple="multiple">
 							[#list repoLabels as label]
-							<option value="${label.labelId}" [#if issuelabels?seq_contains(label)]selected[/#if]>label.tag</option>
+							<option value="${label.labelId}" [#if issuelabels?seq_contains(label)]selected[/#if]>${label.tag}</option>
 							[/#list]
 						</select>
 					</div>

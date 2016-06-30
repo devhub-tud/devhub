@@ -20,6 +20,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.IssueCreateView;
@@ -48,6 +49,8 @@ public class IssuesTest extends WebTest {
 	
 	private final String comment1Content = "That seems like a good idea";
 	private final String comment2Content = "I like coffee a lot";
+	
+	private static final String LABEL_TAG = "My Fancy Label";
 	
 	@Inject Users users;
 	@Inject Groups groups;
@@ -149,8 +152,38 @@ public class IssuesTest extends WebTest {
 		assertEquals(comment2Content, comment2.getContent());
 		assertEquals(NAME, comment2.getPosterName());
 		
+	}
+	
+	@Test
+	public void testAddRemoveLabel(){
+		Issue issue = new Issue();
+		issue.setAssignee(student1);
+		issue.setDescription(description);
+		issue.setOpen(true);
+		issue.setRepository(group.getRepository());
+		issue.setTitle(issueTitle);
 		
+		issues.persist(issue);
 		
+		List<IssuesOverviewView.Issue> openIssues = openLoginScreen().login(NET_ID, PASSWORD).toCoursesView()
+			.listMyProjects().get(0).click()
+			.toIssuesView()
+			.addLabel(LABEL_TAG, 0x00ccff)
+			.listOpenIssues();
+		
+		assertEquals(1, openIssues.size());
+		
+		openIssues.get(0)
+			.click().edit()
+			.selectLabels(LABEL_TAG)
+			.save();
+		
+		issues.refresh(issue);
+		assertEquals(1, issue.getLabels().size());
+		IssueLabel label = issue.getLabels().iterator().next();
+		
+		assertEquals(LABEL_TAG, label.getTag());
+		assertEquals(0x00ccff, label.getColor());
 	}
 	
 	public static void assertDatesEqual(Date expected, Date actual, int millisTreshhold){

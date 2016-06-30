@@ -25,6 +25,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Sets;
+
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
@@ -140,9 +142,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		
 		issue.setAssignee(assignee);
 		issue.setRepository(getRepositoryEntity());
-		
-		issue.getLabels().clear();
-		issue.getLabels().addAll(getRepositoryEntity().getLabels().stream().filter(
+
+		issue.setLabels(getRepositoryEntity().getLabels().stream().filter(
 				x -> labels.contains(x.getLabelId()))
 				.collect(Collectors.toSet()));
 		
@@ -218,8 +219,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			issue.setClosed(new Date());
 		}
 				
-		issue.getLabels().clear();
-		issue.getLabels().addAll(getRepositoryEntity().getLabels().stream().filter(
+		issue.setLabels(getRepositoryEntity().getLabels().stream().filter(
 				x -> labels.contains(x.getLabelId()))
 				.collect(Collectors.toSet()));
 		

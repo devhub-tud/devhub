@@ -4,21 +4,32 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
 
+import com.google.common.collect.Lists;
+
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
@@ -57,6 +68,7 @@ public class IssuesTest extends WebTest {
 	@Inject RepositoriesApi repositoriesApi;
 	@Inject RepositoriesManager repositoriesManager;
 	@Inject Issues issues;
+	@Inject IssueComments issueComments;
 	
 	private Group group;
 	private User student1;
@@ -155,7 +167,7 @@ public class IssuesTest extends WebTest {
 	}
 	
 	@Test
-	public void testAddRemoveLabel(){
+	public void testAddLabel(){
 		Issue issue = new Issue();
 		issue.setAssignee(student1);
 		issue.setDescription(description);
@@ -184,6 +196,15 @@ public class IssuesTest extends WebTest {
 		
 		assertEquals(LABEL_TAG, label.getTag());
 		assertEquals(0x00ccff, label.getColor());
+	}
+	
+	@After
+	public void deleteIssues(){
+		issues.findAllIssues(group.getRepository()).forEach(x -> {
+			Stream<? extends IssueComment> comments = issueComments.getMostRecentIssueComments(Lists.<GroupRepository>asList(group.getRepository(), new GroupRepository[0]),10);
+			comments.forEach(comment -> issueComments.delete(comment));
+			issues.delete(x);
+		});
 	}
 	
 	public static void assertDatesEqual(Date expected, Date actual, int millisTreshhold){

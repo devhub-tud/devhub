@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -248,7 +249,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	
 
 	@POST
-	@Path("addlabel")
+	@Path("label")
 	public Response addLabel(@FormParam("tag") String tag, @FormParam("color") String colorString) throws IOException, URISyntaxException {
 		int color = Integer.parseInt(colorString, 16);		
 		issueBackend.addIssueLabelToRepository(
@@ -259,8 +260,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		return redirect(new URI(request.getRequestURI()).resolve("issues"));
 	}
 	
-	@POST
-	@Path("deleteLabel/{labelId}")
+	@DELETE
+	@Path("label/{labelId}")
 	public Response deleteLabel(@PathParam("labelId") long labelId) throws IOException, URISyntaxException {
 			
 		checkCollaborator(currentUser);

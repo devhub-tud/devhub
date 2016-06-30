@@ -106,7 +106,7 @@
 <!-- Add label Modal -->
 <div class="modal fade" id="addLabelModal" tabindex="-1" role="dialog" aria-labelledby="addLabelModalLabel">
 	<div class="modal-dialog" role="document">
-		<form class="form-horizontal modal-content" action="${repositoryEntity.getURI()}addlabel" target="_self" method="POST" role="form">
+		<form class="form-horizontal modal-content" action="${repositoryEntity.getURI()}label" target="_self" method="POST" role="form">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 				<h4 class="modal-title" id="addLabelModalLabel">Add Label</h4>
@@ -136,8 +136,11 @@
 	<script src="/static/vendor/jscolor/jscolor.min.js"></script>
 	<script type="text/javascript">
 		deleteLabel = function(id){
-			console.log(id);
-			$.post('${repositoryEntity.getURI()}deleteLabel/' + id, new Object(), function() {location.reload();});
+			$.ajax({
+				url: '${repositoryEntity.getURI()}label/' + id, 
+				type: 'DELETE',
+				success: function() {location.reload();}
+			});
 		}
 	</script>
 [/@macros.renderScripts ]

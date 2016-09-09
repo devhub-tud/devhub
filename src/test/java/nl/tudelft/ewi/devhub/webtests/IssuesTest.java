@@ -1,35 +1,11 @@
 package nl.tudelft.ewi.devhub.webtests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.net.URI;
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
-import com.google.common.collect.Lists;
-
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
-import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
@@ -40,6 +16,20 @@ import nl.tudelft.ewi.devhub.webtests.views.IssueOverviewView;
 import nl.tudelft.ewi.devhub.webtests.views.IssuesOverviewView;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class IssuesTest extends WebTest {
 
@@ -69,6 +59,7 @@ public class IssuesTest extends WebTest {
 	@Inject RepositoriesManager repositoriesManager;
 	@Inject Issues issues;
 	@Inject IssueComments issueComments;
+	@Inject EntityManager entityManager;
 	
 	private Group group;
 	private User student1;
@@ -200,11 +191,10 @@ public class IssuesTest extends WebTest {
 	
 	@After
 	public void deleteIssues(){
-		issues.findAllIssues(group.getRepository()).forEach(x -> {
-			Stream<? extends IssueComment> comments = issueComments.getMostRecentIssueComments(Lists.<GroupRepository>asList(group.getRepository(), new GroupRepository[0]),10);
-			comments.forEach(comment -> issueComments.delete(comment));
-			issues.delete(x);
-		});
+		List<Issue> allIssues = issues.findAllIssues(group.getRepository());
+		allIssues.stream()
+			.map(issues::refresh) // This should not be necessary, but it is (#I've got the magic in me)
+			.forEach(issues::delete);
 	}
 	
 	public static void assertDatesEqual(Date expected, Date actual, int millisTreshhold){

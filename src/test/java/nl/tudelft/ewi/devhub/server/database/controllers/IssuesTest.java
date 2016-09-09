@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
-import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -9,27 +9,22 @@ import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
-
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
-
 import nl.tudelft.ewi.devhub.webtests.rules.UnitOfWorkRule;
-import nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher.isEntity;
-import static org.junit.Assert.*;
-
+import javax.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import static nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher.isEntity;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
@@ -125,7 +120,6 @@ public class IssuesTest extends PersistedBackendTest {
 	}
 
 	@Test
-	@Transactional
 	public void testAddLabel() {
 		
 		IssueLabel issueLabel = issueBackendProvider.get().addIssueLabelToRepository(group.getRepository(), "My Label", 0xcccccc);

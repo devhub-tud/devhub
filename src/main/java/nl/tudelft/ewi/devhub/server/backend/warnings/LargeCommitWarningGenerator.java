@@ -1,6 +1,5 @@
 package nl.tudelft.ewi.devhub.server.backend.warnings;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
@@ -23,10 +22,8 @@ import java.util.stream.Stream;
  * @author Liam Clark
  */
 @Slf4j
-@SuppressWarnings("unused")
-public class LargeCommitWarningGenerator  extends AbstractCommitWarningGenerator<LargeCommitWarning, GitPush>
+public class LargeCommitWarningGenerator extends AbstractCommitWarningGenerator<LargeCommitWarning, GitPush>
 implements CommitPushWarningGenerator<LargeCommitWarning> {
-
 
     private static final String[] DEFAULT_EXTENSIONS = {".java", ".c", ".cpp", ".h", ".scala", ".js", ".html", ".css", ".less"};
     private static final int MAX_AMOUNT_OF_FILES = 10;
@@ -35,21 +32,18 @@ implements CommitPushWarningGenerator<LargeCommitWarning> {
     private static final String MAX_LINE_TOUCHED_PROPERTY = "warnings.max-line-edits";
     private static final String COUNTED_EXTENSIONS_PROPERTY = "warnings.max-line-edits.types";
 
-    private String[] ext;
-
     @Inject
     public LargeCommitWarningGenerator(RepositoriesApi repositoriesApi) {
         super(repositoriesApi);
     }
 
     @Override
-    @SneakyThrows
     public Set<LargeCommitWarning> generateWarnings(Commit commit, GitPush attachment) {
         log.debug("Start generating warnings for {} in {}", commit, this);
         List<DiffFile<DiffContext<DiffLine>>> diffs = getGitCommit(commit).diff().getDiffs();
-        this.ext = commit.getRepository().getCommaSeparatedValues(COUNTED_EXTENSIONS_PROPERTY, DEFAULT_EXTENSIONS);
+        String[] extensions = commit.getRepository().getCommaSeparatedValues(COUNTED_EXTENSIONS_PROPERTY, DEFAULT_EXTENSIONS);
 
-        if(!commit.isMerge() && (tooManyFiles(diffs, commit) || tooManyLineChanges(diffs, commit))) {
+        if(!commit.isMerge() && (tooManyFiles(diffs, commit) || tooManyLineChanges(diffs, commit, extensions))) {
             LargeCommitWarning warning = new LargeCommitWarning();
             warning.setCommit(commit);
             log.debug("Finished generating warnings for {} in {}", commit, this);
@@ -63,23 +57,26 @@ implements CommitPushWarningGenerator<LargeCommitWarning> {
     private boolean tooManyFiles(List<DiffFile<DiffContext<DiffLine>>> diffFiles, Commit commit) {
         Configurable configurable = commit.getRepository();
         int maxAmountOfFiles = configurable.getIntegerProperty(MAX_FILES_PROPERTY, MAX_AMOUNT_OF_FILES);
+        
         return diffFiles.size() > maxAmountOfFiles;
     }
 
-    private boolean tooManyLineChanges(List<DiffFile<DiffContext<DiffLine>>> diffFiles, Commit commit) {
+    private boolean tooManyLineChanges(List<DiffFile<DiffContext<DiffLine>>> diffFiles, Commit commit, String[] extensions) {
         Configurable configurable = commit.getRepository();
         int maxCountOfFiles = configurable.getIntegerProperty(MAX_LINE_TOUCHED_PROPERTY, MAX_AMOUNT_OF_LINES_TOUCHED);
-        int count = (int) diffFiles.stream()
-                .filter(file -> !file.isDeleted() && fileViolation(file.getNewPath()))
+
+        long count = diffFiles.stream()
+                .filter(file -> !file.isDeleted() && fileShouldBeConsideredForWarnings(extensions, file.getNewPath()))
                 .flatMap(diffFile -> diffFile.getContexts().stream())
                 .flatMap(context -> context.getLines().stream())
                 .filter(line -> line.isAdded() || line.isRemoved())
                 .count();
+
         return count > maxCountOfFiles;
     }
 
-    private boolean fileViolation(final String path){
-        return Stream.of(ext).filter(path::endsWith).findAny().isPresent();
+    private boolean fileShouldBeConsideredForWarnings(String[] extensions, final String path){
+        return Stream.of(extensions).anyMatch(path::endsWith);
     }
 
 }

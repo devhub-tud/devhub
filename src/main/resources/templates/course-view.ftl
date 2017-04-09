@@ -16,7 +16,7 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     Course Editions
-                    <a href="${course.getURI()}enroll" class="btn btn-link btn-xs pull-right" disabled>
+                    <a href="${course.getURI()}" class="btn btn-link btn-xs pull-right" disabled="disabled">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
                 </div>
@@ -55,7 +55,7 @@
                 <div class="panel-heading">
                 Course Managers
         [#if user.isAdmin() ]
-                    <a href="${course.getURI()}assistants" class="btn btn-link btn-xs pull-right" disabled="disabled">
+                    <a href="#" class="btn btn-link btn-xs pull-right" disabled="disabled">
                         <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                     </a>
         [/#if]
@@ -95,7 +95,7 @@
                 <div class="panel-heading">
                     ${i18n.translate("course.control.details")}
     [#if user.isAdmin()]
-                    <a href="${course.getURI()}edit" class="btn btn-link btn-xs pull-right" disabled="">
+                    <a href="${course.getURI()}edit" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
     [/#if]

@@ -134,7 +134,7 @@ public class CourseEditionResource extends Resource {
 			parameters.put("error", error);
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("course-setup.ftl", locales, parameters));
+		return display(templateEngine.process("course-edition-setup.ftl", locales, parameters));
 	}
 
 	/**

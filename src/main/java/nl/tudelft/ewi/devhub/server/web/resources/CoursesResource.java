@@ -106,6 +106,77 @@ public class CoursesResource extends Resource {
     }
 
     /**
+     * Edit a course
+     * @param courseCode the course code for the course
+     * @param error an error message
+     * @return a Response containing the generated page
+     * @throws IOException if an I/O error occurs
+     */
+    @GET
+    @Path("{courseCode:(?!edit|setup)[^/]+?}/edit")
+    public Response getEditPage(@PathParam("courseCode") String courseCode,
+                                @QueryParam("error") String error) throws IOException {
+
+        if(!currentUser.isAdmin()) {
+            throw new UnauthorizedException();
+        }
+
+        Course course = courses.find(courseCode);
+        Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("course", course);
+
+        if(error != null)
+            parameters.put("error", error);
+
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("course-setup.ftl", locales, parameters));
+    }
+
+    /**
+     * Submit changes to a course
+     * @param courseCode the course code for the course
+     * @param courseName name for the course
+     * @param templateRepository template repository url for the course
+     * @param minGroupSize min group size for the course
+     * @param maxGroupSize max group size for the course
+     * @param buildTimeout build timeout for the course
+     * @return a Response containing the generated page
+     */
+    @POST
+    @Path("{courseCode: (?!edit|setup)[^/]+?}/edit")
+    public Response editCourse(@PathParam("courseCode") String courseCode,
+                               @FormParam("name") String courseName,
+                               @FormParam("template") String templateRepository,
+                               @FormParam("min") Integer minGroupSize,
+                               @FormParam("max") Integer maxGroupSize,
+                               @FormParam("timeout") Integer buildTimeout) {
+
+        if(!currentUser.isAdmin()) {
+            throw new UnauthorizedException();
+        }
+
+        Course course = courses.find(courseCode);
+        course.setName(courseName);
+
+        try {
+            courses.merge(course);
+        }
+        catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
+            if(violations.isEmpty()) {
+                return redirect(course.getURI().resolve("/edit?error=error.course-create-error"));
+            }
+            return redirect(course.getURI().resolve("/edit?error=" + violations.iterator().next().getMessage()));
+        }
+        catch (Exception e) {
+            return redirect(course.getURI().resolve("/edit?error=error.course-create-error"));
+        }
+
+        return redirect(Course.COURSE_BASE_PATH + courseCode);
+    }
+
+    /**
      * Set up a new course
      * @param request the current HttpServletRequest
      * @param error an error message

@@ -1,19 +1,23 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.SessionScoped;
-import com.vdurmont.emoji.EmojiParser;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
-import nl.tudelft.ewi.devhub.server.database.controllers.*;
+import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
+import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
+import nl.tudelft.ewi.devhub.server.database.controllers.Controller;
+import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -28,7 +32,12 @@ import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.models.*;
+import nl.tudelft.ewi.git.models.BlameModel;
+import nl.tudelft.ewi.git.models.BranchModel;
+import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.CommitSubList;
+import nl.tudelft.ewi.git.models.DiffBlameModel;
+import nl.tudelft.ewi.git.models.EntryType;
 import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
@@ -37,19 +46,41 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.annotations.cache.Cache;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
+import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.net.URLEncoder;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 @Slf4j
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
@@ -58,6 +89,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	private static final int PAGE_SIZE = 25;
 	private final static int MIN_GROUP_SIZE = 1;
 	private final static int MAX_GROUP_SIZE = 20;
+	public static final String MASTER_BRANCH_NAME = "master";
 
 	@Data
 	@SessionScoped
@@ -84,7 +116,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	/**
 	 * Used to display different types of alerts on a branch view.
 	 */
-	private enum DeletionStatus {
+	public enum DeletionStatus {
 		/**
 		 * Deletion of a branch was successful.
 		 */
@@ -155,11 +187,9 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	 * Generates the parameters for the branch overview.
 	 * @param branchName Name of the branch
 	 * @param page Page number to display
-	 * @param branchDeletionStatus Enum representing the status of a branch deletion.
      * @return A map containing the response parameters.
      */
-	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page,
-	                                                          DeletionStatus branchDeletionStatus) {
+	protected Map<String, Object> getBranchOverviewParameters(String branchName, int page) {
         RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 		Map<String, Object> parameters = getBaseParameters();
@@ -189,10 +219,6 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			} else throw e;
 		}
 
-		if (branchDeletionStatus != null) {
-			parameters.put("deleteStatus", branchDeletionStatus);
-		}
-
 		return parameters;
 	}
 
@@ -207,9 +233,11 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	@GET
 	@Transactional
 	public Response showProjectOverview(@Context HttpServletRequest request,
-										@QueryParam("fatal") String fatal) throws IOException, ApiError {
+										@QueryParam("fatal") String fatal,
+										@QueryParam("deletionStatus") DeletionStatus deletionStatus,
+										@QueryParam("deletedBranch") String deletedBranch) throws IOException, ApiError {
 
-		return showBranchOverview(request, "master", 1, fatal);
+		return showBranchOverview(request, MASTER_BRANCH_NAME, 1, fatal, deletionStatus, deletedBranch);
 	}
 
 	@GET
@@ -219,9 +247,18 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	public Response showBranchOverview(@Context HttpServletRequest request,
 									   @PathParam("branchName") String branchName,
 									   @QueryParam("page") @DefaultValue("1") int page,
-									   @QueryParam("fatal") String fatal) throws IOException, ApiError {
+									   @QueryParam("fatal") String fatal,
+	                                   @QueryParam("deletionStatus") DeletionStatus deletionStatus,
+	                                   @QueryParam("deletedBranch") String deletedBranch) throws IOException, ApiError {
 
-		Map<String, Object> parameters = getBranchOverviewParameters(branchName, page, null);
+		Map<String, Object> parameters = getBranchOverviewParameters(branchName, page);
+
+		if (deletionStatus != null) {
+			parameters.put("deletionStatus", deletionStatus);
+			if (deletedBranch != null) {
+				parameters.put("deletedBranch", deletedBranch);
+			}
+		}
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("project-view.ftl", locales, parameters));		
@@ -281,7 +318,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		}
 		parameters.put("minGroupSize", getMinGroupSize());
 		parameters.put("maxGroupSize", getMaxGroupSize());
-		if (!Strings.isNullOrEmpty(error)) {
+		if (!isNullOrEmpty(error)) {
 			parameters.put("error", error);
 		}
 
@@ -298,7 +335,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("members", members);
 
-		if (!Strings.isNullOrEmpty(error)) {
+		if (!isNullOrEmpty(error)) {
 			parameters.put("error", error);
 		}
 
@@ -607,42 +644,43 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	@POST
 	@Path("/branch/delete")
 	@Transactional
-	public Response deleteBranch(@Context HttpServletRequest request,
-                                 @FormParam("branchName") String branchName,
-                                 @FormParam("branchNameConf")
-                                             String branchNameConf,
+	public Response deleteBranch(@FormParam("branchName") @NotEmpty String branchName,
+                                 @FormParam("branchNameConf") String branchNameConf,
                                  @QueryParam("fatal") String fatal)
 			throws IOException, ApiError {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
 
-        List<Locale> locales = Collections.list(request.getLocales());
+		BranchApi branchApi = repositoryApi.getBranch(branchName);
+		BranchModel branchModel = branchApi.get();
 
-        Map<String, Object> parameters;
-
-        if (!(branchName == null || branchName.equals("refs/heads/master"))) {
-            BranchApi branchApi = repositoryApi.getBranch(branchName);
-			BranchModel branchModel = branchApi.get();
-
-			if (!branchModel.isAhead()) {
-				branchApi.deleteBranch();
-				parameters = getBranchOverviewParameters("master", 1, DeletionStatus.SUCCESS);
-			} else if (branchNameConf != null) {
-				if (branchNameConf.equals(branchModel.getSimpleName())) {
-					branchApi.deleteBranch();
-					parameters = getBranchOverviewParameters("master", 1, DeletionStatus.SUCCESS);
-				} else {
-					parameters = getBranchOverviewParameters(branchName, 1, DeletionStatus.CONFIRM_AGAIN);
-				}
-			} else {
-				parameters = getBranchOverviewParameters(branchName, 1, DeletionStatus.CONFIRM);
-			}
-        } else {
-			parameters = getBranchOverviewParameters("master", 1, DeletionStatus.ERROR);
+		if (branchName.equals("refs/heads/master")) {
+			return Response.seeOther(UriBuilder.fromUri(repositoryEntity.getURI().resolve("branch/").resolve(URLEncoder.encode(branchName)))
+				.queryParam("deletionStatus", DeletionStatus.ERROR)
+				.queryParam("deletedBranch", branchModel.getSimpleName()).build()).build();
 		}
 
-        return display(templateEngine.process("project-view.ftl", locales, parameters));
+
+
+		if (branchModel.isAhead()) {
+			if (isNullOrEmpty(branchNameConf)) {
+				return Response.seeOther(UriBuilder.fromUri(repositoryEntity.getURI().resolve("branch/").resolve(URLEncoder.encode(branchName)))
+					.queryParam("deletionStatus", DeletionStatus.CONFIRM)
+					.queryParam("deletedBranch", branchModel.getSimpleName()).build()).build();
+			}
+			else if (! branchNameConf.equals(branchModel.getSimpleName())) {
+				return Response.seeOther(UriBuilder.fromUri(repositoryEntity.getURI().resolve("branch/").resolve(URLEncoder.encode(branchName)))
+					.queryParam("deletionStatus", DeletionStatus.CONFIRM_AGAIN)
+					.queryParam("deletedBranch", branchModel.getSimpleName()).build()).build();
+			}
+		}
+
+		branchApi.deleteBranch();
+
+		return Response.seeOther(UriBuilder.fromUri(repositoryEntity.getURI().resolve("branch/").resolve(MASTER_BRANCH_NAME))
+			.queryParam("deletionStatus", DeletionStatus.SUCCESS)
+			.queryParam("deletedBranch", branchModel.getSimpleName()).build()).build();
 	}
 
 	@GET
@@ -692,7 +730,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		String netId;
 		int memberId = 1;
 		Set<String> netIds = Sets.newHashSet();
-		while (!Strings.isNullOrEmpty((netId = request.getParameter("member-" + memberId)))) {
+		while (!isNullOrEmpty((netId = request.getParameter("member-" + memberId)))) {
 			memberId++;
 			netIds.add(netId);
 		}

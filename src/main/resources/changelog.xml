@@ -1033,6 +1033,26 @@
 			baseColumnNames="repository_id, issue_id"/>
 	</changeSet>
 
+	<changeSet id="persist_students_with_delivery" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="delivery_students">
+			<column name="delivery_id" type="bigint">
+				<constraints primaryKey="true" nullable="false"/>
+			</column>
+			<column name="user_id" type="bigint">
+				<constraints primaryKey="true" nullable="false"/>
+			</column>
+
+		</createTable>
+		<addForeignKeyConstraint constraintName="delivery_ref_in_delivery_students"
+														 baseTableName="delivery_students" baseColumnNames="delivery_id"
+														 referencedTableName="assignment_deliveries" referencedColumnNames="id"/>
+
+		<addForeignKeyConstraint constraintName="user_ref_in_delivery_students"
+														 baseTableName="delivery_students" baseColumnNames="user_id"
+														 referencedTableName="users" referencedColumnNames="id"/>
+		<sql>insert into delivery_students (delivery_id, user_id ) select assignment_deliveries.id as delivery_id, group_memberships.user_id as user_id from assignment_deliveries join group_memberships on group_memberships.course_edition_id = assignment_deliveries.course_edition_id and group_memberships.group_number = assignment_deliveries.group_number;</sql>
+	</changeSet>
+	
 	<changeSet id="abstracted_pull_request_and_issue" author="Jan-Willem Gmelig Meyling">
 		<dropNotNullConstraint tableName="pull_requests" columnName="branch_name" columnDataType="varchar(40)"/>
 		<dropNotNullConstraint tableName="pull_requests" columnName="merged" columnDataType="boolean"/>

@@ -1,5 +1,8 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -7,12 +10,6 @@ import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JoinColumnOrFormula;
 import org.hibernate.annotations.JoinColumnsOrFormulas;
@@ -48,6 +45,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Delivery for an assignment
@@ -60,8 +58,7 @@ import java.util.Map;
 @EqualsAndHashCode(of={"deliveryId"})
 public class Delivery implements Event, Base {
 
-	public static final Comparator<Delivery> DELIVERIES_BY_GROUP_NUMBER = (a, b) ->
-		Long.compare(a.getGroup().getGroupNumber(), b.getGroup().getGroupNumber());
+	public static final Comparator<Delivery> DELIVERIES_BY_GROUP_NUMBER = Comparator.comparingLong(a -> a.getGroup().getGroupNumber());
 
 	/**
      * The State for the Delivery
@@ -156,6 +153,18 @@ public class Delivery implements Event, Base {
 	@Column(name = "created_date")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date timestamp;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name="delivery_students",
+        joinColumns={
+            @JoinColumn(name="delivery_id", referencedColumnName="id"),
+        },
+        inverseJoinColumns={
+            @JoinColumn(name="user_id", referencedColumnName="id")
+        }
+    )
+    private Set<User> students;
 
     @Data
     @Embeddable

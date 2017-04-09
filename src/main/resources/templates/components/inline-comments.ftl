@@ -16,7 +16,10 @@
 
             createForm: function() {
                 this.$form =  $('<div class="panel panel-default panel-comment-form">' +
-                    '<div class="panel-heading">${i18n.translate("panel.label.add-comment")}</div>' +
+                    '<div class="panel-heading">${i18n.translate("panel.label.add-comment")}' +
+                    '<span> - </span>' +
+                    '<a href="https://github.com/vdurmont/emoji-java#available-emojis" target="_blank">' +
+                    '${i18n.translate("panel.label.add-comment-emoji-link")}</a></div>' +
                     '<div class="panel-body">' +
                     '<form class="form-horizontal" action="${repositoryEntity.getURI()}comment" method="POST">' +
                     '<textarea rows="5" class="form-control" name="content"></textarea>' +
@@ -33,6 +36,8 @@
                 }).bind(this));
 
                 this.$form.find('#btn-cancel').click(this.dismissForm.bind(this));
+                var textArea = this.$form.find('textarea');
+                textArea.bind(showEmojiHint(textArea));
             },
 
             comment: function() {
@@ -59,7 +64,7 @@
                     '<div class="panel-heading"><strong>' + res.name + '</strong> on '+
                     '<a href="#comment-'+ res.commentId + '" id="comment-'+ + res.commentId + '">' + res.date + '</a></div>'+
                     '<div class="panel-body">'+
-                    '<p>' + (res.content||'').replace(/\n/g, '<br/>') + '</p>'+
+                    '<p>' + (twemoji.parse(res.formattedContent) ||'') + '</p>'+
                     '</div>'+
                     '</div>').appendTo(this.getCommentContainer());
             },

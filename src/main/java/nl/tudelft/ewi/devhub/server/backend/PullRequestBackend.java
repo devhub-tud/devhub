@@ -62,7 +62,12 @@ public class PullRequestBackend {
     public void createPullRequest(RepositoryApi repository, PullRequest pullRequest) {
         updateCommitPointers(repository, pullRequest);
         log.info("Persisisting pull-request {}", pullRequest);
+        // Set a dummy title to avoid exceptions because of the @NotEmpy annotations
+        pullRequest.setTitle(pullRequest.getBranchName());
         pullRequests.persist(pullRequest);
+        pullRequest.setTitle(String.format("Pull request #%d: %s", 
+        		pullRequest.getIssueId(),
+        		pullRequest.getBranchName()));
     }
 
     /**

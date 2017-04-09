@@ -90,10 +90,10 @@ h4 {
 
 h1 {
 	color: #000;
-	font-size: 60px;
+	font-size: 30px;
 	font-weight: 800;
-	font-style: bold;
-	margin: 0px;
+	margin: 0;
+	overflow-wrap: break-word;
 }
 
 .dropdown-menu {
@@ -682,7 +682,7 @@ div.commit {
 code {
 	color: #444;
 	font-weight: bold;
-	white-space: normal;
+	white-space: pre-wrap;
 	background-color: #fff;
 	
 	&.log {
@@ -865,4 +865,46 @@ code {
 	  }
 	}
   }
+}
+
+img.emoji {
+	// Override any img styles to ensure Emojis are displayed inline
+	margin: 0 !important;
+	display: inline !important;
+}
+
+.textcomplete-dropdown {
+	border: 1px solid #ddd;
+	background-color: white;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	white-space: nowrap;
+	width: auto;
+
+	li {
+		border-top: 1px solid #ddd;
+		padding: 2px 5px;
+		white-space: nowrap;
+	}
+
+	li:first-child {
+		border-top: none;
+	}
+
+	li:hover, .active {
+		background-color: #3699d2;
+
+		a {
+			background-color: inherit;
+		}
+	}
+
+	a:hover {
+		cursor: pointer;
+	}
+}
+
+#btn-preview {
+	float: right;
 }

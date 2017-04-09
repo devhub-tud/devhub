@@ -9,12 +9,14 @@ import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.models.DeleteBranchResponse;
@@ -66,20 +68,16 @@ import java.util.Map;
  */
 @Slf4j
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
-public abstract class AbstractProjectPullResource extends Resource {
+public abstract class AbstractProjectPullResource extends AbstractIssueResource<PullRequest> {
 
-	protected final TemplateEngine templateEngine;
-	protected final User currentUser;
 	protected final BuildResults buildResults;
 	protected final PullRequests pullRequests;
-	protected final CommentBackend commentBackend;
 	protected final PullRequestBackend pullRequestBackend;
-	protected final RepositoriesApi repositoriesApi;
-	protected final CommentMailer commentMailer;
 	protected final PullRequestComments pullRequestComments;
 	protected final PullRequestMailer pullRequestMailer;
 	protected final HooksResource hooksResource;
 	protected final Warnings warnings;
+	protected final MarkDownParser markDownParser;
 
 	protected AbstractProjectPullResource(final TemplateEngine templateEngine,
 	                                      final @Named("current.user") User currentUser,
@@ -92,20 +90,19 @@ public abstract class AbstractProjectPullResource extends Resource {
 	                                      final PullRequestMailer pullRequestMailer,
 	                                      final PullRequestComments pullRequestComments,
 	                                      final HooksResource hooksResource,
-	                                      final Warnings warnings) {
-
-		this.templateEngine = templateEngine;
-		this.currentUser = currentUser;
-		this.commentBackend = commentBackend;
+	                                      final Warnings warnings,
+										  final MarkDownParser markDownParser,
+	                          			  final Users users) {
+		
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
 		this.pullRequestBackend = pullRequestBackend;
-		this.repositoriesApi = repositoriesApi;
-		this.commentMailer = commentMailer;
 		this.pullRequestComments = pullRequestComments;
 		this.pullRequestMailer = pullRequestMailer;
 		this.hooksResource = hooksResource;
 		this.warnings = warnings;
+		this.markDownParser = markDownParser;
 	}
 
 	protected abstract RepositoryEntity getRepositoryEntity();
@@ -119,6 +116,14 @@ public abstract class AbstractProjectPullResource extends Resource {
 		parameters.put("user", currentUser);
 		parameters.put("repositoryEntity", getRepositoryEntity());
 		return parameters;
+	}
+
+	public PullRequestComment pullRequestCommentFactory(String content, PullRequest pullRequest) {
+		PullRequestComment comment = new PullRequestComment();
+
+		comment.setContent(content);
+		comment.setPullRequest(pullRequest);
+		return comment;
 	}
 
 	@POST
@@ -225,10 +230,9 @@ public abstract class AbstractProjectPullResource extends Resource {
 
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		PullRequest pullRequest = pullRequests.findById(repositoryEntity, pullId);
-		PullRequestComment comment = new PullRequestComment();
 
-		comment.setContent(content);
-		comment.setPullRequest(pullRequest);
+		PullRequestComment comment = pullRequestCommentFactory(content, pullRequest);
+
 		comment.setUser(currentUser);
 		pullRequestComments.persist(comment);
 
@@ -237,6 +241,7 @@ public abstract class AbstractProjectPullResource extends Resource {
 		response.setName(currentUser.getName());
 		response.setDate(comment.getTimestamp().toString());
 		response.setCommentId(comment.getCommentId());
+		response.setFormattedContent(markDownParser.markdownToHtml(content));
 
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);

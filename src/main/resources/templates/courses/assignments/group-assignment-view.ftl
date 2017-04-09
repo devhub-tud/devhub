@@ -26,7 +26,7 @@
         </div>
         <div class="col-md-10">
             [#if assignment.getSummary()??]
-                <p>${assignment.getSummary()}</p>
+                [@MarkDownParser message=assignment.getSummary()][/@MarkDownParser]
             [/#if]
 
             [#if assignment.getDueDate()??]

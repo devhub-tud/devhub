@@ -28,11 +28,11 @@ public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundExceptio
 	@Context
 	private HttpServletRequest request;
 
-	private final TemplateEngine templateEngine;
+	private final com.google.inject.Provider<TemplateEngine> templateEngine;
 	private final com.google.inject.Provider<User> currentUserProvider;
 
 	@Inject
-	public NotFoundExceptionMapper(TemplateEngine templateEngine,
+	public NotFoundExceptionMapper(com.google.inject.Provider<TemplateEngine> templateEngine,
 								   @Named("current.user") com.google.inject.Provider<User> currentUserProvider) {
 		this.templateEngine = templateEngine;
 		this.currentUserProvider = currentUserProvider;
@@ -63,7 +63,7 @@ public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundExceptio
 
 			return Response
 					.status(Response.Status.NOT_FOUND)
-					.entity(templateEngine.process("error.not-found.ftl", locales, params))
+					.entity(templateEngine.get().process("error.not-found.ftl", locales, params))
 					.build();
 		}
 		catch (IOException e) {

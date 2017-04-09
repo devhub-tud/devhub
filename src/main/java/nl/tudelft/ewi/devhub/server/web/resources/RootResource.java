@@ -6,10 +6,12 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
+import com.vdurmont.emoji.EmojiParser;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.util.Version;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -35,14 +37,16 @@ public class RootResource extends Resource {
 	private final TemplateEngine engine;
 	private final AuthenticationBackend authenticationBackend;
 	private final Provider<User> currentUserProvider;
+	private final MarkDownParser markDownParser;
 
 	@Inject
 	public RootResource(TemplateEngine engine,
 			AuthenticationBackend authenticationBackend,
-			@Named("current.user") Provider<User> currentUserProvider) {
+			@Named("current.user") Provider<User> currentUserProvider, MarkDownParser markDownParser) {
 		this.engine = engine;
 		this.authenticationBackend = authenticationBackend;
 		this.currentUserProvider = currentUserProvider;
+		this.markDownParser = markDownParser;
 	}
 	
 	@GET
@@ -107,6 +111,22 @@ public class RootResource extends Resource {
 
 		return Response.seeOther(new URI("/login?error=error.invalid-credentials")).build();
 
+	}
+
+	/**
+	 * formats a input string (for example for comments)
+	 * @param request
+	 * @param content the input string
+	 * @return the formatted sting, might be raw HTML
+	 */
+	@GET
+	@Path("/comment/preview")
+	@Produces(MediaType.TEXT_HTML)
+	public String getCommentPreview(@Context HttpServletRequest request, @QueryParam("content") String content) {
+		String result = EmojiParser.parseToUnicode(content);
+
+		result = markDownParser.markdownToHtml(result);
+		return result;
 	}
 
     @GET

@@ -186,11 +186,13 @@
 [/#macro]
 
 [#macro renderScripts]
-		<script src="/static/vendor/jquery/jquery.min.js"></script>
-		<script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
-		<script src="/static/js/validation.js"></script>
-		<script src="/static/js/main.js"></script>
-		[#nested/]
+	<script src="/static/vendor/jquery/jquery.min.js"></script>
+	<script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/static/vendor/twemoji/twemoji.min.js"></script>
+	<script src="/static/vendor/jquery-textcomplete/dist/jquery.textcomplete.js"></script>
+	<script src="/static/js/validation.js"></script>
+    <script src="/static/js/main.js"></script>
+	[#nested/]
 [/#macro]
 
 [#macro renderFooter]

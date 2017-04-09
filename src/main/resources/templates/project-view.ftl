@@ -20,7 +20,7 @@
 [@projectFrameset.renderBreadcrumb i18n group![] repositoryEntity/]
 [/#if]
 
-[#if branch?? && branch.isAhead() && !deleteStatus?? ]
+[#if branch?? && branch.isAhead() && !deletionStatus?? ]
     <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
         [#if pullRequest??]
             <span>${i18n.translate("group.branch.pull-request-message")}</span>
@@ -55,17 +55,17 @@
             </button>
         </form>
     </div>
-[#elseif deleteStatus??]
-    [#if deleteStatus == "SUCCESS"]
+[#elseif deletionStatus?? && deletedBranch??]
+    [#if deletionStatus == "SUCCESS"]
         <div class="alert alert-success" role="alert" style="clear:both; line-height: 34px;">
-            <span>${i18n.translate("group.branch.delete-successful", branch.getSimpleName())}</span>
+            <span>${i18n.translate("group.branch.delete-successful", deletedBranch)}</span>
         </div>
-    [#elseif deleteStatus == "CONFIRM" || deleteStatus == "CONFIRM_AGAIN"]
+    [#elseif deletionStatus == "CONFIRM" || deletionStatus == "CONFIRM_AGAIN"]
         <div class="alert alert-danger" role="alert" style="clear:both; line-height: 34px;">
-            [#if deleteStatus == "CONFIRM"]
-                <span>${i18n.translate("group.branch.delete-ahead-warning", branch.getSimpleName())}</span>
+            [#if deletionStatus == "CONFIRM"]
+                <span>${i18n.translate("group.branch.delete-ahead-warning", deletedBranch)}</span>
             [#else]
-                <span>${i18n.translate("group.branch.delete-ahead-warning-again", branch.getSimpleName())}</span>
+                <span>${i18n.translate("group.branch.delete-ahead-warning-again", deletedBranch)}</span>
             [/#if]
             <form method="POST" action="${repositoryEntity.getURI()}branch/delete"
                   target="_self">
@@ -78,7 +78,7 @@
                 </button>
             </form>
         </div>
-    [#elseif deleteStatus == "ERROR"]
+    [#elseif deletionStatus == "ERROR"]
         <div class="alert alert-warning" role="alert" style="clear:both; line-height: 34px;">
             <span>${i18n.translate("group.branch.delete-error")}</span>
         </div>

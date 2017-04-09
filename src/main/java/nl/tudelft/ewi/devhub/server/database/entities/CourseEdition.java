@@ -56,7 +56,6 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable, B
 	 * The code should be unique, as it is part of the provisioned
 	 * repository path.
 	 */
-	@NotNull
 	@NotEmpty(message = "error.course-code-empty")
 	@Column(name = "code", unique = true, nullable = false)
 	private String code;

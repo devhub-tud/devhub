@@ -36,7 +36,10 @@
 							<a href="${issue.getURI()}">
 								<span class="state glyphicon glyphicon-unchecked" title="${i18n.translate("issue.title")}"></span>
 								<div class="comment">Issue #${issue.issueId}: ${issue.title}</div>
-								<div class="timestamp" data-value="${issue.timestamp?date}">[#assign labels = issue.getLabels()][#list labels as label][@macros.renderLabel label/][/#list]Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+								<div class="pull-right">
+									[#assign labels = issue.getLabels()][#list labels as label][@macros.renderLabel label/][/#list]
+								</div>
+								<div class="timestamp" data-value="${issue.timestamp?date}">Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
 							</a>
 						</td>
 					</tr>
@@ -58,9 +61,12 @@
 					<tr>
 						<td class="commit ignored" id="${issue.title}">
 							<a href="${issue.getURI()}">
-								<span class="state glyphicon glyphicon-unchecked" title="${i18n.translate("issue.title")}"></span>
+								<span class="state glyphicon glyphicon-ok-circle" title="${i18n.translate("issue.title")}"></span>
 								<div class="comment">Issue #${issue.issueId}: ${issue.title}</div>
-								<div class="timestamp" data-value="${issue.timestamp?date}">[#assign labels = issue.getLabels()][#list labels as label][@macros.renderLabel label/][/#list]Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+								<div class="pull-right">
+									[#assign labels = issue.getLabels()][#list labels as label][@macros.renderLabel label/][/#list]
+								</div>
+								<div class="timestamp" data-value="${issue.timestamp?date}">Opened on ${issue.timestamp?string["EEEE dd MMMM yyyy HH:mm"]}</div>
 							</a>
 						</td>
 					</tr>
@@ -75,39 +81,38 @@
 				</tbody>
 			</table>
 		</div>
-		<div class="col-md-2 panel panel-default">
-			<table class="table">
-				<thead>
+		<div class="col-md-2">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					Labels
+					<a class="btn-sm pull-right" data-toggle="modal" data-target="#addLabelModal">
+						<i class="glyphicon glyphicon-plus-sign"></i>
+					</a>
+				</div>
+				<table class="table">
+					<tbody>
+					[#assign labels = repositoryEntity.getLabels()]
+					[#if labels?? && labels?has_content]
+						[#list labels as label]
+						<tr>
+							<td>
+								[@macros.renderLabel label/]
+								<a class="btn-sm pull-right" onclick="deleteLabel(${label.labelId})">
+									<i class="glyphicon glyphicon-minus-sign"></i>
+								</a>
+							</td>
+						</tr>
+						[/#list]
+					[#else]
 					<tr>
-						<th>Labels
-							<a class="btn-sm pull-right" data-toggle="modal" data-target="#addLabelModal">
-								<i class="glyphicon glyphicon-plus-sign"></i>
-							</a>
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-				[#assign labels = repositoryEntity.getLabels()]
-				[#if labels?? && labels?has_content]
-				[#list labels as label]
-				<tr>
-					<td>
-						[@macros.renderLabel label/]
-						<a class="btn-sm pull-right" onclick="deleteLabel(${label.labelId})">
-							<i class="glyphicon glyphicon-minus-sign"></i>
-						</a>
-					</td>
-				</tr>
-				[/#list]
-				[#else]
-				<tr>
-					<td>
+						<td>
 						${i18n.translate("label.none")}
-					</td>
-				</tr>
-				[/#if]
-				</tbody>
-			</table>
+						</td>
+					</tr>
+					[/#if]
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 </div>

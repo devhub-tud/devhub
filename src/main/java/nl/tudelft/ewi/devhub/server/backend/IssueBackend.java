@@ -53,12 +53,5 @@ public class IssueBackend {
 		issueLabels.persist(label);
 		return label;
 	}
-	
-	@Transactional
-	public void addLabelToIssue(Issue issue, IssueLabel label){
-		log.info("Adding label {} to issue {}", label, issue);
-		issue.getLabels().add(label);
-	}
-	
 
 }

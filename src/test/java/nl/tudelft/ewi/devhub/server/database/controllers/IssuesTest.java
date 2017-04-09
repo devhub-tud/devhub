@@ -123,7 +123,7 @@ public class IssuesTest extends PersistedBackendTest {
 	public void testAddLabel() {
 		
 		IssueLabel issueLabel = issueBackendProvider.get().addIssueLabelToRepository(group.getRepository(), "My Label", 0xcccccc);
-		issueBackendProvider.get().addLabelToIssue(issue1, issueLabel);
+		issue1.addLabel(issueLabel);
 
 		issue1 = issuesProvider.get().findIssueById(group.getRepository(), issue1.getIssueId()).get();
 		

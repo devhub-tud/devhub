@@ -130,4 +130,8 @@ public abstract class AbstractIssue implements Event, Base {
         return !isOpen();
     }
 
+	public void addLabel(IssueLabel issueLabel) {
+		labels.add(issueLabel);
+	}
+
 }

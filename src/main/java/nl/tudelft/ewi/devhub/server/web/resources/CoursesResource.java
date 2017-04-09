@@ -88,7 +88,7 @@ public class CoursesResource extends Resource {
     }
 
     @GET
-    @Path("{courseCode}")
+    @Path("{courseCode: (?!edit|setup)[^/]+?}")
     public Response getCourse(@PathParam("courseCode") String courseCode) throws IOException {
         Course course = courses.find(courseCode);
 

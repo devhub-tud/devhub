@@ -46,7 +46,7 @@ import java.util.Set;
  * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
-@Path("courses/{courseCode}/{editionCode}")
+@Path("courses/{courseCode: (?!edit|setup)[^/]+?}/{editionCode : (?!edit|setup)[^/]+?}")
 @RequestScoped
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class CourseEditionResource extends Resource {

@@ -6,10 +6,8 @@ import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.google.common.collect.ComparisonChain;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -25,6 +23,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * A subtask of an {@link Assignment}.
@@ -83,4 +83,17 @@ public class Task implements Comparable<Task> {
 		return Long.compare(getId(), o.getId());
 	}
 
+	public Task copyForNextYear(Assignment assignment) {
+		final Task newTask = new Task();
+		newTask.setAssignment(assignment);
+		newTask.setDescription(this.description);
+		List<Characteristic> copyOfCharacteristics = this.getCharacteristics().stream().map(newTask::copyCharacteristic).collect(toList());
+		newTask.setCharacteristics(copyOfCharacteristics);
+
+		return newTask;
+	}
+
+	private Characteristic copyCharacteristic(Characteristic characteristic) {
+		return characteristic.copyForNextYear(this);
+	}
 }

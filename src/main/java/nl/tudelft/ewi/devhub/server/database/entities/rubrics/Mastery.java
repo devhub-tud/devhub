@@ -70,4 +70,12 @@ public class Mastery implements Comparable<Mastery> {
 		return mastery;
 	}
 
+	public Mastery copyForNextYear(Characteristic characteristic) {
+		final Mastery mastery = new Mastery();
+		mastery.setCharacteristic(characteristic);
+		mastery.setDescription(this.description);
+		mastery.setPoints(this.points);
+
+		return mastery;
+	}
 }

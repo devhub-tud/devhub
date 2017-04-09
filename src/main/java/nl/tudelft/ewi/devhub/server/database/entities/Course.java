@@ -1,5 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import static java.util.Comparator.comparing;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -17,6 +19,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by Jan-Willem on 8/11/2015.
@@ -77,5 +80,15 @@ public class Course implements Comparable<Course>, Base {
 	public URI getURI() {
 		return URI.create(COURSE_BASE_PATH).resolve(getCode().toLowerCase() + "/");
 	}
+
+    public Optional<CourseEdition> findLastEdition() {
+        final List<CourseEdition> editions = this.getEditions();
+
+        if (editions != null) {
+            return editions.stream().max(comparing(CourseEdition::getTimeSpan));
+        }
+
+        return Optional.empty();
+    }
 
 }

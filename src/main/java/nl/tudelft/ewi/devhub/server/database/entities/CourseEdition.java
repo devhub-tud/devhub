@@ -34,6 +34,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toList;
 
 @Data
 @Entity
@@ -135,4 +138,15 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable, B
 		return URI.create("/").relativize(uri);
 	}
 
+	/**
+	 * Copies all the assignments from a previous edition from a course to the next.
+	 * @param copyFor the next version of the course edition that the assignments should be copied to.
+	 *
+	 * @return a new edition of a course with all the same assignments as the previous.
+	 */
+	public List<Assignment> copyAssignmentsForNextYear(CourseEdition copyFor) {
+		final List<Assignment> assignments = this.getAssignments();
+		return IntStream.range(0, assignments.size())
+				.mapToObj(i -> assignments.get(i).copyForNextYear(copyFor, i + 1)).collect(toList());
+	}
 }

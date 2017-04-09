@@ -9,13 +9,12 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.database.entities.comments.PullRequestComment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.CommitsView.Branch;
 import nl.tudelft.ewi.devhub.webtests.views.DiffElement;
-import nl.tudelft.ewi.devhub.webtests.views.DiffInPullRequestView;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView;
 import nl.tudelft.ewi.devhub.webtests.views.PullRequestOverViewView.Comment;
 import nl.tudelft.ewi.git.models.AbstractDiffModel.DiffContext;
@@ -314,7 +313,7 @@ public class ProjectPullTest extends WebTest {
 		Comment comment = pullRequestOverViewView.listComments().get(0);		
 		assertEquals(COMMENT_CONTENT, comment.getContent());
 		
-		List<PullRequestComment> comments = getPullRequest(BRANCH_NAME).getComments();		
+		List<IssueComment> comments = getPullRequest(BRANCH_NAME).getComments();
 		assertEquals(1, comments.size());
 		assertEquals(COMMENT_CONTENT, comments.get(0).getContent());
 				

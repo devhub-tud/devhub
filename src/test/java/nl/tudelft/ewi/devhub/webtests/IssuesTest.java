@@ -1,25 +1,13 @@
 package nl.tudelft.ewi.devhub.webtests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.text.ParseException;
-import java.util.Date;
-import java.util.List;
-
-import javax.inject.Inject;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.IssueCreateView;
@@ -28,6 +16,20 @@ import nl.tudelft.ewi.devhub.webtests.views.IssueOverviewView;
 import nl.tudelft.ewi.devhub.webtests.views.IssuesOverviewView;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.gitolite.repositories.RepositoriesManager;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class IssuesTest extends WebTest {
 
@@ -49,11 +51,15 @@ public class IssuesTest extends WebTest {
 	private final String comment1Content = "That seems like a good idea";
 	private final String comment2Content = "I like coffee a lot";
 	
+	private static final String LABEL_TAG = "My Fancy Label";
+	
 	@Inject Users users;
 	@Inject Groups groups;
 	@Inject RepositoriesApi repositoriesApi;
 	@Inject RepositoriesManager repositoriesManager;
 	@Inject Issues issues;
+	@Inject IssueComments issueComments;
+	@Inject EntityManager entityManager;
 	
 	private Group group;
 	private User student1;
@@ -149,8 +155,46 @@ public class IssuesTest extends WebTest {
 		assertEquals(comment2Content, comment2.getContent());
 		assertEquals(NAME, comment2.getPosterName());
 		
+	}
+	
+	@Test
+	public void testAddLabel(){
+		Issue issue = new Issue();
+		issue.setAssignee(student1);
+		issue.setDescription(description);
+		issue.setOpen(true);
+		issue.setRepository(group.getRepository());
+		issue.setTitle(issueTitle);
 		
+		issues.persist(issue);
 		
+		List<IssuesOverviewView.Issue> openIssues = openLoginScreen().login(NET_ID, PASSWORD).toCoursesView()
+			.listMyProjects().get(0).click()
+			.toIssuesView()
+			.addLabel(LABEL_TAG, 0x00ccff)
+			.listOpenIssues();
+		
+		assertEquals(1, openIssues.size());
+		
+		openIssues.get(0)
+			.click().edit()
+			.selectLabels(LABEL_TAG)
+			.save();
+		
+		issues.refresh(issue);
+		assertEquals(1, issue.getLabels().size());
+		IssueLabel label = issue.getLabels().iterator().next();
+		
+		assertEquals(LABEL_TAG, label.getTag());
+		assertEquals(0x00ccff, label.getColor());
+	}
+	
+	@After
+	public void deleteIssues(){
+		List<Issue> allIssues = issues.findAllIssues(group.getRepository());
+		allIssues.stream()
+			.map(issues::refresh) // This should not be necessary, but it is (#I've got the magic in me)
+			.forEach(issues::delete);
 	}
 	
 	public static void assertDatesEqual(Date expected, Date actual, int millisTreshhold){

@@ -15,6 +15,7 @@ import org.openqa.selenium.WebElement;
 
 import lombok.Data;
 import lombok.SneakyThrows;
+import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 
 public class IssuesOverviewView extends AuthenticatedView {
 
@@ -82,6 +83,20 @@ public class IssuesOverviewView extends AuthenticatedView {
 			return new IssueOverviewView(getDriver());
 		}
 		
+	}
+
+	public IssuesOverviewView addLabel(String tag, int color) {
+		invariant();
+		
+		getDriver().findElement(By.cssSelector("[data-target=\"#addLabelModal\"]")).click();
+		Dom.waitForCondition(getDriver(), 5, driver -> driver.findElement(By.id("tag")).isDisplayed());
+		getDriver().findElement(By.id("tag")).clear();
+		getDriver().findElement(By.id("tag")).sendKeys(tag);
+		getDriver().findElement(By.id("color")).clear();
+		getDriver().findElement(By.id("color")).sendKeys(String.format("%06X", color));
+		getDriver().findElement(By.cssSelector("button[type=\"submit\"]")).click();
+		
+		return this;
 	}
 
 }

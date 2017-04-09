@@ -17,6 +17,7 @@ import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.PrivateRepositories;
+import nl.tudelft.ewi.devhub.server.database.controllers.RepositoriesController;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
@@ -36,14 +37,15 @@ public class PrivateIssueResource extends AbstractProjectIssueResource {
 			@Named("current.user") final User currentUser, 
 			final CommentBackend commentBackend,
 			final CommentMailer commentMailer, 
-			final RepositoriesApi repositoriesApi, 
+			final RepositoriesApi repositoriesApi,
+			final RepositoriesController repositoriesController,
 			final Issues issues, 
 			final IssueBackend issueBackend,
 			final Users users,
 			final PrivateRepositories privateRepositories,
 			final IssueComments issueComments) {
 		
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, issues, issueBackend, users, issueComments);
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, repositoriesController, issues, issueBackend, users, issueComments);
 		
 		this.privateRepositories = privateRepositories;
 	}

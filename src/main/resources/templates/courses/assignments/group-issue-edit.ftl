@@ -2,7 +2,9 @@
 [#import "../../components/project-frameset.ftl" as projectFrameset]
 [#import "../../components/commit-row.ftl" as commitRow]
 
-[@macros.renderHeader i18n.translate("section.projects") /]
+[@macros.renderHeader i18n.translate("section.projects") ]
+<link rel="stylesheet" href="/static/vendor/multiselect/multiple-select.css">
+[/@macros.renderHeader]
 [@macros.renderMenu i18n user /]
 <div class="container">
 
@@ -30,7 +32,7 @@
 				<div class="form-group">
 					<label for="title" class="col-sm-2 control-label">${i18n.translate("label.title")}</label>
 					<div class="col-sm-10">
-						<input type="text" class="form-control" name="title" id="title" 
+						<input type="text" class="form-control" name="title" id="title" required 
 							[#if issue??]
 							value="${issue.title}">
 							[#else]
@@ -85,16 +87,47 @@
 				</div>
 				[/#if]
 				<div class="form-group">
+					<label for="labels" class="col-sm-2 control-label">Labels</label>
+					<div class="col-sm-10">
+						[#if issue?? && issue?has_content]
+							[#assign issuelabels = issue.getLabels()]
+						[#else]
+							[#assign issuelabels = []]
+						[/#if]
+						[#assign repoLabels = repositoryEntity.getLabels()]
+						<select form="create-issue-form" class="form-control" name="labels" id="labels" multiple="multiple">
+							[#list repoLabels as label]
+							<option value="${label.labelId}" [#if issuelabels?seq_contains(label)]selected[/#if]>${label.tag}</option>
+							[/#list]
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
 					<div class="col-sm-offset-2 col-sm-10">
 						<div class="pull-right">
 							<a href="[#if issue?? && issue?has_content]${issue.getURI()}[#else]${repositoryEntity.getURI()}issues[/#if]" class="btn btn-default">${i18n.translate("course.control.cancel")}</a>
-							<button type="submit" class="btn btn-primary">[#if issue??]${i18n.translate("course.control.save")}[#else]${i18n.translate("issue.create")}[/#if]</button>
+							<button type="submit" id="submit" class="btn btn-primary">[#if issue??]${i18n.translate("course.control.save")}[#else]${i18n.translate("issue.create")}[/#if]</button>
 						</div>
 					</div>
 				</div>
-
 			</form>
     </div>
 </div>
-[@macros.renderScripts /]
+[@macros.renderScripts ]
+	<script src="/static/vendor/multiselect/multiple-select.js"></script>
+	<script type="text/javascript">
+	$(function() {
+		$('#labels').multipleSelect({
+			selectAll: false,
+			styler: function(value){
+				[#list repositoryEntity.getLabels() as label]
+				if(value == ${label.labelId}){
+					return 'background-color: ${label.getColorAsHexString()};';
+				}
+				[/#list]
+			}
+		});
+	});
+	</script>
+[/@macros.renderScripts ]
 [@macros.renderFooter /]

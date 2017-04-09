@@ -1,38 +1,43 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import lombok.Getter;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
-
-import com.google.inject.Inject;
-
+import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
+import nl.tudelft.ewi.devhub.webtests.rules.UnitOfWorkRule;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertEquals;
-
+import javax.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
+
+import static nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher.isEntity;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestDatabaseModule.class)
 public class IssuesTest extends PersistedBackendTest {
 
-	@Inject @Getter private Groups groups;
-	@Inject @Getter private CourseEditions courses;
-	@Inject @Getter private Users users;
-
-	@Inject
-	private Issues issues;
+	@Rule @Inject public UnitOfWorkRule unitOfWorkRule;
+	@Inject private Provider<Groups> groupsProvider;
+	@Inject private Provider<CourseEditions> coursesProvider;
+	@Inject private Provider<Users> usersProvider;
+	@Inject private Provider<Issues> issuesProvider;
+	@Inject private Provider<IssueLabels> issueLabelsProvider;
+	@Inject private Provider<EntityManager> entityManagerProvider;
+	@Inject private Provider<IssueBackend> issueBackendProvider;
 
 	private User user1;
 	private User user2;
@@ -56,18 +61,18 @@ public class IssuesTest extends PersistedBackendTest {
 	@Test
 	public void testCreateIssue() {
 		GroupRepository groupRepository = group.getRepository();
-		List<Issue> issueQueryResult = issues.findOpenIssues(groupRepository);
+		List<Issue> issueQueryResult = issuesProvider.get().findOpenIssues(groupRepository);
 		
 		assertEquals(2, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 	@Test
 	public void testFindIssuesOfUser() {
 		GroupRepository groupRepository = group.getRepository();
 		
-		List<Issue> issueQueryResult = issues.findAssignedIssues(groupRepository, user1);
+		List<Issue> issueQueryResult = issuesProvider.get().findAssignedIssues(groupRepository, user1);
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 
 	@Test
@@ -77,9 +82,9 @@ public class IssuesTest extends PersistedBackendTest {
 		// Close issue 2
 		issue2.setOpen(false);
 		
-		List<Issue> issueQueryResult = issues.findOpenIssues(groupRepository);
+		List<Issue> issueQueryResult = issuesProvider.get().findOpenIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 
 	@Test
@@ -90,9 +95,9 @@ public class IssuesTest extends PersistedBackendTest {
 		issue2.setClosed(new Date());
 		issue2.setOpen(false);
 		
-		List<Issue> issueQueryResult = issues.findClosedIssues(groupRepository);
+		List<Issue> issueQueryResult = issuesProvider.get().findClosedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue2, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue2));
 	}
 
 	@Test
@@ -100,30 +105,38 @@ public class IssuesTest extends PersistedBackendTest {
 		GroupRepository groupRepository = group.getRepository();
 		issue1.setAssignee(null);
 		
-		List<Issue> issueQueryResult = issues.findUnassignedIssues(groupRepository);
+		List<Issue> issueQueryResult = issuesProvider.get().findUnassignedIssues(groupRepository);
 		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+		assertThat(issueQueryResult.get(0), isEntity(issue1));
 	}
 	
 	@Test
-	public void testFindIssuesById(){
-		
-		List<Issue> issueQueryResult = issues.findIssueById(group.getRepository(), issue1.getIssueId());
-		
-		assertEquals(1, issueQueryResult.size());
-		issueEquals(issue1, issueQueryResult.get(0));
+	public void testFindIssuesById() {
+		Issue actualIssue = issuesProvider.get()
+			.findIssueById(group.getRepository(), issue1.getIssueId())
+			.get();
+
+		assertThat(actualIssue, isEntity(issue1));
 	}
 
-	private static void issueEquals(Issue expected, Issue actual) {
-		try {
-			assertEquals(expected.getRepository(), actual.getRepository());
-			assertEquals(expected.isOpen(), actual.isOpen());
-			assertEquals(expected.getAssignee(), actual.getAssignee());
-		}
-		catch(AssertionError e) {
-			throw new AssertionError(String.format("Expected %s but was %s",
-					expected, actual), e);
-		}
+	@Test
+	public void testAddLabel() {
+		
+		IssueLabel issueLabel = issueBackendProvider.get().addIssueLabelToRepository(group.getRepository(), "My Label", 0xcccccc);
+		issue1.addLabel(issueLabel);
+
+		issue1 = issuesProvider.get().findIssueById(group.getRepository(), issue1.getIssueId()).get();
+		
+		assertEquals(1, issue1.getLabels().size());
+		
+		IssueLabel label = issue1.getLabels().iterator().next();
+		assertSame(issueLabel, label);
+		
+		assertEquals(1, group.getRepository().getLabels().size());
+		
+		label = group.getRepository().getLabels().iterator().next();
+		assertSame(issueLabel, label);
+		
 	}
 	
 	private Issue persistIssue(User user){
@@ -134,10 +147,26 @@ public class IssuesTest extends PersistedBackendTest {
 		issue.setRepository(groupRepository);
 		issue.setOpen(true);
 		issue.setAssignee(user);
-		
+
+		Issues issues = issuesProvider.get();
 		issues.persist(issue);
-		
+		entityManagerProvider.get().refresh(issue);
 		return issue;
 	}
-	
+
+	@Override
+	protected CourseEditions getCourses() {
+		return coursesProvider.get();
+	}
+
+	@Override
+	protected Users getUsers() {
+		return usersProvider.get();
+	}
+
+	@Override
+	protected Groups getGroups() {
+		return groupsProvider.get();
+	}
+
 }

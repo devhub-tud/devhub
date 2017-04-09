@@ -29,9 +29,8 @@ public class UnitOfWorkRule implements MethodRule {
                 try {
                     statement.evaluate();
                 }
-                catch (Exception e) {
+                finally {
                     unitOfWork.end();
-                    throw e;
                 }
             }
         };

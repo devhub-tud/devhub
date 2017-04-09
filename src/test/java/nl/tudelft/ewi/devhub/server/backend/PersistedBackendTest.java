@@ -26,25 +26,36 @@ public abstract class PersistedBackendTest extends BackendTest {
 	@Override
 	protected CourseEdition createCourseEdition() {
 		CourseEdition courseEdition = super.createCourseEdition();
-		return getCourses().persist(courseEdition);
+		CourseEditions courses = getCourses();
+		courses.persist(courseEdition);
+		courses.refresh(courseEdition);
+		return courseEdition;
 	}
 
 	@Override
 	protected User createUser() {
 		User user = super.createUser();
-		return getUsers().persist(user);
+		Users users = getUsers();
+		users.persist(user);
+		users.refresh(user);
+		return user;
 	}
 
 	protected Group createGroup(CourseEdition courseEdition, User... members) {
+		Groups groups = getGroups();
 		Group group = new Group();
 		group.setCourseEdition(courseEdition);
 		group.setMembers(Sets.newHashSet(Arrays.asList(members)));
-		getGroups().persist(group);
+		groups.persist(group);
 
 		GroupRepository groupRepository = new GroupRepository();
 		groupRepository.setRepositoryName(courseEdition.createRepositoryName(group).toASCIIString());
 		group.setRepository(groupRepository);
-		return getGroups().merge(group);
+		groupRepository.setGroup(group);
+		groups.merge(group);
+
+		groups.refresh(group);
+		return group;
 	}
 
 }

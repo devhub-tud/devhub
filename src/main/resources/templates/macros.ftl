@@ -185,6 +185,10 @@
 			</div>
 [/#macro]
 
+[#macro renderLabel label]
+	<div class="label label-default" style="background-color: ${label.getColorAsHexString()}">${label.tag}</div>
+[/#macro]
+
 [#macro renderScripts]
 	<script src="/static/vendor/jquery/jquery.min.js"></script>
 	<script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>

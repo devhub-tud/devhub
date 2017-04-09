@@ -9,8 +9,8 @@ import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PrivateRepositories;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequestComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
@@ -39,12 +39,12 @@ public class PrivatePullResource extends AbstractProjectPullResource {
 
 	@Inject
 	public PrivatePullResource(TemplateEngine templateEngine, @Named("current.user") User currentUser, CommentBackend commentBackend,
-							   BuildResults buildResults, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
-							   RepositoriesApi repositoriesApi, CommentMailer commentMailer, PullRequestMailer pullRequestMailer,
-							   PullRequestComments pullRequestComments, HooksResource hooksResource, Warnings warnings,
-							   PrivateRepositories privateRepositories, MarkDownParser markDownParser, Users users) {
+	                           BuildResults buildResults, PullRequests pullRequests, PullRequestBackend pullRequestBackend,
+	                           RepositoriesApi repositoriesApi, CommentMailer commentMailer, PullRequestMailer pullRequestMailer,
+	                           IssueComments issueComments, HooksResource hooksResource, Warnings warnings,
+	                           PrivateRepositories privateRepositories, MarkDownParser markDownParser, Users users) {
 		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, pullRequestBackend,
-			repositoriesApi, commentMailer, pullRequestMailer, pullRequestComments, hooksResource, warnings, markDownParser, users);
+			repositoriesApi, commentMailer, pullRequestMailer, issueComments, hooksResource, warnings, markDownParser, users);
 		this.privateRepositories = privateRepositories;
 	}
 

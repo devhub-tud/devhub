@@ -1052,5 +1052,64 @@
 														 referencedTableName="users" referencedColumnNames="id"/>
 		<sql>insert into delivery_students (delivery_id, user_id ) select assignment_deliveries.id as delivery_id, group_memberships.user_id as user_id from assignment_deliveries join group_memberships on group_memberships.course_edition_id = assignment_deliveries.course_edition_id and group_memberships.group_number = assignment_deliveries.group_number;</sql>
 	</changeSet>
+	
+	<changeSet id="abstracted_pull_request_and_issue" author="Jan-Willem Gmelig Meyling">
+		<dropNotNullConstraint tableName="pull_requests" columnName="branch_name" columnDataType="varchar(40)"/>
+		<dropNotNullConstraint tableName="pull_requests" columnName="merged" columnDataType="boolean"/>
+		<dropNotNullConstraint tableName="pull_requests" columnName="behind" columnDataType="int"/>
+		<dropNotNullConstraint tableName="pull_requests" columnName="ahead" columnDataType="int"/>
+
+		<sql>
+			insert into pull_requests (repository_id, issue_id, open, created_date, closed_date, title, description, assignee)
+				select repository_id, issue_id, open, created_date, closed_date, title, description, assignee from repository_issues;
+		</sql>
+
+		<sql>
+			insert into pull_request_comments (issue_id, repository_id, content, user_id, created_date)
+				select issue_id, repository_id, content, user_id, created_date from repository_issue_comments;
+		</sql>
+
+		<dropTable tableName="repository_issue_comments"/>
+		<dropTable tableName="repository_issues"/>
+		<renameTable oldTableName="pull_requests" newTableName="repository_issues"/>
+		<renameTable oldTableName="pull_request_comments" newTableName="repository_issue_comments"/>
+	</changeSet>
+	
+	<changeSet id="add_issue_labels" author="Aron Zwaan">
+		<createTable tableName="repository_labels">
+			<column name="label_id" type="bigint" autoIncrement="true" >
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="tag" type="varchar(64)" />
+			<column name="color" type="int" />
+		</createTable>
+		
+		<createTable tableName="issue_labels">
+			<column name="label_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint referencedTableName="repository_issues" 
+			referencedColumnNames="repository_id, issue_id" 
+			constraintName="repository_for_label" 
+			baseTableName="issue_labels" 
+			baseColumnNames="repository_id, issue_id"/>
+			
+		<addForeignKeyConstraint referencedTableName="repository_labels" 
+			referencedColumnNames="label_id" 
+			constraintName="issue_for_label" 
+			baseTableName="issue_labels" 
+			baseColumnNames="label_id"/>
+	</changeSet>
 
 </databaseChangeLog>

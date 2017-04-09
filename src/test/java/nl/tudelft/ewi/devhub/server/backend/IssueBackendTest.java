@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
@@ -11,6 +12,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
+import nl.tudelft.ewi.devhub.server.database.controllers.IssueLabels;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
@@ -23,7 +25,9 @@ public class IssueBackendTest extends BackendTest {
 	@Mock private Users users;
 	@Mock private Groups groups;
 	
-	@Mock private Issues issues;
+	@Mock private Issues issues;	
+	@Mock private IssueLabels issuelabels;
+	
 	@InjectMocks private IssueBackend issueBackend;	
 	
 	private Issue issue;
@@ -34,12 +38,10 @@ public class IssueBackendTest extends BackendTest {
 	@Before
 	public void setUp() throws Exception {
 		issue = new Issue();
-		
 	}
 
 	@Test
-	public void testCreateIssue() {
-		
+	public void testCreateIssue() {		
 		issueBackend.createIssue(repositoryApi, issue);		
 		verify(issues).persist(issue);
 	}

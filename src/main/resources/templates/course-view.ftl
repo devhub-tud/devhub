@@ -5,63 +5,46 @@
 [#macro renderBreadcrumb course]
     <ol class="breadcrumb hidden-xs">
         <li><a href="/courses">${ i18n.translate("section.courses") }</a></li>
-        <li><a href="${courseEdition.course.getURI()}">${courseEdition.course.code} - ${courseEdition.course.name}</a></li>
-        <li>
-            <span uib-dropdown dropdown-append-to-body="true">
-              <a href id="simple-dropdown" uib-dropdown-toggle>
-              ${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]
-                <span class="caret"></span>
-              </a>
-              <ul uib-dropdown-menu>
-                [#list course.course.getEditions() as a]
-                  <li><a href="${a.getURI()}">${a.timeSpan.start?string["yyyy"]}[#if a.timeSpan.end??] - ${a.timeSpan.end?string["yyyy"]}[/#if]</a></li>
-                [/#list]
-              </ul>
-            </span>
-        </li>
-        <li>
-            <span uib-dropdown dropdown-append-to-body="true">
-              <a href id="simple-dropdown" uib-dropdown-toggle>
-                Overview
-                <span class="caret"></span>
-              </a>
-              <ul uib-dropdown-menu>
-                <li><a href="feed">Course Feed</a></li>
-              </ul>
-            </span>
-        </li>
+        <li><a href="${course.getURI()}">${course.code} - ${course.name}</a></li>
     </ol>
 [/#macro]
 
 <div class="container">
 [@renderBreadcrumb course /]
-[#if user.isAdmin() || user.isAssisting(course) ]
     <div class="row">
         <div class="col-md-8">
             <div class=" panel panel-default">
                 <div class="panel-heading">
-                    ${i18n.translate("course.control.groups")}
-                    <a href="${course.getURI()}enroll" class="btn btn-link btn-xs pull-right">
+                    Course Editions
+        [#if user.isAdmin()]
+                    <a href="${course.getURI()}setup" title="Setup new course edition" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
+        [/#if]
                 </div>
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>${i18n.translate("course.control.group-name")}</th>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Min Group Size</th>
+                            <th>Max Group Size</th>
                         </tr>
                     </thead>
                     <tbody>
-        [#--[#assign groups=course.getGroups()]--]
-        [#if groups?has_content]
-            [#list groups as group]
+        [#assign courseEditions=course.getEditions()]
+        [#if courseEditions?has_content]
+            [#list courseEditions as courseEdition]
                             <tr>
-                                <td><a href="${group.getURI()}">${group.getGroupName()}</a></td>
+                                <td><a href="${courseEdition.getURI()}">${courseEdition.code}</a></td>
+                                <td><a href="${courseEdition.getURI()}">${courseEdition.name}</a></td>
+                                <td><a href="${courseEdition.getURI()}">${courseEdition.minGroupSize}</a></td>
+                                <td><a href="${courseEdition.getURI()}">${courseEdition.maxGroupSize}</a></td>
                             </tr>
             [/#list]
         [#else]
                         <tr>
-                            <td colspan="2">${i18n.translate("course.control.no-groups")}</td>
+                            <td colspan="2">No editions for course</td>
                         </tr>
         [/#if]
                     </tbody>
@@ -72,61 +55,9 @@
         <div class="col-md-4">
             <div class=" panel panel-default">
                 <div class="panel-heading">
-                    ${i18n.translate("course.control.assignments")}
-                    <a href="${course.getURI()}assignments/create" class="btn btn-link btn-xs pull-right">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                    </a>
-                </div>
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>${i18n.translate("course.control.assignment")}</th>
-                        <th>${i18n.translate("course.control.due-date")}</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-        [#assign assignments = course.getAssignments()]
-        [#if assignments?? && assignments?has_content]
-        [#list assignments as assignment]
-                    <tr>
-                        <td>
-                            <a href="${course.getURI()}assignments/${assignment.getAssignmentId()}">
-                                ${assignment_index + 1}
-                            </a>
-                        </td>
-                        <td>
-                            <a href="${course.getURI()}assignments/${assignment.getAssignmentId()}">
-                                ${assignment.getName()}
-                            </a>
-                        </td>
-                        <td>
-                    [#if assignment.getDueDate()??]
-                            <a href="${course.getURI()}assignments/${assignment.getAssignmentId()}">
-                                ${assignment.getDueDate()?string["EEE, d MMM yyyy HH:mm"]}
-                            </a>
-                    [#else]-
-                    [/#if]
-                            <a href="${course.getURI()}assignments/${assignment.getAssignmentId()}/edit" class="btn btn-default btn-xs pull-right">
-                                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-                            </a>
-                        </td>
-                    </tr>
-        [/#list]
-        [#else]
-                    <tr>
-                        <td colspan="3">${ i18n.translate("course.control.no-assignments")}</td>
-                    </tr>
-        [/#if]
-                    </tbody>
-                </table>
-            </div>
-
-            <div class=" panel panel-default">
-                <div class="panel-heading">
-                ${i18n.translate("course.control.assistants")}
+                Course Managers
         [#if user.isAdmin() ]
-                    <a href="${course.getURI()}assistants" class="btn btn-link btn-xs pull-right">
+                    <a href="#" class="btn btn-link btn-xs pull-right" disabled="disabled">
                         <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                     </a>
         [/#if]
@@ -139,14 +70,14 @@
                     </tr>
                     </thead>
                     <tbody>
-        [#assign assistants=course.getAssistants()]
-        [#if assistants?has_content]
-            [#list assistants as assistant]
+        [#assign managers=[]]
+        [#if managers?has_content]
+            [#list managers as manager]
                     <tr>
-                        <td>${assistant.getNetId()}</td>
+                        <td>${manager.getNetId()}</td>
                         <td>
-                            ${assistant.getName()}
-                            <a href="mailto:${assistant.getEmail()}" class="btn btn-default btn-xs pull-right">
+                            ${manager.getName()}
+                            <a href="mailto:${manager.getEmail()}" class="btn btn-default btn-xs pull-right">
                                 <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
                             </a>
                         </td>
@@ -154,7 +85,7 @@
             [/#list]
         [#else]
                     <tr>
-                        <td colspan="2">${i18n.translate("course.control.no-assistants")}</td>
+                        <td colspan="2">No course managers for course</td>
                     </tr>
         [/#if]
                     </tbody>
@@ -166,48 +97,23 @@
                 <div class="panel-heading">
                     ${i18n.translate("course.control.details")}
     [#if user.isAdmin()]
-                    <a href="${course.getURI()}edit" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}edit" title="Edit course" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
     [/#if]
                 </div>
                 <table class="table">
                     <tbody>
-	[#if course.buildInstruction?? && course.buildInstruction.buildTimeout??]
-						<tr>
-							<th>${i18n.translate("course.control.build-timeout")}</th>
-							<td>${course.buildInstruction.buildTimeout} seconds</td>
-						</tr>
-	[/#if]
-    [#if course.getMinGroupSize()?exists]
-                        <tr>
-                            <th>${i18n.translate("course.control.min-group-size")}</th>
-                            <td>${course.getMinGroupSize()}</td>
-                        </tr>
-    [/#if]
-    [#if course.getMaxGroupSize()?exists]
-                        <tr>
-                            <th>${i18n.translate("course.control.max-group-size")}</th>
-                            <td>${course.getMaxGroupSize()}</td>
-                        </tr>
-    [/#if]
-    [#if course.getTemplateRepositoryUrl()?exists]
-                        <tr>
-                            <th>${i18n.translate("course.control.template-repository-ul")}</th>
-                            <td><code style="font-size:8px;">${course.getTemplateRepositoryUrl()}</code></td>
-                        </tr>
-    [/#if]
+                      <tr>
+                        <th>Name</th>
+                        <td>${course.name}</td>
+                      </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
     </div>
-
-[#else]
-
-[/#if]
-
 
 </div>
 [@macros.renderScripts ]

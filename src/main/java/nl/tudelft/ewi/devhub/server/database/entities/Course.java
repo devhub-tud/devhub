@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
-
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.CascadeType;
@@ -41,6 +40,7 @@ public class Course implements Comparable<Course>, Base {
      * The course code should be unique, as it is part of the provisioned
      * repository path.
      */
+    @NotEmpty(message = "error.course-code-empty")
     @Column(name = "code", unique = true)
     private String code;
 

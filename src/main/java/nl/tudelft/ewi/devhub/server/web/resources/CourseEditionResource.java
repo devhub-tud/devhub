@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
+import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CourseEventFeed;
 import nl.tudelft.ewi.devhub.server.backend.CoursesBackend;
@@ -40,13 +41,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * The CoursesResource is used to view, create and edit {@link CourseEdition CourseEditions}.
  *
  * @author Jan-Willem Gmelig Meyling
  */
 @Slf4j
-@Path("courses/{courseCode}/{editionCode}")
+@Path("courses/{courseCode: (?!edit|setup)[^/]+?}/{editionCode : (?!edit|setup)[^/]+?}")
 @RequestScoped
 @Produces(MediaType.TEXT_HTML + Resource.UTF8_CHARSET)
 public class CourseEditionResource extends Resource {
@@ -103,7 +106,7 @@ public class CourseEditionResource extends Resource {
 		parameters.put("groups", courseEdition.getGroups());
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("course-view.ftl", locales, parameters));
+		return display(templateEngine.process("course-edition-view.ftl", locales, parameters));
 	}
 
 	/**
@@ -128,13 +131,14 @@ public class CourseEditionResource extends Resource {
 
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", currentUser);
-		parameters.put("course", courseEdition);
+		parameters.put("course", courseEdition.getCourse());
+		parameters.put("courseEdition", courseEdition);
 
 		if(error != null)
 			parameters.put("error", error);
 
 		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("course-setup.ftl", locales, parameters));
+		return display(templateEngine.process("course-edition-setup.ftl", locales, parameters));
 	}
 
 	/**
@@ -152,6 +156,7 @@ public class CourseEditionResource extends Resource {
 	@Path("edit")
 	public Response editCourse(@PathParam("courseCode") String courseCode,
 							   @PathParam("editionCode") String editionCode,
+							   @FormParam("code") String newCode,
 							   @FormParam("name") String courseName,
 							   @FormParam("template") String templateRepository,
 							   @FormParam("min") Integer minGroupSize,
@@ -163,11 +168,14 @@ public class CourseEditionResource extends Resource {
 		}
 
 		CourseEdition courseEdition = courseEditions.find(courseCode, editionCode);
-		courseEdition.getCourse().setName(courseName);
 		courseEdition.setTemplateRepositoryUrl(templateRepository);
 		courseEdition.setMinGroupSize(minGroupSize);
 		courseEdition.setMaxGroupSize(maxGroupSize);
 		courseEdition.getBuildInstruction().setBuildTimeout(buildTimeout);
+
+		if (! isNullOrEmpty(newCode)) {
+			courseEdition.setCode(newCode);
+		}
 
 		try {
 			coursesBackend.mergeCourse(courseEdition);
@@ -175,15 +183,15 @@ public class CourseEditionResource extends Resource {
 		catch (ConstraintViolationException e) {
 			Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
 			if(violations.isEmpty()) {
-				return redirect(courseEdition.getURI().resolve("/edit?error=error.course-create-error"));
+				return redirect(courseEdition.getURI().resolve("edit?error=error.course-create-error"));
 			}
-			return redirect(courseEdition.getURI().resolve("/edit?error=" + violations.iterator().next().getMessage()));
+			return redirect(courseEdition.getURI().resolve("edit?error=" + violations.iterator().next().getMessage()));
 		}
 		catch (Exception e) {
-			return redirect(courseEdition.getURI().resolve("/edit?error=error.course-create-error"));
+			return redirect(courseEdition.getURI().resolve("edit?error=error.course-create-error"));
 		}
 
-		return redirect(Course.COURSE_BASE_PATH);
+		return redirect(courseEdition.getURI());
 	}
 
 	/**

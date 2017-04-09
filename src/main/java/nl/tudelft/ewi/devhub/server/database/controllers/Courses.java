@@ -1,14 +1,13 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
-
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import java.util.List;
 
 import static nl.tudelft.ewi.devhub.server.database.entities.QCourse.course;
 
@@ -26,8 +25,14 @@ public class Courses extends Controller<Course> {
 	public Course find(String courseCode) {
 		Preconditions.checkNotNull(courseCode);
 		return ensureNotNull(query().from(course)
-			.where(course.course.code.equalsIgnoreCase(courseCode))
+			.where(course.code.equalsIgnoreCase(courseCode))
 			.singleResult(course), "Could not find course with code: " + courseCode);
+	}
+
+
+	@Transactional
+	public List<Course> listAll() {
+		return query().from(course).list(course);
 	}
 
 	@Transactional

@@ -2,7 +2,9 @@ package nl.tudelft.ewi.devhub.server.backend;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
+import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
@@ -33,7 +35,10 @@ import java.util.stream.Stream;
 public class CoursesBackend {
 
     @Inject
-    private CourseEditions courses;
+    private CourseEditions courseEditions;
+
+    @Inject
+    private Courses courses;
 
     @Inject
     private Users users;
@@ -44,9 +49,23 @@ public class CoursesBackend {
     @Inject
     @Named("current.user")
     private User currentUser;
-    
+
     /**
      * Create a course.
+     *
+     * @param course
+     * 		Course to create
+     */
+    public void createCourse(Course course) {
+        Preconditions.checkNotNull(course);
+        checkAdmin();
+
+        courses.persist(course);
+        log.info("{} created course: {}", currentUser, course);
+    }
+
+    /**
+     * Create a course edition.
      * 
      * @param course
      * 		CourseEdition to create
@@ -63,7 +82,7 @@ public class CoursesBackend {
         groupsApi.create(groupModel);
 
         try {
-            courses.persist(course);
+            courseEditions.persist(course);
             log.info("{} created course: {}", currentUser, course);
         }
         catch (Exception e) {
@@ -82,7 +101,7 @@ public class CoursesBackend {
     public void mergeCourse(CourseEdition course) {
         Preconditions.checkNotNull(course);
         checkAdmin();
-        courses.merge(course);
+        courseEditions.merge(course);
         log.info("{} updated course: {}", currentUser, course);
     }
     
@@ -125,7 +144,7 @@ public class CoursesBackend {
             groupsApi.create(group);
         }
 
-        courses.merge(course);
+        courseEditions.merge(course);
         log.info("{} set the assistants for {} to {}", currentUser, course, assistants);
     }
 

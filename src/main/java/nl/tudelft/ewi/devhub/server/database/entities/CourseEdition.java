@@ -10,6 +10,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEnt
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -55,7 +56,7 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable, B
 	 * The code should be unique, as it is part of the provisioned
 	 * repository path.
 	 */
-	@NotNull
+	@NotEmpty(message = "error.course-code-empty")
 	@Column(name = "code", unique = true, nullable = false)
 	private String code;
 

@@ -71,7 +71,7 @@
                                 <span class="label label-danger"><i class="octicon octicon-issue-closed"></i> Closed</span>
                             [/#if]
                         </span>
-                        <div class="comment">Pull Request #${pullRequest.issueId}: ${pullRequest.branchName}</div>
+                        <div class="comment">${pullRequest.title}</div>
                     [#if pullRequest.destination.author?? && pullRequest.destination.author?has_content]
                         <div class="committer">${pullRequest.destination.author}</div>
                     [/#if]

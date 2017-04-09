@@ -13,7 +13,7 @@
   
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-            <h4 style="line-height:34px; margin-top:0;">[#if issue?? && issue?has_content]${i18n.translate("issue.edit")}[#else]${i18n.translate("issue.create")}[/#if]</h4>
+            <h4 style="line-height:34px; margin-top:0;">${i18n.translate("issue.title")}</h4>
         </div>
     </div>
 
@@ -54,7 +54,7 @@
 						<div class="form-group">
 							<label for="assignee" class="col-sm-2 control-label">${i18n.translate("label.assignee")}</label>
 							<div class="col-sm-10">
-								<p id="assignee" type="text" class="form-control">${issue.assignee.name}</p>
+								<p id="assignee" type="text" class="form-control">[#if issue.assignee??]${issue.assignee.name}[/#if]</p>
 							</div>
 						</div>				
 						<div class="form-group">

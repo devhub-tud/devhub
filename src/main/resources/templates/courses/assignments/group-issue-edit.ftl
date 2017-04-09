@@ -59,8 +59,9 @@
 					<label for="assignee" class="col-sm-2 control-label">${i18n.translate("label.assignee")}</label>
 					<div class="col-sm-10">
 						<select form="create-issue-form" class="form-control" name="assignee" id="assignee">
+							<option value="" [#if issue?? && issue.assignee?? && issue.assignee.netId??][#else]selected[/#if]></option>
 							[#list repositoryEntity.getCollaborators() as collaborator]
-							<option value="${collaborator.netId}" [#if issue?? && issue.assignee.netId == collaborator.netId]selected[/#if]>${collaborator.name}</option>
+							<option value="${collaborator.netId}" [#if issue?? && issue.assignee?? && issue.assignee.netId == collaborator.netId]selected[/#if]>${collaborator.name}</option>
 							[/#list]
 						</select>
 					</div>

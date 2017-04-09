@@ -27,6 +27,8 @@ import javax.ws.rs.core.Response.Status;
 
 import com.google.common.collect.Sets;
 
+import com.google.common.base.Strings;
+
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
@@ -137,10 +139,14 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		issue.setDescription(description);
 		issue.setOpen(true);
 		
-		User assignee = users.findByNetId(assigneeNetID);
-		checkCollaborator(assignee);
+		if (!Strings.isNullOrEmpty(assigneeNetID)) {
+			User assignee = users.findByNetId(assigneeNetID);
+			checkCollaborator(assignee);
+			issue.setAssignee(assignee);
+		} else {
+			issue.setAssignee(null);
+		}
 		
-		issue.setAssignee(assignee);
 		issue.setRepository(getRepositoryEntity());
 
 		issue.setLabels(getRepositoryEntity().getLabels().stream().filter(
@@ -208,10 +214,13 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		issue.setTitle(title);
 		issue.setDescription(description);
 		
-		User assignee = users.findByNetId(assigneeNetID);
-		checkCollaborator(assignee);
-		issue.setAssignee(assignee);
-
+		if (!Strings.isNullOrEmpty(assigneeNetID)) {
+			User assignee = users.findByNetId(assigneeNetID);
+			checkCollaborator(assignee);
+			issue.setAssignee(assignee);
+		} else {
+			issue.setAssignee(null);
+		}
 		if(status != null && status){
 			issue.setOpen(true);
 		} else if (status != null && !status) {

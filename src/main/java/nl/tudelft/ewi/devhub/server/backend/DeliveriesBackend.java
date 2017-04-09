@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
@@ -101,6 +102,7 @@ public class DeliveriesBackend {
         }
 
         try {
+            delivery.setStudents(Sets.newHashSet(group.getMembers()));
             delivery.setCreatedUser(currentUser);
             deliveriesDAO.persist(delivery);
             log.info("{} submitted {}", currentUser, delivery);

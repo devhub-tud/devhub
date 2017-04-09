@@ -281,6 +281,7 @@ public class Bootstrapper {
 			deliveryEntity.setAssignment(assignmentEntities.get(delivery.getAssignmentId()));
 			deliveryEntity.setGroup(groupEntity);
 			deliveryEntity.setCreatedUser(userMapping.get(delivery.getCreatedUserName()));
+			deliveryEntity.setStudents(Sets.newHashSet(groupEntity.getMembers()));
 
 			BReview review;
 			if ((review = delivery.getReview()) != null) {

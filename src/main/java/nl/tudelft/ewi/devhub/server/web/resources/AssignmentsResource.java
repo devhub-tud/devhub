@@ -58,6 +58,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -266,20 +267,21 @@ public class AssignmentsResource extends Resource {
         CSVPrinter csvPrinter = new CSVPrinter(sb, CSVFormat.RFC4180);
         csvPrinter.printRecord("Assignment", "NetId", "StudentNo", "Name", "Group", "State", "Grade", "Points");
 
-        for (Delivery delivery : deliveriesDAO.getLastDeliveries(assignment)) {
+        for (Entry<User, Delivery> entry : deliveriesDAO.getLastDeliveriesByUser(assignment).entrySet()) {
+            Delivery delivery = entry.getValue();
             Review review = delivery.getReview();
-            for (User user : delivery.getGroup().getMembers()) {
-                csvPrinter.printRecord(
-                    assignment.getName(),
-                    user.getNetId(),
-                    user.getStudentNumber(),
-                    user.getName(),
-                    delivery.getGroup().getGroupName(),
-                    review != null ? review.getState() : State.SUBMITTED,
-                    review != null ? review.getGrade() : "",
-                    delivery.getAchievedNumberOfPoints()
-                );
-            }
+            User user = entry.getKey();
+
+            csvPrinter.printRecord(
+                assignment.getName(),
+                user.getNetId(),
+                user.getStudentNumber(),
+                user.getName(),
+                delivery.getGroup().getGroupName(),
+                review != null ? review.getState() : State.SUBMITTED,
+                review != null ? review.getGrade() : "",
+                delivery.getAchievedNumberOfPoints()
+            );
         }
 
 		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ "_grades.csv\"");

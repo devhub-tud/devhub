@@ -24,7 +24,7 @@
             <label for="code" class="col-sm-2 control-label">${i18n.translate("course.control.course-code")}</label>
             <div class="col-sm-10">
         [#if course?exists]
-                <input type="text" class="form-control" name="code" id="code" placeholder="${i18n.translate("course.control.course-code.example")}" value="${course.getCode()}" disabled>
+                <input type="text" class="form-control" name="code" id="code" placeholder="${i18n.translate("course.control.course-code.example")}" value="${course.getCode()}" disabled="disabled">
         [#else]
                 <input type="text" class="form-control" name="code" id="code" placeholder="${i18n.translate("course.control.course-code.example")}">
         [/#if]

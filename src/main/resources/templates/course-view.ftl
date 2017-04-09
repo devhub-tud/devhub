@@ -16,9 +16,11 @@
             <div class=" panel panel-default">
                 <div class="panel-heading">
                     Course Editions
-                    <a href="${course.getURI()}" class="btn btn-link btn-xs pull-right" disabled="disabled">
+        [#if user.isAdmin()]
+                    <a href="${course.getURI()}setup" title="Setup new course edition" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
+        [/#if]
                 </div>
                 <table class="table">
                     <thead>
@@ -95,7 +97,7 @@
                 <div class="panel-heading">
                     ${i18n.translate("course.control.details")}
     [#if user.isAdmin()]
-                    <a href="${course.getURI()}edit" class="btn btn-link btn-xs pull-right">
+                    <a href="${course.getURI()}edit" title="Edit course" class="btn btn-link btn-xs pull-right">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                     </a>
     [/#if]

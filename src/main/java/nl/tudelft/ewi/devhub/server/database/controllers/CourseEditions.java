@@ -1,16 +1,14 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
-
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.persist.Transactional;
 import com.mysema.query.jpa.JPASubQuery;
 import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.query.ListSubQuery;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -63,14 +61,6 @@ public class CourseEditions extends Controller<CourseEdition> {
     @Transactional
     public Collection<CourseEdition> listAssistingCourses(User user) {
 		return user.getAssists();
-    }
-
-    @Transactional
-    public List<CourseEdition> listAdministratingCourses(User user) {
-        if(user.isAdmin()) {
-            return query().from(courseEdition).list(courseEdition);
-        }
-        return ImmutableList.<CourseEdition> of();
     }
 
 	private JPAQuery activeCoursesBaseQuery() {

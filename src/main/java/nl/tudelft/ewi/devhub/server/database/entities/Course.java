@@ -16,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.List;
 
@@ -41,12 +42,15 @@ public class Course implements Comparable<Course>, Base {
      * The course code should be unique, as it is part of the provisioned
      * repository path.
      */
+    @NotNull
+    @NotEmpty(message = "error.course-code-empty")
     @Column(name = "code", unique = true)
     private String code;
 
     /**
      * Name for the course. Should not be empty.
      */
+    @NotNull
     @NotEmpty(message = "error.course-name-empty")
     @Column(name = "name")
     private String name;

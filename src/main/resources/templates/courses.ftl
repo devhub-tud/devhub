@@ -11,12 +11,12 @@
     </h2>
     <table class="table table-bordered">
         <tbody>
-[#assign administratingCourses = courses.listAdministratingCourses(user)]
+[#assign administratingCourses = courses.listAll()]
     [#if administratingCourses?has_content ]
-        [#list administratingCourses as courseEdition ]
+        [#list administratingCourses as course]
         <tr>
             <td>
-                <a href="${courseEdition.getURI()}">${courseEdition.getName()}</a>
+                <a href="${course.getURI()}">${course.code} - ${course.name}</a>
             </td>
         </tr>
         [/#list]
@@ -50,7 +50,7 @@
         </tbody>
     </table>
 
-    [#assign assistingCourses=courses.listAssistingCourses(user)]
+    [#assign assistingCourses=courseEditions.listAssistingCourses(user)]
     [#if assistingCourses?has_content]
         <h2>${i18n.translate("block.assisting-projects.title")}</h2>
         <table class="table table-bordered">
@@ -66,7 +66,7 @@
         </table>
     [/#if]
 
-    [#assign availableCourses=courses.listNotYetParticipatedCourses(user)]
+    [#assign availableCourses=courseEditions.listNotYetParticipatedCourses(user)]
     [#if availableCourses?has_content]
         <h2>Available courses</h2>
         <table class="table table-bordered">

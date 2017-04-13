@@ -40,6 +40,23 @@
         </div>
     </div>
 
+
+    [#if !assignment?? && existingAssignments??]
+
+    <div class="form-group">
+        <label for="existing-rubrics" class="col-sm-2 control-label">Existing Rubrics</label>
+        <div class="col-sm-10">
+            <select class="form-control"  name="rubricsToCopy" id="existing-rubrics">
+                <option></option>
+                [#list existingAssignments as assignment]
+                    [#assign timeSpan = assignment.getCourseEdition().getTimeSpan()]
+                    <option value="${assignment.getCourseEdition().getId()}-${assignment.getAssignmentId()}">${assignment.getName() + " "+timeSpan.start?string["yyyy"]}[#if timeSpan.end??] - ${timeSpan.end?string["yyyy"]}[/#if]</option>
+                [/#list]
+            </select>
+        </div>
+    </div>
+    [/#if]
+
     [#if assignment?exists]
     <div class="form-group">
         <label for="release" class="col-sm-2 control-label">${i18n.translate("assignment.release")}</label>

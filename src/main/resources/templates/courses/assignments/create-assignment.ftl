@@ -44,7 +44,7 @@
     [#if !assignment??]
 
     <div class="form-group">
-        <label for="existing-rubrics-from-course" class="col-sm-2 control-label">Rubrics from course edition</label>
+        <label for="existing-rubrics-from-course" class="col-sm-2 control-label">${i18n.translate("assignment.rubric.from-course-edition")}</label>
         <div class="col-sm-10">
             <select class="form-control" ng-model="courseEdition" name="courseEditionToCopyFromId" id="existing-rubrics-from-course"
                     ng-options="edition as edition.name for edition in courseEditions track by edition.courseEdition">
@@ -53,7 +53,7 @@
     </div>
 
     <div class="form-group">
-        <label for="existing-rubrics" class="col-sm-2 control-label">From assignment</label>
+        <label for="existing-rubrics" class="col-sm-2 control-label">${i18n.translate("assignment.rubric.from-assignment")}</label>
         <div class="col-sm-10">
             <select class="form-control" ng-model="selectedAssignment" name="assignmentToCopyFromId" id="existing-rubrics"
                     ng-options="assignment as assignment.name for assignment in courseEdition.assignments track by assignment.assignmentId">

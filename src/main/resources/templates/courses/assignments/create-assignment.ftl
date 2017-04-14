@@ -46,10 +46,8 @@
     <div class="form-group">
         <label for="existing-rubrics-from-course" class="col-sm-2 control-label">Rubrics from course edition</label>
         <div class="col-sm-10">
-            <select class="form-control"  ng-model="courseEdition" ng-change="newEditionSelected()" name="rubricsToCopy" id="existing-rubrics-from-course">
-                [#--<option ng-repeat="edition in"></option>--]
-                    <option></option>
-                <option></option>
+            <select class="form-control" ng-model="courseEdition" name="courseEditionToCopyFromId" id="existing-rubrics-from-course"
+                    ng-options="edition as edition.name for edition in courseEditions track by edition.courseEdition">
             </select>
         </div>
     </div>
@@ -57,13 +55,8 @@
     <div class="form-group">
         <label for="existing-rubrics" class="col-sm-2 control-label">From assignment</label>
         <div class="col-sm-10">
-            <select class="form-control" ng-model="assignmentId" ng-change="newEditionSelected()" name="rubricsToCopy" id="existing-rubrics">
-                <option></option>
-                <option></option>
-                [#--[#list existingAssignments as assignment]--]
-                    [#--[#assign timeSpan = assignment.getCourseEdition().getTimeSpan()]--]
-                    [#--<option value="${assignment.getCourseEdition().getId()}-${assignment.getAssignmentId()}">${assignment.getName() + " "+timeSpan.start?string["yyyy"]}[#if timeSpan.end??] - ${timeSpan.end?string["yyyy"]}[/#if]</option>--]
-                [#--[/#list]--]
+            <select class="form-control" ng-model="selectedAssignment" name="assignmentToCopyFromId" id="existing-rubrics"
+                    ng-options="assignment as assignment.name for assignment in courseEdition.assignments track by assignment.assignmentId">
             </select>
         </div>
     </div>
@@ -84,7 +77,7 @@
         [#if assignment??]
             <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.assignment-name", assignmentNumber)}" value="${assignment.getName()}">
         [#else]
-            <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.assignment-name", assignmentNumber)}">
+            <input type="text" class="form-control" name="name" id="name" placeholder="${i18n.translate("course.control.assignment-name", assignmentNumber)}" value="{{selectedAssignment.name}}">
         [/#if]
         </div>
     </div>
@@ -95,7 +88,7 @@
         [#if assignment??]
             <textarea rows="8" class="form-control" name="summary" id="summary" placeholder="${i18n.translate("course.control.summary")}">[#if assignment.getSummary()??]${assignment.getSummary()}[/#if]</textarea>
         [#else]
-            <textarea rows="8" class="form-control" name="summary" id="summary" placeholder="${i18n.translate("course.control.summary")}"></textarea>
+            <textarea rows="8" class="form-control" name="summary" id="summary" placeholder="${i18n.translate("course.control.summary")}">{{selectedAssignment.summary}}</textarea>
         [/#if]
         </div>
     </div>
@@ -116,5 +109,21 @@
 
 </form>
 </div>
+
+[#if !assignment??]
+<script src="/static/vendor/angular/angular.js"></script>
+<script>
+    var module = angular.module("devhub", []);
+    module.controller("rubricController", function($scope, $http) {
+        $scope.courseEditions = [];
+
+        var assignmentData = $http.get("create/bliep").success(function(data) {
+            $scope.courseEditions = data;
+        });
+    })
+
+</script>
+[/#if]
+
 [@macros.renderScripts /]
 [@macros.renderFooter /]

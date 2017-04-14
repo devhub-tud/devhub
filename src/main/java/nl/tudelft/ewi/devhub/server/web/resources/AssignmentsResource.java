@@ -32,7 +32,6 @@ import com.google.inject.persist.Transactional;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.jboss.resteasy.spi.NotImplementedYetException;
-import org.jboss.weld.exceptions.IllegalArgumentException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,7 +54,6 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -162,10 +160,10 @@ public class AssignmentsResource extends Resource {
 			throw new UnauthorizedException();
 		}
 
-		return copyableAssignmentsPerEdition(courseEdition.getCourse());
+		return copyableCourseEditionsFromCourse(courseEdition.getCourse());
 	}
 
-	private static List<CopyableCourseEdition> copyableAssignmentsPerEdition(Course course) {
+	private static List<CopyableCourseEdition> copyableCourseEditionsFromCourse(Course course) {
     	return course.getEditions().stream()
 				.map(edition -> new CopyableCourseEdition(edition, copyableAssignmentsFromEdition(edition)))
 				.collect(Collectors.toList());
@@ -214,7 +212,8 @@ public class AssignmentsResource extends Resource {
     public Response createPage(@PathParam("courseCode") String courseCode,
 							   @PathParam("editionCode") String editionCode,
                                @FormParam("id") Long assignmentId,
-                               @FormParam("rubricsToCopy") String rubricsToCopy,
+                               @FormParam("courseEditionToCopyFromId") String courseEditionToCopyFromId,
+							   @FormParam("assignmentToCopyFromId") String assignmentToCopyFromId,
                                @FormParam("name") String name,
                                @FormParam("summary") String summary,
                                @FormParam("due-date") String dueDate) {
@@ -234,9 +233,7 @@ public class AssignmentsResource extends Resource {
         assignment.setName(name);
         assignment.setSummary(summary);
 
-		List<Task> tasks = RubricIds.fromForm(rubricsToCopy)
-				.map(r -> this.tasksForNewAssignment(assignment, r))
-				.orElseGet(ArrayList::new);
+		List<Task> tasks = this.tasksForNewAssignment(assignment, courseEditionToCopyFromId, assignmentToCopyFromId);
 
         assignment.setTasks(tasks);
 
@@ -267,39 +264,19 @@ public class AssignmentsResource extends Resource {
         return redirect(course.getURI());
     }
 
-    private List<Task> tasksForNewAssignment(Assignment newAssignment ,RubricIds ids) {
-		CourseEdition editionToGetRubricsFrom = courses.find(ids.getAssignmentId());
-		Assignment assignmentToCopyRubricsFrom = assignmentsDAO.find(editionToGetRubricsFrom, ids.getAssignmentId());
+    private List<Task> tasksForNewAssignment(Assignment newAssignment, String courseEditionId, String assignmentId) {
+    	try {
+    		long courseEdition = Long.parseLong(courseEditionId);
+    		long assignment = Long.parseLong(assignmentId);
 
-		return newAssignment.copyTasksFromOldAssignment(assignmentToCopyRubricsFrom);
-	}
+			CourseEdition editionToGetRubricsFrom = courses.find(courseEdition);
+			Assignment assignmentToCopyRubricsFrom = assignmentsDAO.find(editionToGetRubricsFrom, assignment);
 
-    @Value
-    private static class RubricIds {
-    	private long courseEdition;
-    	private long assignmentId;
-
-		/**
-		 * Decode the rubric migration form parameter to the actual course edition and assignment id.
-		 *
-		 * @param rubricsToCopy the string from the form.
-		 * @return {@code Optional.empty()} if the form string was empty, we don't want to migrate rubrics in that case.
-		 * 			otherwise an optional containing the course edition and assignmentId.
-		 */
-    	static Optional<RubricIds> fromForm(String rubricsToCopy) {
-    		if (rubricsToCopy.isEmpty()) {
-    			return Optional.empty();
-			}
-
-			String[] ids = rubricsToCopy.split("-");
-			if (ids.length != 2) {
-				throw new IllegalArgumentException("the rubrics format should be courseEdition-assginmentId");
-			}
-
-			return Optional.of(new RubricIds(Long.parseLong(ids[0]), Long.parseLong(ids[1])));
+			return newAssignment.copyTasksFromOldAssignment(assignmentToCopyRubricsFrom);
+    	} catch (NumberFormatException e) {
+			return Lists.newArrayList();
 		}
 	}
-
 
     /**
      * An overview page for an assignment

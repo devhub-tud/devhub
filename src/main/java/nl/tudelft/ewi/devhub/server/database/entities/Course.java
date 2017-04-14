@@ -81,11 +81,4 @@ public class Course implements Comparable<Course>, Base {
 	public URI getURI() {
 		return URI.create(COURSE_BASE_PATH).resolve(getCode().toLowerCase() + "/");
 	}
-
-    public List<Assignment> allAssignments() {
-        return this.getEditions().stream()
-                .flatMap(course -> course.getAssignments().stream())
-                .collect(Collectors.toList());
-    }
-
 }

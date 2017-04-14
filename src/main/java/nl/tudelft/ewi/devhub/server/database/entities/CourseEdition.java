@@ -31,6 +31,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -136,5 +137,9 @@ public class CourseEdition implements Comparable<CourseEdition>, Configurable, B
 		URI uri = getURI().resolve("group-" + group.getGroupNumber());
 		// Relativize to "/" because repository names do not start with "/"
 		return URI.create("/").relativize(uri);
+	}
+
+	public String intervalString() {
+		return timeSpan.intervalString();
 	}
 }

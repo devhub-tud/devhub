@@ -9,6 +9,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
+import nl.tudelft.ewi.devhub.server.database.entities.Course;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
@@ -65,6 +66,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -137,12 +139,9 @@ public class AssignmentsResource extends Resource {
             throw new UnauthorizedException();
         }
 
-		List<Assignment> allAssignments = course.getCourse().allAssignments();
-
 		Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
         parameters.put("course", course);
-        parameters.put("existingAssignments", allAssignments);
 
         if(error != null)
             parameters.put("error", error);
@@ -150,6 +149,56 @@ public class AssignmentsResource extends Resource {
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/create-assignment.ftl", locales, parameters));
     }
+
+
+    @GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("create/bliep")
+	public List<CopyableCourseEdition> otherAssignmentsWithRubrics(@PathParam("courseCode") String courseCode,
+														  @PathParam("editionCode") String editionCode ) {
+		CourseEdition courseEdition = courses.find(courseCode, editionCode);
+
+		if(!(currentUser.isAdmin() || currentUser.isAssisting(courseEdition))) {
+			throw new UnauthorizedException();
+		}
+
+		return copyableAssignmentsPerEdition(courseEdition.getCourse());
+	}
+
+	private static List<CopyableCourseEdition> copyableAssignmentsPerEdition(Course course) {
+    	return course.getEditions().stream()
+				.map(edition -> new CopyableCourseEdition(edition, copyableAssignmentsFromEdition(edition)))
+				.collect(Collectors.toList());
+
+	}
+
+	private static List<CopyableAssignment> copyableAssignmentsFromEdition(CourseEdition edition) {
+    	return edition.getAssignments().stream()
+				.map(assignment ->  new CopyableAssignment(assignment.getAssignmentId(), assignment.getName(),
+						assignment.getSummary()))
+				.collect(Collectors.toList());
+	}
+
+	@Value
+	private static class CopyableCourseEdition {
+		private long courseEdition;
+		private String name;
+		private List<CopyableAssignment> assignments;
+
+
+		CopyableCourseEdition(CourseEdition edition, List<CopyableAssignment> assignments) {
+			this.courseEdition = edition.getId();
+			this.name = edition.getName() + " " + edition.intervalString();
+			this.assignments = assignments;
+		}
+	}
+
+	@Value
+	private static class CopyableAssignment {
+		private long assignmentId;
+		private String name;
+		private String summary;
+	}
 
     /**
      * Submit a create assignment form

@@ -4,9 +4,13 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
+      - google-chrome-stable
+    sources:
+      - google-chrome
 jdk:
   - oraclejdk8
 before_install:
+  - "which chromedriver"
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 script:

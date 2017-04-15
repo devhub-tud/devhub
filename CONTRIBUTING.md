@@ -43,7 +43,14 @@ To successfully run and test Devhub, a couple of steps should be followed to set
 		1. Install "Lombok Plugin"
 		
 When the JPA plugin for Eclipse generates a lot of false errors, you can disable the validation under `Preferences > Validation > JPA Validator`.
-		
+
+### Running integration tests
+
+If you want to run the integration tests (which are the webtests), run the following command:
+`mvn integration-test`
+
+For this, you will need to download a separate Chrome driver to run the test in a browser. You can find the driver at https://sites.google.com/a/chromium.org/chromedriver/downloads
+
 ### Code Formatting
 We do not write getters/setters and equals/hashcode implementations ourselves, but instead use the Lombok `@Data` and `@EqualsAndHashcode` annotations for that. Prevent overuse of Lombok, try to limit it to JPA classes and Jackson models.
 

@@ -1,6 +1,9 @@
 language: java
 sudo: required
 dist: trusty
+# cache the dependency-check-maven plugin catalog (280MB+)
+cache:
+  directories: $HOME/.m2/repository/org/owasp/dependency-check-data/
 addons:
   apt:
     packages:

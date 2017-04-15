@@ -1,5 +1,6 @@
 language: java
-sudo: trusty
+sudo: required
+dist: trusty
 addons:
   apt:
     packages:

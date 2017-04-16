@@ -2,7 +2,7 @@ package nl.tudelft.ewi.devhub.webtests.rules;
 
 import org.junit.rules.ExternalResource;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -19,7 +19,7 @@ public class DriverResource extends ExternalResource {
 
 	@Override
 	protected void before() throws Throwable {
-		WebDriver driver = new FirefoxDriver();
+		WebDriver driver = new ChromeDriver();
 		driver.manage().window().maximize();
 		driverRef.set(driver);
 	}

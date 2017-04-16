@@ -1,12 +1,21 @@
 language: java
-sudo: false
+sudo: required
+dist: trusty
+cache:
+  directories: $HOME/.m2/
 addons:
   apt:
     packages:
       - oracle-java8-installer
+      - google-chrome-stable
+    sources:
+      - google-chrome
 jdk:
   - oraclejdk8
 before_install:
+  - sudo apt-get install chromium-chromedriver
+before_script:
+  - "export PATH=$PATH:/usr/lib/chromium-browser/"
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 script:

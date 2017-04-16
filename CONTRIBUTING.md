@@ -44,7 +44,7 @@ To successfully run and test Devhub, a couple of steps should be followed to set
 		
 When the JPA plugin for Eclipse generates a lot of false errors, you can disable the validation under `Preferences > Validation > JPA Validator`.
 
-### Running integration tests
+### Running the webtests
 
 If you want to run the integration tests (which are the webtests), run the following command:
 `mvn integration-test`

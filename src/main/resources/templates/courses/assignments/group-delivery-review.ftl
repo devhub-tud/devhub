@@ -123,7 +123,7 @@
 <script type="text/javascript">
 	function computeTotals() {
 		var total = 0;
-        $('[type="submit"]').disabled = false;
+        $('[type="submit"]').prop('disabled', false);
 
 		$('.task').each(function(i, taskElement) {
 			var task = $(taskElement).data();
@@ -139,7 +139,7 @@
 				});
 
                 if (masteries.length === 0) {
-                    $('[type="submit"]').disabled = true;
+                    $('[type="submit"]').prop('disabled', true);
 				}
 
 				task.total += characteristic.points || 0;

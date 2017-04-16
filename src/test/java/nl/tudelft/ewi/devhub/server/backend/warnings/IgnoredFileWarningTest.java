@@ -78,10 +78,8 @@ public class IgnoredFileWarningTest {
 
         when(repositories.getRepository(anyString())).thenReturn(repository);
         when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
-        when(commitApi.get()).thenReturn(commitModel);
         when(commitApi.diff()).thenReturn(diffModel);
 
-        
         warning = new IgnoredFileWarning();
         warning.setRepository(groupRepository);
         warning.setCommit(commitEntity);

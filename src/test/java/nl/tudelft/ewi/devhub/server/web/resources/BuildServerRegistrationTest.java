@@ -78,7 +78,6 @@ public class BuildServerRegistrationTest {
 		when(userApi.keys()).thenReturn(keysApi);
 
 		when(groupsApi.getGroup(BuildServerRegistrationResource.BUILD_SERVERS_GROUP)).thenReturn(groupApi);
-		when(groupApi.getGroup()).thenReturn(groupModel);
 		when(groupApi.listMembers()).thenReturn(groupModel.getMembers());
 
 		when(keysApi.listSshKeys()).thenReturn(Collections.singleton(sshKeyModel));

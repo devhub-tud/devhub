@@ -51,14 +51,12 @@ public class ProjectAssignmentsResourceTest {
 
     @Test
     public void testNotReleasedAdmin() {
-        Mockito.when(assignment.isGradesReleased()).thenReturn(false);
         Mockito.when(user.isAdmin()).thenReturn(true);
         assertTrue(resource.canSeeGrade(assignment));
     }
 
     @Test
     public void testNotReleasedTA() {
-        Mockito.when(assignment.isGradesReleased()).thenReturn(false);
         Mockito.when(user.isAssisting(edition)).thenReturn(true);
         assertTrue(resource.canSeeGrade(assignment));
     }

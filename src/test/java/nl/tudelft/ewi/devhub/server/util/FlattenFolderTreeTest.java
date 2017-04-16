@@ -55,7 +55,6 @@ public class FlattenFolderTreeTest {
         final LinkedHashMap<String, EntryType> barFolderTree = Maps.newLinkedHashMap();
         barFolderTree.put("Bar.java", EntryType.TEXT);
 
-        when(commitApi.showTree()).thenReturn(rootTree);
         when(commitApi.showTree(CommitApi.EMPTY_PATH)).thenReturn(rootTree);
         when(commitApi.showTree("src/")).thenReturn(srcFolderTree);
         when(commitApi.showTree("src/main/")).thenReturn(mainFolderTree);

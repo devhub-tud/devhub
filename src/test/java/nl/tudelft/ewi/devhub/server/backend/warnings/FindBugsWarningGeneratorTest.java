@@ -65,13 +65,11 @@ public class FindBugsWarningGeneratorTest {
     public void initializeMocks() {
         when(commit.getCommitId()).thenReturn(COMMIT_ID);
         when(commit.getRepository()).thenReturn(groupRepository);
-        when(group.getRepository()).thenReturn(groupRepository);
         when(groupRepository.getRepositoryName()).thenReturn("");
         when(commits.ensureExists(any(), any())).thenReturn(commit);
 
         when(repositories.getRepository(anyString())).thenReturn(repository);
         when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
-        when(commitApi.get()).thenReturn(repoCommit);
 
         blameCurrentCommit();
     }

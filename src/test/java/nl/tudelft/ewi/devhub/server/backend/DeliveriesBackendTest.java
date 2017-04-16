@@ -112,8 +112,6 @@ public class DeliveriesBackendTest extends BackendTest {
 		when(storageBackend.store(Matchers.anyString(), Matchers.eq(fileName), Matchers.eq(in))).thenReturn(FULL_PATH_NAME);
 		when(storageBackend.getFile(Matchers.eq(FULL_PATH_NAME))).thenReturn(file);
 		
-		when(deliveriesDAO.getDeliveries(Matchers.eq(assignment), Matchers.eq(group))).thenReturn(deliveries);
-		
 		when(attachment.getPath()).thenReturn(FULL_PATH_NAME);
 
 		when(deliveriesDAO.getLastDelivery(Matchers.eq(assignment), Matchers.eq(group))).thenReturn(Optional.empty());
@@ -136,7 +134,6 @@ public class DeliveriesBackendTest extends BackendTest {
 	}
 
 	private void isAnAdmin() {
-		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(false);
 		when(group.getMembers()).thenReturn(Sets.newHashSet());
 	}
 	

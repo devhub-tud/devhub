@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRule;
+import org.mockito.MockitoAnnotations;
 import org.pegdown.PegDownProcessor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -63,8 +63,6 @@ public class AbstractProjectResourceTest {
     @Inject private RepositoriesApi repositoriesApi;
     @Inject private Injector injector;
 
-    @Rule public MockitoJUnitRule mockitoJUnitRule = new MockitoJUnitRule(this);
-
     private CloneStepDefinitions cloneStepDefinitions;
     private MergeStepDefinitions mergeStepDefinitions;
     private DetailedRepositoryModel detailedRepositoryModel;
@@ -73,6 +71,7 @@ public class AbstractProjectResourceTest {
 
     @Before
     public void setUp() throws Throwable {
+        MockitoAnnotations.initMocks(this);
         cloneStepDefinitions = new CloneStepDefinitions();
         injector.injectMembers(cloneStepDefinitions);
 

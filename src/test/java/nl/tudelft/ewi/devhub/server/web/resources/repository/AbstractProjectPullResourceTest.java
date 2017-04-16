@@ -20,7 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRule;
+import org.mockito.MockitoAnnotations;
 import org.pegdown.PegDownProcessor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -52,13 +52,12 @@ public class AbstractProjectPullResourceTest {
 
     @Inject private RepositoriesApi repositoriesApi;
 
-    @Rule public MockitoJUnitRule mockitoJUnitRule = new MockitoJUnitRule(this);
-
     private ProjectPullResource projectPullResource;
     private Date commentDate = new Date(150);
 
     @Before
     public void setUp() throws Throwable {
+        MockitoAnnotations.initMocks(this);
         Group group = new Group();
         GroupRepository groupRepository = new GroupRepository();
         groupRepository.setRepositoryName(REPOSITORY_NAME);

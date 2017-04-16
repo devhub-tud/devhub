@@ -123,17 +123,24 @@
 <script type="text/javascript">
 	function computeTotals() {
 		var total = 0;
+        $('[type="submit"]').prop('disabled', false);
+
 		$('.task').each(function(i, taskElement) {
 			var task = $(taskElement).data();
 			task.total = 0;
 
-			$(taskElement).find('.characteristic').each(function(i, characteristicElement) {
+            $(taskElement).find('.characteristic').each(function(i, characteristicElement) {
 				var characteristic = $(characteristicElement).data();
 
-                $(characteristicElement).find('[type="radio"]:checked').each(function(i, checkedMasteryElement) {
+                var masteries = $(characteristicElement).find('[type="radio"]:checked');
+                masteries.each(function(i, checkedMasteryElement) {
 					var level = $(checkedMasteryElement).data();
 					characteristic.points = level.points * characteristic.weight;
 				});
+
+                if (masteries.length === 0) {
+                    $('[type="submit"]').prop('disabled', true);
+				}
 
 				task.total += characteristic.points || 0;
 				$(characteristicElement).find('#lbl-total-characteristic-' + characteristic.id).text(characteristic.points);

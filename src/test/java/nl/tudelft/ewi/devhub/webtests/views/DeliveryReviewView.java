@@ -12,6 +12,7 @@ import org.openqa.selenium.support.ui.Select;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -170,6 +171,17 @@ public class DeliveryReviewView extends ProjectSidebarView {
         public DeliveryReviewView click() {
             anchor.click();
             return new DeliveryReviewView(getDriver());
+        }
+
+        public List<WebElement> getFirstMasteryForEachCharacteristic() {
+            return getDriver().findElements(By.cssSelector(".characteristic"))
+                    .stream()
+                    .map((e) -> e.findElement(By.cssSelector("[type='radio']")))
+                    .collect(Collectors.toList());
+        }
+
+        public boolean isSubmitButtonDisabled() {
+            return "true".equals(anchor.getAttribute("disabled"));
         }
 
     }

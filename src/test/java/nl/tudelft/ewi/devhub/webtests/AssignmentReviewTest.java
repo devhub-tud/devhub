@@ -12,12 +12,16 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.DeliveryReviewView;
 import org.junit.Test;
+import org.openqa.selenium.WebElement;
 
 import java.text.ParseException;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Douwe Koopmans on 9-5-16.
@@ -93,16 +97,55 @@ public class AssignmentReviewTest extends WebTest {
         assertEquals(modelDelivery.getReview().getReviewUser().getName(), viewAssignment.getReview().getReviewer().get());
     }
 
+    @Test
+    public void testSubmitDisabledInProgressReview() throws ParseException {
+        final DeliveryReviewView view = getDeliveryReviewView(1, 0);
+
+        final DeliveryReviewView.DeliveryForm deliveryForm = view.getDelivery();
+        deliveryForm.setCommentary(DELIVERY_COMMENTARY);
+        deliveryForm.setGrade(7.0);
+        deliveryForm.setState(State.APPROVED);
+
+        assertTrue("Submit button should not be clickable", deliveryForm.isSubmitButtonDisabled());
+    }
+
+    @Test
+    public void testSubmitEnabledAfterFullReview() throws ParseException {
+        final DeliveryReviewView view = getDeliveryReviewView(1, 0);
+
+        final DeliveryReviewView.DeliveryForm deliveryForm = view.getDelivery();
+        deliveryForm.setCommentary(DELIVERY_COMMENTARY);
+        deliveryForm.setGrade(7.0);
+        deliveryForm.setState(State.APPROVED);
+
+        List<WebElement> masteries = deliveryForm.getFirstMasteryForEachCharacteristic();
+        for (int i = 0; i < masteries.size(); i++) {
+            // For every input field, excluding the last one, the submit button should still be disabled
+            if (i < masteries.size()) {
+                assertTrue("Submit button should not be clickable", deliveryForm.isSubmitButtonDisabled());
+            }
+
+            masteries.get(i).click();
+        }
+
+        // Filling in all masteries should make the submit button clickable
+        assertFalse("Submit button should be clickable", deliveryForm.isSubmitButtonDisabled());
+    }
+
     private DeliveryReviewView getDeliveryReviewView() throws ParseException {
+        return getDeliveryReviewView(0, 1);
+    }
+
+    private DeliveryReviewView getDeliveryReviewView(int groupId, int assignmentId) throws ParseException {
         return openLoginScreen()
                 .login(ASSISTANT_USERNAME, ASSISTANT_PASSWORD)
                 .listAssistingCourses()
                 .get(0).click()
                 .listGroups()
-                .get(0).click()
+                .get(groupId).click()
                 .toAssignmentView()
                 .listAssignments()
-                .get(1).click()
+                .get(assignmentId).click()
                 .getAssignment().click();
     }
 }

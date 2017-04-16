@@ -14,15 +14,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,7 +63,7 @@ public class CourseBackendTest extends BackendTest {
 		course.setAssistants(oldAssistants);
 		
 		when(currentUser.isAdmin()).thenReturn(true);
-		when(groups.getGroup(Matchers.any())).thenReturn(groupApi);
+		when(groups.getGroup(any())).thenReturn(groupApi);
 
 	}
 
@@ -94,7 +95,7 @@ public class CourseBackendTest extends BackendTest {
 	@SuppressWarnings("unchecked")
 	@Test(expected=Exception.class)
 	public void courseIsRemovedWhenFailedToStore() {
-		when(courses.persist(Matchers.eq(course))).thenThrow(Exception.class);
+		when(courses.persist(eq(course))).thenThrow(Exception.class);
 		
 		courseBackend.createCourse(course);
 	}

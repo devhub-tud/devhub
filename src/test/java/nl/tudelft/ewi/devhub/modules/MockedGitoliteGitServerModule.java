@@ -126,7 +126,6 @@ public class MockedGitoliteGitServerModule extends AbstractModule {
 	protected void createMockedRepositoriesFolder() {
 		String repositoriesPath = repositoriesFolder.toPath().toString() + "/";
 		when(configuration.getGitoliteBaseUrl()).thenReturn(repositoriesPath);
-		when(configuration.getRepositoriesDirectory()).thenReturn(repositoriesFolder);
 		log.info("Initialized bare repository folder in {}", repositoriesPath);
 	}
 

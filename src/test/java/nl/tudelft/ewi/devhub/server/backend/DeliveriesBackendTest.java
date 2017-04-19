@@ -20,10 +20,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +33,8 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -99,7 +100,7 @@ public class DeliveriesBackendTest extends BackendTest {
 		deliveries = Lists.newArrayList(delivery);
 		
 		when(currentUser.isAdmin()).thenReturn(true);
-		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(true);
+		when(currentUser.isAssisting(eq(courseEdition))).thenReturn(true);
 		
 		when(delivery.getGroup()).thenReturn(group);
 		when(delivery.getAssignment()).thenReturn(assignment);
@@ -109,14 +110,12 @@ public class DeliveriesBackendTest extends BackendTest {
 		when(group.getCourseEdition()).thenReturn(courseEdition);
 		when(group.getMembers()).thenReturn(groupMembers);
 		
-		when(storageBackend.store(Matchers.anyString(), Matchers.eq(fileName), Matchers.eq(in))).thenReturn(FULL_PATH_NAME);
-		when(storageBackend.getFile(Matchers.eq(FULL_PATH_NAME))).thenReturn(file);
-		
-		when(deliveriesDAO.getDeliveries(Matchers.eq(assignment), Matchers.eq(group))).thenReturn(deliveries);
+		when(storageBackend.store(anyString(), eq(fileName), eq(in))).thenReturn(FULL_PATH_NAME);
+		when(storageBackend.getFile(eq(FULL_PATH_NAME))).thenReturn(file);
 		
 		when(attachment.getPath()).thenReturn(FULL_PATH_NAME);
 
-		when(deliveriesDAO.getLastDelivery(Matchers.eq(assignment), Matchers.eq(group))).thenReturn(Optional.empty());
+		when(deliveriesDAO.getLastDelivery(eq(assignment), eq(group))).thenReturn(Optional.empty());
 	}
 	
 	@Test
@@ -136,7 +135,6 @@ public class DeliveriesBackendTest extends BackendTest {
 	}
 
 	private void isAnAdmin() {
-		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(false);
 		when(group.getMembers()).thenReturn(Sets.newHashSet());
 	}
 	
@@ -165,7 +163,7 @@ public class DeliveriesBackendTest extends BackendTest {
 
 	private void isAGroupMember() {
 		when(currentUser.isAdmin()).thenReturn(false);
-		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(false);
+		when(currentUser.isAssisting(eq(courseEdition))).thenReturn(false);
 	}
 	
 	@Test(expected=UnauthorizedException.class)
@@ -177,13 +175,13 @@ public class DeliveriesBackendTest extends BackendTest {
 
 	private void hasNoPermission() {
 		when(currentUser.isAdmin()).thenReturn(false);
-		when(currentUser.isAssisting(Matchers.eq(courseEdition))).thenReturn(false);
+		when(currentUser.isAssisting(eq(courseEdition))).thenReturn(false);
 		when(group.getMembers()).thenReturn(Sets.newHashSet());
 	}
 	
 	@Test(expected=IllegalStateException.class)
 	public void whenAlreadyApprovedOrDisapprovedRejectDelivery() throws UnauthorizedException, ApiError {
-		when(deliveriesDAO.lastDeliveryIsApprovedOrDisapproved(Matchers.eq(assignment), Matchers.eq(group)))
+		when(deliveriesDAO.lastDeliveryIsApprovedOrDisapproved(eq(assignment), eq(group)))
 			.thenReturn(true);
 		
 		this.deliveriesBackend.deliver(delivery);
@@ -192,7 +190,7 @@ public class DeliveriesBackendTest extends BackendTest {
 	@SuppressWarnings("unchecked")
 	@Test(expected=ApiError.class)
 	public void whenStoringDeliveryFailedErrorToUser() throws UnauthorizedException, ApiError {
-		when(deliveriesDAO.persist(Matchers.eq(delivery))).thenThrow(Exception.class);
+		when(deliveriesDAO.persist(eq(delivery))).thenThrow(Exception.class);
 		
 		this.deliveriesBackend.deliver(delivery);
 	}
@@ -251,7 +249,7 @@ public class DeliveriesBackendTest extends BackendTest {
 	@SuppressWarnings("unchecked")
 	@Test(expected=ApiError.class)
 	public void whenAttachingDeliveryFailedErrorToUser() throws UnauthorizedException, ApiError {
-		when(deliveriesDAO.merge(Matchers.eq(delivery))).thenThrow(Exception.class);
+		when(deliveriesDAO.merge(eq(delivery))).thenThrow(Exception.class);
 		
 		attachedFile();
 	}
@@ -260,7 +258,7 @@ public class DeliveriesBackendTest extends BackendTest {
 	public void reviewDelivery() throws UnauthorizedException, ApiError {
 		this.deliveriesBackend.review(delivery, review);
 		
-		verify(delivery).setReview(Matchers.eq(review));
+		verify(delivery).setReview(eq(review));
 	}
 	
 	@Test
@@ -294,7 +292,7 @@ public class DeliveriesBackendTest extends BackendTest {
 	@SuppressWarnings("unchecked")
 	@Test(expected=ApiError.class)
 	public void whenReviewingDeliveryFailedErrorToUser() throws UnauthorizedException, ApiError {
-		when(deliveriesDAO.merge(Matchers.eq(delivery))).thenThrow(Exception.class);
+		when(deliveriesDAO.merge(eq(delivery))).thenThrow(Exception.class);
 		
 		reviewDelivery();
 	}
@@ -349,7 +347,7 @@ public class DeliveriesBackendTest extends BackendTest {
 	@Test
 	public void assignmentStatsFromLatestDeliveries() {
 		when(assignment.getCourseEdition()).thenReturn(courseEdition);
-		when(deliveriesDAO.getLastDeliveries(Matchers.eq(assignment))).thenReturn(deliveries);
+		when(deliveriesDAO.getLastDeliveries(eq(assignment))).thenReturn(deliveries);
 		
 		assertNotNull(this.deliveriesBackend.getAssignmentStats(assignment));
 	}

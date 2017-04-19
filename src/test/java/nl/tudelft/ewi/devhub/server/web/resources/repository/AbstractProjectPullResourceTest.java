@@ -16,11 +16,10 @@ import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRule;
+import org.mockito.MockitoAnnotations;
 import org.pegdown.PegDownProcessor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +28,6 @@ import java.net.URI;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -52,19 +50,18 @@ public class AbstractProjectPullResourceTest {
 
     @Inject private RepositoriesApi repositoriesApi;
 
-    @Rule public MockitoJUnitRule mockitoJUnitRule = new MockitoJUnitRule(this);
-
     private ProjectPullResource projectPullResource;
     private Date commentDate = new Date(150);
 
     @Before
     public void setUp() throws Throwable {
+        MockitoAnnotations.initMocks(this);
         Group group = new Group();
         GroupRepository groupRepository = new GroupRepository();
         groupRepository.setRepositoryName(REPOSITORY_NAME);
         group.setRepository(groupRepository);
 
-        when(pullRequests.findById(anyObject(), eq(PULL_ID))).thenReturn(pullRequest);
+        when(pullRequests.findById(any(), eq(PULL_ID))).thenReturn(pullRequest);
 
         projectPullResource = spy(new ProjectPullResource(templateEngine, currentUser, group, null,
                 null, pullRequests, null, repositoriesApi, commentMailer, null,
@@ -74,7 +71,7 @@ public class AbstractProjectPullResourceTest {
         when(currentUser.getName()).thenReturn(REPOSITORY_NAME);
         when(pullRequest.getURI()).thenReturn(new URI(PULL_URI));
         doReturn(pullRequestComment).when(projectPullResource).pullRequestCommentFactory(anyString(),
-                anyObject());
+                any());
 
         when(request.getLocales()).thenReturn(new Vector<Locale>().elements());
 

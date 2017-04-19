@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -55,7 +55,6 @@ public class FlattenFolderTreeTest {
         final LinkedHashMap<String, EntryType> barFolderTree = Maps.newLinkedHashMap();
         barFolderTree.put("Bar.java", EntryType.TEXT);
 
-        when(commitApi.showTree()).thenReturn(rootTree);
         when(commitApi.showTree(CommitApi.EMPTY_PATH)).thenReturn(rootTree);
         when(commitApi.showTree("src/")).thenReturn(srcFolderTree);
         when(commitApi.showTree("src/main/")).thenReturn(mainFolderTree);

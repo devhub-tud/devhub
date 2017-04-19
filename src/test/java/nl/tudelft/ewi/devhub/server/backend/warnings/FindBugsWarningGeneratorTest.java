@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -65,13 +65,11 @@ public class FindBugsWarningGeneratorTest {
     public void initializeMocks() {
         when(commit.getCommitId()).thenReturn(COMMIT_ID);
         when(commit.getRepository()).thenReturn(groupRepository);
-        when(group.getRepository()).thenReturn(groupRepository);
         when(groupRepository.getRepositoryName()).thenReturn("");
         when(commits.ensureExists(any(), any())).thenReturn(commit);
 
         when(repositories.getRepository(anyString())).thenReturn(repository);
         when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
-        when(commitApi.get()).thenReturn(repoCommit);
 
         blameCurrentCommit();
     }

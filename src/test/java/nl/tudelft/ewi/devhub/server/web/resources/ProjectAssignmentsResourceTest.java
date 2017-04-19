@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProjectAssignmentsResourceTest {
@@ -51,14 +51,12 @@ public class ProjectAssignmentsResourceTest {
 
     @Test
     public void testNotReleasedAdmin() {
-        Mockito.when(assignment.isGradesReleased()).thenReturn(false);
         Mockito.when(user.isAdmin()).thenReturn(true);
         assertTrue(resource.canSeeGrade(assignment));
     }
 
     @Test
     public void testNotReleasedTA() {
-        Mockito.when(assignment.isGradesReleased()).thenReturn(false);
         Mockito.when(user.isAssisting(edition)).thenReturn(true);
         assertTrue(resource.canSeeGrade(assignment));
     }

@@ -16,7 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Set;
@@ -56,15 +56,11 @@ public class PullRequestWarningGeneratorTest {
     public void beforeTest() throws Exception {
         when(commitEntity.getCommitId()).thenReturn(COMMIT_ID);
 		when(commitEntity.getRepository()).thenReturn(groupRepository);
-		when(group.getRepository()).thenReturn(groupRepository);
 		when(groupRepository.getRepositoryName()).thenReturn("");
 
         when(repositories.getRepository(anyString())).thenReturn(repository);
-        when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
         when(commitApi.get()).thenReturn(repoCommit);
         when(repository.getBranch(MASTER)).thenReturn(branchApi);
-        when(branchApi.get()).thenReturn(branchModel);
-        when(branchModel.getCommit()).thenReturn(repoCommit);
         when(branchApi.getCommit()).thenReturn(commitApi);
 
         warning = new GitUsageWarning();
@@ -90,7 +86,6 @@ public class PullRequestWarningGeneratorTest {
     @Test
     public void testCommitNotOnHead() {
         when(repoCommit.getCommit()).thenReturn(OTHER_COMMIT_ID);
-        when(repoCommit.getParents()).thenReturn(new String[] { "fe30124" });
         Set<GitUsageWarning> warns = generator.generateWarnings(commitEntity, null);
         assertEquals(warns, Collections.<GitUsageWarning>emptySet());
     }
@@ -98,7 +93,6 @@ public class PullRequestWarningGeneratorTest {
     @Test
     public void testMergeCommitNotOnHead() {
         when(repoCommit.getCommit()).thenReturn(OTHER_COMMIT_ID);
-        when(repoCommit.getParents()).thenReturn(new String[] { "fe30124", "ab30124" });
         Set<GitUsageWarning> warns = generator.generateWarnings(commitEntity, null);
         assertEquals(warns, Collections.<GitUsageWarning>emptySet());
     }

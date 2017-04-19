@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +66,6 @@ public class IllegalFileWarningTest {
 
         when(repositories.getRepository(anyString())).thenReturn(repository);
         when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
-        when(commitApi.get()).thenReturn(commitModel);
         when(commitApi.showTree("")).thenReturn(directory1);
 
         directory1.clear();

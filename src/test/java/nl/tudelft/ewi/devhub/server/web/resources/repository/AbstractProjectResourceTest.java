@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRule;
+import org.mockito.MockitoAnnotations;
 import org.pegdown.PegDownProcessor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -63,8 +63,6 @@ public class AbstractProjectResourceTest {
     @Inject private RepositoriesApi repositoriesApi;
     @Inject private Injector injector;
 
-    @Rule public MockitoJUnitRule mockitoJUnitRule = new MockitoJUnitRule(this);
-
     private CloneStepDefinitions cloneStepDefinitions;
     private MergeStepDefinitions mergeStepDefinitions;
     private DetailedRepositoryModel detailedRepositoryModel;
@@ -73,6 +71,7 @@ public class AbstractProjectResourceTest {
 
     @Before
     public void setUp() throws Throwable {
+        MockitoAnnotations.initMocks(this);
         cloneStepDefinitions = new CloneStepDefinitions();
         injector.injectMembers(cloneStepDefinitions);
 
@@ -89,7 +88,7 @@ public class AbstractProjectResourceTest {
         groupRepository.setRepositoryName(REPOSITORY_NAME);
         group.setRepository(groupRepository);
 
-        when(commits.ensureExists(anyObject(), anyObject())).thenReturn(commit);
+        when(commits.ensureExists(any(), any())).thenReturn(commit);
 
         projectResource = spy(new ProjectResource(templateEngine, currentUser, group, null, null,
                 null, repositoriesApi, null, commitComments, commentMailer, commits, null, null,
@@ -97,7 +96,7 @@ public class AbstractProjectResourceTest {
 
         when(commitComment.getTimestamp()).thenReturn(commentDate);
         when(currentUser.getName()).thenReturn(REPOSITORY_NAME);
-        doReturn(commitComment).when(projectResource).commitCommentFactory(anyString(), anyObject(),
+        doReturn(commitComment).when(projectResource).commitCommentFactory(anyString(), any(),
                 eq(COMMIT_ID));
 
         when(request.getLocales()).thenReturn(new Vector<Locale>().elements());
@@ -114,7 +113,7 @@ public class AbstractProjectResourceTest {
         cloneStepDefinitions.isAheadOf(BRANCH_NAME, "master");
 
         Response response = projectResource.deleteBehindBranch(request, BRANCH_NAME, "");
-        verify(templateEngine).process(anyString(), anyObject(), argumentCaptor.capture());
+        verify(templateEngine).process(anyString(), any(), argumentCaptor.capture());
         System.out.println("\n\n\n\n\n=======1:\n" + argumentCaptor.getValue());
 
     }*/

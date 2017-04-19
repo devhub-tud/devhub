@@ -20,7 +20,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
@@ -78,7 +78,6 @@ public class BuildServerRegistrationTest {
 		when(userApi.keys()).thenReturn(keysApi);
 
 		when(groupsApi.getGroup(BuildServerRegistrationResource.BUILD_SERVERS_GROUP)).thenReturn(groupApi);
-		when(groupApi.getGroup()).thenReturn(groupModel);
 		when(groupApi.listMembers()).thenReturn(groupModel.getMembers());
 
 		when(keysApi.listSshKeys()).thenReturn(Collections.singleton(sshKeyModel));

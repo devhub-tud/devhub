@@ -62,6 +62,7 @@ public class SuccessiveBuildFailureTest {
         MockitoAnnotations.initMocks(this);
         when(commitEntity.getCommitId()).thenReturn(COMMIT_ID);
 		when(commitEntity.getRepository()).thenReturn(groupRepository);
+        when(groupRepository.getRepositoryName()).thenReturn("");
 		when(group.getRepository()).thenReturn(groupRepository);
 
         when(repositories.getRepository(anyString())).thenReturn(repository);

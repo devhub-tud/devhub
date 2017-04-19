@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +63,6 @@ public class LargeFileWarningGeneratorTest {
 
         when(repositories.getRepository(anyString())).thenReturn(repository);
         when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);
-        when(commitApi.get()).thenReturn(commitModel);
         when(commitApi.diff()).thenReturn(diffModel);
         when(commitApi.showTree(anyString())).thenReturn(ImmutableMap.of(FILE_PATH, EntryType.TEXT));
         when(diffModel.getDiffs()).thenReturn(diffValues);

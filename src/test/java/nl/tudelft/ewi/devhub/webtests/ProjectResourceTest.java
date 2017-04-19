@@ -33,7 +33,7 @@ import java.net.URI;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ProjectResourceTest extends WebTest {
 
     // Commit constants

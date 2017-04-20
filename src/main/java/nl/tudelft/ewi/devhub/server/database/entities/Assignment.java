@@ -43,6 +43,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
@@ -132,6 +133,14 @@ public class Assignment implements Comparable<Assignment>, Base {
 	@Override
 	public URI getURI() {
 		return getCourseEdition().getURI().resolve(ASSIGNMENTS_PATH_BASE).resolve(getAssignmentId() + "/");
+	}
+
+	public List<Task> copyTasksFromOldAssignment(Assignment oldAssignment) {
+		return oldAssignment.getTasks().stream().map(this::taskforNewAssginment).collect(Collectors.toList());
+	}
+
+	private Task taskforNewAssginment(Task oldTask) {
+		return oldTask.copyForNextYear(this);
 	}
 
 }

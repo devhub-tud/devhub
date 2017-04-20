@@ -5,12 +5,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.temporal.TemporalAmount;
 import java.time.temporal.TemporalUnit;
@@ -67,6 +69,23 @@ public class TimeSpan implements Serializable, Comparable<TimeSpan>, TemporalAmo
     @Override
     public java.time.temporal.Temporal subtractFrom(java.time.temporal.Temporal temporal) {
         return getDuration().subtractFrom(temporal);
+    }
+
+    /**
+     * Display the time span for the current year.
+     *
+     * @return A string showing the year the course started in.
+     *         If the end timestamp is also set it adds a -End Year aswell.
+     */
+    public String intervalString() {
+        SimpleDateFormat yearFormat = new SimpleDateFormat("YYYY");
+        String startFormat = yearFormat.format(this.start);
+
+        if (this.end != null) {
+            return startFormat + "-" + yearFormat.format(end);
+        }
+
+        return startFormat;
     }
 
 }

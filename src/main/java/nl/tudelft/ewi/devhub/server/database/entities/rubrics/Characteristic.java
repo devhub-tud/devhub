@@ -23,6 +23,8 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * The skills, knowledge, and/or behavior to be demonstrated.
  */
@@ -101,4 +103,19 @@ public class Characteristic implements Comparable<Characteristic> {
 		return Long.compare(getId(), o.getId());
 	}
 
+	public Characteristic copyForNextYear(Task task) {
+		Characteristic newCharacteristic = new Characteristic();
+		newCharacteristic.setDescription(this.description);
+		newCharacteristic.setTask(task);
+		newCharacteristic.setWeight(this.weight);
+
+		List<Mastery> newMasteries = this.getLevels().stream().map(newCharacteristic::copyOfMastery).collect(toList());
+		newCharacteristic.setLevels(newMasteries);
+
+		return newCharacteristic;
+	}
+
+	private Mastery copyOfMastery(Mastery mastery) {
+		return mastery.copyForNextYear(this);
+	}
 }

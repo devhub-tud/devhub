@@ -1,13 +1,13 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
-import com.mysema.commons.lang.CloseableIterator;
-import lombok.extern.slf4j.Slf4j;
-
 import com.google.common.base.Preconditions;
 import com.google.inject.persist.Transactional;
+import com.mysema.commons.lang.CloseableIterator;
 import com.mysema.query.jpa.impl.JPAQuery;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.hibernate.LockOptions;
+import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionImplementor;
 
 import javax.inject.Inject;
@@ -78,6 +78,13 @@ public class Controller<T> {
 	protected <V> Stream<V> toStream(CloseableIterator<V> closeableIterator) {
 		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(closeableIterator, Spliterator.ORDERED), false)
 			.onClose(closeableIterator::close);
+	}
+
+
+	@Transactional
+	public void attach(T entity) {
+		// Method from http://stackoverflow.com/a/3683370/2104280
+		entityManager.unwrap(Session.class).buildLockRequest(LockOptions.NONE).lock(entity);
 	}
 
 }

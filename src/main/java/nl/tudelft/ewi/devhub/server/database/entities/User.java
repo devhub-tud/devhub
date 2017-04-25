@@ -24,6 +24,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -71,7 +72,7 @@ public class User {
 
 	@JsonIgnore
 	@ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
-	private List<Group> groups;
+	private List<Group> groups = new ArrayList<>();
 
 	@JsonIgnore
 	@ManyToMany(mappedBy = "assistants", fetch = FetchType.LAZY)

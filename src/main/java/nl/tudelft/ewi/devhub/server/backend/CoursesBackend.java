@@ -118,8 +118,10 @@ public class CoursesBackend {
     public void setAssistants(CourseEdition course, Collection<? extends User> newAssistants) {
         Preconditions.checkNotNull(course);
         Preconditions.checkNotNull(newAssistants);
+
         checkAdmin();
 
+        newAssistants.forEach(users::attach);
         Set<User> assistants = course.getAssistants();
 
         Set<User> toBeAdded = Sets.newHashSet();

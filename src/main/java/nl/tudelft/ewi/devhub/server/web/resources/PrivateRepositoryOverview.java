@@ -7,7 +7,6 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
-import nl.tudelft.ewi.build.jaxrs.models.BuildInstruction;
 import nl.tudelft.ewi.devhub.server.database.controllers.PrivateRepositories;
 import nl.tudelft.ewi.devhub.server.database.entities.PrivateRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
@@ -19,6 +18,7 @@ import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Pattern;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -66,7 +66,7 @@ public class PrivateRepositoryOverview extends Resource {
 	@POST
 	@Path("setup")
 	@Transactional
-	public Response setupPrivateRepository(@FormParam("repositoryName") @NotEmpty String repositoryName) {
+	public Response setupPrivateRepository(@FormParam("repositoryName") @NotEmpty @Pattern(regexp = "^\\w[\\w._@/+-]*[\\w._@+-]$") String repositoryName) {
 		PrivateRepository privateRepository = new PrivateRepository();
 		privateRepository.setTitle(repositoryName);
 		privateRepository.setOwner(currentUser);

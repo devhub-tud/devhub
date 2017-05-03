@@ -10,11 +10,8 @@ import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.AbstractIssue;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
-
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.CascadeType;
@@ -32,6 +29,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.Pattern;
 import java.util.Collection;
 import java.util.List;
 
@@ -64,6 +62,7 @@ public abstract class RepositoryEntity implements Configurable, Base {
     private long id;
 
     @NotEmpty
+    @Pattern(regexp = "^\\w[\\w._@/+-]*[\\w._@+-]$")
     @Column(name = "repository_name", unique = true)
     private String repositoryName;
 

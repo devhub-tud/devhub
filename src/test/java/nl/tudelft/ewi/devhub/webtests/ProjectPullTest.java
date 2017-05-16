@@ -67,7 +67,8 @@ public class ProjectPullTest extends WebTest {
 	private static final String FILE_CONTENT_MASTER = "Initial content on master";
 	private static final String FILE_CONTENT_BRANCH = "Initial content on branch";
 	private static final String COMMENT_CONTENT = "Why is this useful?";
-	
+	private static final String EMPTY_COMMENT = "   \n  \n ";
+
 	@Inject Users users;
 	@Inject Groups groups;
 	@Inject RepositoriesApi repositoriesApi;
@@ -317,6 +318,28 @@ public class ProjectPullTest extends WebTest {
 		assertEquals(1, comments.size());
 		assertEquals(COMMENT_CONTENT, comments.get(0).getContent());
 				
+	}
+
+	@Test
+	public void testNoEmptyComment() {
+		// Check if branch is available
+		Branch newBranch = openLoginScreen()
+				.login(NET_ID, PASSWORD)
+				.toCoursesView()
+				.listMyProjects()
+				.get(0).click()
+				.listBranches().get(1);
+		assertEquals(BRANCH_NAME, newBranch.getName());
+
+		// Navigate to pull request view
+		PullRequestOverViewView pullRequestOverViewView = newBranch.click().openCreatePullRequestView();
+
+		assertTrue(pullRequestOverViewView.isOpen());
+
+		pullRequestOverViewView.addComment(EMPTY_COMMENT);
+
+		List<IssueComment> comments = getPullRequest(BRANCH_NAME).getComments();
+		comments.forEach(comment->assertFalse(comment.getContent().equals(EMPTY_COMMENT)));
 	}
 	
 	@Test

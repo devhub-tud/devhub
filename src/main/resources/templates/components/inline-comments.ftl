@@ -22,7 +22,7 @@
                     '${i18n.translate("panel.label.add-comment-emoji-link")}</a></div>' +
                     '<div class="panel-body">' +
                     '<form class="form-horizontal" action="${repositoryEntity.getURI()}comment" method="POST">' +
-                    '<textarea rows="5" class="form-control" name="content"></textarea>' +
+                    '<textarea rows="5" class="form-control" name="content" required></textarea>' +
                     '<button type="submit" class="btn btn-primary">${i18n.translate("button.label.comment")}</button>' +
                     '<button type="button" class="btn btn-default" id="btn-cancel">${i18n.translate("button.label.cancel")}</button>' +
                     '</form>' +

@@ -567,7 +567,13 @@ public class AssignmentsResource extends Resource {
             }
             Review review = getOrCreateReview(assignment, delivery);
             State previousState = review.getState();
-            review.setGrade(gradingStrategy.createGrade(delivery));
+
+            double grade = gradingStrategy.createGrade(delivery);
+            if (review.getGrade() != null) {
+                grade = Math.max(grade, review.getGrade());
+            }
+
+            review.setGrade(grade);
             review.setState(gradingStrategy.createState(delivery));
             log.info("Updated review {} for {}", review, delivery);
 

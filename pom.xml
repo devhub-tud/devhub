@@ -441,9 +441,6 @@
 			<resource>
 				<directory>src/main/resources</directory>
 			</resource>
-			<resource>
-				<directory>target/metamodel</directory>
-			</resource>
 		</resources>
 		<plugins>
 			<plugin>
@@ -515,7 +512,7 @@
 							<goal>process</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/metamodel</outputDirectory>
+							<outputDirectory>target/generated-sources</outputDirectory>
 							<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
 						</configuration>
 					</execution>

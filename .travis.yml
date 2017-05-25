@@ -7,10 +7,7 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
-      - google-chrome-stable
       - chromium-browser
-    sources:
-      - google-chrome
 jdk:
   - oraclejdk8
 before_install:

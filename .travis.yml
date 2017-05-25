@@ -8,6 +8,7 @@ addons:
     packages:
       - oracle-java8-installer
       - google-chrome-stable
+      - chromium-browser
     sources:
       - google-chrome
 jdk:

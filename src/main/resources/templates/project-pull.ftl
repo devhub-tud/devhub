@@ -117,7 +117,7 @@
         </div>
         <div class="panel-body">
             <form class="form-horizontal" id="pull-comment-form" >
-                <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
+                <textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;" required></textarea>
                 <button type="submit" class="btn btn-primary">${i18n.translate("button.label.submit")}</button>
                 <button type="button" class="btn btn-default" id="btn-preview">${i18n.translate("button.label.preview")}</button>
             </form>

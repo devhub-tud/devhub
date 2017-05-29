@@ -98,7 +98,7 @@
                         </a>
                     </div>
 					<div class="panel-body">
-						<textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;"></textarea>
+						<textarea rows="5" class="form-control" name="content" style="margin-bottom:10px;" required></textarea>
 						<button type="submit" class="btn btn-primary pull-right">${i18n.translate("button.label.submit")}</button>
 					</div>
 				</div>

@@ -11,7 +11,11 @@ public class DutchGradingStrategy implements GradingStrategy {
     public static final double THRESHOLD = 5.75;
 
     @Override
-    public double createGrade(Delivery delivery) {
+    public double createGrade(Delivery delivery) throws MissingRubricsException {
+        if (! delivery.isAllRubricsHaveBeenFilledIn()) {
+            throw new MissingRubricsException();
+        }
+
         return Math.max(
             1,
             delivery.getAchievedNumberOfPoints() / delivery.getAssignment().getNumberOfAchievablePoints() * 10
@@ -19,7 +23,7 @@ public class DutchGradingStrategy implements GradingStrategy {
     }
 
     @Override
-    public State createState(Delivery delivery) {
+    public State createState(Delivery delivery) throws MissingRubricsException {
         return createGrade(delivery) >= THRESHOLD ? State.APPROVED : State.DISAPPROVED;
     }
 

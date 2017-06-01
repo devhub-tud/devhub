@@ -222,6 +222,12 @@ public class Delivery implements Event, Base {
         return review == null ? State.SUBMITTED : review.getState() == null ? State.SUBMITTED : review.getState();
     }
 
+    @JsonIgnore
+    public boolean isAllRubricsHaveBeenFilledIn() {
+	    return !getAssignment().isAssignmentHasRubrics() ||
+            getRubrics().keySet().size() == getAssignment().getCharacteristics().size();
+    }
+
 	@JsonIgnore
     public boolean isSubmitted() {
         return getState().equals(State.SUBMITTED);

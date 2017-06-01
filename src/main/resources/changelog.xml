@@ -1193,7 +1193,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="assignment_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
 

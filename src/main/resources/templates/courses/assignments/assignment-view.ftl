@@ -100,6 +100,13 @@
                     <span class="label label-${state.style}" data-toggle="tooltip" title="${i18n.translate(state.descriptionTranslionKey)}">
                         ${i18n.translate(state.translationKey)}
                     </span>
+                    <div class="progress progress-grading" title="${delivery.rubrics?keys?size / delivery.assignment.characteristics?size * 100}% complete">
+                      <div class="progress-bar [#if delivery.rubrics?keys?size == delivery.assignment.characteristics?size ]progress-bar-success[/#if]" role="progressbar" aria-valuenow="${delivery.rubrics?keys?size}"
+                           aria-valuemin="0" aria-valuemax="${delivery.assignment.characteristics?size}"
+                           style="width:${delivery.rubrics?keys?size / delivery.assignment.characteristics?size * 100}%">
+                      </div>
+                      <span>${(delivery.rubrics?keys?size / delivery.assignment.characteristics?size * 100)?round}%</span>
+                    </div>
                 </div>
                 <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
                 <div class="committer">${delivery.createdUser.getName()} on ${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</div>

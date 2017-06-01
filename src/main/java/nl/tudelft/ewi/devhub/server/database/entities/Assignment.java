@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.DutchGradingStrategy;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingStrategy;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
@@ -108,6 +109,15 @@ public class Assignment implements Comparable<Assignment>, Base {
 	@JsonManagedReference
 	@OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<Task> tasks;
+
+	@JsonIgnore
+	public List<Characteristic> getCharacteristics() {
+		return tasks.stream()
+			.map(Task::getCharacteristics)
+			.flatMap(java.util.Collection::stream)
+			.distinct()
+			.collect(Collectors.toList());
+	}
 
     @Override
     public int compareTo(Assignment o) {

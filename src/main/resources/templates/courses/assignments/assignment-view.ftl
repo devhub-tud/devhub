@@ -12,12 +12,14 @@
         <li>
           <span uib-dropdown dropdown-append-to-body="true">
             <a href id="simple-dropdown" uib-dropdown-toggle>
-              ${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??] - ${course.timeSpan.end?string["yyyy"]}[/#if]
-              <span class="caret"></span>
+              ${course.timeSpan.start?string["yyyy"]}[#if course.timeSpan.end??]
+                  - ${course.timeSpan.end?string["yyyy"]}[/#if]
+                  <span class="caret"></span>
             </a>
             <ul uib-dropdown-menu>
             [#list course.course.getEditions() as a]
-              <li><a href="${a.getURI()}">${a.timeSpan.start?string["yyyy"]}[#if a.timeSpan.end??] - ${a.timeSpan.end?string["yyyy"]}[/#if]</a></li>
+                <li><a href="${a.getURI()}">${a.timeSpan.start?string["yyyy"]}[#if a.timeSpan.end??]
+                    - ${a.timeSpan.end?string["yyyy"]}[/#if]</a></li>
             [/#list]
             </ul>
           </span>
@@ -27,12 +29,12 @@
           <span uib-dropdown dropdown-append-to-body="true">
             <a href id="simple-dropdown" uib-dropdown-toggle>
               ${assignment.getName()}
-              <span class="caret"></span>
+                  <span class="caret"></span>
             </a>
             <ul uib-dropdown-menu>
-              [#list course.getAssignments() as a]
+            [#list course.getAssignments() as a]
                 <li><a href="${a.getURI()}">${a.getName()}</a></li>
-              [/#list]
+            [/#list]
             </ul>
           </span>
         </li>
@@ -55,8 +57,9 @@
 
         <div class="progress">
             [#list deliveryStates as state]
-                <div class="progress-bar progress-bar-${state.style}" style="width: ${assignmentStats.getPercentageFor(state)}%">
-                    ${i18n.translate(state.translationKey)}
+                <div class="progress-bar progress-bar-${state.style}"
+                     style="width: ${assignmentStats.getPercentageFor(state)}%">
+                ${i18n.translate(state.translationKey)}
                 </div>
             [/#list]
         </div>
@@ -73,8 +76,10 @@
                     </button>
                 </div>
             [/#list]
-            <div class="col-md-2 progress-info">${i18n.translate("assignment.submissions")}: ${assignmentStats.amountOfSubmissions()}</div>
-            <div class="col-md-2 progress-info">${i18n.translate("assignment.groups")}: ${assignmentStats.amountOfGroups()}</div>
+            <div class="col-md-2 progress-info">${i18n.translate("assignment.submissions")}
+                : ${assignmentStats.amountOfSubmissions()}</div>
+            <div class="col-md-2 progress-info">${i18n.translate("assignment.groups")}
+                : ${assignmentStats.amountOfGroups()}</div>
         </div>
     </div>
 [/#if]
@@ -83,29 +88,34 @@
     [#if lastDeliveries?? && lastDeliveries?has_content]
         [#list lastDeliveries as delivery]
             [#assign group = delivery.getGroup()]
-        <tr class="delivery ${delivery.getState().toString()?lower_case}">
-          <td class="commit">
-            <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
-                <div class="pull-right">
-                [#if delivery.isLate()]
-                    <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
-                [/#if]
+            <tr class="delivery ${delivery.getState().toString()?lower_case}">
+                <td class="commit">
+                    <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
+                        <div class="pull-right">
+                            [#if delivery.isLate()]
+                                <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
+                            [/#if]
 
-                [#assign review = delivery.getReview()![]]
-                [#if review?has_content && review.grade?? && review.grade?has_content]
-                    <span class="label label-default">${review.grade?string["0.#"]}</span>
-                [/#if]
+                            [#assign review = delivery.getReview()![]]
+                            [#if review?has_content && review.grade?? && review.grade?has_content]
+                                <span class="label label-default">${review.grade?string["0.#"]}</span>
+                            [/#if]
 
-                [#assign state = delivery.getState()]
-                    <span class="label label-${state.style}" data-toggle="tooltip" title="${i18n.translate(state.descriptionTranslionKey)}">
-                        ${i18n.translate(state.translationKey)}
-                    </span>
-                </div>
-                <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
-                <div class="committer">${delivery.createdUser.getName()} on ${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-            </a>
-          </td>
-        </tr>
+                            [#assign state = delivery.getState()]
+                            <span class="label label-${state.style}" data-toggle="tooltip"
+                                  title="${i18n.translate(state.descriptionTranslionKey)}">
+                            ${i18n.translate(state.translationKey)}
+                            </span>
+
+                            [#assign ta = assignment.getAssignedTA(delivery)]
+                            <span class="label-default">${ta}</span>
+                        </div>
+                        <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
+                        <div class="committer">${delivery.createdUser.getName()}
+                            on ${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                    </a>
+                </td>
+            </tr>
         [/#list]
     [#else]
         <tr>
@@ -113,10 +123,12 @@
         </tr>
     [/#if]
     </table>
-    
+
     <div class="pull-right">
-        <a href="${assignment.getURI()}deliveries/download-rubrics" class="btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download rubrics</a>
-        <a href="${assignment.getURI()}deliveries/download" class="btn btn-sm btn-default" style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
+        <a href="${assignment.getURI()}deliveries/download-rubrics" class="btn btn-sm btn-default"
+           style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download rubrics</a>
+        <a href="${assignment.getURI()}deliveries/download" class="btn btn-sm btn-default" style="margin-right:5px;"><i
+                class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
     </div>
 
 </div>
@@ -126,7 +138,7 @@
 <script src="/static/vendor/angular-bootstrap/ui-bootstrap.min.js"></script>
 
 <script type="text/javascript">
-angular.module('devhub', ['ui.bootstrap']);
+    angular.module('devhub', ['ui.bootstrap']);
 </script>
 [/@macros.renderScripts]
 [@macros.renderFooter /]

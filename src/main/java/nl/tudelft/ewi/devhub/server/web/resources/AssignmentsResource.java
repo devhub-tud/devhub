@@ -308,6 +308,7 @@ public class AssignmentsResource extends Resource {
         parameters.put("assignmentStats", assignmentStats);
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("lastDeliveries", lastDeliveries);
+//        parameters.put("assignedTAs", assignment.getAssigned);
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/assignment-view.ftl", locales, parameters));

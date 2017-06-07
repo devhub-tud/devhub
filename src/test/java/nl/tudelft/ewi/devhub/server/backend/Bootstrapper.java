@@ -273,7 +273,10 @@ public class Bootstrapper {
 			projects.provisionRepository(groupEntity, members);
 		}
 
+		int deliveryCounter = 0;
 		for (BDelivery delivery : group.getDeliveries()) {
+			deliveryCounter++;
+
 			Delivery deliveryEntity = new Delivery();
 			deliveryEntity.setAssignment(assignmentEntities.get(delivery.getAssignmentId()));
 			deliveryEntity.setGroup(groupEntity);
@@ -297,7 +300,11 @@ public class Bootstrapper {
 			AssignedTA assignedTA = new AssignedTA();
 			assignedTA.setAssignment(deliveryEntity.getAssignment());
 			assignedTA.setGroup(groupEntity);
-			assignedTA.setTeachingAssistant(userMapping.get("assistant1"));
+			if(deliveryCounter % 2 == 0) {
+				assignedTA.setTeachingAssistant(userMapping.get("assistant1"));
+			} else {
+				assignedTA.setTeachingAssistant(userMapping.get("assistant2"));
+			}
 			entityManager.persist(assignedTA);
 
 			log.debug("        Persisted delivery for group: " + groupEntity.getGroupNumber());

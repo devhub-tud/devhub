@@ -165,7 +165,10 @@
 				</span>
 				<span class="headers">
 					<h2 class="header">${commit.getMessage()}</h2>
-					<h5 class="subheader">${commit.getAuthor()}</h5>
+					<div class="neutrallines">${commit.getAuthor()}</div>
+					<div class="addedlines">${"+" + diffViewModel.getLinesAdded()}</div>
+					<div class="neutrallines">${"/"}</div>
+					<div class="removedlines">${"-" + diffViewModel.getLinesRemoved()}</div>
 	[#if commit.getMessage()?has_content]
 					<div class="description">${commit.getMessageTail()}</div>
 	[/#if]

@@ -109,7 +109,7 @@
 
                             [#assign ta = assignment.getAssignedTA(delivery).orElse(null)]
                             [#if ta??]
-                                <span class="label-default">${ta.getNetId()}</span>
+                                <span class="label label-default">${ta.getName()}</span>
                             [/#if]
                         </div>
                         <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>

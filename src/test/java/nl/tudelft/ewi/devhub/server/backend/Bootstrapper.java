@@ -3,12 +3,7 @@ package nl.tudelft.ewi.devhub.server.backend;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
-import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
-import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Course;
@@ -19,6 +14,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
@@ -36,6 +33,7 @@ import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -117,12 +115,15 @@ public class Bootstrapper {
 	private final ProjectsBackend projects;
 	private final Deliveries deliveries;
     private final Assignments assignments;
+    private final NotificationController notificationController;
+    private final NotificationUserController notificationUserController;
 
 	@Inject
 	Bootstrapper(Users users, Courses courses, CourseEditions courseEditions, Groups groups,
 			MockedAuthenticationBackend authBackend, ObjectMapper mapper,
 			RepositoriesApi repositoriesApi, ProjectsBackend projects, Assignments assignments,
-			Deliveries deliveries, GroupsApi groupsApi) {
+			Deliveries deliveries, GroupsApi groupsApi, NotificationController notificationController,
+				 NotificationUserController notificationsUserController) {
 		
 		this.users = users;
 		this.courses = courses;
@@ -135,6 +136,8 @@ public class Bootstrapper {
 		this.assignments = assignments;
 		this.deliveries = deliveries;
 		this.groupsApi = groupsApi;
+		this.notificationController = notificationController;
+		this.notificationUserController = notificationsUserController;
 	}
 	
 	@Transactional
@@ -226,6 +229,21 @@ public class Bootstrapper {
 				}
 
 				groupsApi.create(courseGroupModel);
+
+				Notification notification = new Notification();
+				notification.setEvent("PR");
+				notification.setMessage("Some message");
+				notification.setSender(userMapping.get("admin1"));
+				//notification.setLink(URI.create("thelink"));
+				notification.setLink("thelink");
+				notificationController.persist(notification);
+
+				NotificationsToUsers notificationsToUsers1 = new NotificationsToUsers();
+				notificationsToUsers1.setNotification(notification);
+				notificationsToUsers1.setUser(userMapping.get("admin1"));
+				notificationsToUsers1.setRead(true);
+
+				notificationUserController.persist(notificationsToUsers1);
 
 				for (BGroup group : bCourseEdition.getGroups()) {
 					prepareGroup(userMapping, entity, assignmentEntities, group);

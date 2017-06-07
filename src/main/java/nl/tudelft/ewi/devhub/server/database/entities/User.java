@@ -11,17 +11,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
 import org.mindrot.jbcrypt.BCrypt;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
@@ -84,6 +78,10 @@ public class User {
 		return getGroups();
 	}
 
+	@OneToMany(mappedBy = "user")
+	@JsonIgnore
+	private List<NotificationsToUsers> notificationsToUserslist;
+
 	@JsonIgnore
 	public List<Group> listAssistedGroups() {
 		return getAssists().stream()
@@ -115,6 +113,14 @@ public class User {
 	public boolean isPasswordMatch(String password) {
 		return password != null && this.password != null
 				&& BCrypt.checkpw(password, this.password);
+	}
+
+	public List<Notification> getNotifications() {
+		List<Notification> notifications = new ArrayList<Notification>();
+		for (NotificationsToUsers notificationsToUsers: notificationsToUserslist) {
+			notifications.add(notificationsToUsers.getNotification());
+		}
+		return notifications;
 	}
 	
 }

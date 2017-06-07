@@ -258,6 +258,10 @@ public class DeliveriesBackend {
         return getAssignmentStats(assignment, lastDeliveries);
     }
 
+    public AssignmentStats getAssignmentStats(List<Delivery> lastDeliveries) {
+        return new AssignmentStats(lastDeliveries, Lists.transform(lastDeliveries,Delivery::getGroup));
+    }
+
     public AssignmentStats getAssignmentStats(Assignment assignment, List<Delivery> lastDeliveries) {
         return new AssignmentStats(lastDeliveries, assignment.getCourseEdition().getGroups());
     }

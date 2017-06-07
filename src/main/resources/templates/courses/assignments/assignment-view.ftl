@@ -107,8 +107,10 @@
                             ${i18n.translate(state.translationKey)}
                             </span>
 
-                            [#assign ta = assignment.getAssignedTA(delivery)]
-                            <span class="label-default">${ta}</span>
+                            [#assign ta = assignment.getAssignedTA(delivery).orElse(null)]
+                            [#if ta??]
+                                <span class="label-default">${ta.getNetId()}</span>
+                            [/#if]
                         </div>
                         <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
                         <div class="committer">${delivery.createdUser.getName()}

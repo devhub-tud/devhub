@@ -122,5 +122,12 @@ public class User {
 		}
 		return notifications;
 	}
+
+	public boolean hasUnreadNotifications() {
+		for(NotificationsToUsers notificationUser: notificationsToUserslist) {
+			if (!notificationUser.isRead()) return true;
+		}
+		return false;
+	}
 	
 }

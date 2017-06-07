@@ -88,7 +88,8 @@ public class DevhubModule extends ServletModule {
 			"/build-servers*",
 			"/projects*",
 			"/validation*",
-			"/courses*"
+			"/courses*",
+			"/notifications"
 		).through(UserAuthorizeFilter.class);
 		filterRegex("^/courses/[^/]+/[^/]+/groups/\\d+(/.*)?").through(RepositoryAuthorizeFilter.class);
 

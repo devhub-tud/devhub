@@ -4,6 +4,50 @@
 [@macros.renderHeader i18n.translate("assignments.title") /]
 [@macros.renderMenu i18n user /]
 
+[#macro deliveryTable deliveries]
+<table class="table table-bordered">
+    [#if deliveries?? && deliveries?has_content]
+        [#list deliveries as delivery]
+            [#assign group = delivery.getGroup()]
+            <tr class="delivery ${delivery.getState().toString()?lower_case}">
+                <td class="commit">
+                    <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
+                        <div class="pull-right">
+                            [#if delivery.isLate()]
+                                <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
+                            [/#if]
+
+                            [#assign review = delivery.getReview()![]]
+                            [#if review?has_content && review.grade?? && review.grade?has_content]
+                                <span class="label label-default">${review.grade?string["0.#"]}</span>
+                            [/#if]
+
+                            [#assign state = delivery.getState()]
+                            <span class="label label-${state.style}" data-toggle="tooltip"
+                                  title="${i18n.translate(state.descriptionTranslionKey)}">
+                            ${i18n.translate(state.translationKey)}
+                            </span>
+
+                            [#assign assignedTA = assignment.getAssignedTA(delivery).orElse(null)]
+                            [#if assignedTA??]
+                                <span class="label label-default">${assignedTA.getName()}</span>
+                            [/#if]
+                        </div>
+                        <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
+                        <div class="committer">${delivery.createdUser.getName()}
+                            on ${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                    </a>
+                </td>
+            </tr>
+        [/#list]
+    [#else]
+        <tr>
+            <td class="muted">${i18n.translate("assignment.no-deliveries")}</td>
+        </tr>
+    [/#if]
+</table>
+[/#macro]
+
 <div class="container">
 
     <ol class="breadcrumb">
@@ -84,89 +128,8 @@
     </div>
 [/#if]
 
-    <table class="table table-bordered">
-    [#if userDeliveries?? && userDeliveries?has_content]
-        [#list userDeliveries as userDelivery]
-            [#assign group = userDelivery.getGroup()]
-            <tr class="delivery ${userDelivery.getState().toString()?lower_case}">
-                <td class="commit">
-                    <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
-                        <div class="pull-right">
-                            [#if userDelivery.isLate()]
-                                <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
-                            [/#if]
-
-                            [#assign review = userDelivery.getReview()![]]
-                            [#if review?has_content && review.grade?? && review.grade?has_content]
-                                <span class="label label-default">${review.grade?string["0.#"]}</span>
-                            [/#if]
-
-                            [#assign state = userDelivery.getState()]
-                            <span class="label label-${state.style}" data-toggle="tooltip"
-                                  title="${i18n.translate(state.descriptionTranslionKey)}">
-                            ${i18n.translate(state.translationKey)}
-                            </span>
-
-                            [#assign assignedTA = assignment.getAssignedTA(userDelivery).orElse(null)]
-                            [#if assignedTA??]
-                                <span class="label label-default">${assignedTA.getName()}</span>
-                            [/#if]
-                        </div>
-                        <div class="comment"><strong>${userDelivery.getGroup().getGroupName()}</strong></div>
-                        <div class="committer">${userDelivery.createdUser.getName()}
-                            on ${userDelivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-                    </a>
-                </td>
-            </tr>
-        [/#list]
-    [#else]
-        <tr>
-            <td class="muted">${i18n.translate("assignment.no-deliveries")}</td>
-        </tr>
-    [/#if]
-    </table>
-
-    <table class="table table-bordered">
-    [#if lastDeliveries?? && lastDeliveries?has_content]
-        [#list lastDeliveries as delivery]
-            [#assign group = delivery.getGroup()]
-            <tr class="delivery ${delivery.getState().toString()?lower_case}">
-                <td class="commit">
-                    <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
-                        <div class="pull-right">
-                            [#if delivery.isLate()]
-                                <span class="label label-danger">${i18n.translate("assignment.handed-in-late")}</span>
-                            [/#if]
-
-                            [#assign review = delivery.getReview()![]]
-                            [#if review?has_content && review.grade?? && review.grade?has_content]
-                                <span class="label label-default">${review.grade?string["0.#"]}</span>
-                            [/#if]
-
-                            [#assign state = delivery.getState()]
-                            <span class="label label-${state.style}" data-toggle="tooltip"
-                                  title="${i18n.translate(state.descriptionTranslionKey)}">
-                            ${i18n.translate(state.translationKey)}
-                            </span>
-
-                            [#assign assignedTA = assignment.getAssignedTA(delivery).orElse(null)]
-                            [#if assignedTA??]
-                                <span class="label label-default">${assignedTA.getName()}</span>
-                            [/#if]
-                        </div>
-                        <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>
-                        <div class="committer">${delivery.createdUser.getName()}
-                            on ${delivery.getTimestamp()?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-                    </a>
-                </td>
-            </tr>
-        [/#list]
-    [#else]
-        <tr>
-            <td class="muted">${i18n.translate("assignment.no-deliveries")}</td>
-        </tr>
-    [/#if]
-    </table>
+[@deliveryTable deliveries=userDeliveries /]
+[@deliveryTable deliveries=lastDeliveries /]
 
     <div class="pull-right">
         <a href="${assignment.getURI()}deliveries/download-rubrics" class="btn btn-sm btn-default"

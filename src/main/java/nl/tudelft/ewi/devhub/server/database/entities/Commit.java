@@ -76,11 +76,11 @@ public class Commit implements Event, Base {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date pushTime;
 
-	//@Column(name = "lines_added")
-	//private Integer linesAdded;
+	@Column(name = "lines_added")
+	private Integer linesAdded;
 
-	//@Column(name = "lines_removed")
-	//private Integer linesRemoved;
+	@Column(name = "lines_removed")
+	private Integer linesRemoved;
 
 	@JsonIgnore
 	@OneToMany(mappedBy = "commit", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1112,4 +1112,14 @@
 			baseColumnNames="label_id"/>
 	</changeSet>
 
+	<changeSet author="Vera Hoveling" id="add_columns_for_line_changes">
+		<addColumn tableName="commit">
+			<column name="lines_added" type="int" />
+		</addColumn>
+		<addColumn tableName="commit">
+			<column name="lines_removed" type="int" />
+		</addColumn>
+	</changeSet>
+
+
 </databaseChangeLog>

@@ -306,10 +306,17 @@ public class AssignmentsResource extends Resource {
         List<Delivery> userDeliveries = assignedTAs.getLastDeliveries(assignment, currentUser);
         List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
 
-        lastDeliveries.removeAll(userDeliveries);
 
 
-        AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment, lastDeliveries);
+        AssignmentStats assignmentStats;
+        if(currentUser.isAdmin()) {
+            assignmentStats = deliveriesBackend.getAssignmentStats(assignment, lastDeliveries);
+        } else {
+            lastDeliveries.removeAll(userDeliveries);
+            assignmentStats  = deliveriesBackend.getAssignmentStats(userDeliveries);
+        }
+
+
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);

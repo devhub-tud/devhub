@@ -114,7 +114,10 @@ public class CommitsTest extends PersistedBackendTest {
 
 		Commit commit = createCommit(group.getRepository());
 		assertTrue(commit.getLinesAdded() == 0);
-
+		commit.setLinesAdded(69);
+		commit.setLinesRemoved(666);
+		assertTrue(commit.getLinesAdded() == 69);
+		assertTrue(commit.getLinesRemoved() == 666);
 	}
 	
 	protected CommitComment createCommitComment(Commit commit) {

@@ -1,8 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.entities.notifications;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import javax.persistence.*;
@@ -15,6 +13,8 @@ import java.io.Serializable;
 @Entity
 @IdClass(NotificationsToUsers.NotificationsToUsersId.class)
 @Table(name = "notifications_to_users")
+@EqualsAndHashCode(of = {"user","notification"})
+@ToString
 public class NotificationsToUsers {
 
     @Data
@@ -37,5 +37,9 @@ public class NotificationsToUsers {
 
     @Column(name = "isRead")
     private boolean isRead;
+
+    public boolean equalsNotificationId(long id) {
+        return notification.getId() == id;
+    }
 
 }

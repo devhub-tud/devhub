@@ -9,8 +9,16 @@
 [/#if]
     <div>
         <table>
-            [#list notifications as notification]
-                <td>${notification.getId()}</td>
+            [#list notifications as notificationWithUser]
+                <tr>
+                    <form action="${path}/markRead" method="post" class="pull-right">
+                        <input type="hidden" name="notificationId" value="${notificationWithUser.getNotification().getId()}">
+                        <button type="submit" class="btn btn-danger btn-sm" style="margin: 5px;">
+                            <i class="glyphicon glyphicon-remove-sign"></i> MARKREAD
+                        </button>
+                    </form>
+                    ${notificationWithUser.getNotification().getId()}
+                </tr>
             [/#list]
         </table>
     </div>

@@ -31,12 +31,12 @@ public class AssignedTAs extends Controller<AssignedTA> {
     public List<Delivery> getLastDeliveries(Assignment assignment, User user) {
         Map<Group, List<Delivery>> deliveriesMap = query().from(delivery)
                 .where(delivery.assignment.eq(assignment)
-                        .and(delivery.group.in(
+                        .and(delivery.group.groupNumber.in(
                                 new JPASubQuery()
                                         .from(assignedTA)
                                         .where(assignedTA.assignment.eq(assignment)
                                                 .and(assignedTA.teachingAssistant.eq(user)))
-                                        .list(assignedTA.group))))
+                                        .list(assignedTA.group.groupNumber))))
                 .orderBy(delivery.timestamp.desc())
                 .transform(groupBy(delivery.group).as(list(delivery)));
 

@@ -302,9 +302,12 @@ public class AssignmentsResource extends Resource {
         }
 
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
-        List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
 
         List<Delivery> userDeliveries = assignedTAs.getLastDeliveries(assignment, currentUser);
+        List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+
+        lastDeliveries.removeAll(userDeliveries);
+
 
         AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment, lastDeliveries);
 

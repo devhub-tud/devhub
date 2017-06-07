@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Data
 @Entity
 @Table(name = "assignments")
-@ToString(exclude = {"summary", "tasks"})
+@ToString(exclude = {"summary", "tasks", "assignedTAS"})
 @IdClass(Assignment.AssignmentId.class)
 @EqualsAndHashCode(of = {"courseEdition", "assignmentId"})
 @JsonIgnoreProperties(ignoreUnknown = true)

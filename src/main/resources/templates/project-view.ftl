@@ -155,7 +155,9 @@
                                 <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
                                 <div class="committer">${commit.getAuthor()}</div>
                                 <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
-                                <div class="committer">${"here come lines added"}</div>
+                                <div class="committerLinesAdded">${"+" + commitEntity.getLinesAdded()}</div>
+                                <div class="committerLinesDivider">${"/"}</div>
+                                <div class="committerLinesRemoved">${"-" + commitEntity.getLinesRemoved()}</div>
                             [/@commitRow.render]
                         [/#list]
                     [#else]

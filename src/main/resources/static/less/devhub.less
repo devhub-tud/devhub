@@ -79,15 +79,8 @@ h1.header, h2.header, h3.header, h4.header, h5.header, h6.header {
 	margin-bottom: 0;
 }
 
-div.removedlines {
-    display : inline-block;
-    color: #FF0000;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    //height: 20px;
-	line-height: 1.5em;
-    font-family: monospace;
-    font-size: 13px;
+span.addedlines {
+  color: #008000;
   letter-spacing: 0.08em;
 }
 
@@ -96,31 +89,50 @@ span.removedlines {
   letter-spacing: 0.08em;
 }
 
+div.removedlines {
+    display : inline-block;
+    color: #FF0000;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	line-height: 1.5em;
+    font-family: monospace;
+    font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
 div.addedlines {
     display : inline-block;
     color: #008000;
     overflow: hidden;
     text-overflow: ellipsis;
-    //height: 20px;
 	line-height: 1.5em;
     font-family: monospace;
     font-size: 13px;
   	letter-spacing: 0.08em;
 }
 
-span.addedlines {
-  color: #008000;
-  letter-spacing: 0.08em;
-}
-
 div.neutrallines {
     display: inline-block;
     overflow: hidden;
     text-overflow: ellipsis;
-    //height: 20px;
 	line-height: 1.5em;
     font-family: monospace;
     font-size: 13px;
+}
+
+div.committerLinesAdded {
+  color: #008000;
+  float: right;
+}
+
+div.committerLinesRemoved {
+  color: #FF0000;
+  float: right;
+}
+
+div.committerLinesDivider {
+  color: #b8b8b8;
+  float: right;
 }
 
 h1.subheader, h2.subheader, h3.subheader, h4.subheader, h5.subheader, h6.subheader {

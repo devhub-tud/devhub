@@ -32,12 +32,7 @@ import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.models.BlameModel;
-import nl.tudelft.ewi.git.models.BranchModel;
-import nl.tudelft.ewi.git.models.CommitModel;
-import nl.tudelft.ewi.git.models.CommitSubList;
-import nl.tudelft.ewi.git.models.DiffBlameModel;
-import nl.tudelft.ewi.git.models.EntryType;
+import nl.tudelft.ewi.git.models.*;
 import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
@@ -466,6 +461,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		CommitApi commitApi = repository.getCommit(commitId);
 		CommitModel commit = commitApi.get();
 		DiffBlameModel diffBlameModel = commitApi.diffBlame();
+
 
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("commit", commit);

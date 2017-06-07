@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.persistence.EntityManager;
@@ -47,10 +48,13 @@ public class Commits extends Controller<Commit> {
 	public Commit ensureExists(RepositoryEntity repositoryEntity, String commitId) {
 		return retrieve(repositoryEntity, commitId).orElseGet(() -> {
 			final Commit commit = new Commit();
+			final DiffModel diffModel = retrieveDiffModel(repositoryEntity, commitId);
 			commit.setCommitId(commitId);
 			commit.setRepository(repositoryEntity);
 			commit.setComments(Lists.newArrayList());
 			commit.setPushTime(new Date());
+			commit.setLinesAdded(diffModel.getLinesAdded());
+			commit.setLinesRemoved(diffModel.getLinesRemoved());
 
 			enhanceCommitSafely(repositoryEntity, commitId, commit);
 
@@ -87,6 +91,13 @@ public class Commits extends Controller<Commit> {
 		return repositories.getRepository(repositoryEntity.getRepositoryName())
 			.getCommit(commitId)
 			.get();
+	}
+
+	@SneakyThrows
+	protected DiffModel retrieveDiffModel(RepositoryEntity repositoryEntity, String commitId) {
+		return repositories.getRepository(repositoryEntity.getRepositoryName())
+				.getCommit(commitId)
+				.diff();
 	}
 
 	/**

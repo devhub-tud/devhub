@@ -1,5 +1,5 @@
 [#import "macros.ftl" as macros]
-[@macros.renderHeader i18n.translate("section.account") /]
+[@macros.renderHeader i18n.translate("section.notifications") /]
 
 [@macros.renderMenu i18n user /]
 [#if error?? && error?has_content]
@@ -7,10 +7,11 @@
     ${i18n.translate(error)}
     </div>
 [/#if]
-    <div>
+    <div class="notifications">
         <table>
             [#list notifications as notification]
-                <td>${notification.getId()}</td>
+                <p>${notification.getSender().getName()}, ${notification.getEvent()} #${notification.getId()}</p>
+                <p>${notification.getMessage()}</p>
             [/#list]
         </table>
     </div>

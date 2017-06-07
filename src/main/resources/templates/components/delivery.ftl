@@ -85,7 +85,8 @@
                 <dd>[#list review.getCommentary()?split("\n") as line]${line}[#if line_has_next]<br/>[/#if][/#list]</dd>
             [/#if]
         </dl>
-        <footer class="small">${review.reviewUser.getName()} on ${review.getReviewTime()?string["EEEE dd MMMM yyyy HH:mm"]}</footer>
+        [#assign assignedTA = assignment.getAssignedTA(delivery).orElse(null)]
+        <footer class="small">${assignedTA.getName()} on ${review.getReviewTime()?string["EEEE dd MMMM yyyy HH:mm"]}</footer>
     </blockquote>
     [/#if]
 [/#macro]

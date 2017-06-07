@@ -8,6 +8,7 @@ import org.hibernate.annotations.JoinFormula;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Created by Pilmus on 31-5-2017.
@@ -40,7 +41,4 @@ public class AssignedTA {
             @JoinColumn(name = "assignment_id", referencedColumnName = "assignment_id", nullable = false)
     })
     private Assignment assignment;
-
-
-
 }

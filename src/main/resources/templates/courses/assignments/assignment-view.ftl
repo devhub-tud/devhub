@@ -107,9 +107,9 @@
                             ${i18n.translate(state.translationKey)}
                             </span>
 
-                            [#assign ta = assignment.getAssignedTA(delivery).orElse(null)]
-                            [#if ta??]
-                                <span class="label label-default">${ta.getName()}</span>
+                            [#assign assignedTA = assignment.getAssignedTA(delivery).orElse(null)]
+                            [#if assignedTA??]
+                                <span class="label label-default">${assignedTA.getName()}</span>
                             [/#if]
                         </div>
                         <div class="comment"><strong>${delivery.getGroup().getGroupName()}</strong></div>

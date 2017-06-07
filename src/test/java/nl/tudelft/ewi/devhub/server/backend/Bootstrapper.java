@@ -238,12 +238,27 @@ public class Bootstrapper {
 				notification.setLink("thelink");
 				notificationController.persist(notification);
 
+
+				Notification notification2 = new Notification();
+				notification2.setEvent("PR");
+				notification2.setMessage("Some message");
+				notification2.setSender(userMapping.get("admin1"));
+				notification2.setLink("thelink");
+				notificationController.persist(notification2);
+
 				NotificationsToUsers notificationsToUsers1 = new NotificationsToUsers();
 				notificationsToUsers1.setNotification(notification);
 				notificationsToUsers1.setUser(userMapping.get("admin1"));
 				notificationsToUsers1.setRead(true);
 
 				notificationUserController.persist(notificationsToUsers1);
+
+				NotificationsToUsers notificationsToUsers2 = new NotificationsToUsers();
+				notificationsToUsers2.setNotification(notification2);
+				notificationsToUsers2.setUser(userMapping.get("admin1"));
+				notificationsToUsers2.setRead(true);
+
+				notificationUserController.persist(notificationsToUsers2);
 
 				for (BGroup group : bCourseEdition.getGroups()) {
 					prepareGroup(userMapping, entity, assignmentEntities, group);

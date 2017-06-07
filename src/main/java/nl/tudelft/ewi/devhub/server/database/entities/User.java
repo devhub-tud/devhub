@@ -123,11 +123,14 @@ public class User {
 		return notifications;
 	}
 
-	public boolean hasUnreadNotifications() {
+	public int unreadNotifications() {
+		int amount = 0;
 		for(NotificationsToUsers notificationUser: notificationsToUsersList) {
-			if (!notificationUser.isRead()) return true;
+			if (!notificationUser.isRead()) {
+				amount++;
+			}
 		}
-		return false;
+		return amount;
 	}
 	
 }

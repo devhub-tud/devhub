@@ -1,5 +1,5 @@
 [#import "macros.ftl" as macros]
-[@macros.renderHeader i18n.translate("section.account") /]
+[@macros.renderHeader i18n.translate("section.notifications") /]
 
 [@macros.renderMenu i18n user /]
 [#if error?? && error?has_content]

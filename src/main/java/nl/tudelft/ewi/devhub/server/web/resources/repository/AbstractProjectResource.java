@@ -197,7 +197,9 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			CommitSubList commits = branchApi.retrieveCommitsInBranch((page - 1) * PAGE_SIZE, PAGE_SIZE);
 
 			Collection<String> commitIds = getCommitIds(commits);
-			List<Commit> commitEntities = this.commits.retrieveCommits(repositoryEntity, commitIds);
+			List<Commit> commitEntities = commitIds.stream()
+				.map(commitId -> this.commits.ensureExists(repositoryEntity, commitId))
+				.collect(Collectors.toList());
 			Map<String, Commit> commitEntitiesByCommitId = Maps.uniqueIndex(commitEntities, Commit::getCommitId);
 
 			parameters.put("commits", commits);

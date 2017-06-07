@@ -19,6 +19,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
@@ -195,11 +196,15 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			BranchModel branch = branchApi.get();
 			CommitSubList commits = branchApi.retrieveCommitsInBranch((page - 1) * PAGE_SIZE, PAGE_SIZE);
 
+			Collection<String> commitIds = getCommitIds(commits);
+			List<Commit> commitEntities = this.commits.retrieveCommits(repositoryEntity, commitIds);
+			Map<String, Commit> commitEntitiesByCommitId = Maps.uniqueIndex(commitEntities, Commit::getCommitId);
+
 			parameters.put("commits", commits);
 			parameters.put("branch", branch);
+			parameters.put("commitEntities", commitEntitiesByCommitId);
 			parameters.put("pagination", new Pagination(page, commits.getTotal()));
 
-			Collection<String> commitIds = getCommitIds(commits);
 			parameters.put("warnings", warnings.commitsWithWarningsFor(repositoryEntity, commitIds));
 			parameters.put("comments", comments.commentsFor(repositoryEntity, commitIds));
 			parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
@@ -261,9 +266,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	}
 
 	protected List<String> getCommitIds(CommitSubList commits) {
-		return commits.getCommits().stream()
-				.map(CommitModel::getCommit)
-				.collect(Collectors.toList());
+		return Lists.transform(commits.getCommits(), CommitModel::getCommit);
 	}
 
 	@GET

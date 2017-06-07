@@ -1,20 +1,22 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit.CommitId;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,6 +37,13 @@ public class Commits extends Controller<Commit> {
 	public Optional<Commit> retrieve(RepositoryEntity repository, String commitId) {
 		CommitId key = new CommitId(repository.getId(), commitId);
 		return Optional.ofNullable(entityManager.find(Commit.class, key));
+	}
+
+	@Transactional
+	public List<Commit> retrieveCommits(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+		return query().from(commit)
+			.where(commit.repository.eq(repositoryEntity).and(commit.commitId.in(commitIds)))
+			.list(commit);
 	}
 
 	/**

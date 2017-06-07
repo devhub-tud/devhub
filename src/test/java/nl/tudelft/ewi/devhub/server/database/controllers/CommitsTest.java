@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.inject.persist.Transactional;
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
@@ -28,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @RunWith(JukitoRunner.class)
 @UseModules({TestDatabaseModule.class, CommitsTest.CommitsTestModule.class})
@@ -67,6 +70,7 @@ public class CommitsTest extends PersistedBackendTest {
 	@Inject @Getter private Groups groups;
 	@Inject @Getter private CourseEditions courses;
 	@Inject @Getter private Users users;
+	@Inject EntityManager entityManager;
 	@Inject private Commits commits;
 
 	private User user;
@@ -109,15 +113,18 @@ public class CommitsTest extends PersistedBackendTest {
 		assertThat(b.getParents(), Matchers.contains(a));
 	}
 
+
+	@Transactional
 	@Test
 	public void testCommitLineChanges() {
-
 		Commit commit = createCommit(group.getRepository());
-		assertTrue(commit.getLinesAdded() == 0);
+		assertThat(commit.getLinesAdded(), equalTo(0));
 		commit.setLinesAdded(69);
 		commit.setLinesRemoved(666);
-		assertTrue(commit.getLinesAdded() == 69);
-		assertTrue(commit.getLinesRemoved() == 666);
+		entityManager.flush();
+		entityManager.refresh(commit);
+		assertThat(commit.getLinesAdded(), equalTo(69));
+		assertThat(commit.getLinesRemoved(), equalTo(666));
 	}
 	
 	protected CommitComment createCommitComment(Commit commit) {

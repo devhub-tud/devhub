@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
+import nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
@@ -100,6 +101,9 @@ public class AssignmentsResource extends Resource {
     @Inject
     @Named("current.user")
     private User currentUser;
+
+    @Inject
+    private AssignedTAs assignedTAs;
 
 	@Context
 	HttpServletRequest request;
@@ -299,6 +303,9 @@ public class AssignmentsResource extends Resource {
 
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
         List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+
+        List<Delivery> userDeliveries = assignedTAs.getLastDeliveries(assignment, currentUser);
+
         AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment, lastDeliveries);
 
         Map<String, Object> parameters = Maps.newHashMap();
@@ -308,7 +315,9 @@ public class AssignmentsResource extends Resource {
         parameters.put("assignmentStats", assignmentStats);
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("lastDeliveries", lastDeliveries);
-//        parameters.put("assignedTAs", assignment.getAssigned);
+        parameters.put("userDeliveries", userDeliveries);
+
+
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/assignment-view.ftl", locales, parameters));

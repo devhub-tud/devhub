@@ -5,17 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
+import nl.tudelft.ewi.devhub.server.database.AssignTAs;
 import nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
-import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
-import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingStrategy;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
@@ -55,16 +52,8 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -747,5 +736,34 @@ public class AssignmentsResource extends Resource {
 		deliveries.forEach(Delivery::getMasteries);
 		return deliveries;
 	}
+
+	@POST
+    @Transactional
+    @Path("{assignmentId : \\d+}/distribute-tas")
+    public Response distributeTAs(@PathParam("courseCode") String courseCode,
+                                  @PathParam("editionCode") String editionCode,
+                                  @PathParam("assignmentId") long assignmentId) {
+        CourseEdition course = courses.find(courseCode, editionCode);
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
+
+        List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
+
+        List<Group> groups = Lists.transform(deliveries, Delivery::getGroup);
+
+        Set<User> TAs = course.getAssistants();
+
+        groups.removeAll(Lists.transform(assignment.getAssignedTAS(), AssignedTA::getGroup));
+
+        List<AssignedTA> assignedTAS = AssignTAs.assignGroups(TAs, groups, assignment, new Random());
+
+        assignedTAS.forEach(this.assignedTAs::persist);
+
+
+        return Response.seeOther(assignment.getURI()).build();
+    }
 
 }

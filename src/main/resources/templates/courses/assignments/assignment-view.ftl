@@ -28,8 +28,8 @@
                             ${i18n.translate(state.translationKey)}
                             </span>
 
-                            [#assign assignedTA = assignment.getAssignedTA(delivery).orElse(null)]
-                            [#if assignedTA??]
+                            [#assign assignedTA = assignment.getAssignedTA(delivery).orElse(null)![]]
+                            [#if assignedTA?? && assignedTA?has_content]
                                 <span class="label label-default">${assignedTA.getName()}</span>
                             [/#if]
                         </div>
@@ -132,6 +132,10 @@
 [@deliveryTable deliveries=lastDeliveries /]
 
     <div class="pull-right">
+        <form action="${assignment.getURI()}distribute-tas" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-sm btn-default"><i
+                    class="glyphicon glyphicon-user"></i> Distribute TAs </button>
+        </form>
         <a href="${assignment.getURI()}deliveries/download-rubrics" class="btn btn-sm btn-default"
            style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download rubrics</a>
         <a href="${assignment.getURI()}deliveries/download" class="btn btn-sm btn-default" style="margin-right:5px;"><i

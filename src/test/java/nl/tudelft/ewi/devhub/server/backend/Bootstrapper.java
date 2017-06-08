@@ -302,10 +302,10 @@ public class Bootstrapper {
 			assignedTA.setGroup(groupEntity);
 			if(deliveryCounter % 2 == 0) {
 				assignedTA.setTeachingAssistant(userMapping.get("assistant1"));
+				entityManager.persist(assignedTA);
 			} else {
-				assignedTA.setTeachingAssistant(userMapping.get("assistant2"));
+				//assignedTA.setTeachingAssistant(userMapping.get("assistant2"));
 			}
-			entityManager.persist(assignedTA);
 
 			log.debug("        Persisted delivery for group: " + groupEntity.getGroupNumber());
 		}

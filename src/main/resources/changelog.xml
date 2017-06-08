@@ -1218,4 +1218,8 @@
                                  referencedTableName="assignments" referencedColumnNames="assignment_id"/>
     </changeSet>
 
+    <changeSet id="add_unique_constraint_assigned_tas" author="Sayra Ranjha">
+        <addUniqueConstraint columnNames="course_edition_id,group_number,assignment_id" tableName="assigned_ta"/>
+    </changeSet>
+
 </databaseChangeLog>

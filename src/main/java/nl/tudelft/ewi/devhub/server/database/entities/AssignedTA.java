@@ -15,7 +15,10 @@ import java.util.List;
  */
 @Data
 @Entity
-@Table(name = "assigned_ta")
+@Table(name = "assigned_ta", uniqueConstraints = {
+        @UniqueConstraint(name = "unique_ta_per_group_per_course",
+                columnNames = {"course_edition_id", "group_number", "assignment_id"})
+})
 public class AssignedTA {
 
     @Id

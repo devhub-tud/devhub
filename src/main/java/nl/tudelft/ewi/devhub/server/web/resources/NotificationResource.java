@@ -1,19 +1,19 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
 import nl.tudelft.ewi.devhub.server.backend.SshKeyBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import org.eclipse.jetty.util.UrlEncoded;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -44,18 +44,53 @@ public class NotificationResource extends Resource {
 		this.users = users;
 	}
 
+	@GET
+	public Response showPersonalUserPage() throws URISyntaxException {
+		return Response.seeOther(new URI("/notifications/" + currentUser.getNetId()))
+				.build();
+	}
 
 	@GET
-	public String showUserPage(@Context HttpServletRequest request)
+	@Path("{netId}")
+	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId)
 			throws IOException, ApiError {
 
 
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("path", request.getRequestURI());
-		parameters.put("notifications",currentUser.getNotifications());
+		parameters.put("notifications",currentUser.getNotificationsToUsersList());
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("notifications.ftl", locales, parameters);
+	}
+
+	@POST
+	@Path("{netId}/markRead")
+	@com.google.inject.persist.Transactional
+	public Response markAsRead(@PathParam("netId") String netId, @FormParam("notificationId") long notificationId)
+			throws IOException, ApiError, URISyntaxException {
+		User account = users.findByNetId(netId);
+		if(!currentUser.equals(account)) {
+			throw new UnauthorizedException();
+		}
+		boolean setRead = setRead(currentUser.getNotificationsToUsersList(),notificationId);
+		if(setRead) {
+			return Response.seeOther(new URI("/notifications/" + netId))
+					.build();
+		}
+		return Response.seeOther(new URI("/notifications/" + netId + "?error=NotificationNotFound")).build();
+
+	}
+
+	private boolean setRead(List<NotificationsToUsers> notificationList, long notificationId) {
+
+		for(NotificationsToUsers notificationsToUsers: notificationList) {
+			if(notificationsToUsers.equalsNotificationId(notificationId)) {
+				notificationsToUsers.setRead(true);
+				return true;
+			}
+		}
+		return false;
 	}
 }

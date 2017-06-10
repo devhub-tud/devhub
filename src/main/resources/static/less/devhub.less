@@ -930,6 +930,12 @@ img.emoji {
 	margin-left: 2px !important;
 	margin-top: -3px !important;
 }
-p.notificationTitle{
-	font-size: 	x-large;
+p.notificationTitle {
+	font-size: x-large;
+}
+.hasNotification::after {
+	color: white;
+	background-color: red;
+	border-color: white;
+	content: attr(data-amount);
 }

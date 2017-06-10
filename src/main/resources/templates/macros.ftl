@@ -34,7 +34,10 @@
 				</div>
 				<div class="collapse navbar-collapse nav-collapse" id="bs-example-navbar-collapse-1">
 					<ul class="nav navbar-nav navbar-right">
-						<li><a href="/notifications">${i18n.translate("section.notifications")}</a></li>
+                        <li><a href="/notifications">${i18n.translate("section.notifications")}
+							[#if user?? && user.unreadNotifications() > 0]
+                                <span class="label label-danger">${user.unreadNotifications()}</span>
+							[/#if]</a></li>
 [#if user?? && user.isAdmin()]
 				 		<li><a href="/build-servers">${i18n.translate("section.build-servers")}</a></li>
 [/#if]

@@ -80,7 +80,7 @@ public class User {
 
 	@OneToMany(mappedBy = "user")
 	@JsonIgnore
-	private List<NotificationsToUsers> notificationsToUserslist;
+	private List<NotificationsToUsers> notificationsToUsersList;
 
 	@JsonIgnore
 	public List<Group> listAssistedGroups() {
@@ -117,10 +117,20 @@ public class User {
 
 	public List<Notification> getNotifications() {
 		List<Notification> notifications = new ArrayList<Notification>();
-		for (NotificationsToUsers notificationsToUsers: notificationsToUserslist) {
+		for (NotificationsToUsers notificationsToUsers: notificationsToUsersList) {
 			notifications.add(notificationsToUsers.getNotification());
 		}
 		return notifications;
+	}
+
+	public int unreadNotifications() {
+		int amount = 0;
+		for(NotificationsToUsers notificationUser: notificationsToUsersList) {
+			if (!notificationUser.isRead()) {
+				amount++;
+			}
+		}
+		return amount;
 	}
 	
 }

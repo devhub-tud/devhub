@@ -15,11 +15,17 @@
     <table class="table table-bordered">
         <tbody>
 [#if notifications??]
-    [#list notifications as notification]
+    [#list notifications as notificationWithUser]
         <tr>
             <td>
-                <div>${notification.getSender().getName()}, ${notification.getEvent()} #${notification.getId()}</div>
-                <div class="truncate">${notification.getMessage()}</div>
+                <form action="${path}/markRead" method="post" class="pull-right">
+                    <input type="hidden" name="notificationId" value="${notificationWithUser.getNotification().getId()}">
+                    <button type="submit" class="btn btn-danger btn-sm" style="margin: 5px;">
+                        <i class="glyphicon glyphicon-remove-sign"></i> MARKREAD
+                    </button>
+                </form>
+                <div>${notificationWithUser.getNotification().getSender().getName()}, ${notificationWithUser.getNotification().getEvent()} #${notificationWithUser.getNotification().getId()}</div>
+                <div class="truncate">${notificationWithUser.getNotification().getMessage()}</div>
             </td>
         </tr>
     [/#list]

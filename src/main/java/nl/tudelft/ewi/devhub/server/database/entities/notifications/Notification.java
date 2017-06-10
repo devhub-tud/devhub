@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.entities.notifications;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -16,6 +17,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "notification")
+@EqualsAndHashCode(of = {"id"})
 public class Notification {
 
     @Id

@@ -256,7 +256,7 @@ public class Bootstrapper {
 				NotificationsToUsers notificationsToUsers2 = new NotificationsToUsers();
 				notificationsToUsers2.setNotification(notification2);
 				notificationsToUsers2.setUser(userMapping.get("admin1"));
-				notificationsToUsers2.setRead(true);
+				notificationsToUsers2.setRead(false);
 
 				notificationUserController.persist(notificationsToUsers2);
 

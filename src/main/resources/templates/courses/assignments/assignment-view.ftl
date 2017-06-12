@@ -138,6 +138,11 @@
 
 
     <div class="pull-right">
+        <form action="${assignment.getURI()}toggle-view" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-sm btn-default"><i
+                    class="glyphicon glyphicon-eye-open"></i> Toggle View
+            </button>
+        </form>
         <form action="${assignment.getURI()}distribute-tas" method="post" style="display: inline;">
             <button type="submit" class="btn btn-sm btn-default"><i
                     class="glyphicon glyphicon-user"></i> Distribute TAs
@@ -148,7 +153,6 @@
         <a href="${assignment.getURI()}deliveries/download" class="btn btn-sm btn-default" style="margin-right:5px;"><i
                 class="glyphicon glyphicon-floppy-save"></i> Download grades</a>
     </div>
-
 </div>
 [@macros.renderScripts]
 <script src="/static/js/deliveries-filter.js"></script>

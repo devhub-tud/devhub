@@ -26,15 +26,8 @@ public class AssignTAsTest {
     User ta1;
     User ta2;
     List<Group> groups;
-    List<Group> singleGroup;
     List<User> teachingAssistants;
     Assignment assignment;
-    AssignedTA assignedTA1Group2;
-    AssignedTA assignedTA1Group3;
-    AssignedTA assignedTA1Group1;
-    AssignedTA assignedTA1Group4;
-    AssignedTA assignedTA2Group1;
-    AssignedTA assignedTA2Group4;
     List<AssignedTA> assignedTAS;
 
     public AssignedTA makeAssignedTA(Assignment assignment, User teachingAssistant, Group group) {
@@ -69,25 +62,18 @@ public class AssignTAsTest {
         groups.add(group3);
         groups.add(group4);
 
-        singleGroup = new ArrayList<>();
-        singleGroup.add(group2);
-
         teachingAssistants = new ArrayList<>();
         teachingAssistants.add(ta1);
         teachingAssistants.add(ta2);
 
         assignment = new Assignment();
-
-        assignedTA1Group2 = makeAssignedTA(assignment, ta1, group2);
-        assignedTA1Group3 = makeAssignedTA(assignment, ta1, group3);
-        assignedTA1Group1 = makeAssignedTA(assignment, ta1, group1);
-        assignedTA1Group4 = makeAssignedTA(assignment, ta1, group4);
-        assignedTA2Group1 = makeAssignedTA(assignment, ta2, group1);
-        assignedTA2Group4 = makeAssignedTA(assignment, ta2, group4);
     }
 
     @Test
     public void equalGroupPartitionFirstTATest() {
+        AssignedTA assignedTA1Group2 = makeAssignedTA(assignment, ta1, group2);
+        AssignedTA assignedTA1Group3 = makeAssignedTA(assignment, ta1, group3);
+
         assignedTAS = AssignTAs.assignGroups(teachingAssistants, groups, assignment, new Random(42));
 
         assertThat(assignedTAS).contains(assignedTA1Group2, assignedTA1Group3);
@@ -95,6 +81,9 @@ public class AssignTAsTest {
 
     @Test
     public void equalGroupPartitionSecondTATest() {
+        AssignedTA assignedTA2Group1 = makeAssignedTA(assignment, ta2, group1);
+        AssignedTA assignedTA2Group4 = makeAssignedTA(assignment, ta2, group4);
+
         assignedTAS = AssignTAs.assignGroups(teachingAssistants, groups, assignment, new Random(42));
 
         assertThat(assignedTAS).contains(assignedTA2Group1, assignedTA2Group4);
@@ -102,6 +91,11 @@ public class AssignTAsTest {
 
     @Test
     public void singleGroupAssignedToOneTATest() {
+        List<Group> singleGroup = new ArrayList<>();
+        singleGroup.add(group2);
+
+        AssignedTA assignedTA1Group2 = makeAssignedTA(assignment, ta1, group2);
+
         assignedTAS = AssignTAs.assignGroups(teachingAssistants, singleGroup, assignment, new Random(42));
 
         assertThat(assignedTAS).containsExactly(assignedTA1Group2);
@@ -109,6 +103,9 @@ public class AssignTAsTest {
 
     @Test
     public void shuffledTATest() {
+        AssignedTA assignedTA1Group1 = makeAssignedTA(assignment, ta1, group1);
+        AssignedTA assignedTA1Group4 = makeAssignedTA(assignment, ta1, group4);
+
         assignedTAS = AssignTAs.assignGroups(teachingAssistants, groups, assignment, new Random(324452));
 
         assertThat(assignedTAS).contains(assignedTA1Group1, assignedTA1Group4);

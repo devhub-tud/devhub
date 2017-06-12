@@ -18,11 +18,9 @@ public class AssignTAs {
     public static List<AssignedTA> assignGroups(Collection<User> TAs, Collection<Group> groupList, Assignment assignment, Random random) {
         List<AssignedTA> assignedTAs = new ArrayList<>();
 
-        List<Group> groups = new ArrayList<>();
-        groups.addAll(groupList);
+        List<Group> groups = new ArrayList<>(groupList);
 
-        List<User> teachingAssistants = new ArrayList<>();
-        teachingAssistants.addAll(TAs);
+        List<User> teachingAssistants = new ArrayList<>(TAs);
 
         groups.sort(Comparator.comparing(Group::getGroupNumber));
         shuffle(teachingAssistants, random);

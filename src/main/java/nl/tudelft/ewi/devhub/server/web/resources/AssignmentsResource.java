@@ -292,18 +292,20 @@ public class AssignmentsResource extends Resource {
 
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
-        List<Delivery> userDeliveries = assignedTAs.getLastDeliveries(assignment, currentUser);
-        List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+        List<Delivery> currentUserDeliveries = assignedTAs.getLastDeliveries(assignment, currentUser);
+        List<Delivery> allLastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+
+        AssignmentStats userStats = deliveriesBackend.getAssignmentStats(currentUserDeliveries);
+        AssignmentStats lastStats = deliveriesBackend.getAssignmentStats(assignment, allLastDeliveries);
 
 
-
-        AssignmentStats assignmentStats;
-        if(currentUser.isAdmin()) {
-            assignmentStats = deliveriesBackend.getAssignmentStats(assignment, lastDeliveries);
-        } else {
-            lastDeliveries.removeAll(userDeliveries);
-            assignmentStats  = deliveriesBackend.getAssignmentStats(userDeliveries);
-        }
+//        AssignmentStats assignmentStats;
+//        if(currentUser.isAdmin()) {
+//            assignmentStats = deliveriesBackend.getAssignmentStats(assignment, allLastDeliveries);
+//        } else {
+//            allLastDeliveries.removeAll(currentUserDeliveries);
+//            assignmentStats  = deliveriesBackend.getAssignmentStats(currentUserDeliveries);
+//        }
 
 
 
@@ -311,10 +313,13 @@ public class AssignmentsResource extends Resource {
         parameters.put("user", currentUser);
         parameters.put("course", course);
         parameters.put("assignment", assignment);
-        parameters.put("assignmentStats", assignmentStats);
+        parameters.put("userStats", userStats);
+        parameters.put("lastStats", lastStats);
         parameters.put("deliveryStates", Delivery.State.values());
-        parameters.put("lastDeliveries", lastDeliveries);
-        parameters.put("userDeliveries", userDeliveries);
+        parameters.put("userDeliveries", currentUserDeliveries);
+        parameters.put("lastDeliveries", allLastDeliveries);
+        parameters.put("fullView", true);
+
 
 
 
@@ -589,7 +594,7 @@ public class AssignmentsResource extends Resource {
             if (previousState == null || previousState.equals(State.SUBMITTED)) {
                 reviewMailer.sendReviewMail(delivery);
             }
-            
+
             deliveriesDAO.merge(delivery);
         });
     }
@@ -764,6 +769,22 @@ public class AssignmentsResource extends Resource {
 
 
         return Response.seeOther(assignment.getURI()).build();
+    }
+
+    @POST
+    @Transactional
+    @Path("{assignmentId : \\d+}/toggle-view")
+    public Response toggleView(@PathParam("courseCode") String courseCode,
+                               @PathParam("editionCode") String editionCode,
+                               @PathParam("assignmentId") long assignmentId) {
+	    CourseEdition course = courses.find(courseCode, editionCode);
+	    Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+	    if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+	        throw new UnauthorizedException();
+        }
+
+
     }
 
 }

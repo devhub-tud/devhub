@@ -134,7 +134,8 @@
     <div class="pull-right">
         <form action="${assignment.getURI()}distribute-tas" method="post" style="display: inline;">
             <button type="submit" class="btn btn-sm btn-default"><i
-                    class="glyphicon glyphicon-user"></i> Distribute TAs </button>
+                    class="glyphicon glyphicon-user"></i> Distribute TAs
+            </button>
         </form>
         <a href="${assignment.getURI()}deliveries/download-rubrics" class="btn btn-sm btn-default"
            style="margin-right:5px;"><i class="glyphicon glyphicon-floppy-save"></i> Download rubrics</a>

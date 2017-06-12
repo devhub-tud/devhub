@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 
 /**
  * Created by jgmeligmeyling on 04/03/15.
+ *
  * @author Jan-Willem Gmleig Meyling
  */
 @Slf4j
@@ -94,47 +95,51 @@ public class AssignmentsResource extends Resource {
     @Inject
     private AssignedTAs assignedTAs;
 
-	@Context
-	HttpServletRequest request;
+    @Context
+    HttpServletRequest request;
 
-	@Context
-	HttpServletResponse response;
+    @Context
+    HttpServletResponse response;
+
+    private boolean fullView;
 
     /**
      * Get an overview of the courses
-     * @param courseCode the course to create an assignment for
+     *
+     * @param courseCode  the course to create an assignment for
      * @param editionCode the course to create an assignment for
      * @return a Response containing the generated page
      */
     @GET
     public Response getOverviewPage(@PathParam("courseCode") String courseCode,
-									@PathParam("editionCode") String editionCode) {
+                                    @PathParam("editionCode") String editionCode) {
         throw new NotImplementedYetException();
     }
 
     /**
      * Present the user a form to create a new assignment
-     * @param courseCode the course to create an assignment for
-	 * @param editionCode the course to create an assignment for
+     *
+     * @param courseCode  the course to create an assignment for
+     * @param editionCode the course to create an assignment for
      * @return a Response containing the generated page
      */
     @GET
     @Transactional
     @Path("create")
     public Response getCreatePage(@PathParam("courseCode") String courseCode,
-								  @PathParam("editionCode") String editionCode,
+                                  @PathParam("editionCode") String editionCode,
                                   @QueryParam("error") String error) throws IOException {
 
         CourseEdition course = courses.find(courseCode, editionCode);
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
-		Map<String, Object> parameters = Maps.newHashMap();
+        Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
         parameters.put("course", course);
 
-        if(error != null)
+        if (error != null)
             parameters.put("error", error);
 
         List<Locale> locales = Collections.list(request.getLocales());
@@ -143,80 +148,81 @@ public class AssignmentsResource extends Resource {
 
 
     @GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("create/bliep")
-	public List<CopyableCourseEdition> otherAssignmentsWithRubrics(@PathParam("courseCode") String courseCode,
-														  @PathParam("editionCode") String editionCode ) {
-		CourseEdition courseEdition = courses.find(courseCode, editionCode);
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("create/bliep")
+    public List<CopyableCourseEdition> otherAssignmentsWithRubrics(@PathParam("courseCode") String courseCode,
+                                                                   @PathParam("editionCode") String editionCode) {
+        CourseEdition courseEdition = courses.find(courseCode, editionCode);
 
-		if(!(currentUser.isAdmin() || currentUser.isAssisting(courseEdition))) {
-			throw new UnauthorizedException();
-		}
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(courseEdition))) {
+            throw new UnauthorizedException();
+        }
 
-		return copyableCourseEditionsFromCourse(courseEdition.getCourse());
-	}
+        return copyableCourseEditionsFromCourse(courseEdition.getCourse());
+    }
 
-	private static List<CopyableCourseEdition> copyableCourseEditionsFromCourse(Course course) {
-    	return course.getEditions().stream()
-				.map(edition -> new CopyableCourseEdition(edition, copyableAssignmentsFromEdition(edition)))
-				.collect(Collectors.toList());
+    private static List<CopyableCourseEdition> copyableCourseEditionsFromCourse(Course course) {
+        return course.getEditions().stream()
+                .map(edition -> new CopyableCourseEdition(edition, copyableAssignmentsFromEdition(edition)))
+                .collect(Collectors.toList());
 
-	}
+    }
 
-	private static List<CopyableAssignment> copyableAssignmentsFromEdition(CourseEdition edition) {
-    	return edition.getAssignments().stream()
-				.map(assignment ->  new CopyableAssignment(assignment.getAssignmentId(), assignment.getName(),
-						assignment.getSummary()))
-				.collect(Collectors.toList());
-	}
+    private static List<CopyableAssignment> copyableAssignmentsFromEdition(CourseEdition edition) {
+        return edition.getAssignments().stream()
+                .map(assignment -> new CopyableAssignment(assignment.getAssignmentId(), assignment.getName(),
+                        assignment.getSummary()))
+                .collect(Collectors.toList());
+    }
 
-	@Value
-	private static class CopyableCourseEdition {
-		private long courseEdition;
-		private String name;
-		private List<CopyableAssignment> assignments;
+    @Value
+    private static class CopyableCourseEdition {
+        private long courseEdition;
+        private String name;
+        private List<CopyableAssignment> assignments;
 
 
-		CopyableCourseEdition(CourseEdition edition, List<CopyableAssignment> assignments) {
-			this.courseEdition = edition.getId();
-			this.name = edition.getName() + " " + edition.intervalString();
-			this.assignments = assignments;
-		}
-	}
+        CopyableCourseEdition(CourseEdition edition, List<CopyableAssignment> assignments) {
+            this.courseEdition = edition.getId();
+            this.name = edition.getName() + " " + edition.intervalString();
+            this.assignments = assignments;
+        }
+    }
 
-	@Value
-	private static class CopyableAssignment {
-		private long assignmentId;
-		private String name;
-		private String summary;
-	}
+    @Value
+    private static class CopyableAssignment {
+        private long assignmentId;
+        private String name;
+        private String summary;
+    }
 
     /**
      * Submit a create assignment form
-     * @param courseCode the course to create an assignment for
-	 * @param editionCode the course to create an assignment for
-     * @param name name for the assignment
-     * @param summary summary for the assignment
-     * @param dueDate due date for the assignment
+     *
+     * @param courseCode  the course to create an assignment for
+     * @param editionCode the course to create an assignment for
+     * @param name        name for the assignment
+     * @param summary     summary for the assignment
+     * @param dueDate     due date for the assignment
      * @return a Response containing the generated page
      */
     @POST
     @Path("create")
     public Response createPage(@PathParam("courseCode") String courseCode,
-							   @PathParam("editionCode") String editionCode,
+                               @PathParam("editionCode") String editionCode,
                                @FormParam("id") Long assignmentId,
                                @FormParam("courseEditionToCopyFromId") String courseEditionToCopyFromId,
-							   @FormParam("assignmentToCopyFromId") String assignmentToCopyFromId,
+                               @FormParam("assignmentToCopyFromId") String assignmentToCopyFromId,
                                @FormParam("name") String name,
                                @FormParam("summary") String summary,
                                @FormParam("due-date") String dueDate) {
 
         CourseEdition course = courses.find(courseCode, editionCode);
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
-		if(assignmentsDAO.exists(course, assignmentId)) {
+        if (assignmentsDAO.exists(course, assignmentId)) {
             return redirect(course.getURI().resolve("assignments/create?error=error.assignment-number-exists"));
         }
 
@@ -226,31 +232,28 @@ public class AssignmentsResource extends Resource {
         assignment.setName(name);
         assignment.setSummary(summary);
 
-		List<Task> tasks = this.tasksForNewAssignment(assignment, courseEditionToCopyFromId, assignmentToCopyFromId);
+        List<Task> tasks = this.tasksForNewAssignment(assignment, courseEditionToCopyFromId, assignmentToCopyFromId);
 
         assignment.setTasks(tasks);
 
-        if(!Strings.isNullOrEmpty(dueDate)) {
+        if (!Strings.isNullOrEmpty(dueDate)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
             try {
                 assignment.setDueDate(simpleDateFormat.parse(dueDate));
-            }
-            catch (ParseException e) {
+            } catch (ParseException e) {
                 return redirect(course.getURI().resolve("assignments/create?error=error.invalid-date-format"));
             }
         }
 
         try {
             assignmentsDAO.persist(assignment);
-        }
-        catch (ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
-            if(violations.isEmpty()) {
+            if (violations.isEmpty()) {
                 return redirect(course.getURI().resolve("assignments/create?error=error.assignment-create-error"));
             }
             return redirect(course.getURI().resolve("assignments/create?error=" + violations.iterator().next().getMessage()));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return redirect(course.getURI().resolve("assignments/create?error=error.assignment-create-error"));
         }
 
@@ -258,23 +261,24 @@ public class AssignmentsResource extends Resource {
     }
 
     private List<Task> tasksForNewAssignment(Assignment newAssignment, String courseEditionId, String assignmentId) {
-    	try {
-    		long courseEdition = Long.parseLong(courseEditionId);
-    		long assignment = Long.parseLong(assignmentId);
+        try {
+            long courseEdition = Long.parseLong(courseEditionId);
+            long assignment = Long.parseLong(assignmentId);
 
-			CourseEdition editionToGetRubricsFrom = courses.find(courseEdition);
-			Assignment assignmentToCopyRubricsFrom = assignmentsDAO.find(editionToGetRubricsFrom, assignment);
+            CourseEdition editionToGetRubricsFrom = courses.find(courseEdition);
+            Assignment assignmentToCopyRubricsFrom = assignmentsDAO.find(editionToGetRubricsFrom, assignment);
 
-			return newAssignment.copyTasksFromOldAssignment(assignmentToCopyRubricsFrom);
-    	} catch (NumberFormatException e) {
-			return Lists.newArrayList();
-		}
-	}
+            return newAssignment.copyTasksFromOldAssignment(assignmentToCopyRubricsFrom);
+        } catch (NumberFormatException e) {
+            return Lists.newArrayList();
+        }
+    }
 
     /**
      * An overview page for an assignment
-     * @param courseCode the course to create an assignment for
-	 * @param editionCode the course to create an assignment for
+     *
+     * @param courseCode   the course to create an assignment for
+     * @param editionCode  the course to create an assignment for
      * @param assignmentId the assignment id
      * @return a Response containing the generated page
      */
@@ -282,11 +286,11 @@ public class AssignmentsResource extends Resource {
     @Transactional
     @Path("{assignmentId : \\d+}")
     public Response getAssignmentPage(@PathParam("courseCode") String courseCode,
-									  @PathParam("editionCode") String editionCode,
+                                      @PathParam("editionCode") String editionCode,
                                       @PathParam("assignmentId") Long assignmentId) throws IOException {
 
         CourseEdition course = courses.find(courseCode, editionCode);
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
@@ -298,6 +302,11 @@ public class AssignmentsResource extends Resource {
         AssignmentStats userStats = deliveriesBackend.getAssignmentStats(currentUserDeliveries);
         AssignmentStats lastStats = deliveriesBackend.getAssignmentStats(assignment, allLastDeliveries);
 
+        if(currentUser.isAdmin()) {
+            fullView = true;
+        } else {
+            fullView = false;
+        }
 
 //        AssignmentStats assignmentStats;
 //        if(currentUser.isAdmin()) {
@@ -306,7 +315,6 @@ public class AssignmentsResource extends Resource {
 //            allLastDeliveries.removeAll(currentUserDeliveries);
 //            assignmentStats  = deliveriesBackend.getAssignmentStats(currentUserDeliveries);
 //        }
-
 
 
         Map<String, Object> parameters = Maps.newHashMap();
@@ -318,9 +326,7 @@ public class AssignmentsResource extends Resource {
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("userDeliveries", currentUserDeliveries);
         parameters.put("lastDeliveries", allLastDeliveries);
-        parameters.put("fullView", true);
-
-
+        parameters.put("fullView", fullView);
 
 
         List<Locale> locales = Collections.list(request.getLocales());
@@ -331,8 +337,9 @@ public class AssignmentsResource extends Resource {
 
     /**
      * Download the grades for this assignment
-     * @param courseCode the course to create an assignment for
-	 * @param editionCode the course to create an assignment for
+     *
+     * @param courseCode   the course to create an assignment for
+     * @param editionCode  the course to create an assignment for
      * @param assignmentId the assignment id
      * @return a CSV file with the most recent deliveries
      */
@@ -341,13 +348,13 @@ public class AssignmentsResource extends Resource {
     @Produces(TEXT_CSV)
     @Path("{assignmentId : \\d+}/deliveries/download")
     public String downloadAssignmentResults(@PathParam("courseCode") String courseCode,
-											@PathParam("editionCode") String editionCode,
+                                            @PathParam("editionCode") String editionCode,
                                             @PathParam("assignmentId") Long assignmentId) throws IOException {
 
         CourseEdition course = courses.find(courseCode, editionCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
@@ -361,54 +368,55 @@ public class AssignmentsResource extends Resource {
             User user = entry.getKey();
 
             csvPrinter.printRecord(
-                assignment.getName(),
-                user.getNetId(),
-                user.getStudentNumber(),
-                user.getName(),
-                delivery.getGroup().getGroupName(),
-                review != null ? review.getState() : State.SUBMITTED,
-                review != null ? review.getGrade() : "",
-                delivery.getAchievedNumberOfPoints()
+                    assignment.getName(),
+                    user.getNetId(),
+                    user.getStudentNumber(),
+                    user.getName(),
+                    delivery.getGroup().getGroupName(),
+                    review != null ? review.getState() : State.SUBMITTED,
+                    review != null ? review.getGrade() : "",
+                    delivery.getAchievedNumberOfPoints()
             );
         }
 
-		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ "_grades.csv\"");
+        response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString() + "_grades.csv\"");
         return sb.toString();
     }
 
-	/**
-	 * Download the grades for this assignment
-	 * @param courseCode the course to create an assignment for
-	 * @param editionCode the course to create an assignment for
-	 * @param assignmentId the assignment id
-	 * @return a CSV file with the most recent deliveries
-	 */
-	@GET
-	@Transactional
-	@Produces(TEXT_CSV)
-	@Path("{assignmentId : \\d+}/deliveries/download-rubrics")
-	public String downloadRubrics(@PathParam("courseCode") String courseCode,
-								  @PathParam("editionCode") String editionCode,
-								  @PathParam("assignmentId") Long assignmentId) throws IOException {
+    /**
+     * Download the grades for this assignment
+     *
+     * @param courseCode   the course to create an assignment for
+     * @param editionCode  the course to create an assignment for
+     * @param assignmentId the assignment id
+     * @return a CSV file with the most recent deliveries
+     */
+    @GET
+    @Transactional
+    @Produces(TEXT_CSV)
+    @Path("{assignmentId : \\d+}/deliveries/download-rubrics")
+    public String downloadRubrics(@PathParam("courseCode") String courseCode,
+                                  @PathParam("editionCode") String editionCode,
+                                  @PathParam("assignmentId") Long assignmentId) throws IOException {
 
-		CourseEdition course = courses.find(courseCode, editionCode);
-		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+        CourseEdition course = courses.find(courseCode, editionCode);
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
-		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-			throw new UnauthorizedException();
-		}
-		StringBuilder sb = new StringBuilder();
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
+        StringBuilder sb = new StringBuilder();
 
-		int numLevels = assignment.getTasks().stream()
-			.map(Task::getCharacteristics).flatMap(Collection::stream)
-			.map(Characteristic::getLevels).mapToInt(Collection::size)
-			.max().orElse(0);
+        int numLevels = assignment.getTasks().stream()
+                .map(Task::getCharacteristics).flatMap(Collection::stream)
+                .map(Characteristic::getLevels).mapToInt(Collection::size)
+                .max().orElse(0);
 
-		List<Delivery> deliveries = Lists.newArrayList(deliveriesDAO.getLastDeliveries(assignment));
-		Collections.sort(deliveries, Delivery.DELIVERIES_BY_GROUP_NUMBER);
+        List<Delivery> deliveries = Lists.newArrayList(deliveriesDAO.getLastDeliveries(assignment));
+        Collections.sort(deliveries, Delivery.DELIVERIES_BY_GROUP_NUMBER);
 
         CSVPrinter csvPrinter = new CSVPrinter(sb, CSVFormat.RFC4180);
-		// Skip initial columns, list all groups
+        // Skip initial columns, list all groups
         for (int i = 0; i < 2 + numLevels; i++) {
             csvPrinter.print("");
         }
@@ -440,10 +448,9 @@ public class AssignmentsResource extends Resource {
                 for (Delivery delivery : deliveries) {
                     if (delivery.getRubrics().containsKey(characteristic)) {
                         csvPrinter.print(
-                            delivery.getRubrics().get(characteristic).getPoints()
+                                delivery.getRubrics().get(characteristic).getPoints()
                         );
-                    }
-                    else {
+                    } else {
                         csvPrinter.print("");
                     }
                 }
@@ -453,21 +460,22 @@ public class AssignmentsResource extends Resource {
             csvPrinter.println();
         }
 
-		response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString()+ "_rubrics.csv\"");
-		return sb.toString();
-	}
+        response.addHeader("Content-Disposition", " attachment; filename=\"assignment_" + assignmentId.toString() + "_rubrics.csv\"");
+        return sb.toString();
+    }
 
     /**
      * An edit page page for an assignment
-     * @param courseCode the course to create an assignment for
-	 * @param editionCode the course to create an assignment for
+     *
+     * @param courseCode   the course to create an assignment for
+     * @param editionCode  the course to create an assignment for
      * @param assignmentId the assignment id
      */
     @GET
     @Transactional
     @Path("{assignmentId : \\d+}/edit")
     public Response getEditAssignmentPage(@PathParam("courseCode") String courseCode,
-										  @PathParam("editionCode") String editionCode,
+                                          @PathParam("editionCode") String editionCode,
                                           @PathParam("assignmentId") long assignmentId,
                                           @QueryParam("error") String error) throws IOException {
 
@@ -475,7 +483,7 @@ public class AssignmentsResource extends Resource {
         CourseEdition course = courses.find(courseCode, editionCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
@@ -484,7 +492,7 @@ public class AssignmentsResource extends Resource {
         parameters.put("course", course);
         parameters.put("assignment", assignment);
 
-        if(error != null)
+        if (error != null)
             parameters.put("error", error);
 
         List<Locale> locales = Collections.list(request.getLocales());
@@ -495,7 +503,7 @@ public class AssignmentsResource extends Resource {
     @Transactional
     @Path("{assignmentId : \\d+}/edit")
     public Response editAssignment(@PathParam("courseCode") String courseCode,
-								   @PathParam("editionCode") String editionCode,
+                                   @PathParam("editionCode") String editionCode,
                                    @PathParam("assignmentId") long assignmentId,
                                    @FormParam("name") String name,
                                    @FormParam("summary") String summary,
@@ -504,7 +512,7 @@ public class AssignmentsResource extends Resource {
 
         CourseEdition course = courses.find(courseCode, editionCode);
 
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
@@ -519,30 +527,26 @@ public class AssignmentsResource extends Resource {
         }
         assignment.setGradesReleased(gradesReleased);
 
-        if(!Strings.isNullOrEmpty(dueDate)) {
+        if (!Strings.isNullOrEmpty(dueDate)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
             try {
                 assignment.setDueDate(simpleDateFormat.parse(dueDate));
-            }
-            catch (ParseException e) {
+            } catch (ParseException e) {
                 return redirect(course.getURI().resolve("assignments/create?error=error.invalid-date-format"));
             }
-        }
-        else {
+        } else {
             assignment.setDueDate(null);
         }
 
         try {
             assignmentsDAO.merge(assignment);
-        }
-        catch (ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
-            if(violations.isEmpty()) {
+            if (violations.isEmpty()) {
                 return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=error.assignment-create-error"));
             }
             return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=" + violations.iterator().next().getMessage()));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return redirect(course.getURI().resolve("assignments/" + assignmentId + "/edit?error=error.assignment-create-error"));
         }
 
@@ -557,7 +561,7 @@ public class AssignmentsResource extends Resource {
 
         CourseEdition course = courses.find(courseCode, editionCode);
 
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
@@ -567,6 +571,7 @@ public class AssignmentsResource extends Resource {
 
     /**
      * Release the grades for a course.
+     *
      * @param assignment Assignment to release grades for.
      */
     @Transactional
@@ -602,147 +607,152 @@ public class AssignmentsResource extends Resource {
     /**
      * Get the {@code Review} from the {@link Assignment}, or try to find a {@code Review}
      * in one of the other {@link Delivery Deliveries}.
+     *
      * @param assignment Assignment for which this is a delivery.
-     * @param delivery Delivery to find a review for.
+     * @param delivery   Delivery to find a review for.
      * @return Review instance.
      * @deprecated Only used for SQT where a review may be created on an older submission,
-     *  while the latest solution is a resubmission.
+     * while the latest solution is a resubmission.
      */
     @Deprecated
     private Review getOrCreateReview(Assignment assignment, Delivery delivery) {
         return Optional.ofNullable(delivery.getReview())
-            .orElseGet(() -> {
-                Review r = deliveriesDAO.getDeliveries(assignment, delivery.getGroup()).stream()
-                    .map(Delivery::getReview)
-                    .filter(Objects::nonNull)
-                    .findAny().orElseGet(() -> {
-                        Review review = new Review();
-                        review.setReviewUser(currentUser);
-                        review.setCommentary("");
-                        review.setReviewTime(new Date());
-                        return review;
-                    });
-                delivery.setReview(r);
-                return r;
-            });
+                .orElseGet(() -> {
+                    Review r = deliveriesDAO.getDeliveries(assignment, delivery.getGroup()).stream()
+                            .map(Delivery::getReview)
+                            .filter(Objects::nonNull)
+                            .findAny().orElseGet(() -> {
+                                Review review = new Review();
+                                review.setReviewUser(currentUser);
+                                review.setCommentary("");
+                                review.setReviewTime(new Date());
+                                return review;
+                            });
+                    delivery.setReview(r);
+                    return r;
+                });
     }
 
     /**
-	 * Display the rubrics page for this {@link Assignment}.
-	 * @param courseCode the course to create an assignment for.
-	 * @param editionCode the course to create an assignment for.
-	 * @param assignmentId the assignment id.
-	 * @return The rubrics page.
-	 * @throws IOException If an I/O error occurs.
-	 */
-	@GET
-	@Transactional
-	@Path("{assignmentId : \\d+}/rubrics")
-	public Response getEditRubricsPage(@PathParam("courseCode") String courseCode,
-									   @PathParam("editionCode") String editionCode,
-									   @PathParam("assignmentId") long assignmentId) throws IOException {
+     * Display the rubrics page for this {@link Assignment}.
+     *
+     * @param courseCode   the course to create an assignment for.
+     * @param editionCode  the course to create an assignment for.
+     * @param assignmentId the assignment id.
+     * @return The rubrics page.
+     * @throws IOException If an I/O error occurs.
+     */
+    @GET
+    @Transactional
+    @Path("{assignmentId : \\d+}/rubrics")
+    public Response getEditRubricsPage(@PathParam("courseCode") String courseCode,
+                                       @PathParam("editionCode") String editionCode,
+                                       @PathParam("assignmentId") long assignmentId) throws IOException {
 
 
-		CourseEdition course = courses.find(courseCode, editionCode);
-		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+        CourseEdition course = courses.find(courseCode, editionCode);
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
-		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-			throw new UnauthorizedException();
-		}
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
 
-		Map<String, Object> parameters = Maps.newHashMap();
-		parameters.put("user", currentUser);
-		parameters.put("course", course);
-		parameters.put("assignment", assignment);
+        Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put("user", currentUser);
+        parameters.put("course", course);
+        parameters.put("assignment", assignment);
 
-		List<Locale> locales = Collections.list(request.getLocales());
-		return display(templateEngine.process("courses/assignments/assignment-rubrics.ftl", locales, parameters));
-	}
+        List<Locale> locales = Collections.list(request.getLocales());
+        return display(templateEngine.process("courses/assignments/assignment-rubrics.ftl", locales, parameters));
+    }
 
-	/**
-	 * Retrieve the {@link Assignment} as JSON.
-	 * @param courseCode the course to create an assignment for.
-	 * @param editionCode the course to create an assignment for.
-	 * @param assignmentId the assignment id.
-	 * @return The {@link Assignment} instance.
-	 */
-	@GET
-	@Transactional
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{assignmentId : \\d+}/json")
-	public Assignment getAssignmentAsJson(@PathParam("courseCode") String courseCode,
-										  @PathParam("editionCode") String editionCode,
-										  @PathParam("assignmentId") long assignmentId) {
+    /**
+     * Retrieve the {@link Assignment} as JSON.
+     *
+     * @param courseCode   the course to create an assignment for.
+     * @param editionCode  the course to create an assignment for.
+     * @param assignmentId the assignment id.
+     * @return The {@link Assignment} instance.
+     */
+    @GET
+    @Transactional
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{assignmentId : \\d+}/json")
+    public Assignment getAssignmentAsJson(@PathParam("courseCode") String courseCode,
+                                          @PathParam("editionCode") String editionCode,
+                                          @PathParam("assignmentId") long assignmentId) {
 
-		CourseEdition course = courses.find(courseCode, editionCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
 
-		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-			throw new UnauthorizedException();
-		}
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
 
-		Assignment assignment = assignmentsDAO.find(course, assignmentId);
-		// Trigger lazy initialization of tasks...
-		assignment.getTasks().size();
-		return assignment;
-	}
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
+        // Trigger lazy initialization of tasks...
+        assignment.getTasks().size();
+        return assignment;
+    }
 
-	/**
-	 * Update an {@link Assignment}.
-	 * @param courseCode the course to create an assignment for.
-	 * @param editionCode the course to create an assignment for.
-	 * @param assignmentId the assignment id.
-	 * @param assignment the updated assignment instance.
-	 * @return The updated assignment instance.
-	 */
-	@PUT
-	@Transactional
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Path("{assignmentId : \\d+}/json")
-	public Assignment updateAssignment(@PathParam("courseCode") String courseCode,
-									   @PathParam("editionCode") String editionCode,
-									   @PathParam("assignmentId") long assignmentId,
-									   @Valid Assignment assignment) {
+    /**
+     * Update an {@link Assignment}.
+     *
+     * @param courseCode   the course to create an assignment for.
+     * @param editionCode  the course to create an assignment for.
+     * @param assignmentId the assignment id.
+     * @param assignment   the updated assignment instance.
+     * @return The updated assignment instance.
+     */
+    @PUT
+    @Transactional
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("{assignmentId : \\d+}/json")
+    public Assignment updateAssignment(@PathParam("courseCode") String courseCode,
+                                       @PathParam("editionCode") String editionCode,
+                                       @PathParam("assignmentId") long assignmentId,
+                                       @Valid Assignment assignment) {
 
-		CourseEdition course = courses.find(courseCode, editionCode);
+        CourseEdition course = courses.find(courseCode, editionCode);
 
-		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-			throw new UnauthorizedException();
-		}
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
 
-		assignment.setCourseEdition(course);
-		assignment.setAssignmentId(assignmentId);
-		return assignmentsDAO.merge(assignment);
-	}
+        assignment.setCourseEdition(course);
+        assignment.setAssignmentId(assignmentId);
+        return assignmentsDAO.merge(assignment);
+    }
 
-	/**
-	 * Get the last assignment deliveries as JSON.
-	 * @param courseCode the course to create an assignment for.
-	 * @param editionCode the course to create an assignment for.
-	 * @param assignmentId the assignment id.
-	 * @return a list of deliveries.
-	 */
-	@GET
-	@Transactional
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{assignmentId : \\d+}/last-deliveries/json")
-	public List<Delivery> getLastDeliveries(@PathParam("courseCode") String courseCode,
-											@PathParam("editionCode") String editionCode,
-											@PathParam("assignmentId") long assignmentId) {
-		CourseEdition course = courses.find(courseCode, editionCode);
-		Assignment assignment = assignmentsDAO.find(course, assignmentId);
+    /**
+     * Get the last assignment deliveries as JSON.
+     *
+     * @param courseCode   the course to create an assignment for.
+     * @param editionCode  the course to create an assignment for.
+     * @param assignmentId the assignment id.
+     * @return a list of deliveries.
+     */
+    @GET
+    @Transactional
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{assignmentId : \\d+}/last-deliveries/json")
+    public List<Delivery> getLastDeliveries(@PathParam("courseCode") String courseCode,
+                                            @PathParam("editionCode") String editionCode,
+                                            @PathParam("assignmentId") long assignmentId) {
+        CourseEdition course = courses.find(courseCode, editionCode);
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
-		if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-			throw new UnauthorizedException();
-		}
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
 
-		List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
-		// Lazy load...
-		deliveries.forEach(Delivery::getMasteries);
-		return deliveries;
-	}
+        List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
+        // Lazy load...
+        deliveries.forEach(Delivery::getMasteries);
+        return deliveries;
+    }
 
-	@POST
+    @POST
     @Transactional
     @Path("{assignmentId : \\d+}/distribute-tas")
     public Response distributeTAs(@PathParam("courseCode") String courseCode,
@@ -751,7 +761,7 @@ public class AssignmentsResource extends Resource {
         CourseEdition course = courses.find(courseCode, editionCode);
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
-        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
             throw new UnauthorizedException();
         }
 
@@ -777,14 +787,16 @@ public class AssignmentsResource extends Resource {
     public Response toggleView(@PathParam("courseCode") String courseCode,
                                @PathParam("editionCode") String editionCode,
                                @PathParam("assignmentId") long assignmentId) {
-	    CourseEdition course = courses.find(courseCode, editionCode);
-	    Assignment assignment = assignmentsDAO.find(course, assignmentId);
+        CourseEdition course = courses.find(courseCode, editionCode);
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
 
-	    if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-	        throw new UnauthorizedException();
+        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
         }
 
+        fullView = !fullView;
 
+        return Response.seeOther(assignment.getURI()).build();
     }
 
 }

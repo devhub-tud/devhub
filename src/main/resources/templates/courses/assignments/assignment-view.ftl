@@ -128,8 +128,14 @@
     </div>
 [/#if]
 
-[@deliveryTable deliveries=userDeliveries /]
-[@deliveryTable deliveries=lastDeliveries /]
+
+    [#if fullView]
+        [@deliveryTable deliveries=lastDeliveries /]
+    [#else]
+        [@deliveryTable deliveries=userDeliveries /]
+    [/#if]
+
+
 
     <div class="pull-right">
         <form action="${assignment.getURI()}distribute-tas" method="post" style="display: inline;">

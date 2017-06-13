@@ -32,6 +32,7 @@ import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
@@ -63,6 +64,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	protected Issues issues;
 	protected IssueBackend issueBackend;
 	protected IssueComments issueComments;
+	protected NotificationBackend notificationBackend;
 	@Context HttpServletRequest request;
 	
 	public AbstractProjectIssueResource( final TemplateEngine templateEngine, 
@@ -74,7 +76,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			final Issues issues, 
 			final IssueBackend issueBackend,
 			final Users users,
-			final IssueComments issueComments) {
+			final IssueComments issueComments,
+			final NotificationBackend notificationBackend) {
 		
 		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
 		
@@ -83,6 +86,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		this.issues = issues;
 		this.issueBackend = issueBackend;
 		this.issueComments = issueComments;
+		this.notificationBackend = notificationBackend;
 	}
 	
 	@GET
@@ -154,6 +158,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 				.collect(Collectors.toSet()));
 		
 		issueBackend.createIssue(getRepositoryApi(getRepositoryEntity()), issue);
+		notificationBackend.createNotification(issue,currentUser);
 		
 		return redirect(issue.getURI().toString());
 	}

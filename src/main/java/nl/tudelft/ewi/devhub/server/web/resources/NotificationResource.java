@@ -3,13 +3,16 @@ package nl.tudelft.ewi.devhub.server.web.resources;
 import com.google.common.collect.Maps;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.RequestScoped;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.SshKeyBackend;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
+import org.jboss.logging.annotations.Pos;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -32,12 +35,13 @@ import java.util.Map;
 public class NotificationResource extends Resource {
 
 	private final TemplateEngine templateEngine;
-	private final SshKeyBackend backend;
+	private final NotificationBackend backend;
 	private final User currentUser;
 	private final Users users;
 
 	@Inject
-    NotificationResource(TemplateEngine templateEngine, SshKeyBackend backend, @Named("current.user") User currentUser, Users users) {
+    NotificationResource(TemplateEngine templateEngine, NotificationBackend backend, @Named("current.user") User currentUser, Users users) {
+
 		this.templateEngine = templateEngine;
 		this.backend = backend;
 		this.currentUser = currentUser;

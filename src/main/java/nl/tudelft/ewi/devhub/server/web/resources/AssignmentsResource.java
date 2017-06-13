@@ -101,7 +101,7 @@ public class AssignmentsResource extends Resource {
     @Context
     HttpServletResponse response;
 
-    private boolean fullView;
+    private boolean toggle;
 
     /**
      * Get an overview of the courses
@@ -302,10 +302,10 @@ public class AssignmentsResource extends Resource {
         AssignmentStats userStats = deliveriesBackend.getAssignmentStats(currentUserDeliveries);
         AssignmentStats lastStats = deliveriesBackend.getAssignmentStats(assignment, allLastDeliveries);
 
-        if(currentUser.isAdmin()) {
-            fullView = true;
+        if (currentUser.isAdmin()) {
+            toggle = true;
         } else {
-            fullView = false;
+            toggle = false;
         }
 
 //        AssignmentStats assignmentStats;
@@ -326,7 +326,7 @@ public class AssignmentsResource extends Resource {
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("userDeliveries", currentUserDeliveries);
         parameters.put("lastDeliveries", allLastDeliveries);
-        parameters.put("fullView", fullView);
+        parameters.put("toggle", toggle);
 
 
         List<Locale> locales = Collections.list(request.getLocales());
@@ -781,22 +781,27 @@ public class AssignmentsResource extends Resource {
         return Response.seeOther(assignment.getURI()).build();
     }
 
-    @POST
-    @Transactional
-    @Path("{assignmentId : \\d+}/toggle-view")
-    public Response toggleView(@PathParam("courseCode") String courseCode,
-                               @PathParam("editionCode") String editionCode,
-                               @PathParam("assignmentId") long assignmentId) {
-        CourseEdition course = courses.find(courseCode, editionCode);
-        Assignment assignment = assignmentsDAO.find(course, assignmentId);
-
-        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
-            throw new UnauthorizedException();
-        }
-
-        fullView = !fullView;
-
-        return Response.seeOther(assignment.getURI()).build();
-    }
+//    @POST
+//    @Transactional
+//    @Path("{assignmentId : \\d+}/toggle-view")
+//    public Response toggle(@PathParam("courseCode") String courseCode,
+//                               @PathParam("editionCode") String editionCode,
+//                               @PathParam("assignmentId") long assignmentId,
+//                               @QueryParam("error") String error) throws IOException {
+//        CourseEdition course = courses.find(courseCode, editionCode);
+//        Assignment assignment = assignmentsDAO.find(course, assignmentId);
+//
+//        if (!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+//            throw new UnauthorizedException();
+//        }
+//
+//        toggle = !toggle;
+//
+//        Map<String, Object> parameters = Maps.newHashMap();
+//        parameters.put("toggle", toggle);
+//
+//        List<Locale> locales = Collections.list(request.getLocales());
+//        return display(templateEngine.process("courses/assignments/assignment-view.ftl", locales, parameters));
+//    }
 
 }

@@ -4,12 +4,12 @@
 [@macros.renderHeader i18n.translate("assignments.title") /]
 [@macros.renderMenu i18n user /]
 
-[#macro deliveryTable deliveries]
+[#macro deliveryTable deliveries view]
 <table class="table table-bordered">
     [#if deliveries?? && deliveries?has_content]
         [#list deliveries as delivery]
             [#assign group = delivery.getGroup()]
-            <tr class="delivery ${delivery.getState().toString()?lower_case}">
+            <tr class="delivery ${delivery.getState().toString()?lower_case}" data-full-view="${view}">
                 <td class="commit">
                     <a href="${group.getURI()}assignments/${assignment.getAssignmentId()}">
                         <div class="pull-right">
@@ -95,6 +95,13 @@
         </li>
     </ol>
 
+
+    [#if currentUser]
+        [#assign assignmentStats = lastStats]
+    [#else]
+        [#assign assignmentStats = userStats]
+    [/#if]
+
 [#if assignmentStats??]
     <div class="well well-sm">
         <h5><strong>Progress</strong></h5>
@@ -129,20 +136,19 @@
 [/#if]
 
 
-    [#if fullView]
-        [@deliveryTable deliveries=lastDeliveries /]
-    [#else]
-        [@deliveryTable deliveries=userDeliveries /]
-    [/#if]
+    [#--[#if toggle]--]
+        [#--[@deliveryTable deliveries=lastDeliveries /]--]
+    [#--[#else]--]
+        [@deliveryTable deliveries=userDeliveries view=toggle/]
+        [@deliveryTable deliveries=lastDeliveries view=toggle /]
+    [#--[/#if]--]
 
 
 
     <div class="pull-right">
-        <form action="${assignment.getURI()}toggle-view" method="post" style="display: inline;">
-            <button type="submit" class="btn btn-sm btn-default"><i
-                    class="glyphicon glyphicon-eye-open"></i> Toggle View
-            </button>
-        </form>
+        <button type="btn btn-link toggle-view" class="btn btn-sm btn-default"><i
+                class="glyphicon glyphicon-eye-open"></i> Toggle View
+        </button>
         <form action="${assignment.getURI()}distribute-tas" method="post" style="display: inline;">
             <button type="submit" class="btn btn-sm btn-default"><i
                     class="glyphicon glyphicon-user"></i> Distribute TAs

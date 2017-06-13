@@ -15,15 +15,14 @@ $(function () {
         var userProgressBar = $('.well#user');
         var lastProgressBar = $('.well#last');
 
-
-
         if (!view) {
             userDeliveriesTable.hide();
-            filteredDeliveriesTable.hide()
+            filteredDeliveriesTable.hide();
             lastDeliveriesTable.show();
 
             userProgressBar.hide();
             lastProgressBar.show();
+
 
             view = !view;
         } else {
@@ -36,9 +35,8 @@ $(function () {
 
             view = !view;
         }
-
     })
-})
+});
 
 $(document).ready(function () {
     var userDeliveriesTable = $('.table#user');
@@ -49,4 +47,4 @@ $(document).ready(function () {
     filteredDeliveriesTable.hide();
 
     userProgressBar.hide();
-})
+});

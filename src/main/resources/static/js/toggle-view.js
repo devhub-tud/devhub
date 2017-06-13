@@ -16,6 +16,7 @@ $(function () {
         var lastProgressBar = $('.well#last');
 
 
+
         if (!view) {
             userDeliveriesTable.hide();
             filteredDeliveriesTable.hide()

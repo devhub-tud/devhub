@@ -128,39 +128,6 @@
         </li>
     </ol>
 
-[#if assignmentStats??]
-    <div class="well well-sm">
-        <h5><strong>Progress</strong></h5>
-
-        <div class="progress">
-            [#list deliveryStates as state]
-                <div class="progress-bar progress-bar-${state.style}"
-                     style="width: ${assignmentStats.getPercentageFor(state)}%">
-                ${i18n.translate(state.translationKey)}
-                </div>
-            [/#list]
-        </div>
-
-        <div class="row">
-            [#list deliveryStates as state]
-                <div class="col-md-2 progress-info">
-                    <span class="text-${state.style} glyphicon glyphicon-stop"></span>
-                    <button class="btn btn-link delivery-filter" data-filter-class="${state.toString()?lower_case}"
-                            data-toggle="tooltip" title="${i18n.translate(state.descriptionTranslionKey)}">
-                        <span>${i18n.translate(state.translationKey)}:</span>
-                        <span>${assignmentStats.getCountFor(state)}</span>
-                        <span>(${assignmentStats.getPercentageFor(state)}%)</span>
-                    </button>
-                </div>
-            [/#list]
-            <div class="col-md-2 progress-info">${i18n.translate("assignment.submissions")}
-                : ${assignmentStats.amountOfSubmissions()}</div>
-            <div class="col-md-2 progress-info">${i18n.translate("assignment.groups")}
-                : ${assignmentStats.amountOfGroups()}</div>
-        </div>
-    </div>
-[/#if]
-
 [@progressBar assignmentStats=userStats barId="user" /]
 [@progressBar assignmentStats=lastStats barId="last" /]
 

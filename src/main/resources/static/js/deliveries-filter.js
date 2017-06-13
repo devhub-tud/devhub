@@ -8,6 +8,8 @@ $(function() {
 		var deliveries = $('tr.delivery');
 		var table = deliveries.closest("table");
 
+		console.log(table);
+
 		if(!filterClass) {
 			return;
 		}

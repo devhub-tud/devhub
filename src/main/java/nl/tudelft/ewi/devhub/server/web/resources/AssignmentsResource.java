@@ -294,18 +294,11 @@ public class AssignmentsResource extends Resource {
 
         List<Delivery> currentUserDeliveries = assignedTAs.getLastDeliveries(assignment, currentUser);
         List<Delivery> allLastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+        List<Delivery> filteredDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+        filteredDeliveries.removeAll(currentUserDeliveries);
 
         AssignmentStats userStats = deliveriesBackend.getAssignmentStats(currentUserDeliveries);
         AssignmentStats lastStats = deliveriesBackend.getAssignmentStats(assignment, allLastDeliveries);
-
-
-//        AssignmentStats assignmentStats;
-//        if(currentUser.isAdmin()) {
-//            assignmentStats = deliveriesBackend.getAssignmentStats(assignment, allLastDeliveries);
-//        } else {
-//            allLastDeliveries.removeAll(currentUserDeliveries);
-//            assignmentStats  = deliveriesBackend.getAssignmentStats(currentUserDeliveries);
-//        }
 
 
 
@@ -318,6 +311,7 @@ public class AssignmentsResource extends Resource {
         parameters.put("deliveryStates", Delivery.State.values());
         parameters.put("userDeliveries", currentUserDeliveries);
         parameters.put("lastDeliveries", allLastDeliveries);
+        parameters.put("filteredDeliveries", filteredDeliveries);
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/assignment-view.ftl", locales, parameters));

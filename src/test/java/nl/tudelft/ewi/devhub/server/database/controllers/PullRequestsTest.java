@@ -1,35 +1,32 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.inject.Inject;
-import nl.tudelft.ewi.git.models.DiffModel;
-import nl.tudelft.ewi.git.web.api.CommitApi;
-import nl.tudelft.ewi.git.web.api.RepositoriesApi;
-import nl.tudelft.ewi.git.web.api.RepositoryApi;
-import org.assertj.core.util.Lists;
-import org.junit.Rule;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import static org.mockito.Mockito.when;
-import org.mockito.junit.MockitoRule;
 
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
+import nl.tudelft.ewi.git.models.DiffModel;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
+import org.assertj.core.util.Lists;
 
-import com.google.inject.Inject;
-
-import nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.MockitoRule;
+
 import static nl.tudelft.ewi.devhub.webtests.utils.EntityEqualsMatcher.isEntity;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JukitoRunner.class)

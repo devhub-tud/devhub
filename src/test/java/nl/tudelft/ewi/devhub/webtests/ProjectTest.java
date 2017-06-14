@@ -163,6 +163,9 @@ public class ProjectTest extends WebTest {
 				.get(0).click();
 
 		assertEquals(commitModel.getAuthor(), view.getAuthorHeader());
+		assertEquals("+" + diffBlameModel.getLinesAdded(), view.getLinesAdded());
+		assertEquals("/", view.getNeutralLines());
+		assertEquals("-"+ diffBlameModel.getLinesRemoved(), view.getLinesRemoved());
 		assertEquals(commitModel.getMessage(), view.getMessageHeader());
 
 		List<DiffElement> list = view.listDiffs();

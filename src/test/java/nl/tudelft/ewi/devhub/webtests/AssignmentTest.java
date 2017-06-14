@@ -102,6 +102,7 @@ public class AssignmentTest extends WebTest {
                 .get(0).click()
                 .listAssignments()
                 .get(0)
-                .goToAssignmentPage();
+                .goToAssignmentPage()
+                .distributeTAs();
     }
 }

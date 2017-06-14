@@ -148,7 +148,7 @@
             Toggle View
         </button>
         <form action="${assignment.getURI()}distribute-tas" method="post" style="display: inline;">
-            <button type="submit" class="btn btn-sm btn-default"><i
+            <button type="submit" class="btn btn-sm btn-default" id="distribute-tas"><i
                     class="glyphicon glyphicon-user"></i> Distribute TAs
             </button>
         </form>

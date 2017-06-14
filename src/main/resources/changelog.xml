@@ -1,297 +1,296 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
-                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-    <changeSet id="create_users_table" author="Michael de Jong">
-        <createTable tableName="users">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="net_id" type="varchar(32)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="name" type="varchar(128)"/>
-            <column name="email" type="varchar(255)"/>
-            <column name="admin" type="boolean" defaultValue="false">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
+	<changeSet id="create_users_table" author="Michael de Jong">
+		<createTable tableName="users">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="net_id" type="varchar(32)">
+				<constraints nullable="false" unique="true" />
+			</column>
+			<column name="name" type="varchar(128)" />
+			<column name="email" type="varchar(255)" />
+			<column name="admin" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
 
-    <changeSet id="create_courses_table" author="Michael de Jong">
-        <createTable tableName="courses">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="code" type="varchar(12)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="name" type="varchar(64)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="template_repository_url" type="varchar(255)"/>
-            <column name="start" type="datetime">
-                <constraints nullable="false"/>
-            </column>
-            <column name="end" type="datetime"/>
-            <column name="min_group_size" type="int">
-                <constraints nullable="false"/>
-            </column>
-            <column name="max_group_size" type="int">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
+	<changeSet id="create_courses_table" author="Michael de Jong">
+		<createTable tableName="courses">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="code" type="varchar(12)">
+				<constraints nullable="false" />
+			</column>
+			<column name="name" type="varchar(64)">
+				<constraints nullable="false" />
+			</column>
+			<column name="template_repository_url" type="varchar(255)" />
+			<column name="start" type="datetime">
+				<constraints nullable="false" />
+			</column>
+			<column name="end" type="datetime" />
+			<column name="min_group_size" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="max_group_size" type="int">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
 
-    <changeSet id="create_groups_table" author="Michael de Jong">
-        <createTable tableName="groups">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="course_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="group_number" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="repository_name" type="varchar(255)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-        </createTable>
-        <addForeignKeyConstraint constraintName="course_ref_in_groups"
-                                 baseTableName="groups" baseColumnNames="course_id"
-                                 referencedTableName="courses" referencedColumnNames="id"/>
-    </changeSet>
+	<changeSet id="create_groups_table" author="Michael de Jong">
+		<createTable tableName="groups">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="course_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="group_number" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" unique="true" />
+			</column>
+		</createTable>
+		<addForeignKeyConstraint constraintName="course_ref_in_groups"
+			baseTableName="groups" baseColumnNames="course_id"
+			referencedTableName="courses" referencedColumnNames="id" />
+	</changeSet>
 
-    <changeSet id="create_groupmemberships_table" author="Michael de Jong">
-        <createTable tableName="group_memberships">
-            <column name="group_id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="user_id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-        </createTable>
-        <addForeignKeyConstraint constraintName="group_ref_in_groupmemberships"
-                                 baseTableName="group_memberships" baseColumnNames="group_id"
-                                 referencedTableName="groups" referencedColumnNames="id"/>
-        <addForeignKeyConstraint constraintName="user_ref_in_groupmemberships"
-                                 baseTableName="group_memberships" baseColumnNames="user_id"
-                                 referencedTableName="users" referencedColumnNames="id"/>
-    </changeSet>
-
-    <changeSet id="add_build_servers_table" author="Michael de Jong">
-        <createTable tableName="build_servers">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true"/>
-            </column>
-            <column name="name" type="varchar(32)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="secret" type="varchar(40)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="host" type="varchar(256)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-        </createTable>
-    </changeSet>
-
-    <changeSet id="add_build_results_table" author="Michael de Jong">
-        <createTable tableName="build_results">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true"/>
-            </column>
-            <column name="repository_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="commit_id" type="varchar(40)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="success" type="boolean"/>
-            <column name="log" type="text"/>
-        </createTable>
-
-        <addForeignKeyConstraint constraintName="repository_ref_in_build_results"
-                                 baseTableName="build_results" baseColumnNames="repository_id"
-                                 referencedTableName="groups" referencedColumnNames="id"/>
-
-        <addUniqueConstraint columnNames="repository_id,commit_id" tableName="build_results"/>
-    </changeSet>
-
-    <changeSet id="create_course_assistants_table" author="Michael de Jong">
-        <createTable tableName="course_assistants">
-            <column name="course_id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="user_id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-        </createTable>
-        <addForeignKeyConstraint constraintName="course_ref_in_course_assistants"
-                                 baseTableName="course_assistants" baseColumnNames="course_id"
-                                 referencedTableName="courses" referencedColumnNames="id"/>
-        <addForeignKeyConstraint constraintName="user_ref_in_course_assistants"
-                                 baseTableName="course_assistants" baseColumnNames="user_id"
-                                 referencedTableName="users" referencedColumnNames="id"/>
-    </changeSet>
-
-    <changeSet id="insert-dummy-data" author="Michael de Jong">
-        <insert tableName="users">
-            <column name="net_id">mdejong2</column>
-            <column name="name">Michael de Jong</column>
-            <column name="email">M.deJong-2@student.tudelft.nl</column>
-            <column name="admin">true</column>
-        </insert>
-        <insert tableName="courses">
-            <column name="code">TI1705</column>
-            <column name="name">Softwarekwaliteit &amp; Testen</column>
-            <column name="template_repository_url">https://github.com/SERG-Delft/jpacman-template.git</column>
-            <column name="start">2014-01-01 00:00:00</column>
-            <column name="min_group_size">2</column>
-            <column name="max_group_size">2</column>
-        </insert>
-    </changeSet>
-
-    <changeSet id="add_timeouts_to_courses_and_groups" author="Michael de Jong">
-        <addColumn tableName="courses">
-            <column name="build_timeout" type="int"/>
-        </addColumn>
-        <addColumn tableName="groups">
-            <column name="build_timeout" type="int"/>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="add_cached_password_to_users" author="Jan-Willem Gmelig Meyling">
+	<changeSet id="create_groupmemberships_table" author="Michael de Jong">
+		<createTable tableName="group_memberships">
+			<column name="group_id" type="bigint">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="user_id" type="bigint">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+		</createTable>
+		<addForeignKeyConstraint constraintName="group_ref_in_groupmemberships"
+			baseTableName="group_memberships" baseColumnNames="group_id"
+			referencedTableName="groups" referencedColumnNames="id" />
+		<addForeignKeyConstraint constraintName="user_ref_in_groupmemberships"
+			baseTableName="group_memberships" baseColumnNames="user_id"
+			referencedTableName="users" referencedColumnNames="id" />
+	</changeSet>
+	
+	<changeSet id="add_build_servers_table" author="Michael de Jong">
+		<createTable tableName="build_servers">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="name" type="varchar(32)">
+				<constraints nullable="false" unique="true" />
+			</column>
+			<column name="secret" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			<column name="host" type="varchar(256)">
+				<constraints nullable="false" unique="true" />
+			</column>
+		</createTable>
+	</changeSet>
+	
+	<changeSet id="add_build_results_table" author="Michael de Jong">
+		<createTable tableName="build_results">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			<column name="success" type="boolean" />
+			<column name="log" type="text" />
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="repository_ref_in_build_results"
+			baseTableName="build_results" baseColumnNames="repository_id"
+			referencedTableName="groups" referencedColumnNames="id" />
+			
+		<addUniqueConstraint columnNames="repository_id,commit_id" tableName="build_results" />
+	</changeSet>
+	
+	<changeSet id="create_course_assistants_table" author="Michael de Jong">
+		<createTable tableName="course_assistants">
+			<column name="course_id" type="bigint">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="user_id" type="bigint">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+		</createTable>
+		<addForeignKeyConstraint constraintName="course_ref_in_course_assistants"
+			baseTableName="course_assistants" baseColumnNames="course_id"
+			referencedTableName="courses" referencedColumnNames="id" />
+		<addForeignKeyConstraint constraintName="user_ref_in_course_assistants"
+			baseTableName="course_assistants" baseColumnNames="user_id"
+			referencedTableName="users" referencedColumnNames="id" />
+	</changeSet>
+	
+	<changeSet id="insert-dummy-data" author="Michael de Jong">
+		<insert tableName="users">
+			<column name="net_id">mdejong2</column>
+			<column name="name">Michael de Jong</column>
+			<column name="email">M.deJong-2@student.tudelft.nl</column>
+			<column name="admin">true</column>
+		</insert>
+		<insert tableName="courses">
+			<column name="code">TI1705</column>
+			<column name="name">Softwarekwaliteit &amp; Testen</column>
+			<column name="template_repository_url">https://github.com/SERG-Delft/jpacman-template.git</column>
+			<column name="start">2014-01-01 00:00:00</column>
+			<column name="min_group_size">2</column>
+			<column name="max_group_size">2</column>
+		</insert>
+	</changeSet>
+	
+	<changeSet id="add_timeouts_to_courses_and_groups" author="Michael de Jong">
+		<addColumn tableName="courses">
+			<column name="build_timeout" type="int" />
+		</addColumn>
+		<addColumn tableName="groups">
+			<column name="build_timeout" type="int" />
+		</addColumn>
+	</changeSet>
+	
+	<changeSet id="add_cached_password_to_users" author="Jan-Willem Gmelig Meyling">
         <addColumn tableName="users">
-            <column name="password" type="varchar(128)"/>
-        </addColumn>
-    </changeSet>
+			<column name="password" type="varchar(128)" />
+		</addColumn>
+	</changeSet>
 
-    <changeSet id="add_unique_constraint_groups" author="Jan-Willem Gmelig Meyling">
-        <addUniqueConstraint columnNames="course_id,group_number" tableName="groups"/>
-    </changeSet>
-
-    <changeSet id="add_unique_constraint_course" author="Jan-Willem Gmelig Meyling">
-        <addUniqueConstraint columnNames="code" tableName="courses"/>
-    </changeSet>
-
-    <changeSet id="add_comment_tables" author="Jan-Willem Gmelig Meyling">
-        <createTable tableName="commit">
-            <column name="repository_name" type="varchar(255)">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="commit_id" type="varchar(40)">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-        </createTable>
-
-        <addForeignKeyConstraint constraintName="commit_repository_name_in_groups"
-                                 baseTableName="commit" baseColumnNames="repository_name"
-                                 referencedTableName="groups" referencedColumnNames="repository_name"/>
-
-        <createTable tableName="commit_comment">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true"/>
-            </column>
-            <column name="repository_name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="commit_id" type="varchar(40)">
-                <constraints nullable="false"/>
-            </column>
-
-            <column name="old_line_number" type="int"/>
-            <column name="old_file_path" type="varchar(255)"/>
-            <column name="new_line_number" type="int"/>
-            <column name="new_file_path" type="varchar(255)"/>
-
-            <column name="content" type="text"/>
-            <column name="user_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="time" type="datetime"/>
-        </createTable>
-
-        <addForeignKeyConstraint constraintName="commit_comment_commit_in_commits"
-                                 baseTableName="commit_comment" baseColumnNames="repository_name, commit_id"
-                                 referencedTableName="commit" referencedColumnNames="repository_name, commit_id"/>
-    </changeSet>
-
-    <changeSet id="added_pull_request_table" author="Jan-Willem Gmelig Meyling">
-        <createTable tableName="pull_requests">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true"/>
-            </column>
-            <column name="repository_name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="branch_name" type="varchar(40)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="open" type="boolean" defaultValue="false">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-
-        <addForeignKeyConstraint constraintName="pr_repository_name_in_groups"
-                                 baseTableName="pull_requests" baseColumnNames="repository_name"
-                                 referencedTableName="groups" referencedColumnNames="repository_name"/>
-    </changeSet>
+	<changeSet id="add_unique_constraint_groups" author="Jan-Willem Gmelig Meyling">
+		<addUniqueConstraint columnNames="course_id,group_number" tableName="groups" />
+	</changeSet>
+	
+	<changeSet id="add_unique_constraint_course" author="Jan-Willem Gmelig Meyling">
+		<addUniqueConstraint columnNames="code" tableName="courses" />
+	</changeSet>
+	
+	<changeSet id="add_comment_tables" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="commit">
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="commit_repository_name_in_groups"
+			baseTableName="commit" baseColumnNames="repository_name"
+			referencedTableName="groups" referencedColumnNames="repository_name" />
+		
+		<createTable tableName="commit_comment">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			
+			<column name="old_line_number" type="int"/>
+			<column name="old_file_path" type="varchar(255)"/>
+			<column name="new_line_number" type="int"/>
+			<column name="new_file_path" type="varchar(255)" />
+			
+			<column name="content" type="text" />
+			<column name="user_id" type="bigint">
+				<constraints  nullable="false" />
+			</column>
+			<column name="time" type="datetime" />
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="commit_comment_commit_in_commits"
+			baseTableName="commit_comment" baseColumnNames="repository_name, commit_id"
+			referencedTableName="commit" referencedColumnNames="repository_name, commit_id" />
+	</changeSet>
+	
+	<changeSet id="added_pull_request_table" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="pull_requests">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="branch_name" type="varchar(40)">
+				<constraints nullable="false" />
+			</column>
+			<column name="open" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="pr_repository_name_in_groups"
+			baseTableName="pull_requests" baseColumnNames="repository_name"
+			referencedTableName="groups" referencedColumnNames="repository_name" />
+	</changeSet>
 
     <changeSet id="added_assignments_table" author="Jan-Willem Gmelig Meyling">
         <createTable tableName="assignments">
             <column name="course_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
             <column name="assignment_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
             <column name="name" type="varchar(40)">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
             <column name="summary" type="text"/>
-            <column name="due_date" type="varchar(40)"/>
+            <column name="due_date" type="varchar(40)" />
         </createTable>
 
         <addPrimaryKey tableName="assignments" columnNames="course_id, assignment_id"></addPrimaryKey>
 
         <addForeignKeyConstraint baseTableName="assignments" baseColumnNames="course_id"
-                                 constraintName="assignment_course_id"
-                                 referencedTableName="courses"
-                                 referencedColumnNames="id"></addForeignKeyConstraint>
+             constraintName="assignment_course_id"
+             referencedTableName="courses"
+             referencedColumnNames="id"></addForeignKeyConstraint>
 
     </changeSet>
 
     <changeSet id="added_deliveries_table" author="Jan-Willem Gmelig Meyling">
         <createTable tableName="assignment_deliveries">
             <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true"/>
+                <constraints primaryKey="true" />
             </column>
 
             <column name="course_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
 
             <column name="assignment_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
 
             <column name="group_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
 
             <column name="commit_id" type="varchar(40)"/>
             <column name="notes" type="text"/>
             <column name="created" type="datetime">
-                <constraints nullable="false"/>
+                <constraints  nullable="false" />
             </column>
             <column name="user_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints  nullable="false" />
             </column>
 
             <!-- Review -->
@@ -303,40 +302,40 @@
         </createTable>
 
         <addForeignKeyConstraint baseTableName="assignment_deliveries" baseColumnNames="course_id, assignment_id"
-                                 constraintName="assignment_deliveries_assignment"
-                                 referencedTableName="assignments"
-                                 referencedColumnNames="course_id, assignment_id"></addForeignKeyConstraint>
+             constraintName="assignment_deliveries_assignment"
+             referencedTableName="assignments"
+             referencedColumnNames="course_id, assignment_id"></addForeignKeyConstraint>
 
         <addForeignKeyConstraint constraintName="assignment_deliveries_group"
-                                 baseTableName="assignment_deliveries" baseColumnNames="group_id"
-                                 referencedTableName="groups" referencedColumnNames="id"/>
+             baseTableName="assignment_deliveries" baseColumnNames="group_id"
+             referencedTableName="groups" referencedColumnNames="id" />
 
         <addForeignKeyConstraint constraintName="assignment_deliveries_user"
-                                 baseTableName="assignment_deliveries" baseColumnNames="user_id"
-                                 referencedTableName="users" referencedColumnNames="id"/>
+             baseTableName="assignment_deliveries" baseColumnNames="user_id"
+             referencedTableName="users" referencedColumnNames="id" />
 
 
         <addForeignKeyConstraint constraintName="assignment_deliveries_review_user"
-                                 baseTableName="assignment_deliveries" baseColumnNames="review_user"
-                                 referencedTableName="users" referencedColumnNames="id"/>
+             baseTableName="assignment_deliveries" baseColumnNames="review_user"
+             referencedTableName="users" referencedColumnNames="id" />
 
     </changeSet>
 
     <changeSet id="added_delivery_attachments" author="Jan-Willem Gmelig Meyling">
         <createTable tableName="assignment_delivery_attachments">
             <column name="path" type="varchar(255)">
-                <constraints primaryKey="true"/>
+                <constraints primaryKey="true" />
             </column>
             <column name="delivery_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints  nullable="false" />
             </column>
         </createTable>
 
         <addForeignKeyConstraint baseTableName="assignment_delivery_attachments" baseColumnNames="delivery_id"
-                                 constraintName="assignment_delivery_attachments_delivery_id"
-                                 referencedTableName="assignment_deliveries" referencedColumnNames="id"/>
+             constraintName="assignment_delivery_attachments_delivery_id"
+             referencedTableName="assignment_deliveries" referencedColumnNames="id"/>
     </changeSet>
-
+    
     <changeSet id="change_messages_table" author="Jan-Willem Gmelig Meyling">
         <dropColumn tableName="commit_comment" columnName="old_line_number"/>
         <dropColumn tableName="commit_comment" columnName="old_file_path"/>
@@ -349,197 +348,197 @@
             <column name="source_commit_id" type="varchar(40)"></column>
         </addColumn>
         <addForeignKeyConstraint baseTableName="commit_comment" baseColumnNames="repository_name, source_commit_id"
-                                 constraintName="source_commit_comments_in_commits"
-                                 referencedTableName="commit" referencedColumnNames="repository_name, commit_id"/>
+             constraintName="source_commit_comments_in_commits"
+             referencedTableName="commit" referencedColumnNames="repository_name, commit_id"/>
     </changeSet>
 
-    <changeSet id="change_courses_column_names" author="Jan-Willem Gmelig Meyling">
-        <renameColumn tableName="courses" oldColumnName="start" newColumnName="start_date"/>
-        <renameColumn tableName="courses" oldColumnName="end" newColumnName="end_date"/>
-    </changeSet>
+	<changeSet id="change_courses_column_names" author="Jan-Willem Gmelig Meyling">
+		<renameColumn tableName="courses" oldColumnName="start" newColumnName="start_date"/>
+		<renameColumn tableName="courses" oldColumnName="end" newColumnName="end_date"/>
+	</changeSet>
 
-    <changeSet id="change_grade_type" author="Jan-Willem Gmelig Meyling">
-        <modifyDataType tableName="assignment_deliveries" columnName="grade" newDataType="FLOAT"/>
-    </changeSet>
+	<changeSet id="change_grade_type" author="Jan-Willem Gmelig Meyling">
+		<modifyDataType tableName="assignment_deliveries" columnName="grade" newDataType="FLOAT"/>
+	</changeSet>
 
-    <changeSet id="add_commits_for_pr" author="Jan-Willem Gmelig Meyling">
-        <addColumn tableName="pull_requests">
-            <column name="merge_commit_id" type="varchar(40)"></column>
-        </addColumn>
-        <addColumn tableName="pull_requests">
-            <column name="destination_commit_id" type="varchar(40)"></column>
-        </addColumn>
-        <addColumn tableName="pull_requests">
-            <column name="merged" type="boolean" defaultValue="false">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-        <addColumn tableName="pull_requests">
-            <column name="ahead" type="int">
-                <constraints nullable="true"/>
-            </column>
-        </addColumn>
-        <addColumn tableName="pull_requests">
-            <column name="behind" type="int">
-                <constraints nullable="true"/>
-            </column>
-        </addColumn>
-    </changeSet>
+	<changeSet id="add_commits_for_pr" author="Jan-Willem Gmelig Meyling">
+		<addColumn tableName="pull_requests">
+			<column name="merge_commit_id" type="varchar(40)"></column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="destination_commit_id" type="varchar(40)"></column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="merged" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="ahead" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+		<addColumn tableName="pull_requests">
+			<column name="behind" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
 
-    <changeSet id="pk_for_pull_requests" author="Jan-Willem Gmelig Meyling">
-        <dropPrimaryKey tableName="pull_requests"></dropPrimaryKey>
-        <addPrimaryKey tableName="pull_requests" columnNames="id,repository_name"></addPrimaryKey>
-    </changeSet>
+	<changeSet id="pk_for_pull_requests" author="Jan-Willem Gmelig Meyling">
+		<dropPrimaryKey tableName="pull_requests"></dropPrimaryKey>
+		<addPrimaryKey tableName="pull_requests" columnNames="id,repository_name"></addPrimaryKey>
+	</changeSet>
 
-    <changeSet id="pull_request_comments" author="Jan-Willem Gmelig Meyling">
-        <createTable tableName="pull_request_comments">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true"/>
-            </column>
-            <column name="repository_name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="issue_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="content" type="text"/>
-            <column name="user_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="time" type="datetime"/>
-        </createTable>
+	<changeSet id="pull_request_comments" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="pull_request_comments">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="content" type="text" />
+			<column name="user_id" type="bigint">
+				<constraints  nullable="false" />
+			</column>
+			<column name="time" type="datetime" />
+		</createTable>
 
-        <addForeignKeyConstraint constraintName="pr_commit_pr_in_prs"
-                                 baseTableName="pull_request_comments" baseColumnNames="repository_name,issue_id"
-                                 referencedTableName="pull_requests" referencedColumnNames="repository_name,id"/>
+		<addForeignKeyConstraint constraintName="pr_commit_pr_in_prs"
+			 baseTableName="pull_request_comments" baseColumnNames="repository_name,issue_id"
+			 referencedTableName="pull_requests" referencedColumnNames="repository_name,id"/>
 
-        <addForeignKeyConstraint constraintName="pr_commit_user_in_users"
-                                 baseTableName="pull_request_comments" baseColumnNames="user_id"
-                                 referencedTableName="users" referencedColumnNames="id"></addForeignKeyConstraint>
-    </changeSet>
+		<addForeignKeyConstraint constraintName="pr_commit_user_in_users"
+			 baseTableName="pull_request_comments" baseColumnNames="user_id"
+			 referencedTableName="users" referencedColumnNames="id"></addForeignKeyConstraint>
+	</changeSet>
 
-    <changeSet id="due_date" author="Jan-Willem Gmelig Meyling">
-        <dropColumn tableName="assignments" columnName="due_date"></dropColumn>
-        <addColumn tableName="assignments">
-            <column name="due_date" type="datetime"></column>
-        </addColumn>
-    </changeSet>
+	<changeSet id="due_date" author="Jan-Willem Gmelig Meyling">
+		<dropColumn tableName="assignments" columnName="due_date"></dropColumn>
+		<addColumn tableName="assignments">
+			<column name="due_date" type="datetime"></column>
+		</addColumn>
+	</changeSet>
 
-    <changeSet id="warning_tables" author="Jan-Willem Gmelig Meyling">
-        <dropColumn tableName="commit_comment" columnName="source_repository_name"/>
+	<changeSet id="warning_tables" author="Jan-Willem Gmelig Meyling">
+		<dropColumn tableName="commit_comment" columnName="source_repository_name"/>
 
-        <createTable tableName="group_warning">
-            <!-- Common warning attributes -->
-            <column name="warning_type" type="varchar(30)"/>
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="repository_name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <!-- Commit id for CommitWarnings -->
-            <column name="commit_id" type="varchar(40)"/>
-            <!-- Source embeddable for LineWarnings -->
-            <column name="source_commit_id" type="varchar(40)"/>
-            <column name="source_line_number" type="int"/>
-            <column name="source_file_path" type="varchar(255)"/>
-            <!-- Message for checkstyle, findbugs warnings -->
-            <column name="message" type="varchar(1024)"/>
-            <!-- Priority for findbugs and PMD warnings -->
-            <column name="priority" type="int"/>
-            <!-- Severity for checkstye warnings -->
-            <column name="severity" type="varchar(10)"/>
-            <!-- Rule for PMD warnings -->
-            <column name="rule" type="varchar(100)"/>
-        </createTable>
-    </changeSet>
+		<createTable tableName="group_warning">
+			<!-- Common warning attributes -->
+			<column name="warning_type" type="varchar(30)"/>
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="repository_name" type="varchar(255)">
+				<constraints nullable="false"/>
+			</column>
+			<!-- Commit id for CommitWarnings -->
+			<column name="commit_id" type="varchar(40)"/>
+			<!-- Source embeddable for LineWarnings -->
+			<column name="source_commit_id" type="varchar(40)"/>
+			<column name="source_line_number" type="int"/>
+			<column name="source_file_path" type="varchar(255)"/>
+			<!-- Message for checkstyle, findbugs warnings -->
+			<column name="message" type="varchar(1024)"/>
+			<!-- Priority for findbugs and PMD warnings -->
+			<column name="priority" type="int"/>
+			<!-- Severity for checkstye warnings -->
+			<column name="severity" type="varchar(10)"/>
+			<!-- Rule for PMD warnings -->
+			<column name="rule" type="varchar(100)"/>
+		</createTable>
+	</changeSet>
 
-    <changeSet id="add_build_instruction_entity" author="Jan-Willem Gmelig Meyling">
-        <createTable tableName="build_instructions">
-            <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true"/>
-            </column>
-            <column name="instruction_type" type="varchar(10)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="command" type="varchar(200)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="with_display" type="boolean"/>
-            <column name="checkstyle" type="boolean" defaultValue="false"/>
-            <column name="findbugs" type="boolean" defaultValue="false"/>
-            <column name="pmd" type="boolean" defaultValue="false"/>
-        </createTable>
+	<changeSet id="add_build_instruction_entity" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="build_instructions">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="instruction_type" type="varchar(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="command" type="varchar(200)">
+				<constraints nullable="false" />
+			</column>
+			<column name="with_display" type="boolean" />
+			<column name="checkstyle" type="boolean" defaultValue="false"/>
+			<column name="findbugs" type="boolean" defaultValue="false"/>
+			<column name="pmd" type="boolean" defaultValue="false"/>
+		</createTable>
 
-        <addColumn tableName="courses">
-            <column name="build_instruction" type="bigint"/>
-        </addColumn>
-        <addColumn tableName="groups">
-            <column name="build_instruction" type="bigint"/>
-        </addColumn>
+		<addColumn tableName="courses">
+			<column name="build_instruction" type="bigint"/>
+		</addColumn>
+		<addColumn tableName="groups">
+			<column name="build_instruction" type="bigint"/>
+		</addColumn>
 
-        <insert tableName="build_instructions">
-            <column name="instruction_type">java-maven</column>
-            <column name="command">test</column>
-            <column name="with_display">true</column>
-        </insert>
+		<insert tableName="build_instructions">
+			<column name="instruction_type">java-maven</column>
+			<column name="command">test</column>
+			<column name="with_display">true</column>
+		</insert>
 
-        <update tableName="courses">
-            <column name="build_instruction" value="1"/>
-            <where>true</where>
-        </update>
+		<update tableName="courses">
+			<column name="build_instruction" value="1"/>
+			<where>true</where>
+		</update>
 
-        <addForeignKeyConstraint constraintName="build_instruction_ref_in_courses"
-                                 baseTableName="courses" baseColumnNames="build_instruction"
-                                 referencedTableName="build_instructions" referencedColumnNames="id"/>
-        <addForeignKeyConstraint constraintName="build_instruction_ref_in_groups"
-                                 baseTableName="groups" baseColumnNames="build_instruction"
-                                 referencedTableName="build_instructions" referencedColumnNames="id"/>
-    </changeSet>
+		<addForeignKeyConstraint constraintName="build_instruction_ref_in_courses"
+			baseTableName="courses" baseColumnNames="build_instruction"
+			referencedTableName="build_instructions" referencedColumnNames="id" />
+		<addForeignKeyConstraint constraintName="build_instruction_ref_in_groups"
+			baseTableName="groups" baseColumnNames="build_instruction"
+			referencedTableName="build_instructions" referencedColumnNames="id" />
+	</changeSet>
 
-    <changeSet id="longer_branch_names" author="Jan-Willem Gmelig Meyling">
-        <modifyDataType tableName="pull_requests" columnName="branch_name" newDataType="varchar(255)"/>
+	<changeSet id="longer_branch_names" author="Jan-Willem Gmelig Meyling">
+		<modifyDataType tableName="pull_requests" columnName="branch_name" newDataType="varchar(255)"/>
 
-        <addColumn tableName="users">
-            <column name="student_number" type="varchar(20)"/>
-        </addColumn>
-    </changeSet>
+		<addColumn tableName="users">
+			<column name="student_number" type="varchar(20)"/>
+		</addColumn>
+	</changeSet>
 
-    <changeSet id="course_properties" author="Jan-Willem Gmelig Meyling">
-        <createTable tableName="course_properties">
-            <column name="course_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="property_key" type="varchar(40)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="property_value" type="varchar(40)"></column>
-        </createTable>
+	<changeSet id="course_properties" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="course_properties">
+			<column name="course_id" type="bigint">
+				<constraints nullable="false"/>
+			</column>
+			<column name="property_key" type="varchar(40)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="property_value" type="varchar(40)"></column>
+		</createTable>
 
-        <addPrimaryKey tableName="course_properties" columnNames="course_id, property_key"></addPrimaryKey>
+		<addPrimaryKey tableName="course_properties" columnNames="course_id, property_key"></addPrimaryKey>
 
-        <addColumn tableName="group_warning">
-            <column name="file_name" type="varchar(50)"></column>
-        </addColumn>
+		<addColumn tableName="group_warning">
+			<column name="file_name" type="varchar(50)"></column>
+		</addColumn>
 
-    </changeSet>
-
-    <changeSet id="date_for_commits" author="Jan-Willem Gmelig Meyling">
-        <addColumn tableName="commit">
-            <column name="author" type="varchar(255)"></column>
-            <column name="committed" type="datetime"/>
-            <column name="pushed" type="datetime"/>
-            <column name="merge" type="boolean"/>
-        </addColumn>
-    </changeSet>
-
+	</changeSet>
+	
+	<changeSet id="date_for_commits" author="Jan-Willem Gmelig Meyling">
+		<addColumn tableName="commit">
+			<column name="author" type="varchar(255)"></column>
+			<column name="committed" type="datetime"/>
+			<column name="pushed" type="datetime"/>
+			<column name="merge" type="boolean" />
+		</addColumn>
+	</changeSet>
+    
     <changeSet id="database_refactor" author="Jan-Willem Gmelig Meyling">
 
-        <dropForeignKeyConstraint baseTableName="pull_requests" constraintName="pr_repository_name_in_groups"/>
-        <dropForeignKeyConstraint baseTableName="commit" constraintName="commit_repository_name_in_groups"/>
-        <dropForeignKeyConstraint baseTableName="commit_comment" constraintName="commit_comment_commit_in_commits"/>
-        <dropForeignKeyConstraint baseTableName="commit_comment" constraintName="source_commit_comments_in_commits"/>
-        <dropForeignKeyConstraint baseTableName="pull_request_comments" constraintName="pr_commit_pr_in_prs"/>
+		<dropForeignKeyConstraint baseTableName="pull_requests" constraintName="pr_repository_name_in_groups"/>
+		<dropForeignKeyConstraint baseTableName="commit" constraintName="commit_repository_name_in_groups"/>
+		<dropForeignKeyConstraint baseTableName="commit_comment" constraintName="commit_comment_commit_in_commits"/>
+		<dropForeignKeyConstraint baseTableName="commit_comment" constraintName="source_commit_comments_in_commits"/>
+		<dropForeignKeyConstraint baseTableName="pull_request_comments" constraintName="pr_commit_pr_in_prs"/>
 
         <addColumn tableName="build_instructions">
             <column name="build_timeout" type="int" value="300" defaultValue="300"/>
@@ -551,13 +550,13 @@
 
         <createTable tableName="course">
             <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
+                <constraints primaryKey="true" nullable="false" />
             </column>
             <column name="code" type="varchar(12)">
                 <constraints nullable="false" unique="true"/>
             </column>
             <column name="name" type="varchar(64)">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
         </createTable>
 
@@ -571,9 +570,8 @@
         </sql>
 
         <addNotNullConstraint tableName="course_edition" columnName="course_id" columnDataType="bigint"/>
-        <addForeignKeyConstraint referencedTableName="course" referencedColumnNames="id"
-                                 constraintName="course_edition_course_id"
-                                 baseTableName="course_edition" baseColumnNames="course_id"/>
+        <addForeignKeyConstraint referencedTableName="course" referencedColumnNames="id" constraintName="course_edition_course_id"
+             baseTableName="course_edition" baseColumnNames="course_id"/>
 
         <dropColumn tableName="course_edition" columnName="name"/>
 
@@ -583,18 +581,18 @@
         <renameColumn tableName="assignments" oldColumnName="course_id" newColumnName="course_edition_id"/>
         <renameColumn tableName="groups" oldColumnName="course_id" newColumnName="course_edition_id"/>
 
-        <dropForeignKeyConstraint baseTableName="group_memberships" constraintName="group_ref_in_groupmemberships"/>
-        <dropForeignKeyConstraint baseTableName="build_results" constraintName="repository_ref_in_build_results"/>
-        <dropForeignKeyConstraint baseTableName="assignment_deliveries" constraintName="assignment_deliveries_group"/>
+		<dropForeignKeyConstraint baseTableName="group_memberships" constraintName="group_ref_in_groupmemberships"/>
+		<dropForeignKeyConstraint baseTableName="build_results" constraintName="repository_ref_in_build_results"/>
+		<dropForeignKeyConstraint baseTableName="assignment_deliveries" constraintName="assignment_deliveries_group"/>
 
-        <dropPrimaryKey tableName="groups"/>
-        <addPrimaryKey tableName="groups" columnNames="course_edition_id, group_number"/>
+		<dropPrimaryKey tableName="groups"/>
+		<addPrimaryKey tableName="groups" columnNames="course_edition_id, group_number"/>
 
-        <!--<dropUniqueConstraint tableName="groups" constraintName="groups_course_id_group_number_key"/>-->
+		<!--<dropUniqueConstraint tableName="groups" constraintName="groups_course_id_group_number_key"/>-->
 
         <createTable tableName="repository">
             <column name="id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true"/>
+                <constraints primaryKey="true" />
             </column>
             <column name="DTYPE" type="int">
                 <constraints nullable="false"/>
@@ -606,20 +604,18 @@
         </createTable>
 
         <addForeignKeyConstraint constraintName="build_instruction_ref_in_repository"
-                                 baseTableName="repository" baseColumnNames="build_instruction"
-                                 referencedTableName="build_instructions" referencedColumnNames="id"/>
+                 baseTableName="repository" baseColumnNames="build_instruction"
+                 referencedTableName="build_instructions" referencedColumnNames="id" />
 
         <addColumn tableName="groups">
             <column name="repository_id" type="bigint"></column>
         </addColumn>
 
-        <addForeignKeyConstraint baseTableName="groups" baseColumnNames="repository_id"
-                                 constraintName="repository_id_group"
-                                 referencedTableName="repository" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="groups" baseColumnNames="repository_id" constraintName="repository_id_group"
+                referencedTableName="repository" referencedColumnNames="id"/>
 
         <sql>
-            insert into repository (id, DTYPE, repository_name, build_instruction) select id, 1 as DTYPE,
-            repository_name, build_instruction from groups;
+            insert into repository (id, DTYPE, repository_name, build_instruction) select id, 1 as DTYPE, repository_name, build_instruction from groups;
             update groups set repository_id = id;
         </sql>
 
@@ -635,7 +631,7 @@
 
         <addColumn tableName="pull_requests">
             <column name="created_date" type="datetime"></column>
-            <column name="closed_date" type="timestamp"></column>
+			<column name="closed_date" type="timestamp"></column>
         </addColumn>
 
         <addColumn tableName="commit_comment">
@@ -654,27 +650,16 @@
             <column name="repository_id" type="bigint"></column>
         </addColumn>
 
-        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id"
-                                 constraintName="repository_id_for_pull_requests" baseTableName="pull_requests"
-                                 baseColumnNames="repository_id"/>
-        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id"
-                                 constraintName="repository_id_for_commit" baseTableName="commit"
-                                 baseColumnNames="repository_id"/>
-        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id"
-                                 constraintName="repository_id_for_group_warning" baseTableName="group_warning"
-                                 baseColumnNames="repository_id"/>
+        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_pull_requests" baseTableName="pull_requests" baseColumnNames="repository_id"/>
+        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_commit" baseTableName="commit" baseColumnNames="repository_id"/>
+        <addForeignKeyConstraint referencedTableName="repository" referencedColumnNames="id" constraintName="repository_id_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id"/>
 
         <sql>
-            update commit set repository_id = (select id from repository where repository.repository_name =
-            commit.repository_name);
-            update commit_comment set repository_id = (select id from repository where repository.repository_name =
-            commit_comment.repository_name);
-            update group_warning set repository_id = (select id from repository where repository.repository_name =
-            group_warning.repository_name);
-            update pull_requests set repository_id = (select id from repository where repository.repository_name =
-            pull_requests.repository_name);
-            update pull_request_comments set repository_id = (select id from repository where repository.repository_name
-            = pull_request_comments.repository_name);
+            update commit set repository_id = (select id from repository where repository.repository_name = commit.repository_name);
+            update commit_comment set repository_id = (select id from repository where repository.repository_name = commit_comment.repository_name);
+            update group_warning set repository_id = (select id from repository where repository.repository_name = group_warning.repository_name);
+            update pull_requests set repository_id = (select id from repository where repository.repository_name = pull_requests.repository_name);
+            update pull_request_comments set repository_id = (select id from repository where repository.repository_name = pull_request_comments.repository_name);
         </sql>
 
         <addNotNullConstraint tableName="commit" columnName="repository_id" columnDataType="bigint"/>
@@ -694,37 +679,25 @@
         <dropColumn tableName="pull_requests" columnName="repository_name"/>
         <dropColumn tableName="pull_request_comments" columnName="repository_name"/>
 
-        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"
-                                 constraintName="commit_for_group_warning" baseTableName="group_warning"
-                                 baseColumnNames="repository_id, commit_id"/>
-        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"
-                                 constraintName="source_commit_for_group_warning" baseTableName="group_warning"
-                                 baseColumnNames="repository_id, source_commit_id"/>
-        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"
-                                 constraintName="commit_for_commit_comment" baseTableName="commit_comment"
-                                 baseColumnNames="repository_id, commit_id"/>
-        <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"
-                                 constraintName="source_commit_id_for_commit_comment" baseTableName="commit_comment"
-                                 baseColumnNames="repository_id, source_commit_id"/>
-        <addForeignKeyConstraint referencedTableName="pull_requests" referencedColumnNames="repository_id, issue_id"
-                                 constraintName="pull_request_for_comment" baseTableName="pull_request_comments"
-                                 baseColumnNames="repository_id, issue_id"/>
-
-        <renameColumn tableName="assignment_deliveries" oldColumnName="course_id" newColumnName="course_edition_id"/>
+		<addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id" constraintName="commit_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id, commit_id"/>
+		<addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id" constraintName="source_commit_for_group_warning" baseTableName="group_warning" baseColumnNames="repository_id, source_commit_id"/>
+		<addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"  constraintName="commit_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id, commit_id"/>
+		<addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"  constraintName="source_commit_id_for_commit_comment" baseTableName="commit_comment" baseColumnNames="repository_id, source_commit_id"/>
+		<addForeignKeyConstraint referencedTableName="pull_requests" referencedColumnNames="repository_id, issue_id" constraintName="pull_request_for_comment" baseTableName="pull_request_comments" baseColumnNames="repository_id, issue_id"/>
+		
+		<renameColumn tableName="assignment_deliveries" oldColumnName="course_id" newColumnName="course_edition_id"/>
         <addColumn tableName="assignment_deliveries">
-            <column name="group_number" type="bigint"></column>
+                <column name="group_number" type="bigint"></column>
         </addColumn>
 
-        <sql>update assignment_deliveries set group_number = (select group_number from groups where groups.id =
-            assignment_deliveries.group_id);
-        </sql>
+        <sql>update assignment_deliveries set group_number = (select group_number from groups where groups.id = assignment_deliveries.group_id);</sql>
 
         <addNotNullConstraint tableName="assignment_deliveries" columnName="group_number" columnDataType="bigint"/>
 
         <addForeignKeyConstraint referencedTableName="groups" referencedColumnNames="course_edition_id, group_number"
-                                 constraintName="assignment_delivery_group_exists"
-                                 baseTableName="assignment_deliveries"
-                                 baseColumnNames="course_edition_id, group_number"/>
+             constraintName="assignment_delivery_group_exists"
+             baseTableName="assignment_deliveries"
+             baseColumnNames="course_edition_id, group_number"/>
 
         <renameColumn tableName="assignment_deliveries" oldColumnName="group_id" newColumnName="repository_id"/>
         <dropNotNullConstraint tableName="assignment_deliveries" columnName="repository_id" columnDataType="bigint"/>
@@ -736,47 +709,33 @@
         <renameColumn tableName="assignment_deliveries" oldColumnName="created" newColumnName="created_date"/>
 
         <dropColumn tableName="build_results" columnName="id"/>
-        <!--<dropUniqueConstraint tableName="build_results" constraintName="build_results_repository_id_commit_id_key"/>-->
+		<!--<dropUniqueConstraint tableName="build_results" constraintName="build_results_repository_id_commit_id_key"/>-->
         <addPrimaryKey tableName="build_results" columnNames="repository_id, commit_id"/>
 
-        <sql>insert into commit (repository_id, commit_id) select build_results.repository_id, build_results.commit_id
-            from build_results where not exists ( select * from commit where commit.repository_id =
-            build_results.repository_id and commit.commit_id = build_results.commit_id);
-        </sql>
-        <sql>insert into commit (repository_id, commit_id) select pull_requests.repository_id,
-            pull_requests.merge_commit_id as commit_id from pull_requests where not exists ( select * from commit where
-            commit.repository_id = pull_requests.repository_id and commit.commit_id = pull_requests.merge_commit_id);
-        </sql>
-        <sql>insert into commit (repository_id, commit_id) select pull_requests.repository_id,
-            pull_requests.destination_commit_id as commit_id from pull_requests where not exists ( select * from commit
-            where commit.repository_id = pull_requests.repository_id and commit.commit_id =
-            pull_requests.destination_commit_id);
-        </sql>
-        <sql>insert into commit (repository_id, commit_id) select assignment_deliveries.repository_id,
-            assignment_deliveries.commit_id from assignment_deliveries where not exists ( select * from commit where
-            commit.repository_id = assignment_deliveries.repository_id and commit.commit_id =
-            assignment_deliveries.commit_id);
-        </sql>
+        <sql>insert into commit (repository_id, commit_id) select build_results.repository_id, build_results.commit_id from build_results where not exists ( select * from commit where commit.repository_id = build_results.repository_id and  commit.commit_id = build_results.commit_id);</sql>
+        <sql>insert into commit (repository_id, commit_id) select pull_requests.repository_id, pull_requests.merge_commit_id as commit_id from pull_requests where not exists ( select * from commit where commit.repository_id = pull_requests.repository_id and  commit.commit_id = pull_requests.merge_commit_id);</sql>
+        <sql>insert into commit (repository_id, commit_id) select pull_requests.repository_id, pull_requests.destination_commit_id as commit_id from pull_requests where not exists ( select * from commit where commit.repository_id = pull_requests.repository_id and  commit.commit_id = pull_requests.destination_commit_id);</sql>
+        <sql>insert into commit (repository_id, commit_id) select assignment_deliveries.repository_id, assignment_deliveries.commit_id from assignment_deliveries where not exists ( select * from commit where commit.repository_id = assignment_deliveries.repository_id and  commit.commit_id = assignment_deliveries.commit_id);</sql>
 
         <addForeignKeyConstraint referencedTableName="commit" referencedColumnNames="repository_id, commit_id"
-                                 constraintName="commit_for_build_result"
-                                 baseTableName="build_results"
-                                 baseColumnNames="repository_id, commit_id"/>
+             constraintName="commit_for_build_result"
+             baseTableName="build_results"
+             baseColumnNames="repository_id, commit_id"/>
 
-        <addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="repository_id, merge_commit_id"
-                                 constraintName="pull_requests_merge_commit"
-                                 referencedTableName="commit"
-                                 referencedColumnNames="repository_id, commit_id"/>
+		<addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="repository_id, merge_commit_id"
+			 constraintName="pull_requests_merge_commit"
+			 referencedTableName="commit"
+			 referencedColumnNames="repository_id, commit_id"/>
 
-        <addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="repository_id, destination_commit_id"
-                                 constraintName="pull_requests_destination_commit"
-                                 referencedTableName="commit"
-                                 referencedColumnNames="repository_id, commit_id"/>
+		<addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="repository_id, destination_commit_id"
+			 constraintName="pull_requests_destination_commit"
+			 referencedTableName="commit"
+			 referencedColumnNames="repository_id, commit_id"/>
 
-        <addForeignKeyConstraint baseTableName="assignment_deliveries" baseColumnNames="repository_id, commit_id"
-                                 constraintName="assignment_deliveries_commit"
-                                 referencedTableName="commit"
-                                 referencedColumnNames="repository_id, commit_id"/>
+		<addForeignKeyConstraint baseTableName="assignment_deliveries" baseColumnNames="repository_id, commit_id"
+			 constraintName="assignment_deliveries_commit"
+			 referencedTableName="commit"
+			 referencedColumnNames="repository_id, commit_id"/>
 
         <addColumn tableName="group_memberships">
             <column name="course_edition_id" type="bigint"/>
@@ -784,23 +743,18 @@
         </addColumn>
 
         <addForeignKeyConstraint constraintName="group_ref_in_groupmemberships"
-                                 baseTableName="group_memberships" baseColumnNames="course_edition_id, group_number"
-                                 referencedTableName="groups" referencedColumnNames="course_edition_id, group_number"/>
+             baseTableName="group_memberships" baseColumnNames="course_edition_id, group_number"
+             referencedTableName="groups" referencedColumnNames="course_edition_id, group_number" />
 
-        <sql>update group_memberships set course_edition_id = (select course_edition_id from groups where groups.id =
-            group_memberships.group_id);
-        </sql>
-        <sql>update group_memberships set group_number = (select group_number from groups where groups.id =
-            group_memberships.group_id);
-        </sql>
+        <sql>update group_memberships set course_edition_id = (select course_edition_id from groups where groups.id = group_memberships.group_id);</sql>
+        <sql>update group_memberships set group_number = (select group_number from groups where groups.id = group_memberships.group_id);</sql>
 
-        <addNotNullConstraint tableName="group_memberships" columnName="course_edition_id" columnDataType="bigint"/>
-        <addNotNullConstraint tableName="group_memberships" columnName="group_number" columnDataType="bigint"/>
+		<addNotNullConstraint tableName="group_memberships" columnName="course_edition_id" columnDataType="bigint"/>
+		<addNotNullConstraint tableName="group_memberships" columnName="group_number" columnDataType="bigint"/>
 
         <dropPrimaryKey tableName="group_memberships"/>
         <addPrimaryKey tableName="group_memberships" columnNames="course_edition_id, group_number, user_id"/>
-        <addUniqueConstraint tableName="group_memberships" columnNames="course_edition_id, user_id"
-                             constraintName="UNIQUE_GROUP_MEMBERSHIP_PER_COURSE"/>
+        <addUniqueConstraint tableName="group_memberships" columnNames="course_edition_id, user_id" constraintName="UNIQUE_GROUP_MEMBERSHIP_PER_COURSE"/>
         <dropColumn tableName="group_memberships" columnName="group_id"/>
 
         <createTable tableName="seq_group_number">
@@ -813,13 +767,11 @@
         </createTable>
 
         <addForeignKeyConstraint baseTableName="seq_group_number" baseColumnNames="course_edition_id"
-                                 constraintName="group_number_seq_course_edition_unique"
-                                 referencedTableName="course_edition"
-                                 referencedColumnNames="id" onDelete="CASCADE"/>
+             constraintName="group_number_seq_course_edition_unique"
+             referencedTableName="course_edition"
+             referencedColumnNames="id" onDelete="CASCADE"/>
 
-        <sql>insert into seq_group_number (course_edition_id, next_val) select course_edition_id, (MAX(group_number) +
-            1) as next_val from groups group by course_edition_id;
-        </sql>
+        <sql>insert into seq_group_number (course_edition_id, next_val) select course_edition_id, (MAX(group_number) + 1) as next_val from groups group by course_edition_id;</sql>
 
         <createTable tableName="seq_issue_id">
             <column name="repository_id" type="bigint">
@@ -831,13 +783,11 @@
         </createTable>
 
         <addForeignKeyConstraint baseTableName="seq_issue_id" baseColumnNames="repository_id"
-                                 constraintName="issue_id_sequence_repository_unique"
-                                 referencedTableName="repository"
-                                 referencedColumnNames="id" onDelete="CASCADE"/>
+             constraintName="issue_id_sequence_repository_unique"
+             referencedTableName="repository"
+             referencedColumnNames="id" onDelete="CASCADE"/>
 
-        <sql>insert into seq_issue_id (repository_id, next_val) select repository_id, (MAX(issue_id) + 1) as next_val
-            from pull_requests group by repository_id;
-        </sql>
+        <sql>insert into seq_issue_id (repository_id, next_val) select repository_id, (MAX(issue_id) + 1) as next_val from pull_requests group by repository_id;</sql>
 
         <createTable tableName="seq_assignment_id">
             <column name="course_edition_id" type="bigint">
@@ -849,82 +799,80 @@
         </createTable>
 
         <addForeignKeyConstraint baseTableName="seq_assignment_id" baseColumnNames="course_edition_id"
-                                 constraintName="assignment_id_seq_course_edition_unique"
-                                 referencedTableName="course_edition"
-                                 referencedColumnNames="id" onDelete="CASCADE"/>
+             constraintName="assignment_id_seq_course_edition_unique"
+             referencedTableName="course_edition"
+             referencedColumnNames="id" onDelete="CASCADE"/>
 
-        <sql>insert into seq_assignment_id (course_edition_id, next_val) select course_edition_id, (MAX(assignment_id) +
-            1) as next_val from assignments group by course_edition_id;
-        </sql>
+        <sql>insert into seq_assignment_id (course_edition_id, next_val) select course_edition_id, (MAX(assignment_id) + 1) as next_val from assignments group by course_edition_id;</sql>
 
-        <dropColumn tableName="groups" columnName="id"/>
+		<dropColumn tableName="groups" columnName="id"/>
 
-    </changeSet>
+	</changeSet>
 
-    <changeSet id="add_private_repositories" author="Jan-Willem">
-        <addColumn tableName="repository">
-            <column name="owner_id" type="bigint"></column>
-            <column name="repository_title" type="varchar(255)"></column>
-        </addColumn>
+	<changeSet id="add_private_repositories" author="Jan-Willem">
+		<addColumn tableName="repository">
+			<column name="owner_id" type="bigint"></column>
+			<column name="repository_title" type="varchar(255)"></column>
+		</addColumn>
 
-        <addForeignKeyConstraint baseTableName="repository" baseColumnNames="owner_id"
-                                 constraintName="private_repository_owner"
-                                 referencedTableName="users"
-                                 referencedColumnNames="id"/>
+		<addForeignKeyConstraint baseTableName="repository" baseColumnNames="owner_id"
+			 constraintName="private_repository_owner"
+			 referencedTableName="users"
+			 referencedColumnNames="id"/>
 
-        <createTable tableName="private_repository_properties">
-            <column name="repository_id" type="bigint">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="property_key" type="varchar(40)">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="property_value" type="varchar(40)"></column>
-        </createTable>
+		<createTable tableName="private_repository_properties">
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="property_key" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="property_value" type="varchar(40)"></column>
+		</createTable>
 
 
-        <addForeignKeyConstraint baseTableName="private_repository_properties" baseColumnNames="repository_id"
-                                 constraintName="properties_private_repository"
-                                 referencedTableName="repository"
-                                 referencedColumnNames="id"/>
+		<addForeignKeyConstraint baseTableName="private_repository_properties" baseColumnNames="repository_id"
+			 constraintName="properties_private_repository"
+			 referencedTableName="repository"
+			 referencedColumnNames="id"/>
 
-        <createTable tableName="private_repository_collaborators">
-            <column name="repository_id" type="bigint">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="user_id" type="bigint">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-        </createTable>
+		<createTable tableName="private_repository_collaborators">
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="user_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+		</createTable>
 
-        <addForeignKeyConstraint baseTableName="private_repository_collaborators" baseColumnNames="repository_id"
-                                 constraintName="collaborators_repository"
-                                 referencedTableName="repository"
-                                 referencedColumnNames="id"/>
+		<addForeignKeyConstraint baseTableName="private_repository_collaborators" baseColumnNames="repository_id"
+			 constraintName="collaborators_repository"
+			 referencedTableName="repository"
+			 referencedColumnNames="id"/>
 
-        <addForeignKeyConstraint baseTableName="private_repository_collaborators" baseColumnNames="user_id"
-                                 constraintName="private_repository_collaborator"
-                                 referencedTableName="users"
-                                 referencedColumnNames="id"/>
+		<addForeignKeyConstraint baseTableName="private_repository_collaborators" baseColumnNames="user_id"
+			 constraintName="private_repository_collaborator"
+			 referencedTableName="users"
+			 referencedColumnNames="id"/>
 
-    </changeSet>
+	</changeSet>
 
-    <changeSet id="add_commit_parents" author="Jan-Willem Gmelig Meyling">
-        <createTable tableName="commit_parent">
-            <column name="repository_id" type="bigint">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="parent_repository_id" type="bigint">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="commit_id" type="varchar(40)">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="parent_commit_id" type="varchar(40)">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-        </createTable>
-    </changeSet>
+	<changeSet id="add_commit_parents" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="commit_parent">
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="parent_repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="commit_id" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="parent_commit_id" type="varchar(40)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+		</createTable>
+	</changeSet>
 
     <changeSet id="add_rubrics" author="Jan-Willem Gmelig Meyling">
         <createTable tableName="assignment_task">
@@ -939,7 +887,7 @@
             </column>
             <column name="description" type="varchar(1024)"/>
         </createTable>
-
+        
         <createTable tableName="assignment_task_characteristic">
             <column name="characteristic_type" type="varchar(255)" defaultValue="PlainCharacteristic">
                 <constraints nullable="false"/>
@@ -986,194 +934,184 @@
         </createTable>
 
         <addPrimaryKey tableName="delivery_rubrics" columnNames="delivery_id, characteristic_id"/>
-
+        
         <addForeignKeyConstraint baseTableName="assignment_task" baseColumnNames="course_edition_id, assignment_id"
-                                 constraintName="task_for_assignment"
-                                 referencedTableName="assignments"
-                                 referencedColumnNames="course_edition_id, assignment_id"/>
+             constraintName="task_for_assignment"
+             referencedTableName="assignments"
+             referencedColumnNames="course_edition_id, assignment_id"/>
 
         <addForeignKeyConstraint baseTableName="assignment_task_characteristic"
-                                 baseColumnNames="task_id" constraintName="task_for_characteristic"
-                                 referencedTableName="assignment_task"
-                                 referencedColumnNames="task_id"/>
+            baseColumnNames="task_id" constraintName="task_for_characteristic" referencedTableName="assignment_task"
+             referencedColumnNames="task_id"/>
 
         <addForeignKeyConstraint baseTableName="characteristic_mastery" baseColumnNames="characteristic_id"
-                                 constraintName="characteristic_for_mastery"
-                                 referencedTableName="assignment_task_characteristic"
-                                 referencedColumnNames="characteristic_id"/>
+            constraintName="characteristic_for_mastery" referencedTableName="assignment_task_characteristic"
+            referencedColumnNames="characteristic_id"/>
 
         <addForeignKeyConstraint baseTableName="delivery_rubrics" baseColumnNames="mastery_id"
-                                 constraintName="mastery_for_delivery_rubrics"
-                                 referencedTableName="characteristic_mastery"
-                                 referencedColumnNames="mastery_id"/>
+             constraintName="mastery_for_delivery_rubrics" referencedTableName="characteristic_mastery"
+             referencedColumnNames="mastery_id"/>
 
-        <addUniqueConstraint tableName="delivery_rubrics" columnNames="delivery_id, characteristic_id"
-                             constraintName="unique_characteristic_per_delivery"/>
+				<addUniqueConstraint tableName="delivery_rubrics" columnNames="delivery_id, characteristic_id"
+														 constraintName="unique_characteristic_per_delivery"/>
 
         <addForeignKeyConstraint baseTableName="delivery_rubrics" baseColumnNames="delivery_id"
-                                 constraintName="delivery_for_delivery_rubrics"
-                                 referencedTableName="assignment_deliveries"
-                                 referencedColumnNames="id"/>
+             constraintName="delivery_for_delivery_rubrics" referencedTableName="assignment_deliveries"
+             referencedColumnNames="id"/>
     </changeSet>
 
-    <changeSet id="fix_columnname" author="Jan-Willem Gmelig Meyling">
-        <renameColumn tableName="assignment_task_characteristic" oldColumnName="weightAddsToTotalWeight"
-                      newColumnName="weight_adds_to_total_weight"/>
-    </changeSet>
+	<changeSet id="fix_columnname" author="Jan-Willem Gmelig Meyling">
+		<renameColumn tableName="assignment_task_characteristic" oldColumnName="weightAddsToTotalWeight" newColumnName="weight_adds_to_total_weight"/>
+	</changeSet>
 
-    <changeSet id="add_assignment_release" author="Liam Clark">
-        <addColumn tableName="assignments">
-            <column name="released" type="boolean" defaultValue="true">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-    </changeSet>
+	<changeSet id="add_assignment_release" author="Liam Clark">
+		<addColumn tableName="assignments">
+			<column name="released" type="boolean" defaultValue="true">
+				<constraints nullable="false"/>
+			</column>
+		</addColumn>
+	</changeSet>
+	
+	<changeSet id="add_issues" author="Aron Zwaan">
+		<createTable tableName="repository_issues">
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="open" type="boolean" defaultValue="false">
+				<constraints nullable="false" />
+			</column>			
+			<column name="created_date" type="datetime"></column>
+			<column name="closed_date" type="timestamp"></column>
+			<column name="title" type="varchar(255)"></column>
+			<column name="description" type="text"></column>
+			<column name="assignee" type="bigint"></column>
+		</createTable>
 
-    <changeSet id="add_issues" author="Aron Zwaan">
-        <createTable tableName="repository_issues">
-            <column name="issue_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="repository_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="open" type="boolean" defaultValue="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="created_date" type="datetime"></column>
-            <column name="closed_date" type="timestamp"></column>
-            <column name="title" type="varchar(255)"></column>
-            <column name="description" type="text"></column>
-            <column name="assignee" type="bigint"></column>
-        </createTable>
+		<addPrimaryKey tableName="repository_issues" columnNames="repository_id, issue_id"/>
 
-        <addPrimaryKey tableName="repository_issues" columnNames="repository_id, issue_id"/>
+		<addForeignKeyConstraint baseTableName="repository_issues" baseColumnNames="assignee"
+			 constraintName="issue_assignee"
+			 referencedTableName="users"
+			 referencedColumnNames="id"/>
+		
+		<!-- Add columns added to AbstractIssue to the pull_requests table -->
+		<addColumn tableName="pull_requests">
+			<column name="title" type="varchar(255)"></column>
+			<column name="description" type="text"></column>
+			<column name="assignee" type="bigint"></column>
+		</addColumn>		
 
-        <addForeignKeyConstraint baseTableName="repository_issues" baseColumnNames="assignee"
-                                 constraintName="issue_assignee"
-                                 referencedTableName="users"
-                                 referencedColumnNames="id"/>
+		<addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="assignee"
+			 constraintName="pull_request_assignee"
+			 referencedTableName="users"
+			 referencedColumnNames="id"/>
+	</changeSet>
+	<changeSet id="add_issue_comments" author="Aron Zwaan">
+	
+		<createTable tableName="repository_issue_comments">
+			<column name="id" type="bigint" autoIncrement="true" />
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="content" type="text" />
+			<column name="user_id" type="bigint">
+				<constraints  nullable="false" />
+			</column>
+			<column name="created_date" type="datetime" />
+		</createTable>
+		
+		<addForeignKeyConstraint referencedTableName="repository_issues" 
+			referencedColumnNames="repository_id, issue_id" 
+			constraintName="issue_for_comment" 
+			baseTableName="repository_issue_comments" 
+			baseColumnNames="repository_id, issue_id"/>
+	</changeSet>
 
-        <!-- Add columns added to AbstractIssue to the pull_requests table -->
-        <addColumn tableName="pull_requests">
-            <column name="title" type="varchar(255)"></column>
-            <column name="description" type="text"></column>
-            <column name="assignee" type="bigint"></column>
-        </addColumn>
+	<changeSet id="persist_students_with_delivery" author="Jan-Willem Gmelig Meyling">
+		<createTable tableName="delivery_students">
+			<column name="delivery_id" type="bigint">
+				<constraints primaryKey="true" nullable="false"/>
+			</column>
+			<column name="user_id" type="bigint">
+				<constraints primaryKey="true" nullable="false"/>
+			</column>
 
-        <addForeignKeyConstraint baseTableName="pull_requests" baseColumnNames="assignee"
-                                 constraintName="pull_request_assignee"
-                                 referencedTableName="users"
-                                 referencedColumnNames="id"/>
-    </changeSet>
-    <changeSet id="add_issue_comments" author="Aron Zwaan">
+		</createTable>
+		<addForeignKeyConstraint constraintName="delivery_ref_in_delivery_students"
+														 baseTableName="delivery_students" baseColumnNames="delivery_id"
+														 referencedTableName="assignment_deliveries" referencedColumnNames="id"/>
 
-        <createTable tableName="repository_issue_comments">
-            <column name="id" type="bigint" autoIncrement="true"/>
-            <column name="issue_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="repository_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="content" type="text"/>
-            <column name="user_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="created_date" type="datetime"/>
-        </createTable>
+		<addForeignKeyConstraint constraintName="user_ref_in_delivery_students"
+														 baseTableName="delivery_students" baseColumnNames="user_id"
+														 referencedTableName="users" referencedColumnNames="id"/>
+		<sql>insert into delivery_students (delivery_id, user_id ) select assignment_deliveries.id as delivery_id, group_memberships.user_id as user_id from assignment_deliveries join group_memberships on group_memberships.course_edition_id = assignment_deliveries.course_edition_id and group_memberships.group_number = assignment_deliveries.group_number;</sql>
+	</changeSet>
+	
+	<changeSet id="abstracted_pull_request_and_issue" author="Jan-Willem Gmelig Meyling">
+		<dropNotNullConstraint tableName="pull_requests" columnName="branch_name" columnDataType="varchar(40)"/>
+		<dropNotNullConstraint tableName="pull_requests" columnName="merged" columnDataType="boolean"/>
+		<dropNotNullConstraint tableName="pull_requests" columnName="behind" columnDataType="int"/>
+		<dropNotNullConstraint tableName="pull_requests" columnName="ahead" columnDataType="int"/>
 
-        <addForeignKeyConstraint referencedTableName="repository_issues"
-                                 referencedColumnNames="repository_id, issue_id"
-                                 constraintName="issue_for_comment"
-                                 baseTableName="repository_issue_comments"
-                                 baseColumnNames="repository_id, issue_id"/>
-    </changeSet>
+		<sql>
+			insert into pull_requests (repository_id, issue_id, open, created_date, closed_date, title, description, assignee)
+				select repository_id, issue_id, open, created_date, closed_date, title, description, assignee from repository_issues;
+		</sql>
 
-    <changeSet id="persist_students_with_delivery" author="Jan-Willem Gmelig Meyling">
-        <createTable tableName="delivery_students">
-            <column name="delivery_id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="user_id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
+		<sql>
+			insert into pull_request_comments (issue_id, repository_id, content, user_id, created_date)
+				select issue_id, repository_id, content, user_id, created_date from repository_issue_comments;
+		</sql>
 
-        </createTable>
-        <addForeignKeyConstraint constraintName="delivery_ref_in_delivery_students"
-                                 baseTableName="delivery_students" baseColumnNames="delivery_id"
-                                 referencedTableName="assignment_deliveries" referencedColumnNames="id"/>
+		<dropTable tableName="repository_issue_comments"/>
+		<dropTable tableName="repository_issues"/>
+		<renameTable oldTableName="pull_requests" newTableName="repository_issues"/>
+		<renameTable oldTableName="pull_request_comments" newTableName="repository_issue_comments"/>
+	</changeSet>
+	
+	<changeSet id="add_issue_labels" author="Aron Zwaan">
+		<createTable tableName="repository_labels">
+			<column name="label_id" type="bigint" autoIncrement="true" >
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="tag" type="varchar(64)" />
+			<column name="color" type="int" />
+		</createTable>
+		
+		<createTable tableName="issue_labels">
+			<column name="label_id" type="bigint">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="repository_id" type="bigint">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="issue_id" type="bigint">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint referencedTableName="repository_issues" 
+			referencedColumnNames="repository_id, issue_id" 
+			constraintName="repository_for_label" 
+			baseTableName="issue_labels" 
+			baseColumnNames="repository_id, issue_id"/>
+			
+		<addForeignKeyConstraint referencedTableName="repository_labels" 
+			referencedColumnNames="label_id" 
+			constraintName="issue_for_label" 
+			baseTableName="issue_labels" 
+			baseColumnNames="label_id"/>
+	</changeSet>
 
-        <addForeignKeyConstraint constraintName="user_ref_in_delivery_students"
-                                 baseTableName="delivery_students" baseColumnNames="user_id"
-                                 referencedTableName="users" referencedColumnNames="id"/>
-        <sql>insert into delivery_students (delivery_id, user_id ) select assignment_deliveries.id as delivery_id,
-            group_memberships.user_id as user_id from assignment_deliveries join group_memberships on
-            group_memberships.course_edition_id = assignment_deliveries.course_edition_id and
-            group_memberships.group_number = assignment_deliveries.group_number;
-        </sql>
-    </changeSet>
-
-    <changeSet id="abstracted_pull_request_and_issue" author="Jan-Willem Gmelig Meyling">
-        <dropNotNullConstraint tableName="pull_requests" columnName="branch_name" columnDataType="varchar(40)"/>
-        <dropNotNullConstraint tableName="pull_requests" columnName="merged" columnDataType="boolean"/>
-        <dropNotNullConstraint tableName="pull_requests" columnName="behind" columnDataType="int"/>
-        <dropNotNullConstraint tableName="pull_requests" columnName="ahead" columnDataType="int"/>
-
-        <sql>
-            insert into pull_requests (repository_id, issue_id, open, created_date, closed_date, title, description,
-            assignee)
-            select repository_id, issue_id, open, created_date, closed_date, title, description, assignee from
-            repository_issues;
-        </sql>
-
-        <sql>
-            insert into pull_request_comments (issue_id, repository_id, content, user_id, created_date)
-            select issue_id, repository_id, content, user_id, created_date from repository_issue_comments;
-        </sql>
-
-        <dropTable tableName="repository_issue_comments"/>
-        <dropTable tableName="repository_issues"/>
-        <renameTable oldTableName="pull_requests" newTableName="repository_issues"/>
-        <renameTable oldTableName="pull_request_comments" newTableName="repository_issue_comments"/>
-    </changeSet>
-
-    <changeSet id="add_issue_labels" author="Aron Zwaan">
-        <createTable tableName="repository_labels">
-            <column name="label_id" type="bigint" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="repository_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="tag" type="varchar(64)"/>
-            <column name="color" type="int"/>
-        </createTable>
-
-        <createTable tableName="issue_labels">
-            <column name="label_id" type="bigint">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="repository_id" type="bigint">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="issue_id" type="bigint">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-        </createTable>
-
-        <addForeignKeyConstraint referencedTableName="repository_issues"
-                                 referencedColumnNames="repository_id, issue_id"
-                                 constraintName="repository_for_label"
-                                 baseTableName="issue_labels"
-                                 baseColumnNames="repository_id, issue_id"/>
-
-        <addForeignKeyConstraint referencedTableName="repository_labels"
-                                 referencedColumnNames="label_id"
-                                 constraintName="issue_for_label"
-                                 baseTableName="issue_labels"
-                                 baseColumnNames="label_id"/>
-    </changeSet>
 
     <changeSet id="assign_ta_to_assignment" author="Maaike Visser">
         <createTable tableName="assigned_ta">
@@ -1198,19 +1136,19 @@
         </createTable>
 
         <addForeignKeyConstraint constraintName="course_edition_ref_in_assigned_ta"
-                                 baseTableName="assigned_ta" baseColumnNames="course_edition_id"
-                                 referencedTableName="groups" referencedColumnNames="course_edition_id"/>
-
-        <addForeignKeyConstraint constraintName="group_ref_in_assigned_ta"
-                                 baseTableName="assigned_ta" baseColumnNames="group_number"
-                                 referencedTableName="groups" referencedColumnNames="group_number"/>
+                                 baseTableName="assigned_ta" baseColumnNames="course_edition_id, group_number"
+                                 referencedTableName="groups" referencedColumnNames="course_edition_id, group_number"/>
 
         <addForeignKeyConstraint constraintName="user_ref_in_assigned_ta"
                                  baseTableName="assigned_ta" baseColumnNames="ta_id"
                                  referencedTableName="users" referencedColumnNames="id"/>
 
-        <addForeignKeyConstraint constraintName="course_ref_in_assigned_ta"
+        <addForeignKeyConstraint constraintName="assignment_course_ref_in_assigned_ta"
                                  baseTableName="assigned_ta" baseColumnNames="assignment_course_edition_id"
+                                 referencedTableName="assignments" referencedColumnNames="course_edition_id"/>
+
+        <addForeignKeyConstraint constraintName="course_ref_in_assigned_ta"
+                                 baseTableName="assigned_ta" baseColumnNames="course_edition_id"
                                  referencedTableName="assignments" referencedColumnNames="course_edition_id"/>
 
         <addForeignKeyConstraint constraintName="assignment_ref_in_assigned_ta"

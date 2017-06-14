@@ -17,14 +17,22 @@
 [#if notifications??]
     [#list notifications as notificationWithUser]
         <tr>
-            <td>
+            [#if notificationWithUser.isRead()]
+            <td class="notification read">
+            [#else]
+            <td class="notification unread">
+            [/#if]
                 [#if !notificationWithUser.isRead()]
                 <form action="${path}/markRead" method="post" class="pull-right">
                     <input type="hidden" name="notificationId" value="${notificationWithUser.getNotification().getId()}">
                     <button type="submit" class="btn btn-danger btn-sm" style="margin: 5px;">
-                        <i class="glyphicon glyphicon-remove-sign"></i> MARKREAD
+                        <i class="glyphicon glyphicon-remove-sign"></i> ${i18n.translate("block.my-notifications.mark-read")}
                     </button>
                 </form>
+                [#else]
+                <span class="pull-right">
+                    <i class="pull-right">${i18n.translate("block.my-notifications.is-read")}</i>
+                </span>
                 [/#if]
                 <div>${notificationWithUser.getNotification().getSender().getName()}, ${notificationWithUser.getNotification().getEvent()} #${notificationWithUser.getNotification().getId()}</div>
                 <div class="truncate">${notificationWithUser.getNotification().getMessage()}</div>

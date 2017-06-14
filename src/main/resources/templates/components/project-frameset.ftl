@@ -39,7 +39,7 @@
     [/#if]
             <li role="presentation" [#if currentTab == "contributors"]class="active"[/#if]>
                 <a href="${repositoryEntity.getURI()}contributors">
-                ${i18n.translate("section.contributors")}
+                    ${i18n.translate("section.contributors")}
                 </a>
             </li>
             <li role="presentation" [#if currentTab == "insights"]class="active"[/#if]>

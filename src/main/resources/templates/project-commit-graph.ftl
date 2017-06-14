@@ -30,7 +30,7 @@
 
     <div class="row">
         <div class="col-md-2">
-        [@projectFrameset.renderSidemenu "contributors" i18n group![] repository/]
+        [@projectFrameset.renderSidemenu "insights" i18n group![] repository/]
         </div>
         <div class="col-md-10">
             <table class="table table-bordered" id="table-commits">

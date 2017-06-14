@@ -1,5 +1,18 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.inject.Inject;
+import nl.tudelft.ewi.git.models.DiffModel;
+import nl.tudelft.ewi.git.web.api.CommitApi;
+import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import nl.tudelft.ewi.git.web.api.RepositoryApi;
+import org.assertj.core.util.Lists;
+import org.junit.Rule;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.MockitoRule;
+
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -23,10 +36,20 @@ import static org.junit.Assert.assertThat;
 @UseModules(TestDatabaseModule.class)
 public class PullRequestsTest extends PersistedBackendTest {
 
+	// Ensure @Mock fields are initialized
+ 	@Rule public MockitoRule mockitoRule =  MockitoJUnit.rule();
+
 	@Inject @Getter private Groups groups;
 	@Inject @Getter private CourseEditions courses;
 	@Inject @Getter private Users users;
 	@Inject private Commits commits;
+
+	// Jukito injects a mock here because RepositoriesApi is not bound to any implementation in TestDatabaseModule
+ 	@Inject RepositoriesApi repositoriesApi;
+ 	// Create other mocks for stubs in before()
+	@Mock RepositoryApi repositoryApi;
+ 	@Mock CommitApi commitApi;
+ 	DiffModel diffModel = new DiffModel();
 
 	@Inject
 	private PullRequests pullRequests;
@@ -38,7 +61,14 @@ public class PullRequestsTest extends PersistedBackendTest {
 
 	@Before
 	public void setUpGroup() {
+
 		group = createGroup(createCourseEdition(), createUser());
+
+		when(repositoriesApi.getRepository(Mockito.anyString())).thenReturn(repositoryApi);
+		when(repositoryApi.getCommit(COMMIT_A)).thenReturn(commitApi);
+		when(repositoryApi.getCommit(COMMIT_B)).thenReturn(commitApi);
+		when(commitApi.diff()).thenReturn(diffModel);
+		diffModel.setDiffs(Lists.newArrayList());
 	}
 
 	@Test

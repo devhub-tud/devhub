@@ -18,16 +18,18 @@
     [#list notifications as notificationWithUser]
         <tr>
             <td>
-                [#if !notificationWithUser.isRead()]
-                <form action="${path}/markRead" method="post" class="pull-right">
-                    <input type="hidden" name="notificationId" value="${notificationWithUser.getNotification().getId()}">
-                    <button type="submit" class="btn btn-danger btn-sm" style="margin: 5px;">
-                        <i class="glyphicon glyphicon-remove-sign"></i> MARKREAD
-                    </button>
-                </form>
-                [/#if]
-                <div>${notificationWithUser.getNotification().getSender().getName()}, ${notificationWithUser.getNotification().getEvent()} #${notificationWithUser.getNotification().getId()}</div>
-                <div class="truncate">${notificationWithUser.getNotification().getMessage()}</div>
+                <a href="${notificationWithUser.getNotification().getLink()}">
+                    [#if !notificationWithUser.isRead()]
+                    <form action="${path}/markRead" method="post" class="pull-right">
+                        <input type="hidden" name="notificationId" value="${notificationWithUser.getNotification().getId()}">
+                        <button type="submit" class="btn btn-danger btn-sm" style="margin: 5px;">
+                            <i class="glyphicon glyphicon-remove-sign"></i> MARKREAD
+                        </button>
+                    </form>
+                    [/#if]
+                    <div>${notificationWithUser.getNotification().getSender().getName()}, ${notificationWithUser.getNotification().getEvent()} #${notificationWithUser.getNotification().getId()}</div>
+                    <div class="truncate">${notificationWithUser.getNotification().getMessage()}</div>
+                </a>
             </td>
         </tr>
     [/#list]

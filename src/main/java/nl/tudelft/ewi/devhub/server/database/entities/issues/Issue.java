@@ -10,7 +10,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import nl.tudelft.ewi.devhub.server.database.controllers.Notifications.IssueEvent;
 
 @Data
 @Entity

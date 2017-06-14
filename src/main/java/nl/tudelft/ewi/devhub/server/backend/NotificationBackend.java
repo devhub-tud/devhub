@@ -9,34 +9,42 @@ import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
+import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Arjan on 13-6-2017.
  */
 public class NotificationBackend {
 
+    private final static int MESSAGE_LENGTH = 50;
     private final NotificationUserController notificationUserController;
     private final NotificationController notificationController;
+    private final TranslatorFactory translatorFactory;
 
     @Inject
-    public NotificationBackend(NotificationController notificationController, NotificationUserController notificationUserController) {
+    public NotificationBackend(NotificationController notificationController, NotificationUserController notificationUserController, TranslatorFactory translatorFactory) {
         this.notificationController = notificationController;
         this.notificationUserController = notificationUserController;
+        this.translatorFactory = translatorFactory;
     }
 
     @Transactional
     public void createNotification(Notification notification, Collection<User> receivers) {
         notificationController.persist(notification);
         for(User user: receivers) {
-            NotificationsToUsers notificationToUsers = new NotificationsToUsers();
-            notificationToUsers.setRead(false);
-            notificationToUsers.setUser(user);
-            notificationToUsers.setNotification(notification);
-            notificationUserController.persist(notificationToUsers);
+            if(user != null) {
+                NotificationsToUsers notificationToUsers = new NotificationsToUsers();
+                notificationToUsers.setRead(false);
+                notificationToUsers.setUser(user);
+                notificationToUsers.setNotification(notification);
+                notificationUserController.persist(notificationToUsers);
+            }
         }
     }
 
@@ -50,12 +58,29 @@ public class NotificationBackend {
     }
 
     public void createNotification(Issue issue, User currentUser) {
-        Notification notification = createNotificationObject(currentUser,issue.getURI().getPath(),"Issue Created","Message");
-        createNotification(notification, Arrays.asList(currentUser,issue.getAssignee()));
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+
+        String title = translatorFactory.create(locale).translate("notifications.issue.title",issue.getTitle(),currentUser.getName());
+        String message = trim(issue.getDescription());
+        String link = issue.getURI().getPath();
+        String event = "Issue created";
+        if(message.isEmpty()) {
+            message = translatorFactory.create(locale).translate("notifications.issue.empty-message");
+        }
+
+        Notification notification = createNotificationObject(currentUser,link,event,message);
+        createNotification(notification, Arrays.asList(issue.getAssignee()));
     }
 
     public void createNotification(RepositoryApi repositoryApi, PullRequest pullRequest) {
         Notification notification = createNotificationObject(pullRequest.getAssignee(),pullRequest.getURI().getPath(),"Pull Request","Message");
         createNotification(notification,pullRequest.getRepository().getCollaborators());
+    }
+
+    private String trim(String string) {
+        if(string.length() < MESSAGE_LENGTH) {
+            return string;
+        }
+        return string.substring(0,MESSAGE_LENGTH) + "....";
     }
 }

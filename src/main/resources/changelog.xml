@@ -1112,6 +1112,14 @@
 			baseColumnNames="label_id"/>
 	</changeSet>
 
+	<changeSet author="Vera Hoveling" id="add_columns_for_line_changes">
+		<addColumn tableName="commit">
+			<column name="lines_added" type="int" />
+		</addColumn>
+		<addColumn tableName="commit">
+			<column name="lines_removed" type="int" />
+		</addColumn>
+	</changeSet>
 
     <changeSet id="assign_ta_to_assignment" author="Maaike Visser">
         <createTable tableName="assigned_ta">
@@ -1152,5 +1160,5 @@
     <changeSet id="add_unique_constraint_assigned_tas" author="Sayra Ranjha">
         <addUniqueConstraint columnNames="course_edition_id,group_number,assignment_id" tableName="assigned_ta"/>
     </changeSet>
-
+  
 </databaseChangeLog>

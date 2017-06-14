@@ -6,7 +6,9 @@ import com.google.common.collect.Sets;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.SessionScoped;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
@@ -43,6 +45,7 @@ import org.jboss.resteasy.annotations.cache.Cache;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
 import javax.persistence.EntityNotFoundException;
+import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -780,6 +783,55 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	public void enhanceCommitsForRepository() {
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
 		repositoryEntity.getCommits().forEach(commits::enhanceCommitSafely);
+	}
+
+	@GET
+	@Path("magical-chart-data")
+	@Produces(MediaType.APPLICATION_JSON)
+	public GoogleChartData getMagicalChartData() {
+		GoogleChartData googleChartData = new GoogleChartData();
+		googleChartData.setCols(Lists.newArrayList(
+			new GoogleChartData.Cols("col1", "label", GoogleChartData.ColType.number),
+			new GoogleChartData.Cols("col2", "label", GoogleChartData.ColType.number)
+		));
+		googleChartData.setRows(Lists.newArrayList(
+			new GoogleChartData.RowDefition(Lists.newArrayList(
+					new GoogleChartData.Magie(4),
+					new GoogleChartData.Magie(5)
+			)),
+			new GoogleChartData.RowDefition(Lists.newArrayList(
+					new GoogleChartData.Magie(3),
+					new GoogleChartData.Magie(6)
+			))
+		));
+
+		return googleChartData;
+	}
+
+	@Data @NoArgsConstructor @AllArgsConstructor public static class GoogleChartData {
+
+		@NoArgsConstructor @AllArgsConstructor @Data public static class Cols {
+			private String name;
+			private String label;
+			private ColType type;
+		}
+
+		public enum ColType {
+			string, date, number;
+		}
+
+		@Data @AllArgsConstructor @NoArgsConstructor public static class RowDefition {
+			public List<Magie> c;
+		}
+
+		@Data @AllArgsConstructor @NoArgsConstructor
+		public static class Magie {
+			private Object v;
+		}
+
+		private List<Cols> cols;
+		private List<RowDefition> rows;
+
 	}
 
 }

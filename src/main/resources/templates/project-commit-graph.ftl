@@ -30,22 +30,22 @@
         </div>
 
         <div class="col-md-10">
-    <html>
-    <head>
-        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-        <script type="text/javascript">
-            google.charts.load('current', {'packages':['corechart']});
-            google.charts.setOnLoadCallback(drawChart);
+            <div id="chart_div" style="width: 100%; height: 500px;"></div>
+        </div>
+    </div>
 
-            function drawChart() {
-                var data = google.visualization.arrayToDataTable([
-                    ['Year', 'Sales', 'Expenses'],
-                    ['2013',  1000,      400],
-                    ['2014',  1170,      460],
-                    ['2015',  660,       1120],
-                    ['2016',  1030,      540]
-                ]);
+</div> <!-- closes div class="container" -->
 
+[@macros.renderScripts /]
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+
+
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(function() {
+        $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/magical-chart-data')
+            .then(function(res) {
+                var data = new google.visualization.DataTable(res);
                 var options = {
                     title: 'Company Performance',
                     hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
@@ -54,17 +54,7 @@
 
                 var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
                 chart.draw(data, options);
-            }
-        </script>
-    </head>
-    <body>
-    <div id="chart_div" style="width: 100%; height: 500px;"></div>
-    </body>
-    </html>
-            </div>
-    </div>
-
-</div> <!-- closes div class="container" -->
-
-[@macros.renderScripts /]
+            });
+    });
+</script>
 [@macros.renderFooter /]

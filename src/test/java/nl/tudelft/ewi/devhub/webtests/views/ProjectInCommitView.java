@@ -16,6 +16,9 @@ public abstract class ProjectInCommitView extends AuthenticatedView {
 	private static final By HEADERS = By.xpath("//span[@class='headers']");
 	private static final By MESSAGE_HEADER = By.xpath(".//h2[@class='header']");
 	private static final By AUTHOR_SUB_HEADER = By.xpath(".//h5[@class='subheader']");
+	private static final By LINES_ADDED = By.xpath(".//span[@class='addedlines']");
+	private static final By LINES_REMOVED = By.xpath(".//span[@class='removedlines']");
+	private static final By NEUTRAL_LINES = By.xpath(".//span[@class='neutrallines']");
 
 	private static final By DROPDOWN_CARET = By.xpath("//button[contains(@class,'dropdown-toggle')]");
 	private static final By VIEW_FILES_BUTTON = By.xpath("//a[starts-with(normalize-space(.), 'View files')]");
@@ -45,6 +48,28 @@ public abstract class ProjectInCommitView extends AuthenticatedView {
 	public String getAuthorHeader() {
 		return getHeaders().findElement(AUTHOR_SUB_HEADER).getText();
 	}
+
+	/**
+	 * @return the text content of the lines added header
+	 */
+	public String getLinesAdded() {
+		return getHeaders().findElement(LINES_ADDED).getText();
+	}
+
+	/**
+	 * @return the text content of the lines removed header
+	 */
+	public String getLinesRemoved() {
+		return getHeaders().findElement(LINES_REMOVED).getText();
+	}
+
+	/**
+	 * @return the text content of the neutral lines
+	 */
+	public String getNeutralLines() {
+		return getHeaders().findElement(NEUTRAL_LINES).getText();
+	}
+
 
 	/**
 	 * @return the text content of the message header

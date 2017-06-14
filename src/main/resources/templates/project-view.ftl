@@ -136,6 +136,7 @@
                     [#if commits?? && commits?has_content]
                         [#list commits.commits as commit]
                             [#assign buildResult = builds[commit.commit]![]]
+                            [#assign commitEntity = commitEntities[commit.commit]![]]
                             [@commitRow.render group![] buildResult commit.commit "${repositoryEntity.getURI()}commits/${commit.commit}/diff"]
                                 <span class="pull-right">
                                   [#if comments??]
@@ -154,6 +155,11 @@
                                 <div class="comment">${commit.getMessage()} [@listTags repository commit.getCommit() /]</div>
                                 <div class="committer">${commit.getAuthor()}</div>
                                 <div class="timestamp" data-value="${(commit.getTime() * 1000)?c}">on ${(commit.getTime() * 1000)?number_to_datetime?string["EEEE dd MMMM yyyy HH:mm"]}</div>
+                                [#if commitEntity.getLinesAdded()?? && commitEntity.getLinesAdded()?has_content]
+                                <div class="committerLinesAdded">${"+" + commitEntity.getLinesAdded()}</div>
+                                <div class="committerLinesDivider">${"/"}</div>
+                                <div class="committerLinesRemoved">${"-" + commitEntity.getLinesRemoved()}</div>
+                                [/#if]
                             [/@commitRow.render]
                         [/#list]
                     [#else]

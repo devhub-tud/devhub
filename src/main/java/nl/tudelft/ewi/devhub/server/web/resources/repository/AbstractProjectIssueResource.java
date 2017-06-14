@@ -79,7 +79,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			final IssueComments issueComments,
 			final NotificationBackend notificationBackend) {
 		
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users, notificationBackend);
 		
 		this.repositoriesController = repositoriesController;
 		

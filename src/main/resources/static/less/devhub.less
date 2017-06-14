@@ -79,45 +79,19 @@ h1.header, h2.header, h3.header, h4.header, h5.header, h6.header {
 	margin-bottom: 0;
 }
 
-span.addedlines {
+.addedlines, .removedlines, .neutrallines {
+	line-height: 1.5em;
+	font-family: monospace;
+	font-size: 13px;
+	letter-spacing: 0.08em;
+}
+
+.addedlines {
   color: #008000;
-  letter-spacing: 0.08em;
 }
 
-span.removedlines {
+.removedlines {
   color: #FF0000;
-  letter-spacing: 0.08em;
-}
-
-div.removedlines {
-    display : inline-block;
-    color: #FF0000;
-    overflow: hidden;
-    text-overflow: ellipsis;
-	line-height: 1.5em;
-    font-family: monospace;
-    font-size: 13px;
-  letter-spacing: 0.08em;
-}
-
-div.addedlines {
-    display : inline-block;
-    color: #008000;
-    overflow: hidden;
-    text-overflow: ellipsis;
-	line-height: 1.5em;
-    font-family: monospace;
-    font-size: 13px;
-  	letter-spacing: 0.08em;
-}
-
-div.neutrallines {
-    display: inline-block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-	line-height: 1.5em;
-    font-family: monospace;
-    font-size: 13px;
 }
 
 div.committerLinesAdded {
@@ -451,6 +425,7 @@ div.commit {
 		}
 
 		h5 {
+			display: inline-block;
 			line-height: 25px;
 			margin: 4px 5px 7px 8px;
 			overflow: hidden;

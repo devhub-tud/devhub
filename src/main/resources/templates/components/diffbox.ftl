@@ -16,29 +16,25 @@
 
         [#if diffModel.isDeleted()]
                 <h5><span class="label label-danger">Deleted</span> ${diffModel.oldPath}
-                    <span class="addedlines">${"+" + diffModel.getLinesAdded()}</span> /
-                    <span class="removedlines">${"-" + diffModel.getLinesRemoved()}</span>
                 </h5>
         [#else]
             [#if diffModel.isMoved()]
                 <h5><span class="label label-warn">${i18n.translate("diff.type.moved")}</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}
-                    <span class="addedlines">${"+" + diffModel.getLinesAdded()}</span> /
-                    <span class="removedlines">${"-" + diffModel.getLinesRemoved()}</span>
                 </h5>
             [#elseif diffModel.isCopied()]
                 <h5><span class="label label-warn">${i18n.translate("diff.type.copied")}</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
             [#elseif diffModel.isAdded()]
-                <h5><span class="label label-success">${i18n.translate("diff.type.created")}</span> </i> ${diffModel.newPath}
-                    <span class="addedlines">${"+" + diffModel.getLinesAdded()}</span> /
-                    <span class="removedlines">${"-" + diffModel.getLinesRemoved()}</span>
-                </h5>
+                <h5><span class="label label-success">${i18n.translate("diff.type.created")}</span> </i> ${diffModel.newPath}</h5>
             [#elseif diffModel.isModified()]
                 <h5><span class="label label-primary">${i18n.translate("diff.type.modified")}</span> ${diffModel.newPath}
-                    <span class="addedlines">${"+" + diffModel.getLinesAdded()}</span> /
-                    <span class="removedlines">${"-" + diffModel.getLinesRemoved()}</span>
                 </h5>
             [/#if]
         [/#if]
+        <h5>
+            <span class="addedlines">${"+" + diffModel.getLinesAdded()}</span>
+            <span class="neutrallines">/</span>
+            <span class="removedlines">${"-" + diffModel.getLinesRemoved()}</span>
+        </h5>
     </div>
     [#if  diffModel.contexts?has_content]
         <div class="overflow-hidden">

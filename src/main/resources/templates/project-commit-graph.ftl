@@ -20,11 +20,7 @@
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-        [#if courseEdition?? && !(user.isAdmin() || user.isAssisting(courseEdition))]
-        [#else]
-            <a href="contributors/edit" class="btn btn-default pull-right" >Edit</a>
-        [/#if]
-            <h4 style="line-height:34px; margin-top:0;">${i18n.translate("group.contributors")}</h4>
+            <h4 style="line-height:34px; margin-top:0;">Nice graphs</h4>
         </div>
     </div>
 
@@ -32,35 +28,43 @@
         <div class="col-md-2">
         [@projectFrameset.renderSidemenu "insights" i18n group![] repository/]
         </div>
-        <div class="col-md-10">
-            <table class="table table-bordered" id="table-commits">
-                <thead>
-                <tr>
-                    <th>${i18n.translate("course.control.username")}</th>
-                    <th>${i18n.translate("course.control.name")}</th>
-                [#if group?? && group?has_content]
-                    <th>Student Number</th>
-                [/#if]
-                    <th>${i18n.translate("course.control.email")}</th>
-                </tr>
-                </thead>
-                <tbody>
-                [#list repositoryEntity.getCollaborators() as member]
-                <tr>
-                    <td>${member.getNetId()}</td>
-                    <td>${member.getName()}</td>
-                    [#if group?? && group?has_content]
-                        <td>${member.getStudentNumber()!"-"}</td>
-                    [/#if]
-                    <td><a href="mailto:${member.getEmail()}">${member.getEmail()}</a></td>
-                </tr>
-                [/#list]
-                </tbody>
-            </table>
 
-        </div>
+        <div class="col-md-10">
+    <html>
+    <head>
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript">
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+                var data = google.visualization.arrayToDataTable([
+                    ['Year', 'Sales', 'Expenses'],
+                    ['2013',  1000,      400],
+                    ['2014',  1170,      460],
+                    ['2015',  660,       1120],
+                    ['2016',  1030,      540]
+                ]);
+
+                var options = {
+                    title: 'Company Performance',
+                    hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
+                    vAxis: {minValue: 0}
+                };
+
+                var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+                chart.draw(data, options);
+            }
+        </script>
+    </head>
+    <body>
+    <div id="chart_div" style="width: 100%; height: 500px;"></div>
+    </body>
+    </html>
+            </div>
     </div>
-</div>
+
+</div> <!-- closes div class="container" -->
 
 [@macros.renderScripts /]
 [@macros.renderFooter /]

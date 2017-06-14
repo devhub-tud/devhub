@@ -249,6 +249,8 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);
 
+		notificationBackend.createNotification(comment,currentUser);
+
 		return response;
 	}
 

@@ -255,7 +255,9 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		comment.setContent(content);
 		comment.setIssue(issue);
 		comment.setUser(currentUser);
-		
+
+		notificationBackend.createNotification(comment,currentUser);
+
 		issueComments.persist(comment);
 
 		return redirect(issue.getURI());

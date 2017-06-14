@@ -5,6 +5,7 @@ import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.controllers.NotificationController;
 import nl.tudelft.ewi.devhub.server.database.controllers.NotificationUserController;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
@@ -40,22 +41,28 @@ public class NotificationBackend {
         }
     }
 
-    private Notification createNotificationObject(User sender, String link, String event, String message ) {
+    private Notification createNotificationObject(User sender, String link, String event, String message, String title) {
         Notification notification = new Notification();
         notification.setSender(sender);
         notification.setLink(link);
         notification.setEvent(event);
         notification.setMessage(message);
+        notification.setTitle(title);
         return notification;
     }
 
     public void createNotification(Issue issue, User currentUser) {
-        Notification notification = createNotificationObject(currentUser,issue.getURI().getPath(),"Issue Created","Message");
+        Notification notification = createNotificationObject(currentUser,issue.getURI().getPath(),"Issue Created","Message","placeholderTitle");
         createNotification(notification, Arrays.asList(currentUser,issue.getAssignee()));
     }
 
     public void createNotification(RepositoryApi repositoryApi, PullRequest pullRequest) {
-        Notification notification = createNotificationObject(pullRequest.getAssignee(),pullRequest.getURI().getPath(),"Pull Request","Message");
+        Notification notification = createNotificationObject(pullRequest.getAssignee(),pullRequest.getURI().getPath(),"Pull Request","Message", "placeholderTitle");
         createNotification(notification,pullRequest.getRepository().getCollaborators());
+    }
+
+    public void createNotification(Comment comment, User currentUser) {
+        Notification notification = createNotificationObject(currentUser, comment.getRepository().getURI().getPath()+"issues", "Comment", "Message", "placeholderTitle");
+        createNotification(notification,comment.getRepository().getCollaborators());
     }
 }

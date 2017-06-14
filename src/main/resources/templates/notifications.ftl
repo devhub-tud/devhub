@@ -27,7 +27,7 @@
                         </button>
                     </form>
                     [/#if]
-                    <div>${notificationWithUser.getNotification().getSender().getName()}, ${notificationWithUser.getNotification().getEvent()} #${notificationWithUser.getNotification().getId()}</div>
+                    <div>${notificationWithUser.getNotification().getTitle()}</div>
                     <div class="truncate">${notificationWithUser.getNotification().getMessage()}</div>
                 </a>
             </td>

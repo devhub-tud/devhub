@@ -43,6 +43,9 @@ public class Notification {
     @JoinColumn(name = "user_id")
     private User sender;
 
+    @Column(name = "title")
+    private String title;
+
     @CreationTimestamp
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)

@@ -16,9 +16,13 @@ import static org.junit.Assert.assertTrue;
 
 public class CoursesView extends AuthenticatedView {
 
+	private static final By TABLE_XPATH = By.xpath("//table");
+
 	private static final By MY_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'My courses')]");
 	private static final By ASSISTING_PROJECTS_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Assisting projects')]");
     private static final By AVAILABLE_COURSES_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Available courses')]");
+
+
 
 	CoursesView(WebDriver driver) {
 		super(driver);
@@ -28,7 +32,6 @@ public class CoursesView extends AuthenticatedView {
 	protected void invariant() {
 		super.invariant();
 		assertTrue(currentPathEquals("/courses"));
-		assertNotNull(getDriver().findElement(MY_PROJECTS_HEADER));
 	}
 
 	/**
@@ -60,7 +63,7 @@ public class CoursesView extends AuthenticatedView {
 	}
 
     /**
-     * @return A {@link List} of all {@link Project}s in the "Available courses" section.
+     * @return A {@link List} of all {@link Project}s in the "Available courses" section when logged in as TA.
      */
 	public List<CourseOverview> listAvailableCourses() {
         invariant();
@@ -68,6 +71,8 @@ public class CoursesView extends AuthenticatedView {
         WebElement table = Dom.nextSibling(availableHeader, "table");
         return listProjectOverviewsInTable(table);
     }
+
+
 
 	private List<Project> listProjectsInTable(WebElement table) {
 		List<WebElement> entries = table.findElements(By.tagName("td"));
@@ -105,6 +110,37 @@ public class CoursesView extends AuthenticatedView {
 		return projects;
 	}
 
+
+	public List<CourseLink> listCourses() {
+		invariant();
+		WebElement courseTable = getDriver().findElement(TABLE_XPATH);
+		return listCoursesInTable(courseTable);
+	}
+
+	private List<CourseLink> listCoursesInTable(WebElement table) {
+		List<WebElement> entries = table.findElements(By.tagName("td"));
+		List<CourseLink> courses = Lists.newArrayList();
+		for (WebElement entry : entries) {
+			WebElement courseLink = entry.findElement(By.tagName("a"));
+			CourseLink course = new CourseLink(courseLink.getText(), courseLink);
+			courses.add(course);
+		}
+		return courses;
+	}
+
+	@Data
+	public class CourseLink {
+		private final String name;
+
+		@Getter(AccessLevel.NONE)
+		private final WebElement anchor;
+
+		public CourseView click() {
+			anchor.click();
+			return new CourseView(getDriver());
+		}
+	}
+
 	@Data
 	public class Project {
 		private final String name;
@@ -128,9 +164,9 @@ public class CoursesView extends AuthenticatedView {
         @Getter(AccessLevel.NONE)
         private final String courseName;
 		
-		public CourseView click() {
+		public CourseEditionView click() {
 			anchor.click();
-			return new CourseView(getDriver());
+			return new CourseEditionView(getDriver());
 		}
 
         public GroupEnrollView clickEnroll() {

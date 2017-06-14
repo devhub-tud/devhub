@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 
+import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.webtests.utils.Dom;
 
 import org.hamcrest.Matchers;
@@ -50,6 +51,23 @@ public class CourseView extends AuthenticatedView {
         WebElement courseTable = getDriver().findElement(TABLE_XPATH);
         String prevSiblingText = Dom.prevSibling(courseTable).getText();
         assertThat(prevSiblingText, Matchers.containsString("Course Editions"));
+    }
+
+    public List<CourseEditionLink> listCourseEditions() {
+        invariant();
+        WebElement courseTable = getDriver().findElement(TABLE_XPATH);
+        return listCourseEditionsInTable(courseTable);
+    }
+
+    private List<CourseEditionLink> listCourseEditionsInTable(WebElement table) {
+        List<WebElement> entries = table.findElements(By.tagName("td"));
+        List<CourseEditionLink> courseEditions = Lists.newArrayList();
+        for (WebElement entry : entries) {
+            WebElement courseEditionLink = entry.findElement(By.tagName("a"));
+            CourseEditionLink courseEdition = new CourseEditionLink(courseEditionLink.getText(), courseEditionLink);
+            courseEditions.add(courseEdition);
+        }
+        return courseEditions;
     }
 
     @Data

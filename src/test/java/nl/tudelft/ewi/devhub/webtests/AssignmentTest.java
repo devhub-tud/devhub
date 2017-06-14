@@ -9,10 +9,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
-import nl.tudelft.ewi.devhub.webtests.views.AssignmentView;
-import nl.tudelft.ewi.devhub.webtests.views.AssignmentsView;
-import nl.tudelft.ewi.devhub.webtests.views.CourseView;
-import nl.tudelft.ewi.devhub.webtests.views.LoginView;
+import nl.tudelft.ewi.devhub.webtests.views.*;
 import org.junit.Test;
 
 import java.text.ParseException;
@@ -99,9 +96,11 @@ public class AssignmentTest extends WebTest {
     public void testAssignTAs() {
 //		final AssignmentView view =
         LoginView login = openLoginScreen();
-        CourseView courseView = login.login(ADMIN_USERNAME, ADMIN_PASSWORD)
+        CourseEditionView courseView = login.login(ADMIN_USERNAME, ADMIN_PASSWORD)
                 .listCourses()
-                .get(0).click();
+                .get(0).click()
+				.listCourseEditions()
+				.get(0).click();
 //                .listAssignments()
 //                .get(0).click();
 

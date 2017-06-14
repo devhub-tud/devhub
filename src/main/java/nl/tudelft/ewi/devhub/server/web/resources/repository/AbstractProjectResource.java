@@ -757,5 +757,15 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		}
 		
 	}
-	
+
+	@POST
+	@Deprecated
+	@Transactional
+	@Path("enhance-commits")
+	@Consumes(MediaType.MEDIA_TYPE_WILDCARD)
+	public void enhanceCommitsForRepository() {
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		repositoryEntity.getCommits().forEach(commits::enhanceCommitSafely);
+	}
+
 }

@@ -57,15 +57,12 @@ public class Commits extends Controller<Commit> {
 	public Commit ensureExists(RepositoryEntity repositoryEntity, String commitId) {
 		return retrieve(repositoryEntity, commitId).orElseGet(() -> {
 			final Commit commit = new Commit();
-			final DiffModel diffModel = retrieveDiffModel(repositoryEntity, commitId);
 			commit.setCommitId(commitId);
 			commit.setRepository(repositoryEntity);
 			commit.setComments(Lists.newArrayList());
 			commit.setPushTime(new Date());
-			commit.setLinesAdded(diffModel.getLinesAdded());
-			commit.setLinesRemoved(diffModel.getLinesRemoved());
 
-			enhanceCommitSafely(repositoryEntity, commitId, commit);
+			enhanceCommitSafely(commit);
 
 			//HERE IT IS SAVED
 			return persist(commit);
@@ -75,13 +72,17 @@ public class Commits extends Controller<Commit> {
 	/**
 	 * Enhance a commit with details from the git server, such as commit time, author information and parents.
 	 *
-	 * @param repositoryEntity Repository to search commits for.
-	 * @param commitId Commit id of the commit.
 	 * @param commit Commit object to modify.
 	 */
-	private void enhanceCommitSafely(RepositoryEntity repositoryEntity, String commitId, Commit commit) {
+	public void enhanceCommitSafely(Commit commit) {
 		try {
+			log.info("Enhance {} {}", commit.getRepository().getRepositoryName(), commit.getCommitId());
+			RepositoryEntity repositoryEntity = commit.getRepository();
+			String commitId = commit.getCommitId();
 			final CommitModel gitCommit = retrieveCommit(repositoryEntity, commitId);
+			final DiffModel diffModel = retrieveDiffModel(repositoryEntity, commitId);
+			commit.setLinesAdded(diffModel.getLinesAdded());
+			commit.setLinesRemoved(diffModel.getLinesRemoved());
 			commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
 			commit.setAuthor(gitCommit.getAuthor());
 			commit.setParents(

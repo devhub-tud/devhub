@@ -42,6 +42,11 @@
                 ${i18n.translate("section.contributors")}
                 </a>
             </li>
+            <li role="presentation" [#if currentTab == "insights"]class="active"[/#if]>
+                <a href="${repositoryEntity.getURI()}insights">
+                    Nice graphs :heart_eyes:
+                </a>
+            </li>
             <li role="presentation" [#if currentTab == "settings"]class="active"[/#if]>
                 <a href="${repositoryEntity.getURI()}settings">
 				Settings

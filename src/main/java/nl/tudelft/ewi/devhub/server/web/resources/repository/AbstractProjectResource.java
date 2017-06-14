@@ -286,6 +286,20 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		return display(templateEngine.process("project-contributors.ftl", locales, parameters));
 	}
 
+	@GET
+	@Path("/insights")
+	@Transactional
+	public Response showInsights(@Context HttpServletRequest request) throws IOException {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repository", repository.getRepositoryModel());
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-commit-graph.ftl", locales, parameters));
+	}
 
 	@GET
 	@Path("/contributors/edit")

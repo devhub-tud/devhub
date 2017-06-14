@@ -113,11 +113,17 @@ public class Assignment implements Comparable<Assignment>, Base {
     @OneToMany(mappedBy = "assignment")
     private List<AssignedTA> assignedTAS;
 
-    public Optional<User> getAssignedTA(Delivery delivery) {
+    @JsonIgnore
+    public Optional<AssignedTA> getAssignedTAObject(Delivery delivery) {
         Group group = delivery.getGroup();
         return assignedTAS.stream()
-                .filter(a -> a.getGroup().equals(group))
-                .findAny()
+            .filter(a -> a.getGroup().equals(group))
+            .findAny();
+    }
+
+    @JsonIgnore
+    public Optional<User> getAssignedTA(Delivery delivery) {
+        return getAssignedTAObject(delivery)
                 .map(AssignedTA::getTeachingAssistant);
     }
 

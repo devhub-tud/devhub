@@ -56,6 +56,18 @@
             <dt>${i18n.translate("delivery.notes")}</dt>
             <dd>[#list delivery.getNotes()?split("\n") as line]${line}[#if line_has_next]<br/>[/#if][/#list]</dd>
         [/#if]
+
+        [#if user.isAdmin() || user.isAssisting(course)]
+            [#assign assignedTA = assignment.getAssignedTA(delivery).orElse(null)![]]
+            <dt>Assigned TA</dt>
+            <dd>
+            [#if assignedTA?? && assignedTA?has_content]
+              <a href="#" id="group" data-mode="inline" data-type="select" data-pk="${delivery.deliveryId}" data-value="${assignedTA.id}" data-url="${delivery.URI}assign-ta" data-source="${delivery.assignment.courseEdition.URI}teaching-assistants.json" data-title="Select teaching assistant">${assignedTA.name}</a>
+            [#else]
+	            <a href="#" id="group" data-mode="inline" data-type="select" data-pk="${delivery.deliveryId}" data-url="${delivery.URI}assign-ta" data-source="${delivery.assignment.courseEdition.URI}teaching-assistants.json" data-title="Select teaching assistant">Not assigned</a>
+            [/#if]
+            </dd>
+        [/#if]
     </dl>
 
     [#assign attachments = delivery.getAttachments()!]

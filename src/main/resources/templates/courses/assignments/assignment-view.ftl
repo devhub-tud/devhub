@@ -50,7 +50,14 @@
 
 [#macro progressBar assignmentStats barId]
 <div class="well well-sm" id="${barId}">
-    <h5><strong>Progress</strong></h5>
+    [#if barId == "user"]
+        <h5><strong>Your Progress</strong></h5>
+    [#elseif barId == "last"]
+        <h5><strong>Total Progress</strong></h5>
+    [#else ]
+        <h5><strong>Progress</strong></h5>
+    [/#if]
+
 
     <div class="progress">
         [#list deliveryStates as state]

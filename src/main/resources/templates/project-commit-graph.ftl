@@ -48,6 +48,7 @@
                 var data = new google.visualization.DataTable(res);
                 var options = {
                     title: 'Company Performance',
+                    backgroundColor: 'transparent',
                     hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
                     vAxis: {minValue: 0}
                 };

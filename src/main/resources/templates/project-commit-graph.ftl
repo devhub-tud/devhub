@@ -20,7 +20,7 @@
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-            <h4 style="line-height:34px; margin-top:0;">Nice graphs</h4>
+            <h4 style="line-height:34px; margin-top:0;">Nice graphs &nbsp; 😍</h4>
         </div>
     </div>
 
@@ -30,7 +30,7 @@
         </div>
 
         <div class="col-md-10">
-            <div id="chart_div" style="width: 100%; height: 500px;"></div>
+            <div id="chart_div" style="width: 100%; height: 500px; "></div>
         </div>
     </div>
 

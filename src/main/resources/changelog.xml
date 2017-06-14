@@ -1143,17 +1143,10 @@
                                  baseTableName="assigned_ta" baseColumnNames="ta_id"
                                  referencedTableName="users" referencedColumnNames="id"/>
 
-        <addForeignKeyConstraint constraintName="assignment_course_ref_in_assigned_ta"
-                                 baseTableName="assigned_ta" baseColumnNames="assignment_course_edition_id"
-                                 referencedTableName="assignments" referencedColumnNames="course_edition_id"/>
-
         <addForeignKeyConstraint constraintName="course_ref_in_assigned_ta"
-                                 baseTableName="assigned_ta" baseColumnNames="course_edition_id"
-                                 referencedTableName="assignments" referencedColumnNames="course_edition_id"/>
+                                 baseTableName="assigned_ta" baseColumnNames="assignment_course_edition_id, assignment_id"
+                                 referencedTableName="assignments" referencedColumnNames="course_edition_id, assignment_id"/>
 
-        <addForeignKeyConstraint constraintName="assignment_ref_in_assigned_ta"
-                                 baseTableName="assigned_ta" baseColumnNames="assignment_id"
-                                 referencedTableName="assignments" referencedColumnNames="assignment_id"/>
     </changeSet>
 
     <changeSet id="add_unique_constraint_assigned_tas" author="Sayra Ranjha">

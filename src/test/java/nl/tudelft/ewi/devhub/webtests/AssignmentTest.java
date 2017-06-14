@@ -1,13 +1,11 @@
 package nl.tudelft.ewi.devhub.webtests;
 
 import com.google.inject.Inject;
+import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
 import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
-import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.*;
 import org.junit.Test;
@@ -27,6 +25,9 @@ public class AssignmentTest extends WebTest {
 
     @Inject
     private Groups groups;
+
+    @Inject
+	private Assignments assignments;
 
     @Test
     public void testListAssignments() {
@@ -104,5 +105,13 @@ public class AssignmentTest extends WebTest {
                 .get(0)
                 .goToAssignmentPage()
                 .distributeTAs();
+
+		Assignment assignment = courseEditions.find(1).getAssignments().get(0);
+		assignments.refresh(assignment);
+		List<AssignedTA> assignedTAS = assignment.getAssignedTAS();
+
+		assertEquals(deliveries.getLastDeliveries(assignment).size(), assignedTAS.size());
+
+
     }
 }

@@ -94,17 +94,14 @@ public class AssignmentTest extends WebTest {
 
     @Test
     public void testAssignTAs() {
-//		final AssignmentView view =
-        LoginView login = openLoginScreen();
-        CourseEditionView courseView = login.login(ADMIN_USERNAME, ADMIN_PASSWORD)
+        openLoginScreen()
+                .login(ADMIN_USERNAME, ADMIN_PASSWORD)
                 .listCourses()
                 .get(0).click()
-				.listCourseEditions()
-				.get(0).click();
-//                .listAssignments()
-//                .get(0).click();
-
-//                .get(0).click()
-//        .toCoursesView();
+                .listCourseEditions()
+                .get(0).click()
+                .listAssignments()
+                .get(0)
+                .goToAssignmentPage();
     }
 }

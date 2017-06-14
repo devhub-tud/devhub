@@ -27,22 +27,9 @@ public class CourseView extends AuthenticatedView {
 
     private static final By TABLE_XPATH = By.xpath("//table");
 
-//    private static final By COURSES_HEADER = By.xpath("//h2[starts-with(normalize-space(.), 'Courses')]");
-
-
     public CourseView(WebDriver driver) {
         super(driver);
     }
-
-
-//    /**
-//     * @return A {@link List} of all {@link Project}s in the "Courses" section when logged in as Admin.
-//     */
-//    public List<CourseOverview> listAvailableCoursesAdmin() {
-//        WebElement availableHeader = getDriver().findElement(COURSES_HEADER);
-//        WebElement table = Dom.nextSibling(availableHeader, "table");
-//        return listProjectOverviewsInTable(table);
-//    }
 
     @Override
     protected void invariant() {

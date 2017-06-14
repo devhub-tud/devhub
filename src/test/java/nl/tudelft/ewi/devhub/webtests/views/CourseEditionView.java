@@ -124,7 +124,8 @@ public class CourseEditionView extends AuthenticatedView {
 					Integer.parseInt(assignmentLinks.get(0).getText()), 
 					assignmentLinks.get(1).getText(),
 					dueDate,
-					assignmentLinks.get(2).findElement(By.className("btn")));
+					assignmentLinks.get(2).findElement(By.className("btn")),
+					assignmentLinks.get(1));
 
 			assignments.add(assignment);
 		}
@@ -151,10 +152,18 @@ public class CourseEditionView extends AuthenticatedView {
 		private final Date dueDate;
 
 		@Getter(AccessLevel.NONE)
-		private final WebElement anchor;
+		private final WebElement editAnchor;
 
-		public AuthenticatedView click() {
-			anchor.click();
+		@Getter(AccessLevel.NONE)
+		private final WebElement goToAnchor;
+
+		public AuthenticatedView goToEditPage() {
+			editAnchor.click();
+			return new AuthenticatedView(getDriver());
+		}
+
+		public AuthenticatedView goToAssignmentPage() {
+			goToAnchor.click();
 			return new AuthenticatedView(getDriver());
 		}
 
@@ -166,7 +175,7 @@ public class CourseEditionView extends AuthenticatedView {
 		 * @param description	description (leave null for no change)
 		 */
 		public CourseEditionView edit(Date dueDate, String name, String description) {
-			click();
+			goToEditPage();
 
 			if(dueDate != null)
 			{

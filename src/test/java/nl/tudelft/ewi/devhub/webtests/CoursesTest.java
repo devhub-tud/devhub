@@ -1,13 +1,11 @@
 package nl.tudelft.ewi.devhub.webtests;
 
-import com.google.inject.matcher.Matcher;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 
-import nl.tudelft.ewi.devhub.webtests.views.CourseView;
-import nl.tudelft.ewi.devhub.webtests.views.CourseView.Assignment;
-import nl.tudelft.ewi.devhub.webtests.views.CourseView.Group;
+import nl.tudelft.ewi.devhub.webtests.views.CourseEditionView;
+import nl.tudelft.ewi.devhub.webtests.views.CourseEditionView.Assignment;
+import nl.tudelft.ewi.devhub.webtests.views.CourseEditionView.Group;
 import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
-import nl.tudelft.ewi.devhub.webtests.views.CoursesView.CourseOverview;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -82,7 +80,7 @@ public class CoursesTest extends WebTest {
 			.toCoursesView();
 
 		assertTrue(view.hasAssistingProjects());
-		CourseView overview = view.listAssistingCourses().get(0).click();
+		CourseEditionView overview = view.listAssistingCourses().get(0).click();
 
 		List<Group> list = overview.listGroups();
 		assertThat(list.get(0).getName(), containsString(PROJECT_NAME));
@@ -108,12 +106,12 @@ public class CoursesTest extends WebTest {
 
 	@Test
 	public void testAssistentEditAssignment() {
-		CourseView overview = openLoginScreen()
+		CourseEditionView overview = openLoginScreen()
 			.login(ASSISTANT_NET_ID, ASSISTANT_PASSWORD)
 			.toCoursesView()
 			.listAssistingCourses().get(0).click();
 
-		CourseView.Assignment assignment = overview.listAssignments().get(0);
+		CourseEditionView.Assignment assignment = overview.listAssignments().get(0);
 
 		assignment.edit(
 			assignment.getDueDate(),

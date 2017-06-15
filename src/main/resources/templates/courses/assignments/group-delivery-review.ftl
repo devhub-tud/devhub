@@ -2,7 +2,9 @@
 [#import "../../components/project-frameset.ftl" as projectFrameset]
 [#import "../../components/delivery.ftl" as deliveryElement]
 
-[@macros.renderHeader i18n.translate("section.projects") /]
+[@macros.renderHeader i18n.translate("section.projects")]
+	<link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+[/@macros.renderHeader]
 [@macros.renderMenu i18n user /]
 <div class="container">
 
@@ -169,8 +171,13 @@
 
 	$(computeTotals)
 	$('[type="radio"]').on('change', computeTotals)
-    $('[type="radio"]').on('change', persistMasteries)
+	$('[type="radio"]').on('change', persistMasteries)
 </script>
-
+<script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+<script type="text/javascript">
+	$('#group').editable({
+		showbuttons: false
+	});
+</script>
 [/@macros.renderScripts]
 [@macros.renderFooter /]

@@ -177,6 +177,7 @@
                 {
                   "assignmentId" : 1,
                   "createdUserName" : "student1",
+                  "assignedTA": "assistant1",
                   "review" : {
                     "state" : "APPROVED",
                     "grade" : 8.5,
@@ -199,6 +200,7 @@
                 {
                   "assignmentId" : 2,
                   "createdUserName" : "student3",
+                  "assignedTA": "assistant1",
                   "review" : {
                     "state" : "REJECTED",
                     "grade" : 4.5,

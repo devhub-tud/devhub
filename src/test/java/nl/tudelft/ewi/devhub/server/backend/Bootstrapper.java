@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.google.common.base.Strings;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
@@ -88,9 +89,11 @@ public class Bootstrapper {
 	}
 	
 	@Data
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	static class BDelivery {
 		private long assignmentId;
 		private String createdUserName;
+		private String assignedTA;
 		private BReview review;
 	}
 	
@@ -273,10 +276,7 @@ public class Bootstrapper {
 			projects.provisionRepository(groupEntity, members);
 		}
 
-		int deliveryCounter = 0;
 		for (BDelivery delivery : group.getDeliveries()) {
-			deliveryCounter++;
-
 			Delivery deliveryEntity = new Delivery();
 			deliveryEntity.setAssignment(assignmentEntities.get(delivery.getAssignmentId()));
 			deliveryEntity.setGroup(groupEntity);
@@ -297,14 +297,12 @@ public class Bootstrapper {
 
 			deliveries.persist(deliveryEntity);
 
-			AssignedTA assignedTA = new AssignedTA();
-			assignedTA.setAssignment(deliveryEntity.getAssignment());
-			assignedTA.setGroup(groupEntity);
-			if(deliveryCounter % 2 == 0) {
-				assignedTA.setTeachingAssistant(userMapping.get("assistant1"));
+			if (! Strings.isNullOrEmpty(delivery.getAssignedTA())) {
+				AssignedTA assignedTA = new AssignedTA();
+				assignedTA.setAssignment(deliveryEntity.getAssignment());
+				assignedTA.setGroup(groupEntity);
+				assignedTA.setTeachingAssistant(userMapping.get(delivery.getAssignedTA()));
 				entityManager.persist(assignedTA);
-			} else {
-				//assignedTA.setTeachingAssistant(userMapping.get("assistant2"));
 			}
 
 			log.debug("        Persisted delivery for group: " + groupEntity.getGroupNumber());

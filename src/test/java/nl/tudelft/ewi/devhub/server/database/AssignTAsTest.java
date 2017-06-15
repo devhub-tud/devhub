@@ -1,6 +1,5 @@
 package nl.tudelft.ewi.devhub.server.database;
 
-import nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs;
 import nl.tudelft.ewi.devhub.server.database.entities.AssignedTA;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
@@ -10,8 +9,9 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
+import static nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs.assignGroups;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -74,7 +74,7 @@ public class AssignTAsTest {
         AssignedTA assignedTA1Group2 = makeAssignedTA(assignment, ta1, group2);
         AssignedTA assignedTA1Group3 = makeAssignedTA(assignment, ta1, group3);
 
-        assignedTAS = AssignTAs.assignGroups(teachingAssistants, groups, assignment, new Random(42));
+        assignedTAS = assignGroups(teachingAssistants, groups, assignment, ThreadLocalRandom.current());
 
         assertThat(assignedTAS).contains(assignedTA1Group2, assignedTA1Group3);
     }
@@ -84,7 +84,7 @@ public class AssignTAsTest {
         AssignedTA assignedTA2Group1 = makeAssignedTA(assignment, ta2, group1);
         AssignedTA assignedTA2Group4 = makeAssignedTA(assignment, ta2, group4);
 
-        assignedTAS = AssignTAs.assignGroups(teachingAssistants, groups, assignment, new Random(42));
+        assignedTAS = assignGroups(teachingAssistants, groups, assignment, ThreadLocalRandom.current());
 
         assertThat(assignedTAS).contains(assignedTA2Group1, assignedTA2Group4);
     }
@@ -96,7 +96,7 @@ public class AssignTAsTest {
 
         AssignedTA assignedTA1Group2 = makeAssignedTA(assignment, ta1, group2);
 
-        assignedTAS = AssignTAs.assignGroups(teachingAssistants, singleGroup, assignment, new Random(42));
+        assignedTAS = assignGroups(teachingAssistants, singleGroup, assignment, ThreadLocalRandom.current());
 
         assertThat(assignedTAS).containsExactly(assignedTA1Group2);
     }
@@ -106,7 +106,7 @@ public class AssignTAsTest {
         AssignedTA assignedTA1Group1 = makeAssignedTA(assignment, ta1, group1);
         AssignedTA assignedTA1Group4 = makeAssignedTA(assignment, ta1, group4);
 
-        assignedTAS = AssignTAs.assignGroups(teachingAssistants, groups, assignment, new Random(324452));
+        assignedTAS = assignGroups(teachingAssistants, groups, assignment, ThreadLocalRandom.current());
 
         assertThat(assignedTAS).contains(assignedTA1Group1, assignedTA1Group4);
     }

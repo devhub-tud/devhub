@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
-import nl.tudelft.ewi.devhub.server.database.AssignTAs;
 import nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
@@ -54,7 +53,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+
+import static nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs.assignGroups;
 
 
 /**
@@ -746,17 +748,14 @@ public class AssignmentsResource extends Resource {
         }
 
         List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
-
         List<Group> groups = Lists.transform(deliveries, Delivery::getGroup);
-
         Set<User> TAs = course.getAssistants();
 
         groups.removeAll(Lists.transform(assignment.getAssignedTAS(), AssignedTA::getGroup));
 
-        List<AssignedTA> assignedTAS = AssignTAs.assignGroups(TAs, groups, assignment, new Random());
+        List<AssignedTA> assignedTAS = assignGroups(TAs, groups, assignment, ThreadLocalRandom.current());
 
         assignedTAS.forEach(this.assignedTAs::persist);
-
 
         return Response.seeOther(assignment.getURI()).build();
     }

@@ -11,8 +11,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
  */
 public interface GradingStrategy {
 
-    double createGrade(Delivery delivery);
+    double createGrade(Delivery delivery) throws GradingException;
 
-    Delivery.State createState(Delivery delivery);
+    Delivery.State createState(Delivery delivery) throws GradingException;
 
 }

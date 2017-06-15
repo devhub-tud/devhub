@@ -26,6 +26,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingException;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingStrategy;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -376,14 +378,28 @@ public class ProjectAssignmentsResource extends Resource {
                                   @PathParam("deliveryId") Long deliveryId,
                                   @FormParam("grade") String grade,
                                   @FormParam("commentary") String commentary,
-                                  @FormParam("state") Delivery.State state) throws UnauthorizedException, ApiError {
+                                  @FormParam("state") Delivery.State state) throws UnauthorizedException, ApiError, GradingException {
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()))) {
             throw new UnauthorizedException();
         }
 
-        Double gradeValue = grade.isEmpty() ? null : Double.valueOf(grade);
         Delivery delivery = deliveries.find(group, deliveryId);
+        Assignment assignment = delivery.getAssignment();
+        GradingStrategy gradingStrategy = assignment.getGradingStrategy();
+
+        Double gradeValue;
+
+        if (assignment.isAssignmentHasRubrics()) {
+            // MissingRubricExceptions should not happen here as the review button
+            // is disabled until all characteristics have been filled in
+            gradeValue = gradingStrategy.createGrade(delivery);
+            state = gradingStrategy.createState(delivery);
+        }
+        else {
+            gradeValue = grade.isEmpty() ? null : Double.valueOf(grade);
+        }
+
         Delivery.Review review = new Delivery.Review();
         review.setState(state);
         review.setGrade(gradeValue);

@@ -5,7 +5,9 @@
 <div class="diff box" data-commit="${commit.getCommit()}" data-old-path="${diffModel.oldPath}" data-new-path="${diffModel.newPath}">
     <div class="header">
         <span class="pull-right hidden-xs buttons">
+
         [#if !diffModel.isDeleted()]
+
             <a href="${repositoryEntity.getURI()}commits/${commit.commit}/raw/${diffModel.newPath?url('UTF8')}" class="btn btn-sm btn-default"><i class="glyphicon glyphicon-floppy-save"></i> ${i18n.translate("button.label.download")}</a>
         [/#if]
             <button class="btn btn-sm btn-default folder"><i class="glyphicon glyphicon-chevron-up"></i> ${i18n.translate("button.label.fold")}</button>
@@ -13,18 +15,26 @@
         </span>
 
         [#if diffModel.isDeleted()]
-                <h5><span class="label label-danger">Deleted</span> ${diffModel.oldPath}</h5>
+                <h5><span class="label label-danger">Deleted</span> ${diffModel.oldPath}
+                </h5>
         [#else]
             [#if diffModel.isMoved()]
-                <h5><span class="label label-warn">${i18n.translate("diff.type.moved")}</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
+                <h5><span class="label label-warn">${i18n.translate("diff.type.moved")}</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}
+                </h5>
             [#elseif diffModel.isCopied()]
                 <h5><span class="label label-warn">${i18n.translate("diff.type.copied")}</span> ${diffModel.oldPath} -&gt; ${diffModel.newPath}</h5>
             [#elseif diffModel.isAdded()]
                 <h5><span class="label label-success">${i18n.translate("diff.type.created")}</span> </i> ${diffModel.newPath}</h5>
             [#elseif diffModel.isModified()]
-                <h5><span class="label label-primary">${i18n.translate("diff.type.modified")}</span> ${diffModel.newPath}</h5>
+                <h5><span class="label label-primary">${i18n.translate("diff.type.modified")}</span> ${diffModel.newPath}
+                </h5>
             [/#if]
         [/#if]
+        <h5>
+            <span class="addedlines">${"+" + diffModel.getLinesAdded()}</span>
+            <span class="neutrallines">/</span>
+            <span class="removedlines">${"-" + diffModel.getLinesRemoved()}</span>
+        </h5>
     </div>
     [#if  diffModel.contexts?has_content]
         <div class="overflow-hidden">

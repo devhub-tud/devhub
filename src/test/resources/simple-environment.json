@@ -49,6 +49,12 @@
       "password": "assistant1"
     },
     {
+      "name": "Assistant Two",
+      "email": "assistant-2@student.tudelft.nl",
+      "netId": "assistant2",
+      "password": "assistant2"
+    },
+    {
       "name": "Admin One",
       "email": "admin-1@tudelft.nl",
       "netId": "admin1",
@@ -156,7 +162,8 @@
           ],
 
           "assistants": [
-            "assistant1"
+            "assistant1",
+            "assistant2"
           ],
 
           "groups": [
@@ -170,6 +177,7 @@
                 {
                   "assignmentId" : 1,
                   "createdUserName" : "student1",
+                  "assignedTA": "assistant1",
                   "review" : {
                     "state" : "APPROVED",
                     "grade" : 8.5,
@@ -192,6 +200,7 @@
                 {
                   "assignmentId" : 2,
                   "createdUserName" : "student3",
+                  "assignedTA": "assistant1",
                   "review" : {
                     "state" : "REJECTED",
                     "grade" : 4.5,

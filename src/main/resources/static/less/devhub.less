@@ -53,7 +53,7 @@ body, html {
 a {
 	color: #3699d2;
 	font-weight: 400;
-	
+
 	&:hover {
 		text-decoration: none;
 		color: #3699d2;
@@ -69,7 +69,7 @@ h1, h2, h3, h4, h5, h6 {
 	line-height: 100%;
 	margin: 8px 0px 18px 0px;
 	padding: 3px 0px;
-	
+
 	.btn {
 		margin-top: -5px;
 	}
@@ -77,6 +77,36 @@ h1, h2, h3, h4, h5, h6 {
 
 h1.header, h2.header, h3.header, h4.header, h5.header, h6.header {
 	margin-bottom: 0;
+}
+
+.addedlines, .removedlines, .neutrallines {
+	line-height: 1.5em;
+	font-family: monospace;
+	font-size: 13px;
+	letter-spacing: 0.08em;
+}
+
+.addedlines {
+  color: #008000;
+}
+
+.removedlines {
+  color: #FF0000;
+}
+
+div.committerLinesAdded {
+  color: #008000;
+  float: right;
+}
+
+div.committerLinesRemoved {
+  color: #FF0000;
+  float: right;
+}
+
+div.committerLinesDivider {
+  color: #b8b8b8;
+  float: right;
 }
 
 h1.subheader, h2.subheader, h3.subheader, h4.subheader, h5.subheader, h6.subheader {
@@ -107,8 +137,8 @@ h1 {
 	padding: 6px 0px;
 	margin-bottom: 24px;
 	width: 100%;
-	
-	
+
+
 	.logo-text {
 	  	height: 74px;
 		font-size: 22px;
@@ -130,7 +160,7 @@ h1 {
 		margin-bottom: 0px;
 		line-height: 40px;
 		color: #b8b8b8 !important;
-		
+
 		&:not(:last-child) {
 			margin-right: 32px;
 		}
@@ -214,14 +244,14 @@ td.no-data {
 }
 
 .spinner {
-	-webkit-animation: rotate 2.7s linear infinite; 
+	-webkit-animation: rotate 2.7s linear infinite;
 }
 
 @-webkit-keyframes rotate {
   from {
     -webkit-transform: rotate(0deg);
   }
-  to { 
+  to {
     -webkit-transform: rotate(360deg);
   }
 }
@@ -264,7 +294,7 @@ td.commit {
 			color: #eee;
 		}
 	}
-	
+
 	.state {
         position: absolute;
         left: 10px;
@@ -274,7 +304,7 @@ td.commit {
         width: 38px;
         height: 38px;
 	}
-	
+
 	.comment {
 		font-weight: bold;
 		overflow: hidden;
@@ -282,7 +312,7 @@ td.commit {
 		height: 20px;
         color: #666;
 	}
-	
+
 	.committer, .timestamp {
 		display : inline-block;
 		color: #999;
@@ -290,7 +320,7 @@ td.commit {
 		text-overflow: ellipsis;
 		height: 20px;
 	}
-	
+
 }
 
 div.commit {
@@ -314,7 +344,7 @@ div.commit {
 			color: #eee;
 		}
 	}
-	
+
 	.state {
 		float: left;
 		margin: 10px 8px 0px 0px;
@@ -322,17 +352,17 @@ div.commit {
 		height: 50px;
 		width: 50px;
 	}
-	
+
 	.headers {
 		display: block;
 		padding-top: 1px;
-		
+
 		.header, .subheader {
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
-		
+
 		.description {
 			white-space: pre-wrap;
 			white-space: -moz-pre-wrap;
@@ -343,22 +373,22 @@ div.commit {
 			font-size: 13px;
 			margin-bottom: 15px;
 		}
-		
+
 		.view-picker {
 			margin-left: 10px;
 		}
 	}
-	
+
 	.view-picker {
 		float: right;
 		display: inline-block;
 		margin-top: 11px;
 	}
-	
+
 	.comment {
 		font-weight: bold;
 	}
-	
+
 	.committer {
 		color: #999;
 	}
@@ -376,7 +406,7 @@ div.commit {
 	border: 1px solid #ccc;
 	margin: 0px 0px 16px 0px;
 	.rounded;
-	
+
 	.header {
 		background: rgb(255,255,255); /* Old browsers */
 		background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(229,229,229,1) 100%); /* FF3.6+ */
@@ -393,8 +423,9 @@ div.commit {
 		.buttons {
 		  margin-top: 5px;
 		}
-		
+
 		h5 {
+			display: inline-block;
 			line-height: 25px;
 			margin: 4px 5px 7px 8px;
 			overflow: hidden;
@@ -416,7 +447,7 @@ div.commit {
 		padding: 0px;
 		.rounded-bottom;
 		border: 0px;
-		
+
 		td {
 			margin: 0px !important;
 			padding: 0px !important;
@@ -440,22 +471,22 @@ div.commit {
 				position: absolute;
 				top: 2px;
 				left: -10px;
-				
+
 				span {
 					cursor: pointer;
 				}
 			}
-			
+
 			&:hover .btn-comment {
 				opacity: 1;
 			}
 		}
-		
+
 		.code {
 			font-size: 12px;
 			margin: 0px;
 			border-top: 1px solid #fff;
-			
+
 			pre {
 				white-space: pre-wrap;
 				tab-size: 4;
@@ -466,7 +497,7 @@ div.commit {
 				padding: 0;
 				border: 0;
 			}
-			
+
 		}
 
 		.ln {
@@ -487,9 +518,9 @@ div.commit {
 			-moz-user-select: none;
 			-ms-user-select: none;
 			user-select: none;
-			
+
 			content: counter;
-			
+
 			a {
 				color: #bbb;
 			}
@@ -506,35 +537,35 @@ div.commit {
 			  cursor: pointer;
 			}
 		}
-	
+
 		.add {
 			background-color: @green-background-color;
 			border-top: 1px solid #ceffce !important;
-			
+
 			&.ln {
 				color: @green-text-color;
 				text-shadow: 1px 1px #99f799;
 			}
-			
+
 			&:not(:last-child) {
 				border-right: 1px solid @green-border-color;
 			}
 		}
-		
+
 		.delete {
 			background-color: @red-background-color;
 			border-top: 1px solid #f7c8c8 !important;
-			
+
 			&.ln {
 				color: @red-text-color;
 				text-shadow: 1px 1px #f7a8a8;
 			}
-			
+
 			&:not(:last-child) {
 				border-right: 1px solid @red-border-color;
 			}
 		}
-		
+
 		tr:last-child {
 			.rounded-bottom;
 			.add, .delete, pre, .ln, .code {
@@ -547,7 +578,7 @@ div.commit {
 			}
 		}
 	}
-		
+
 	&.folded {
 		.diffs, .files {
 			display: none;
@@ -557,22 +588,22 @@ div.commit {
 			.rounded-bottom;
 		}
 	}
-	
+
 	.comment-block {
 		border-top: 1px solid #dddddd;
 		border-bottom: 1px solid #dddddd;
-		
+
 		.panel {
 			margin: 20px;
 			max-width: 600px;
 		}
-		
+
 		.btn {
 			margin-top: 10px;
 			margin-right: 10px;
 		}
 	}
-	
+
 	.hljs-subst , .hljs-title , .json .hljs-value {
 		font-weight: normal;
 		color: #000;
@@ -627,10 +658,10 @@ div.commit {
 .files {
 	margin : 0;
 	.rounded-bottom;
-	
+
 	i {
 		margin-right: 5px;
-		
+
 		&.folder {
 			color: #555;
 		}
@@ -653,25 +684,25 @@ div.commit {
 
 .form-group {
 	margin-bottom: 20px;
-	
+
 	.form-control-feedback {
 		top: 35px;
 		right: 11px;
 		float: right;
 	}
-	
+
 	&.has-error {
 		span.glyphicon {
 			color: #a94442;
 		}
 	}
-	
+
 	&.has-success {
 		span.glyphicon {
 			color: #3c763d;
 		}
 	}
-	
+
 	.help-block {
 		height: 20px;
 		font-size: 12px;
@@ -684,12 +715,12 @@ code {
 	font-weight: bold;
 	white-space: pre-wrap;
 	background-color: #fff;
-	
+
 	&.log {
 		display: block;
 		font-weight: 300;
 		font-size: 11px;
-		
+
 		&.error {
 			color: #ff0000;
 			font-weight: bold;

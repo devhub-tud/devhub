@@ -33,7 +33,7 @@ public class ProjectAssignmentsResourceTest {
 
     @Before
     public void setUp() {
-        resource = new ProjectAssignmentsResource(null, user, group, null, null, null, null, null, null);
+        resource = new ProjectAssignmentsResource(null, user, group, null, null, null, null, null, null, null, null);
         Mockito.when(group.getCourseEdition()).thenReturn(edition);
     }
 

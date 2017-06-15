@@ -1,19 +1,22 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit.CommitId;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.git.models.CommitModel;
+import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,6 +39,13 @@ public class Commits extends Controller<Commit> {
 		return Optional.ofNullable(entityManager.find(Commit.class, key));
 	}
 
+	@Transactional
+	public List<Commit> retrieveCommits(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+		return query().from(commit)
+			.where(commit.repository.eq(repositoryEntity).and(commit.commitId.in(commitIds)))
+			.list(commit);
+	}
+
 	/**
 	 * Ensure that a commit exists in the database. Recursively check if the parents exists as well.
 	 *
@@ -52,8 +62,9 @@ public class Commits extends Controller<Commit> {
 			commit.setComments(Lists.newArrayList());
 			commit.setPushTime(new Date());
 
-			enhanceCommitSafely(repositoryEntity, commitId, commit);
+			enhanceCommitSafely(commit);
 
+			//HERE IT IS SAVED
 			return persist(commit);
 		});
 	}
@@ -61,13 +72,17 @@ public class Commits extends Controller<Commit> {
 	/**
 	 * Enhance a commit with details from the git server, such as commit time, author information and parents.
 	 *
-	 * @param repositoryEntity Repository to search commits for.
-	 * @param commitId Commit id of the commit.
 	 * @param commit Commit object to modify.
 	 */
-	private void enhanceCommitSafely(RepositoryEntity repositoryEntity, String commitId, Commit commit) {
+	public void enhanceCommitSafely(Commit commit) {
 		try {
+			log.info("Enhance {} {}", commit.getRepository().getRepositoryName(), commit.getCommitId());
+			RepositoryEntity repositoryEntity = commit.getRepository();
+			String commitId = commit.getCommitId();
 			final CommitModel gitCommit = retrieveCommit(repositoryEntity, commitId);
+			final DiffModel diffModel = retrieveDiffModel(repositoryEntity, commitId);
+			commit.setLinesAdded(diffModel.getLinesAdded());
+			commit.setLinesRemoved(diffModel.getLinesRemoved());
 			commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
 			commit.setAuthor(gitCommit.getAuthor());
 			commit.setParents(
@@ -86,6 +101,13 @@ public class Commits extends Controller<Commit> {
 		return repositories.getRepository(repositoryEntity.getRepositoryName())
 			.getCommit(commitId)
 			.get();
+	}
+
+	@SneakyThrows
+	protected DiffModel retrieveDiffModel(RepositoryEntity repositoryEntity, String commitId) {
+		return repositories.getRepository(repositoryEntity.getRepositoryName())
+				.getCommit(commitId)
+				.diff();
 	}
 
 	/**

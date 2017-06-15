@@ -7,44 +7,23 @@ $(function () {
 
     var view = true;
 
-    $('.toggle-view').click(function () {
-        var userDeliveriesTable = $('.table#user');
-        var lastDeliveriesTable = $('.table#last');
-        var filteredDeliveriesTable = $('.table#filtered');
+	function toggleView() {
+		var userDeliveriesTable = $('.table#user');
+		var lastDeliveriesTable = $('.table#last');
+		var filteredDeliveriesTable = $('.table#filtered');
 
-        var userProgressBar = $('.well#user');
-        var lastProgressBar = $('.well#last');
+		var userProgressBar = $('.well#user');
+		var lastProgressBar = $('.well#last');
 
-        if (!view) {
-            userDeliveriesTable.hide();
-            filteredDeliveriesTable.hide();
-            lastDeliveriesTable.show();
+		userDeliveriesTable.toggle(view);
+		filteredDeliveriesTable.toggle(view);
+		lastDeliveriesTable.toggle(!view);
 
-            userProgressBar.hide();
-            lastProgressBar.show();
+		userProgressBar.toggle(view);
+		lastProgressBar.toggle(!view);
+		view  = !view;
+	};
 
-
-            view = !view;
-        } else {
-            userDeliveriesTable.show();
-            filteredDeliveriesTable.show();
-            lastDeliveriesTable.hide();
-
-            userProgressBar.show();
-            lastProgressBar.hide();
-
-            view = !view;
-        }
-    })
-});
-
-$(document).ready(function () {
-    var userDeliveriesTable = $('.table#user');
-    var filteredDeliveriesTable = $('.table#filtered');
-    var userProgressBar = $('.well#user');
-
-    userDeliveriesTable.hide();
-    filteredDeliveriesTable.hide();
-
-    userProgressBar.hide();
+    $('.toggle-view').click(toggleView);
+	  toggleView();
 });

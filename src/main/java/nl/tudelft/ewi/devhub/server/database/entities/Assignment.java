@@ -111,6 +111,7 @@ public class Assignment implements Comparable<Assignment>, Base {
     @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Task> tasks;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "assignment")
     private List<AssignedTA> assignedTAS;
 

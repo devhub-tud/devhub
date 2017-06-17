@@ -151,8 +151,9 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 		pullRequest.setOpen(true);
 
 		pullRequestBackend.createPullRequest(repositoryApi, pullRequest);
-		notificationBackend.createNotification(repositoryApi, pullRequest);
 		pullRequestMailer.sendReviewMail(pullRequest);
+
+		notificationBackend.createPullRequestCreatedNotification(pullRequest,currentUser);
 
 		String uri = request.getRequestURI() + "/" + pullRequest.getIssueId();
 		return Response.seeOther(URI.create(uri)).build();
@@ -249,7 +250,7 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);
 
-		notificationBackend.createNotification(comment,currentUser);
+		notificationBackend.createPullRequestCommentNotification(comment,currentUser);
 
 		return response;
 	}
@@ -308,6 +309,9 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 
 		PullCloseResponse response = new PullCloseResponse();
 		response.setClosed(true);
+
+		notificationBackend.createPullRequestClosedNotification(pullRequest,currentUser);
+
 		return response;
 	}
 
@@ -335,6 +339,7 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 			response.setClosed(true);
 		}
 
+		notificationBackend.createBranchDeletedNotification(pullRequest,currentUser);
 		return response;
 	}
 
@@ -367,6 +372,7 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 			hooksResource.onGitPush(new GitPush(repositoryEntity.getRepositoryName()));
 		}
 
+		notificationBackend.createBranchMergedNotification(pullRequest,currentUser);
 		return response;
 	}
 

@@ -158,7 +158,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 				.collect(Collectors.toSet()));
 		
 		issueBackend.createIssue(getRepositoryApi(getRepositoryEntity()), issue);
-		notificationBackend.createNotification(issue,currentUser);
+		notificationBackend.createIssueCreatedNotification(issue,currentUser);
 		
 		return redirect(issue.getURI().toString());
 	}
@@ -239,6 +239,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		
 		issues.merge(issue);
 
+		notificationBackend.createIssueEditedNotification(issue,currentUser);
+
 		return redirect(issue.getURI());
 	}
 	
@@ -256,9 +258,9 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		comment.setIssue(issue);
 		comment.setUser(currentUser);
 
-		notificationBackend.createNotification(comment,currentUser);
-
 		issueComments.persist(comment);
+
+		notificationBackend.createIssueCommentNotification(comment,currentUser);
 
 		return redirect(issue.getURI());
 	}

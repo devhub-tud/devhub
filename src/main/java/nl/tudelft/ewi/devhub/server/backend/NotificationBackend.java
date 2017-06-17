@@ -6,6 +6,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.NotificationController;
 import nl.tudelft.ewi.devhub.server.database.controllers.NotificationUserController;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
@@ -59,30 +60,107 @@ public class NotificationBackend {
         return notification;
     }
 
-    public void createNotification(Issue issue, User currentUser) {
+
+    public void createIssueCreatedNotification(Issue issue,User currentUser) {
         List<Locale> locale = Arrays.asList(Locale.ENGLISH);
 
-        String title = translatorFactory.create(locale).translate("notifications.issue.title",issue.getTitle(),currentUser.getName());
-        String message = trim(issue.getDescription());
-        String link = issue.getURI().getPath();
+        String title = translatorFactory.create(locale).translate("notifications.issueCreate.title",issue.getTitle(),currentUser.getName());
         String event = "Issue created";
-        if(message.isEmpty()) {
-            message = translatorFactory.create(locale).translate("notifications.issue.empty-message");
-        }
 
-        Notification notification = createNotificationObject(currentUser,link,event,message,title);
+        Notification notification = createIssueNotification(issue, currentUser, event, title);
         createNotification(notification, Arrays.asList(issue.getAssignee()));
     }
 
-    public void createNotification(RepositoryApi repositoryApi, PullRequest pullRequest) {
-        Notification notification = createNotificationObject(pullRequest.getAssignee(),pullRequest.getURI().getPath(),"Pull Request","Message", "placeholderTitle");
+    public void createIssueEditedNotification(Issue issue,User currentUser) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+
+        String title = translatorFactory.create(locale).translate("notifications.issueEdit.title",issue.getTitle(),currentUser.getName());
+        String event = "Issue Edited";
+
+        Notification notification = createIssueNotification(issue, currentUser, event, title);
+        createNotification(notification, Arrays.asList(issue.getAssignee()));
+    }
+
+    private Notification createIssueNotification(Issue issue, User currentUser, String event, String title) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String message = trim(issue.getDescription());
+        String link = issue.getURI().getPath();
+        if(message.isEmpty()) {
+            message = translatorFactory.create(locale).translate("notifications.issue.empty-message");
+        }
+        return createNotificationObject(currentUser,link,event,message,title);
+    }
+
+
+    public void createPullRequestCreatedNotification(PullRequest pullRequest, User currentUser) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String title = translatorFactory.create(locale).translate("notifications.pull-request.create.title",currentUser.getName(), pullRequest.getTitle());
+        String event = "Created Pull Request";
+        Notification notification = createPullRequestNotification(pullRequest, currentUser, event, title);
         createNotification(notification,pullRequest.getRepository().getCollaborators());
     }
 
-    public void createNotification(Comment comment, User currentUser) {
-        Notification notification = createNotificationObject(currentUser, comment.getRepository().getURI().getPath() + "issues", "Comment", "Message", "placeholderTitle");
-        createNotification(notification, comment.getRepository().getCollaborators());
+    public void createPullRequestClosedNotification(PullRequest pullRequest, User currentUser) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String title = translatorFactory.create(locale).translate("notifications.pull-request.closed.title",currentUser.getName(), pullRequest.getTitle());
+        String event = "Closed Pull Request";
+        Notification notification = createPullRequestNotification(pullRequest, currentUser, event, title);
+        createNotification(notification,pullRequest.getRepository().getCollaborators());
     }
+
+    public void createBranchDeletedNotification(PullRequest pullRequest, User currentUser) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String title = translatorFactory.create(locale).translate("notifications.branch.deleted.title",currentUser.getName(), pullRequest.getTitle());
+        String event = "Branch deleted";
+        Notification notification = createPullRequestNotification(pullRequest, currentUser, event, title);
+        createNotification(notification,pullRequest.getRepository().getCollaborators());
+    }
+
+    public void createBranchMergedNotification(PullRequest pullRequest, User currentUser) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String title = translatorFactory.create(locale).translate("notifications.branch.merged.title",currentUser.getName(), pullRequest.getTitle());
+        String event = "Branch Merged";
+        Notification notification = createPullRequestNotification(pullRequest, currentUser, event, title);
+        createNotification(notification,pullRequest.getRepository().getCollaborators());
+    }
+
+    private Notification createPullRequestNotification(PullRequest pullRequest, User currentUser, String event, String title) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String message = trim(pullRequest.getDescription());
+        String link = pullRequest.getURI().getPath();
+        if(message.isEmpty()) {
+            message = translatorFactory.create(locale).translate("notifications.pull-request.empty-message");
+        }
+        return createNotificationObject(currentUser,link,event,message,title);
+    }
+
+
+    public void createIssueCommentNotification(IssueComment comment, User currentUser) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String title = translatorFactory.create(locale).translate("notifications.commentOnIssue.title",currentUser.getName(), comment.getIssue().getTitle());
+        String event = "Commented on Issue";
+        Notification notification = createCommentNotification(comment, currentUser, event, title);
+        createNotification(notification,comment.getRepository().getCollaborators());
+    }
+
+    public void createPullRequestCommentNotification(IssueComment comment, User currentUser) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String title = translatorFactory.create(locale).translate("notifications.commentOnPullRequest.title",comment.getUser(), comment.getIssue().getTitle());
+        String event = "Commented on Pull Request";
+        Notification notification = createCommentNotification(comment, currentUser, event, title);
+        createNotification(notification,comment.getRepository().getCollaborators());
+    }
+
+    private Notification createCommentNotification(Comment comment, User currentUser, String event, String title) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+        String message = trim(comment.getContent());
+        String link = comment.getURI().getPath();
+        if(message.isEmpty()) {
+            message = translatorFactory.create(locale).translate("notifications.comment.empty-message");
+        }
+        return createNotificationObject(currentUser,link,event,message,title);
+    }
+
 
     private String trim(String string) {
         if(string.length() < MESSAGE_LENGTH) {

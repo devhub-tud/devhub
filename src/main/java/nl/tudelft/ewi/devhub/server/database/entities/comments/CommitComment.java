@@ -15,6 +15,7 @@ import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import java.net.URI;
 
 @Data
 @Entity
@@ -47,5 +48,10 @@ public class CommitComment extends Comment {
 	@Override
 	public RepositoryEntity getRepository() {
 		return getCommit().getRepository();
+	}
+
+	@Override
+	public URI getURI() {
+		return getCommit().getURI();
 	}
 }

@@ -64,11 +64,15 @@ public class NotificationBackend {
     public void createIssueCreatedNotification(Issue issue,User currentUser) {
         List<Locale> locale = Arrays.asList(Locale.ENGLISH);
 
-        String title = translatorFactory.create(locale).translate("notifications.issueCreate.title",issue.getTitle(),currentUser.getName());
+        String assignTitle = translatorFactory.create(locale).translate("notifications.issueAssign.title",issue.getTitle(),currentUser.getName());
+        String creationTitle = translatorFactory.create(locale).translate("notifications.issueCreate.title",issue.getTitle(),currentUser.getName());
         String event = "Issue created";
 
-        Notification notification = createIssueNotification(issue, currentUser, event, title);
-        createNotification(notification, Arrays.asList(issue.getAssignee()));
+        Notification assignNotification = createIssueNotification(issue, currentUser, event, assignTitle);
+        Notification creationNotification = createIssueNotification(issue, currentUser, event, creationTitle);
+
+        createNotification(assignNotification, Arrays.asList(issue.getAssignee()));
+        createNotification(creationNotification, issue.getRepository().getCollaborators());
     }
 
     public void createIssueEditedNotification(Issue issue,User currentUser) {
@@ -78,7 +82,17 @@ public class NotificationBackend {
         String event = "Issue Edited";
 
         Notification notification = createIssueNotification(issue, currentUser, event, title);
-        createNotification(notification, Arrays.asList(issue.getAssignee()));
+        createNotification(notification, issue.getRepository().getCollaborators());
+    }
+
+    public void createIssueClosedNotification(Issue issue,User currentUser) {
+        List<Locale> locale = Arrays.asList(Locale.ENGLISH);
+
+        String title = translatorFactory.create(locale).translate("notifications.issueClose.title",issue.getTitle(),currentUser.getName());
+        String event = "Issue Closed";
+
+        Notification notification = createIssueNotification(issue, currentUser, event, title);
+        createNotification(notification, issue.getRepository().getCollaborators());
     }
 
     private Notification createIssueNotification(Issue issue, User currentUser, String event, String title) {

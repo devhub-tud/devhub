@@ -239,7 +239,11 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		
 		issues.merge(issue);
 
-		notificationBackend.createIssueEditedNotification(issue,currentUser);
+		if(issue.isClosed()) {
+			notificationBackend.createIssueClosedNotification(issue,currentUser);
+		} else {
+			notificationBackend.createIssueEditedNotification(issue,currentUser);
+		}
 
 		return redirect(issue.getURI());
 	}

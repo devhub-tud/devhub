@@ -34,6 +34,7 @@ import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
@@ -184,27 +185,13 @@ public class DevhubModule extends ServletModule {
 		return new PegDownProcessor(timeout);
 	}
 
-	private static class ExecutorShutDownListener implements Listener {
+	private static class ExecutorShutDownListener extends AbstractLifeCycleListener {
+
 		private final ExecutorService t;
 
 		public ExecutorShutDownListener(ExecutorService t) {
 			this.t = t;
 		}
-
-		@Override
-        public void lifeCycleStarting(LifeCycle event) {
-
-        }
-
-		@Override
-        public void lifeCycleStarted(LifeCycle event) {
-
-        }
-
-		@Override
-        public void lifeCycleFailure(LifeCycle event, Throwable cause) {
-
-        }
 
 		@Override
         public void lifeCycleStopping(LifeCycle event) {
@@ -213,7 +200,7 @@ public class DevhubModule extends ServletModule {
 
 		@Override
         public void lifeCycleStopped(LifeCycle event) {
-
+			t.shutdownNow();
         }
 	}
 }

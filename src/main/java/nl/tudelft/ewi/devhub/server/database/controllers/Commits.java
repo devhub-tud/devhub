@@ -15,8 +15,11 @@ import nl.tudelft.ewi.devhub.server.events.CreateCommitEvent;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import org.hibernate.BaseSessionEventListener;
+import org.hibernate.Session;
 
 import javax.persistence.EntityManager;
+import javax.transaction.Synchronization;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -69,7 +72,17 @@ public class Commits extends Controller<Commit> {
 			CreateCommitEvent createCommitEvent = new CreateCommitEvent();
 			createCommitEvent.setCommitId(commitId);
 			createCommitEvent.setRepositoryName(repositoryEntity.getRepositoryName());
-			eventBus.post(createCommitEvent);
+
+			entityManager.unwrap(Session.class)
+				.addEventListeners(new BaseSessionEventListener() {
+					@Override
+					public void transactionCompletion(boolean successful) {
+						if (successful) {
+							eventBus.post(createCommitEvent);
+						}
+					}
+				});
+
 			return persist(commit);
 		});
 	}

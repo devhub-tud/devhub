@@ -7,6 +7,7 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
+import nl.tudelft.ewi.devhub.server.backend.BuildsBackend.BuildSubmitter;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleReport;
@@ -64,6 +65,7 @@ public class HooksResource extends Resource {
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
 	private final SuccessiveBuildFailureGenerator successiveBuildFailureGenerator;
 	private final AsyncEventBus asyncEventBus;
+	private final BuildSubmitter buildSubmitter;
 
 	@Inject
 	public HooksResource(BuildResults buildResults,
@@ -75,7 +77,8 @@ public class HooksResource extends Resource {
 	                     FindBugsWarningGenerator findBugsWarningGenerator,
 	                     CheckstyleWarningGenerator checkstyleWarningGenerator,
 	                     SuccessiveBuildFailureGenerator successiveBuildFailureGenerator,
-	                     AsyncEventBus asyncEventBus) {
+	                     AsyncEventBus asyncEventBus,
+	                     BuildSubmitter buildSubmitter) {
 		this.mailer = mailer;
 		this.commits = commits;
 		this.warnings = warnings;
@@ -86,6 +89,7 @@ public class HooksResource extends Resource {
 		this.findBugsWarningGenerator = findBugsWarningGenerator;
 		this.checkstyleWarningGenerator = checkstyleWarningGenerator;
 		this.successiveBuildFailureGenerator = successiveBuildFailureGenerator;
+		this.buildSubmitter = buildSubmitter;
 	}
 
 	/**
@@ -142,6 +146,14 @@ public class HooksResource extends Resource {
 		}
 		catch (Exception e) {
 			log.warn("Failed to persist sucessive build failure for {}", e, result);
+		}
+
+		try {
+			// Make the build submitter aware that there may be capacity
+			buildSubmitter.notify();
+		}
+		catch (Exception e) {
+			log.warn("Failed to notify build submitter: " + e.getMessage(), e);
 		}
 
 		asyncEventBus.post(result);

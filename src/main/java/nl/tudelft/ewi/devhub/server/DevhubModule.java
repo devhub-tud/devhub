@@ -1,6 +1,21 @@
 package nl.tudelft.ewi.devhub.server;
 
-import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.matcher.Matchers;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
+import com.google.inject.persist.PersistFilter;
+import com.google.inject.persist.UnitOfWork;
+import com.google.inject.servlet.RequestScoped;
+import com.google.inject.servlet.ServletModule;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackend;
 import nl.tudelft.ewi.devhub.server.backend.AuthenticationBackendImpl;
@@ -16,24 +31,15 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
-import nl.tudelft.ewi.devhub.server.web.resources.HooksResource;
-import nl.tudelft.ewi.devhub.server.web.resources.HooksResource.GitPushHandlerWorkerFactory;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
-import com.google.inject.Provides;
-import com.google.inject.multibindings.Multibinder;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
-import com.google.inject.persist.PersistFilter;
-import com.google.inject.servlet.RequestScoped;
-import com.google.inject.servlet.ServletModule;
-
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.pegdown.PegDownProcessor;
 import org.reflections.Reflections;
+import org.reflections.scanners.MethodAnnotationsScanner;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +48,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -67,7 +74,10 @@ public class DevhubModule extends ServletModule {
 		requireBinding(ObjectMapper.class);
 		bind(JacksonJaxbXMLProvider.class);
 
-		bind(ExecutorService.class).toInstance(Executors.newCachedThreadPool());
+		ExecutorService t = Executors.newFixedThreadPool(20);
+		bind(ExecutorService.class).toInstance(t);
+		lifeCycle.addLifeCycleListener(new ExecutorShutDownListener(t));
+
 		bind(File.class).annotatedWith(Names.named("directory.templates")).toInstance(new File(rootFolder, "templates"));
 		bind(TranslatorFactory.class).toInstance(new TranslatorFactory("i18n.devhub"));
 		bind(Config.class).toInstance(config);
@@ -76,10 +86,6 @@ public class DevhubModule extends ServletModule {
 		bind(AuthenticationProvider.class).to(LdapAuthenticationProvider.class);
 		bind(LdapUserProcessor.class).to(PersistingLdapUserProcessor.class);
 		bindWarningGenerators();
-
-		install(new FactoryModuleBuilder()
-			.implement(HooksResource.GitPushHandlerWorker.class, HooksResource.GitPushHandlerWorker.class)
-			.build(GitPushHandlerWorkerFactory.class));
 
 		filter("/*").through(PersistFilter.class);
 		filter(
@@ -95,7 +101,28 @@ public class DevhubModule extends ServletModule {
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);
 
+		UnitOfWorkInterceptor unitOfWorkInterceptor = new UnitOfWorkInterceptor();
+		bindInterceptor(Matchers.any(), Matchers.annotatedWith(Subscribe.class), unitOfWorkInterceptor);
+		requestInjection(unitOfWorkInterceptor);
+
 		bindConstant().annotatedWith(Names.named("pegdown.timeout")).to(2000l);
+	}
+
+	public static class UnitOfWorkInterceptor implements MethodInterceptor {
+
+		@Inject private com.google.inject.Provider<UnitOfWork> unitOfWorkProvider;
+
+		@Override
+		public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+			UnitOfWork unitOfWork = unitOfWorkProvider.get();
+			unitOfWork.begin();
+			try {
+				return methodInvocation.proceed();
+			}
+			finally {
+				unitOfWork.end();
+			}
+		}
 	}
 
 	private void bindWarningGenerators() {
@@ -113,6 +140,18 @@ public class DevhubModule extends ServletModule {
 			log.info("Registering resource {}", clasz);
 			bind(clasz);
 		}
+	}
+
+	@Provides
+	@Singleton
+	public AsyncEventBus asyncEventBus(ExecutorService executorService, Injector injector) {
+		AsyncEventBus asyncEventBus = new AsyncEventBus(executorService);
+		Reflections reflections = new Reflections(getClass().getPackage().getName(), new MethodAnnotationsScanner());
+		for (Method method: reflections.getMethodsAnnotatedWith(Subscribe.class)) {
+			log.info("Registering event handler {}", method);
+			asyncEventBus.register(injector.getInstance(method.getDeclaringClass()));
+		}
+		return asyncEventBus;
 	}
 	
 	@Provides
@@ -145,4 +184,36 @@ public class DevhubModule extends ServletModule {
 		return new PegDownProcessor(timeout);
 	}
 
+	private static class ExecutorShutDownListener implements Listener {
+		private final ExecutorService t;
+
+		public ExecutorShutDownListener(ExecutorService t) {
+			this.t = t;
+		}
+
+		@Override
+        public void lifeCycleStarting(LifeCycle event) {
+
+        }
+
+		@Override
+        public void lifeCycleStarted(LifeCycle event) {
+
+        }
+
+		@Override
+        public void lifeCycleFailure(LifeCycle event, Throwable cause) {
+
+        }
+
+		@Override
+        public void lifeCycleStopping(LifeCycle event) {
+            t.shutdown();
+        }
+
+		@Override
+        public void lifeCycleStopped(LifeCycle event) {
+
+        }
+	}
 }

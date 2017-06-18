@@ -1,13 +1,17 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.common.collect.Lists;
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit.CommitId;
+import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.events.CreateCommitEvent;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
@@ -25,12 +29,12 @@ import static nl.tudelft.ewi.devhub.server.database.entities.QCommit.commit;
 @Slf4j
 public class Commits extends Controller<Commit> {
 
-	private final RepositoriesApi repositories;
+	private final AsyncEventBus eventBus;
 
 	@Inject
-	public Commits(final EntityManager entityManager, final RepositoriesApi repositories) {
+	public Commits(final EntityManager entityManager, final AsyncEventBus eventBus) {
 		super(entityManager);
-		this.repositories = repositories;
+		this.eventBus = eventBus;
 	}
 	
 	@Transactional
@@ -62,52 +66,12 @@ public class Commits extends Controller<Commit> {
 			commit.setComments(Lists.newArrayList());
 			commit.setPushTime(new Date());
 
-			enhanceCommitSafely(commit);
-
-			//HERE IT IS SAVED
+			CreateCommitEvent createCommitEvent = new CreateCommitEvent();
+			createCommitEvent.setCommitId(commitId);
+			createCommitEvent.setRepositoryName(repositoryEntity.getRepositoryName());
+			eventBus.post(createCommitEvent);
 			return persist(commit);
 		});
-	}
-
-	/**
-	 * Enhance a commit with details from the git server, such as commit time, author information and parents.
-	 *
-	 * @param commit Commit object to modify.
-	 */
-	public void enhanceCommitSafely(Commit commit) {
-		try {
-			log.info("Enhance {} {}", commit.getRepository().getRepositoryName(), commit.getCommitId());
-			RepositoryEntity repositoryEntity = commit.getRepository();
-			String commitId = commit.getCommitId();
-			final CommitModel gitCommit = retrieveCommit(repositoryEntity, commitId);
-			final DiffModel diffModel = retrieveDiffModel(repositoryEntity, commitId);
-			commit.setLinesAdded(diffModel.getLinesAdded());
-			commit.setLinesRemoved(diffModel.getLinesRemoved());
-			commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
-			commit.setAuthor(gitCommit.getAuthor());
-			commit.setParents(
-				Stream.of(gitCommit.getParents()).sequential()
-					.map(c -> ensureExists(repositoryEntity, c))
-					.collect(Collectors.toList())
-			);
-		}
-		catch (Exception e) {
-			log.warn("Failed to retrieve commit details: " + e.getMessage(), e);
-		}
-	}
-
-	@SneakyThrows
-	protected CommitModel retrieveCommit(RepositoryEntity repositoryEntity, String commitId) {
-		return repositories.getRepository(repositoryEntity.getRepositoryName())
-			.getCommit(commitId)
-			.get();
-	}
-
-	@SneakyThrows
-	protected DiffModel retrieveDiffModel(RepositoryEntity repositoryEntity, String commitId) {
-		return repositories.getRepository(repositoryEntity.getRepositoryName())
-				.getCommit(commitId)
-				.diff();
 	}
 
 	/**

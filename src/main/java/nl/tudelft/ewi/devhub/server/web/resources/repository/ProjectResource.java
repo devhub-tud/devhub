@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.google.common.eventbus.AsyncEventBus;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
@@ -55,9 +56,9 @@ public class ProjectResource extends AbstractProjectResource<GroupRepository> {
 						   BuildResults buildResults, PullRequests pullRequests, RepositoriesApi repositoriesApi, BuildsBackend buildBackend,
 						   CommitComments comments, CommentMailer commentMailer, Commits commits, Warnings warnings,
 						   RepositoriesController repositoriesController, EditContributorsState editContributorsState,
-						   Users users, Groups groups, MarkDownParser markDownParser) {
+						   Users users, Groups groups, MarkDownParser markDownParser, final AsyncEventBus asyncEventBus) {
 		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, repositoriesApi, buildBackend,
-			comments, commentMailer, commits, warnings, repositoriesController, editContributorsState, users, markDownParser);
+			comments, commentMailer, commits, warnings, repositoriesController, editContributorsState, users, markDownParser, asyncEventBus);
 		this.group = group;
 		this.groups = groups;
 	}

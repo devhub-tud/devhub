@@ -9,6 +9,9 @@ import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 /**
  * Created by Arjan on 13-6-2017.
  */
@@ -26,7 +29,11 @@ public class NotificationBackend {
     @Transactional
     public void createNotification(Issue issue, User currentUser) {
         Notification notification = new Notification();
-        notification.setLink("SOME LINK");
+        try {
+            notification.setLink(new URI("http://localhost:50001/"));
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         notification.setSender(currentUser);
         notification.setEvent("Issue Event");
         notification.setMessage(issue.getTitle());

@@ -1111,29 +1111,6 @@
 			baseTableName="issue_labels" 
 			baseColumnNames="label_id"/>
 	</changeSet>
-
-	<changeSet id="addedNotificationClasses" author="Arjan Seijs and Capser Henkes">
-		<createTable tableName="notification">
-			<column name="id" type="bigint" autoIncrement="true">
-				<constraints primaryKey="true" nullable="false" />
-			</column>
-			<column name="message" type="varchar(255)"></column>
-			<column name="event" type="varchar(255)"></column>
-			<column name="link" type="varchar(255)"></column>
-			<column name="user_id" type="bigint"></column>
-			<column name="date" type="datetime"></column>
-		</createTable>
-		<createTable tableName="notifications_to_users">
-			<column name="user_id" type="bigint"></column>
-			<column name="notification_id" type="bigint"></column>
-			<column name="isRead" type="boolean"></column>
-		</createTable>
-		<!--<addPrimaryKey tableName="notification_to_users" columnNames="user_id, notification_id"/>-->
-		<!--<addForeignKeyConstraint baseTableName="notification_to_users" baseColumnNames="notification_id"-->
-								 <!--constraintName="notification_id_exists_in_notifications"-->
-								 <!--referencedTableName="notification"-->
-								 <!--referencedColumnNames="id"/>-->
-	</changeSet>
 	<changeSet author="Vera Hoveling" id="add_columns_for_line_changes">
 		<addColumn tableName="commit">
 			<column name="lines_added" type="int" />
@@ -1141,5 +1118,33 @@
 		<addColumn tableName="commit">
 			<column name="lines_removed" type="int" />
 		</addColumn>
+	</changeSet>
+
+	<changeSet id="addedNotificationClasses" author="Arjan Seijs and Casper Henkes">
+		<createTable tableName="notification">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="message" type="varchar(255)"></column>
+			<column name="event" type="varchar(255)"></column>
+			<column name="link" type="binary(255)"></column>
+			<column name="user_id" type="bigint"></column>
+			<column name="date" type="datetime"></column>
+		</createTable>
+		<createTable tableName="notifications_to_users">
+			<column name="user_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="notification_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="isRead" type="boolean"></column>
+		</createTable>
+		<addPrimaryKey tableName="notifications_to_users" columnNames="user_id, notification_id"/>
+		<addForeignKeyConstraint baseTableName="notifications_to_users"
+				 baseColumnNames="notification_id"
+				 constraintName="notification_id_exists_in_notifications"
+				 referencedTableName="notification"
+				 referencedColumnNames="id"/>
 	</changeSet>
 </databaseChangeLog>

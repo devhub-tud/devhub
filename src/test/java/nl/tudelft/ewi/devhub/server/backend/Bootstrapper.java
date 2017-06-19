@@ -34,6 +34,7 @@ import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -141,7 +142,7 @@ public class Bootstrapper {
 	}
 	
 	@Transactional
-	public void prepare(String path) throws IOException, ApiError {
+	public void prepare(String path) throws IOException, ApiError, URISyntaxException {
 		InputStream inputStream = Bootstrapper.class.getResourceAsStream(path);
 		BState state = mapper.readValue(inputStream, BState.class);
 		
@@ -235,7 +236,7 @@ public class Bootstrapper {
 				notification.setMessage("Some message");
 				notification.setSender(userMapping.get("admin1"));
 				//notification.setLink(URI.create("thelink"));
-				notification.setLink("thelink");
+				notification.setLink(new URI("http://localhost:50001/"));
 				notificationController.persist(notification);
 
 
@@ -243,7 +244,7 @@ public class Bootstrapper {
 				notification2.setEvent("PR");
 				notification2.setMessage("Some message");
 				notification2.setSender(userMapping.get("admin1"));
-				notification2.setLink("thelink");
+				notification2.setLink(new URI("http://localhost:50001/"));
 				notificationController.persist(notification2);
 
 				NotificationsToUsers notificationsToUsers1 = new NotificationsToUsers();

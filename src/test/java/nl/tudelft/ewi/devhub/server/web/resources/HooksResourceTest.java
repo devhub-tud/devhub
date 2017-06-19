@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -88,7 +89,7 @@ public class HooksResourceTest {
     }
 
     @Before
-    public void provisionEnvironment() throws IOException, ApiError {
+    public void provisionEnvironment() throws IOException, ApiError, URISyntaxException {
         bootstrapperProvider.get().prepare("/simple-environment.json");
     }
 

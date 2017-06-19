@@ -38,15 +38,22 @@ public class AsyncPostTransactionEventBus extends EventBus {
 
     @Override
     public void post(Object event) {;
-        entityManagerProvider.get().unwrap(Session.class)
-            .addEventListeners(new BaseSessionEventListener() {
-                @Override
-                public void transactionCompletion(boolean successful) {
-                    if (successful) {
-                        AsyncPostTransactionEventBus.super.post(event);
+        EntityManager entityManager = entityManagerProvider.get();
+
+        if (entityManager.getTransaction().isActive()) {
+            entityManagerProvider.get().unwrap(Session.class)
+                .addEventListeners(new BaseSessionEventListener() {
+                    @Override
+                    public void transactionCompletion(boolean successful) {
+                        if (successful) {
+                            AsyncPostTransactionEventBus.super.post(event);
+                        }
                     }
-                }
-            });
+                });
+        }
+        else {
+            AsyncPostTransactionEventBus.super.post(event);
+        }
     }
 
     @Override

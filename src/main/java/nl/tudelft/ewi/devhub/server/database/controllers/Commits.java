@@ -1,30 +1,22 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.common.collect.Lists;
-import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit.CommitId;
-import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.events.CreateCommitEvent;
-import nl.tudelft.ewi.git.models.CommitModel;
-import nl.tudelft.ewi.git.models.DiffModel;
-import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import org.hibernate.BaseSessionEventListener;
 import org.hibernate.Session;
 
 import javax.persistence.EntityManager;
-import javax.transaction.Synchronization;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static nl.tudelft.ewi.devhub.server.database.entities.QCommit.commit;
@@ -32,10 +24,10 @@ import static nl.tudelft.ewi.devhub.server.database.entities.QCommit.commit;
 @Slf4j
 public class Commits extends Controller<Commit> {
 
-	private final AsyncEventBus eventBus;
+	private final EventBus eventBus;
 
 	@Inject
-	public Commits(final EntityManager entityManager, final AsyncEventBus eventBus) {
+	public Commits(final EntityManager entityManager, final EventBus eventBus) {
 		super(entityManager);
 		this.eventBus = eventBus;
 	}
@@ -72,17 +64,7 @@ public class Commits extends Controller<Commit> {
 			CreateCommitEvent createCommitEvent = new CreateCommitEvent();
 			createCommitEvent.setCommitId(commitId);
 			createCommitEvent.setRepositoryName(repositoryEntity.getRepositoryName());
-
-			entityManager.unwrap(Session.class)
-				.addEventListeners(new BaseSessionEventListener() {
-					@Override
-					public void transactionCompletion(boolean successful) {
-						if (successful) {
-							eventBus.post(createCommitEvent);
-						}
-					}
-				});
-
+			eventBus.post(createCommitEvent);
 			return persist(commit);
 		});
 	}

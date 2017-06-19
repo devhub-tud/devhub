@@ -2,7 +2,7 @@ package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.RequestScoped;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +64,7 @@ public class HooksResource extends Resource {
 	private final CheckstyleWarningGenerator checkstyleWarningGenerator;
 	private final FindBugsWarningGenerator findBugsWarningGenerator;
 	private final SuccessiveBuildFailureGenerator successiveBuildFailureGenerator;
-	private final AsyncEventBus asyncEventBus;
+	private final EventBus asyncEventBus;
 	private final BuildSubmitter buildSubmitter;
 
 	@Inject
@@ -77,7 +77,7 @@ public class HooksResource extends Resource {
 	                     FindBugsWarningGenerator findBugsWarningGenerator,
 	                     CheckstyleWarningGenerator checkstyleWarningGenerator,
 	                     SuccessiveBuildFailureGenerator successiveBuildFailureGenerator,
-	                     AsyncEventBus asyncEventBus,
+	                     EventBus asyncEventBus,
 	                     BuildSubmitter buildSubmitter) {
 		this.mailer = mailer;
 		this.commits = commits;

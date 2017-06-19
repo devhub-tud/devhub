@@ -2,13 +2,13 @@ package nl.tudelft.ewi.devhub.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.xml.JacksonJaxbXMLProvider;
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.AsyncPostTransactionEventBus;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
@@ -32,16 +32,14 @@ import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.filters.RepositoryAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.filters.UserAuthorizeFilter;
 import nl.tudelft.ewi.devhub.server.web.templating.TranslatorFactory;
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener;
 import org.eclipse.jetty.util.component.LifeCycle;
-import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.jboss.resteasy.plugins.guice.ext.JaxrsModule;
 import org.pegdown.PegDownProcessor;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -102,28 +100,7 @@ public class DevhubModule extends ServletModule {
 		findResourcesWith(Path.class);
 		findResourcesWith(Provider.class);
 
-		UnitOfWorkInterceptor unitOfWorkInterceptor = new UnitOfWorkInterceptor();
-		bindInterceptor(Matchers.any(), Matchers.annotatedWith(Subscribe.class), unitOfWorkInterceptor);
-		requestInjection(unitOfWorkInterceptor);
-
 		bindConstant().annotatedWith(Names.named("pegdown.timeout")).to(2000l);
-	}
-
-	public static class UnitOfWorkInterceptor implements MethodInterceptor {
-
-		@Inject private com.google.inject.Provider<UnitOfWork> unitOfWorkProvider;
-
-		@Override
-		public Object invoke(MethodInvocation methodInvocation) throws Throwable {
-			UnitOfWork unitOfWork = unitOfWorkProvider.get();
-			unitOfWork.begin();
-			try {
-				return methodInvocation.proceed();
-			}
-			finally {
-				unitOfWork.end();
-			}
-		}
 	}
 
 	private void bindWarningGenerators() {
@@ -145,8 +122,8 @@ public class DevhubModule extends ServletModule {
 
 	@Provides
 	@Singleton
-	public AsyncEventBus asyncEventBus(ExecutorService executorService, Injector injector) {
-		AsyncEventBus asyncEventBus = new AsyncEventBus(executorService);
+	public EventBus asyncEventBus(ExecutorService executorService, com.google.inject.Provider<UnitOfWork> unitOfWorkProvider, com.google.inject.Provider<EntityManager> entityManagerProvider, Injector injector) {
+		EventBus asyncEventBus = new AsyncPostTransactionEventBus(entityManagerProvider, unitOfWorkProvider, executorService);
 		Reflections reflections = new Reflections(getClass().getPackage().getName(), new MethodAnnotationsScanner());
 		for (Method method: reflections.getMethodsAnnotatedWith(Subscribe.class)) {
 			log.info("Registering event handler {}", method);

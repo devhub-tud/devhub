@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
 import com.google.common.collect.Maps;
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
@@ -52,7 +52,7 @@ public class PrivateRepositoryResource extends AbstractProjectResource<PrivateRe
 									 RepositoriesApi repositoriesApi, BuildsBackend buildBackend, CommitComments comments,
 									 CommentMailer commentMailer, Commits commits, Warnings warnings,
 									 PrivateRepositories privateRepositories, EditContributorsState editContributorsState,
-									 Users users, MarkDownParser markDownParser, final AsyncEventBus asyncEventBus) {
+									 Users users, MarkDownParser markDownParser, final EventBus asyncEventBus) {
 		super(templateEngine, currentUser, commentBackend, buildResults, pullRequests, repositoriesApi, buildBackend,
 			comments, commentMailer, commits, warnings, privateRepositories, editContributorsState, users, markDownParser, asyncEventBus);
 		this.privateRepositories = privateRepositories;

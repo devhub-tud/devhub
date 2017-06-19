@@ -150,7 +150,9 @@ public class HooksResource extends Resource {
 
 		try {
 			// Make the build submitter aware that there may be capacity
-			buildSubmitter.notify();
+			synchronized (buildSubmitter) {
+				buildSubmitter.notify();
+			}
 		}
 		catch (Exception e) {
 			log.warn("Failed to notify build submitter: " + e.getMessage(), e);

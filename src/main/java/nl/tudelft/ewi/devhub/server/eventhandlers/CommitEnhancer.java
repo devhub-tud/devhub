@@ -10,15 +10,11 @@ import nl.tudelft.ewi.devhub.server.database.controllers.RepositoriesController;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.events.CreateCommitEvent;
-import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.Date;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -54,24 +50,9 @@ public class CommitEnhancer {
 
         log.info("Enhance {} {}", commit.getRepository().getRepositoryName(), commit.getCommitId());
 
-        final CommitModel gitCommit = retrieveCommit(repositoryEntity, createCommitEvent.getCommitId());
         final DiffModel diffModel = retrieveDiffModel(repositoryEntity, createCommitEvent.getCommitId());
         commit.setLinesAdded(diffModel.getLinesAdded());
         commit.setLinesRemoved(diffModel.getLinesRemoved());
-        commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
-        commit.setAuthor(gitCommit.getAuthor());
-        commit.setParents(
-            Stream.of(gitCommit.getParents()).sequential()
-                .map(c -> commitsProvider.get().ensureExists(repositoryEntity, c))
-                .collect(Collectors.toList())
-        );
-    }
-
-    @SneakyThrows
-    protected CommitModel retrieveCommit(RepositoryEntity repositoryEntity, String commitId) {
-        return repositoriesApiProvider.get().getRepository(repositoryEntity.getRepositoryName())
-            .getCommit(commitId)
-            .get();
     }
 
     @SneakyThrows

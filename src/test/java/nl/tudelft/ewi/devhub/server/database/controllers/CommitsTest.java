@@ -105,20 +105,11 @@ public class CommitsTest extends PersistedBackendTest {
 		assertEquals(expected.getUser(), actual.getUser());
 	}
 
-	@Test
-	public void testPersistWithParent() {
-		Commit a = createCommit(group.getRepository());
-		commit.setParents(new String[] { a.getCommitId() });
-		Commit b = createCommit(group.getRepository());
-		assertThat(b.getParents(), Matchers.contains(a));
-	}
-
-
 	@Transactional
 	@Test
 	public void testCommitLineChanges() {
 		Commit commit = createCommit(group.getRepository());
-		assertThat(commit.getLinesAdded(), equalTo(0));
+		assertThat(commit.getLinesAdded(), equalTo(null));
 		commit.setLinesAdded(69);
 		commit.setLinesRemoved(666);
 		entityManager.flush();

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.SessionScoped;
@@ -28,6 +29,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
+import nl.tudelft.ewi.devhub.server.events.CreateCommitEvent;
 import nl.tudelft.ewi.devhub.server.util.FlattenFolderTree;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
@@ -106,6 +108,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	protected final EditContributorsState editContributorsState;
 	protected final Users users;
 	protected MarkDownParser markDownParser;
+	protected final EventBus asyncEventBus;
 
 	/**
 	 * Used to display different types of alerts on a branch view.
@@ -149,7 +152,8 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 						  	final Controller<? super RepoType> repositoriesController,
 						  	final EditContributorsState editContributorsState,
 						  	final Users users,
-						  	final MarkDownParser markDownParser) {
+						  	final MarkDownParser markDownParser,
+	                        final EventBus asyncEventBus) {
 
 		this.templateEngine = templateEngine;
 		this.currentUser = currentUser;
@@ -166,6 +170,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		this.editContributorsState = editContributorsState;
 		this.users = users;
 		this.markDownParser = markDownParser;
+		this.asyncEventBus = asyncEventBus;
 	}
 
 	protected abstract RepoType getRepositoryEntity();
@@ -777,7 +782,14 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	@Consumes(MediaType.MEDIA_TYPE_WILDCARD)
 	public void enhanceCommitsForRepository() {
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
-		repositoryEntity.getCommits().forEach(commits::enhanceCommitSafely);
+		repositoryEntity.getCommits().stream()
+			.map(commit -> {
+				CreateCommitEvent createCommitEvent = new CreateCommitEvent();
+				createCommitEvent.setRepositoryName(repositoryEntity.getRepositoryName());
+				createCommitEvent.setCommitId(commit.getCommitId());
+				return createCommitEvent;
+			})
+			.forEach(asyncEventBus::post);
 	}
 
 	@GET

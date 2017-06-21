@@ -11,10 +11,13 @@ import com.google.inject.servlet.RequestScoped;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
+import nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.entities.AssignedTA;
 import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
@@ -23,6 +26,8 @@ import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingException;
+import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingStrategy;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Task;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
@@ -69,6 +74,8 @@ public class ProjectAssignmentsResource extends Resource {
     private final Deliveries deliveries;
     private final DeliveriesBackend deliveriesBackend;
     private final Assignments assignments;
+    private final Users users;
+    private final AssignedTAs assignedTAs;
 
     @Inject
     public ProjectAssignmentsResource(final TemplateEngine templateEngine,
@@ -79,8 +86,11 @@ public class ProjectAssignmentsResource extends Resource {
                                       final RepositoriesApi repositoriesApi,
                                       final DeliveriesBackend deliveriesBackend,
                                       final Assignments assignments,
-                                      final Commits commits) {
-
+                                      final Commits commits,
+                                      final Users users,
+                                      final AssignedTAs assignedTAs) {
+        this.users = users;
+        this.assignedTAs = assignedTAs;
         this.templateEngine = templateEngine;
         this.group = group;
         this.repositoryEntity = group.getRepository();
@@ -283,7 +293,7 @@ public class ProjectAssignmentsResource extends Resource {
      * @return the requested file
      */
     @GET
-    @Path("{assignmentId : \\d+}/deliveries/{deliveryId}/attachment/{path}")
+    @Path("{assignmentId : \\d+}/deliveries/{deliveryId : \\d+}/attachment/{path}")
     public Response getAttachment(@Context HttpServletRequest request,
                                   @PathParam("deliveryId") long deliveryId,
                                   @PathParam("path") String attachmentPath) {
@@ -291,6 +301,34 @@ public class ProjectAssignmentsResource extends Resource {
         Delivery delivery = deliveries.find(group, deliveryId);
         File file = deliveriesBackend.getAttachment(delivery, group, attachmentPath);
         return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM).build();
+    }
+
+    @POST
+    @Transactional
+    @Path("{assignmentId : \\d+}/deliveries/{deliveryId : \\d+}/assign-ta")
+    public void assignTeachingAssistant(@PathParam("deliveryId") long deliveryId,
+                                        @FormParam("value") long assistantId) {
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()))) {
+            throw new UnauthorizedException();
+        }
+
+        Delivery delivery = deliveries.find(group, deliveryId);
+        Assignment assignment = delivery.getAssignment();
+        User teachingAssistant = Preconditions.checkNotNull(users.find(assistantId));
+
+        Optional<AssignedTA> assignedTAOptional = assignment.getAssignedTAObject(delivery);
+
+        if (assignedTAOptional.isPresent()) {
+            assignedTAOptional.get().setTeachingAssistant(teachingAssistant);
+        }
+        else {
+            AssignedTA assignedTA = new AssignedTA();
+            assignedTA.setAssignment(assignment);
+            assignedTA.setGroup(delivery.getGroup());
+            assignedTA.setTeachingAssistant(teachingAssistant);
+            assignedTAs.persist(assignedTA);
+        }
     }
 
     /**
@@ -340,14 +378,28 @@ public class ProjectAssignmentsResource extends Resource {
                                   @PathParam("deliveryId") Long deliveryId,
                                   @FormParam("grade") String grade,
                                   @FormParam("commentary") String commentary,
-                                  @FormParam("state") Delivery.State state) throws UnauthorizedException, ApiError {
+                                  @FormParam("state") Delivery.State state) throws UnauthorizedException, ApiError, GradingException {
 
         if(!(currentUser.isAdmin() || currentUser.isAssisting(group.getCourse()))) {
             throw new UnauthorizedException();
         }
 
-        Double gradeValue = grade.isEmpty() ? null : Double.valueOf(grade);
         Delivery delivery = deliveries.find(group, deliveryId);
+        Assignment assignment = delivery.getAssignment();
+        GradingStrategy gradingStrategy = assignment.getGradingStrategy();
+
+        Double gradeValue;
+
+        if (assignment.isAssignmentHasRubrics()) {
+            // MissingRubricExceptions should not happen here as the review button
+            // is disabled until all characteristics have been filled in
+            gradeValue = gradingStrategy.createGrade(delivery);
+            state = gradingStrategy.createState(delivery);
+        }
+        else {
+            gradeValue = grade.isEmpty() ? null : Double.valueOf(grade);
+        }
+
         Delivery.Review review = new Delivery.Review();
         review.setState(state);
         review.setGrade(gradeValue);

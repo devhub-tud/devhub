@@ -1121,5 +1121,44 @@
 		</addColumn>
 	</changeSet>
 
+    <changeSet id="assign_ta_to_assignment" author="Maaike Visser">
+        <createTable tableName="assigned_ta">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="course_edition_id" type="bigint">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="group_number" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ta_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assignment_course_edition_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assignment_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
 
+        <addForeignKeyConstraint constraintName="course_edition_ref_in_assigned_ta"
+                                 baseTableName="assigned_ta" baseColumnNames="course_edition_id, group_number"
+                                 referencedTableName="groups" referencedColumnNames="course_edition_id, group_number"/>
+
+        <addForeignKeyConstraint constraintName="user_ref_in_assigned_ta"
+                                 baseTableName="assigned_ta" baseColumnNames="ta_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint constraintName="course_ref_in_assigned_ta"
+                                 baseTableName="assigned_ta" baseColumnNames="assignment_course_edition_id, assignment_id"
+                                 referencedTableName="assignments" referencedColumnNames="course_edition_id, assignment_id"/>
+
+    </changeSet>
+
+    <changeSet id="add_unique_constraint_assigned_tas" author="Sayra Ranjha">
+        <addUniqueConstraint columnNames="course_edition_id,group_number,assignment_id" tableName="assigned_ta"/>
+    </changeSet>
+  
 </databaseChangeLog>

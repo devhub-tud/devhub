@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -32,6 +33,7 @@ import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
+import nl.tudelft.ewi.devhub.server.web.models.statistics.AreaChartData;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -69,14 +71,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -788,24 +783,50 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	@GET
 	@Path("magical-chart-data")
 	@Produces(MediaType.APPLICATION_JSON)
-	public GoogleChartData getMagicalChartData() {
-		GoogleChartData googleChartData = new GoogleChartData();
-		googleChartData.setCols(Lists.newArrayList(
-			new GoogleChartData.Cols("col1", "label", GoogleChartData.ColType.number),
-			new GoogleChartData.Cols("col2", "label", GoogleChartData.ColType.number)
-		));
-		googleChartData.setRows(Lists.newArrayList(
-			new GoogleChartData.RowDefition(Lists.newArrayList(
-					new GoogleChartData.Magie(4),
-					new GoogleChartData.Magie(5)
-			)),
-			new GoogleChartData.RowDefition(Lists.newArrayList(
-					new GoogleChartData.Magie(3),
-					new GoogleChartData.Magie(6)
-			))
-		));
+	public List<AreaChartData> getMagicalChartData(String branchName) {
 
-		return googleChartData;
+		// create empty arraylist to store the area chart data bc we only need date and amount
+		List<AreaChartData> data = new ArrayList<>();
+		
+		List<List<Object>> res = ImmutableList.builder()
+				.add(ImmutableList.of("Date", "NumCommits"))
+				.add(ImmutableList.of(new Date(), 5))
+				.add(ImmutableList.of(new Date(), 5))
+				.add(ImmutableList.of(new Date(), 5))
+				.build();
+
+		// get all commits
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repository", repositoryApi.getRepositoryModel());
+		BranchApi branchApi = repositoryApi.getBranch("master");
+		BranchModel branch = branchApi.get();
+		CommitSubList commits = branchApi.retrieveCommitsInBranch();
+		Collection<String> commitIds = getCommitIds(commits);
+		List<Commit> commitEntities = commitIds.stream()
+				.map(commitId -> this.commits.ensureExists(repositoryEntity, commitId))
+				.collect(Collectors.toList());
+
+		for(Commit commit : commitEntities){
+			// make new AreaChartData (we not sure if we have to set it though)
+			AreaChartData tempAreaChartData = new AreaChartData();
+			// set date in the tempAreaChartData to match the current commit
+			tempAreaChartData.setCommitDate(commit.getCommitTime());
+			// check if we already have added a commit on this date to the list
+			if (data.size() > 0 && commit.getCommitTime().equals(data.get(data.size()-1).getCommitDate())){
+				// if there's already a commit with this date, just increment the amount of commits on that date
+				data.get(data.size()-1).setCommitAmount(data.get(data.size()-1).getCommitAmount()+1);
+				continue;
+			}
+			// if there's no commit on that date yet, set the commit amount to 1
+			tempAreaChartData.setCommitAmount(1);
+			// and add it
+			data.add(tempAreaChartData);
+		}
+		//parameters.put("commits", data);
+
+		return data;
 	}
 
 	@Data @NoArgsConstructor @AllArgsConstructor public static class GoogleChartData {

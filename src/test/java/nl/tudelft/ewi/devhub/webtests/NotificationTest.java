@@ -59,7 +59,7 @@ public class NotificationTest extends WebTest {
         for(NotificationsToUsers notificationsToUsers: user.getNotificationsToUsersList()) {
             notificationUserController.refresh(notificationsToUsers);
         }
-        
+
         assertEquals(notificationView.getUnreadNotifications().size(),user.unreadNotifications());
         assertEquals(notificationView.getReadNotifications().size(),user.readNotifications());
 

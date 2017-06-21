@@ -103,8 +103,6 @@ public class AssignmentReviewTest extends WebTest {
 
         final DeliveryReviewView.DeliveryForm deliveryForm = view.getDelivery();
         deliveryForm.setCommentary(DELIVERY_COMMENTARY);
-        deliveryForm.setGrade(7.0);
-        deliveryForm.setState(State.APPROVED);
 
         assertTrue("Submit button should not be clickable", deliveryForm.isSubmitButtonDisabled());
     }
@@ -115,8 +113,6 @@ public class AssignmentReviewTest extends WebTest {
 
         final DeliveryReviewView.DeliveryForm deliveryForm = view.getDelivery();
         deliveryForm.setCommentary(DELIVERY_COMMENTARY);
-        deliveryForm.setGrade(7.0);
-        deliveryForm.setState(State.APPROVED);
 
         List<WebElement> masteries = deliveryForm.getFirstMasteryForEachCharacteristic();
         for (int i = 0; i < masteries.size(); i++) {

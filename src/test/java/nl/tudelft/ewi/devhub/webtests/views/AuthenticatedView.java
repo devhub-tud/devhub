@@ -20,6 +20,8 @@ public class AuthenticatedView extends View {
 
 	private static final By LOGOUT_BUTTON = By.xpath("//a[text()='Logout']");
 
+	private static final By DISTRIBUTE_BUTTON = By.xpath("//button[@id='distribute-tas']");
+
 	public AuthenticatedView(WebDriver driver) {
 		super(driver);
 	}
@@ -68,6 +70,11 @@ public class AuthenticatedView extends View {
 		//waitUntilCurrentUrlDiffersFrom(url);
 
 		return new NotificationView(getDriver());
+	}
+
+	public void distributeTAs() {
+		WebElement button = getDriver().findElement(DISTRIBUTE_BUTTON);
+		button.click();
 	}
 
 }

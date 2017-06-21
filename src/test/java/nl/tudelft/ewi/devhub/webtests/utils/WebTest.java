@@ -26,6 +26,9 @@ public abstract class WebTest {
 	public static final String ASSISTANT_USERNAME = "assistant1";
 	public static final String ASSISTANT_PASSWORD = "assistant1";
 
+	public static final String ADMIN_USERNAME = "admin1";
+	public static final String ADMIN_PASSWORD = "admin1";
+
 	public static ServerResource serverResource = new ServerResource();
 	public static DriverResource driverResource = new DriverResource();
 	@ClassRule public static RuleChain ruleChain = RuleChain.outerRule(serverResource).around(driverResource);

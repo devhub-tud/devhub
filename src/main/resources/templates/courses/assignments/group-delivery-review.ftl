@@ -2,7 +2,9 @@
 [#import "../../components/project-frameset.ftl" as projectFrameset]
 [#import "../../components/delivery.ftl" as deliveryElement]
 
-[@macros.renderHeader i18n.translate("section.projects") /]
+[@macros.renderHeader i18n.translate("section.projects")]
+	<link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+[/@macros.renderHeader]
 [@macros.renderMenu i18n user /]
 <div class="container">
 
@@ -40,7 +42,7 @@
                             <div class="row">
                                 <div class="form-group col-md-6">
                                     <label for="state">${i18n.translate("delivery.status")}</label>
-                                    <select class="form-control" name="state" id="state">
+                                    <select class="form-control" name="state" id="state" [#if delivery.assignment.tasks?has_content && delivery.assignment.gradingStrategy?has_content]disabled="disabled"[/#if]>
                                         [#if deliveryStates?? && deliveryStates?has_content]
                                             [#list deliveryStates as deliveryState]
                                                 <option value="${deliveryState?string}" [#if review?? && review?has_content && review.getState() == deliveryState]selected[/#if]>
@@ -53,7 +55,9 @@
 
                                 <div class="form-group col-md-6">
                                     <label for="grade">${i18n.translate("delivery.grade")}</label>
-                                    <input type="number" class="form-control" name="grade" id="grade" min="1" max="10" step="0.1" [#if review?? && review?has_content ]value="${review.getGrade()!}"[/#if]>
+                                    <input type="number" class="form-control" name="grade" id="grade" min="1" max="10" step="0.1"
+																					 [#if review?? && review?has_content ]value="${review.getGrade()!}"[/#if]
+																					 [#if delivery.assignment.tasks?has_content && delivery.assignment.gradingStrategy?has_content]disabled="disabled"[/#if]>
                                 </div>
                             </div>
 
@@ -169,8 +173,13 @@
 
 	$(computeTotals)
 	$('[type="radio"]').on('change', computeTotals)
-    $('[type="radio"]').on('change', persistMasteries)
+	$('[type="radio"]').on('change', persistMasteries)
 </script>
-
+<script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+<script type="text/javascript">
+	$('#group').editable({
+		showbuttons: false
+	});
+</script>
 [/@macros.renderScripts]
 [@macros.renderFooter /]

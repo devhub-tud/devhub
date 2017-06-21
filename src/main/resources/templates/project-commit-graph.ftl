@@ -36,10 +36,7 @@
     </div>
 
     <!-- Graph for a person for a commit -->
-    <div class="row">
-        <div class="col-md-10">
-            <div id="personcommit_div" style="width: 100%; height: 500px; "></div>
-        </div>
+    <div class="row" id="personcommit_divs">
     </div>
 
 </div> <!-- closes div class="container" -->
@@ -76,21 +73,31 @@
     google.charts.setOnLoadCallback(function() {
         $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/person-commit')
                 .then(function(res) {
-                    for(var i = 1, row, dateParts; row = res[i]; i++) {
-                        dateParts = row[0].split('-').map(parseFloat)
-                        row[0] = new Date(dateParts[0], dateParts[1], dateParts[2])
+                    for (var name in res) {
+                        var personalChart = res[name];
+
+                        for(var i = 1, row, dateParts; row = personalChart[i]; i++) {
+                            dateParts = row[0].split('-').map(parseFloat)
+                            row[0] = new Date(dateParts[0], dateParts[1], dateParts[2])
+                        }
+
+                        var data = google.visualization.arrayToDataTable(personalChart);
+                        var options = {
+                            title: name,
+                            backgroundColor: 'transparent',
+                            hAxis: {title: 'Date',  titleTextStyle: {color: '#333'}},
+                            vAxis: {minValue: 0}
+                        };
+
+                        var mijnMagischeElement = $('<div>')
+                                .attr('height', '300px')
+                                .appendTo('#personcommit_divs');
+
+                        mijnMagischeElement.wrap($('<div>').addClass("col-md-6"));
+                        var chart = new google.visualization.AreaChart(mijnMagischeElement[0]);
+                        chart.draw(data, options);
                     }
 
-                    var data = google.visualization.arrayToDataTable(res);
-                    var options = {
-                        title: 'Commits for person',
-                        backgroundColor: 'white',
-                        hAxis: {title: 'Date',  titleTextStyle: {color: '#333'}},
-                        vAxis: {minValue: 0}
-                    };
-
-                    var chart = new google.visualization.AreaChart(document.getElementById('personcommits_div'));
-                    chart.draw(data, options);
                 });
     });
 </script>

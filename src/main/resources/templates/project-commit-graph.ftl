@@ -68,7 +68,7 @@
         $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/magical-chart-data')
             .then(function(res) {
                 console.log(res);
-                var data = new google.visualization.DataTable(res);
+                var data = google.visualization.arrayToDataTable(res);
                 var options = {
                     title: 'Company Performance',
                     backgroundColor: 'transparent',

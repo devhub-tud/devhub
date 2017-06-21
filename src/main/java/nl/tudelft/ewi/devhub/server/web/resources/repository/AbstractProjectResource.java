@@ -795,17 +795,10 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	@GET
 	@Path("magical-chart-data")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<AreaChartData> getMagicalChartData(String branchName) {
+	public List<List<Object>> getMagicalChartData() {
 
 		// create empty arraylist to store the area chart data bc we only need date and amount
 		List<AreaChartData> data = new ArrayList<>();
-		
-		List<List<Object>> res = ImmutableList.builder()
-				.add(ImmutableList.of("Date", "NumCommits"))
-				.add(ImmutableList.of(new Date(), 5))
-				.add(ImmutableList.of(new Date(), 5))
-				.add(ImmutableList.of(new Date(), 5))
-				.build();
 
 		// get all commits
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
@@ -820,25 +813,36 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 				.map(commitId -> this.commits.ensureExists(repositoryEntity, commitId))
 				.collect(Collectors.toList());
 
-		for(Commit commit : commitEntities){
-			// make new AreaChartData (we not sure if we have to set it though)
-			AreaChartData tempAreaChartData = new AreaChartData();
-			// set date in the tempAreaChartData to match the current commit
-			tempAreaChartData.setCommitDate(commit.getCommitTime());
-			// check if we already have added a commit on this date to the list
-			if (data.size() > 0 && commit.getCommitTime().equals(data.get(data.size()-1).getCommitDate())){
-				// if there's already a commit with this date, just increment the amount of commits on that date
-				data.get(data.size()-1).setCommitAmount(data.get(data.size()-1).getCommitAmount()+1);
-				continue;
-			}
-			// if there's no commit on that date yet, set the commit amount to 1
-			tempAreaChartData.setCommitAmount(1);
-			// and add it
-			data.add(tempAreaChartData);
+		ImmutableList.Builder listBuilder = ImmutableList.builder();
+		listBuilder.add(ImmutableList.of("Date", "NumCommits"));
+		for(Commit commit : commitEntities) {
+			Date date = new Date();
+			date = commit.getCommitTime();
+			listBuilder.add(ImmutableList.of( date, 1));
 		}
+		List<List<Object>> res = listBuilder.build();
+
+//		for(Commit commit : commitEntities){
+//			// make new AreaChartData (we not sure if we have to set it though)
+//			AreaChartData tempAreaChartData = new AreaChartData();
+//			// set date in the tempAreaChartData to match the current commit
+//			tempAreaChartData.setCommitDate(commit.getCommitTime());
+//			Date tempDate = commit.getCommitTime();
+//
+//			// check if we already have added a commit on this date to the list
+//			if (data.size() > 0 && commit.getCommitTime().equals(data.get(data.size()-1).getCommitDate())){
+//				// if there's already a commit with this date, just increment the amount of commits on that date
+//				data.get(data.size()-1).setCommitAmount(data.get(data.size()-1).getCommitAmount()+1);
+//				continue;
+//			}
+//			// if there's no commit on that date yet, set the commit amount to 1
+//			tempAreaChartData.setCommitAmount(1);
+//			// and add it
+//			data.add(tempAreaChartData);
+//		}
 		//parameters.put("commits", data);
 
-		return data;
+		return res;
 	}
 
 	@Data @NoArgsConstructor @AllArgsConstructor public static class GoogleChartData {

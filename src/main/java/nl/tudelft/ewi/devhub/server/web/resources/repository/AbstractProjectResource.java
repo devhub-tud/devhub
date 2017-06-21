@@ -803,17 +803,22 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	public GoogleChartData getMagicalChartData() {
 		GoogleChartData googleChartData = new GoogleChartData();
 		googleChartData.setCols(Lists.newArrayList(
-			new GoogleChartData.Cols("col1", "label", GoogleChartData.ColType.number),
-			new GoogleChartData.Cols("col2", "label", GoogleChartData.ColType.number)
+			new GoogleChartData.Cols("col1", "label1", GoogleChartData.ColType.number),
+			new GoogleChartData.Cols("col2", "label2", GoogleChartData.ColType.number),
+			new GoogleChartData.Cols("col3", "label1", GoogleChartData.ColType.number)
 		));
 		googleChartData.setRows(Lists.newArrayList(
 			new GoogleChartData.RowDefition(Lists.newArrayList(
-					new GoogleChartData.Magie(4),
-					new GoogleChartData.Magie(5)
+					new GoogleChartData.Magie(5),
+					new GoogleChartData.Magie(9)
 			)),
 			new GoogleChartData.RowDefition(Lists.newArrayList(
 					new GoogleChartData.Magie(3),
 					new GoogleChartData.Magie(6)
+			)),
+			new GoogleChartData.RowDefition(Lists.newArrayList(
+				new GoogleChartData.Magie(1),
+				new GoogleChartData.Magie(5)
 			))
 		));
 

@@ -184,6 +184,7 @@ public class NotificationBackend {
 
 
     private String trim(String string) {
+        if(string == null) return "";
         if(string.length() < MESSAGE_LENGTH) {
             return string;
         }

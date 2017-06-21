@@ -3,6 +3,8 @@ package nl.tudelft.ewi.devhub.webtests;
 import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.Config;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
+import nl.tudelft.ewi.devhub.webtests.views.CourseView;
+import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
 import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 import nl.tudelft.ewi.devhub.webtests.views.NotificationView;
 import org.junit.Test;
@@ -11,6 +13,7 @@ import org.openqa.selenium.WebElement;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Arjan on 14-6-2017.
@@ -31,8 +34,13 @@ public class NotificationTest extends WebTest {
 
     @Test
     public void markAsRead() throws InterruptedException {
+        CoursesView coursesView = openLoginScreen().login(NET_ID,PASSWORD);
+        NotificationView notificationView = coursesView.toNotificationView();
 
-        getDriver().navigate().to("http://localhost:"  + config.getHttpPort() + "/notifications/" + NET_ID);
+        assertEquals(notificationView.getUnreadNotifications().size(),1);
+        assertEquals(notificationView.getReadNotifacations().size(),1);
+        assertTrue(false);
+        /*getDriver().navigate().to("http://localhost:"  + config.getHttpPort() + "/notifications/" + NET_ID);
 
         //String url = getDriver().getCurrentUrl();
         //notificationView.waitUntilCurrentUrlDiffersFrom(url);
@@ -67,6 +75,6 @@ public class NotificationTest extends WebTest {
 
         // Test if now both messages are marked as read.
         assertEquals(2,getDriver().findElements(NOTIFICATIONS_READ).size());
-        assertEquals(0,getDriver().findElements(NOTIFICATIONS_UNREAD).size());
+        assertEquals(0,getDriver().findElements(NOTIFICATIONS_UNREAD).size());*/
     }
 }

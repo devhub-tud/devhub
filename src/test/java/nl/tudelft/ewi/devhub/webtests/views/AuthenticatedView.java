@@ -63,9 +63,9 @@ public class AuthenticatedView extends View {
 
 		String url = getDriver().getCurrentUrl();
 
-		getNavBar().findElement(NOTIFICATIONS_BUTTON).click();
+		getDriver().findElement(NOTIFICATIONS_BUTTON).click();
 
-		waitUntilCurrentUrlDiffersFrom(url);
+		//waitUntilCurrentUrlDiffersFrom(url);
 
 		return new NotificationView(getDriver());
 	}

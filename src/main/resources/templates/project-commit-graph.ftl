@@ -43,9 +43,19 @@
 
 [@macros.renderScripts /]
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" src="http://code.stephenmorley.org/javascript/colour-handling-and-processing/Colour.js"></script>
 <script type="text/javascript">
 
+    function getRandColor(brightness){
 
+        // Six levels of brightness from 0 to 5, 0 being the darkest
+        var rgb = [Math.random() * 256, Math.random() * 256, Math.random() * 256];
+        var mix = [brightness*51, brightness*51, brightness*51]; //51 => 255/5
+        var mixedrgb = [rgb[0] + mix[0], rgb[1] + mix[1], rgb[2] + mix[2]].map(function(x){ return Math.round(x/2.0)})
+        return "rgb(" + mixedrgb.join(",") + ")";
+    }
+
+    var randomcolor = getRandColor(5);
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(function() {
         $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/magical-chart-data')
@@ -58,9 +68,10 @@
                 var data = google.visualization.arrayToDataTable(res);
                 var options = {
                     title: 'Commits over time',
+                    colors: [randomcolor],
                     backgroundColor: 'transparent',
-                    hAxis: {title: 'Date',  titleTextStyle: {color: '#333'}},
-                    vAxis: {minValue: 0}
+                    hAxis: {title: 'Date',  titleTextStyle: {color: "#333"}, gridlines: {color : 'transparent'}},
+                    vAxis: {minValue: 0, gridlines: {count : -1}}
                 };
 
                 var chart = new google.visualization.AreaChart(document.getElementById('allcommits_div'));
@@ -82,15 +93,18 @@
                         }
 
                         var data = google.visualization.arrayToDataTable(personalChart);
+                        randomcolor = getRandColor(5);
                         var options = {
                             title: name,
+                            colors: [randomcolor],
                             backgroundColor: 'transparent',
-                            hAxis: {title: 'Date',  titleTextStyle: {color: '#333'}},
-                            vAxis: {minValue: 0}
+                            hAxis: {title: 'Date',  titleTextStyle: {color: '#333'}, gridlines: {color : 'transparent'}},
+                            vAxis: {minValue: 0, gridlines: {count : -1}}
                         };
 
                         var mijnMagischeElement = $('<div>')
                                 .attr('height', '300px')
+                                .attr('width', '40%')
                                 .appendTo('#personcommit_divs');
 
                         mijnMagischeElement.wrap($('<div>').addClass("col-md-6"));

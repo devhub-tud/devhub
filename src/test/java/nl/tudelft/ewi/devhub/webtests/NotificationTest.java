@@ -2,6 +2,10 @@ package nl.tudelft.ewi.devhub.webtests;
 
 import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.Config;
+import nl.tudelft.ewi.devhub.server.database.controllers.NotificationUserController;
+import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
 import nl.tudelft.ewi.devhub.webtests.views.CourseView;
 import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
@@ -25,6 +29,10 @@ public class NotificationTest extends WebTest {
 
     @Inject
     private Config config;
+    @Inject
+    private Users users;
+    @Inject
+    private NotificationUserController notificationUserController;
 
     private static final By MARK_READ_BUTTON = By.xpath("/html/body/div/table/tbody/tr[2]/td/form/button");
     private static final By NOTIFICATION_INDICATOR = By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li[1]/a/span");
@@ -33,48 +41,29 @@ public class NotificationTest extends WebTest {
 
 
     @Test
-    public void markAsRead() throws InterruptedException {
+    public void markAsRead() {
         CoursesView coursesView = openLoginScreen().login(NET_ID,PASSWORD);
         NotificationView notificationView = coursesView.toNotificationView();
-
-        assertEquals(notificationView.getUnreadNotifications().size(),1);
-        assertEquals(notificationView.getReadNotifacations().size(),1);
-        assertTrue(false);
-        /*getDriver().navigate().to("http://localhost:"  + config.getHttpPort() + "/notifications/" + NET_ID);
-
-        //String url = getDriver().getCurrentUrl();
-        //notificationView.waitUntilCurrentUrlDiffersFrom(url);
-
-        LoginView loginView = new LoginView(getDriver());
-        loginView.setPasswordField(PASSWORD);
-        loginView.setUsernameField(NET_ID);
-
-        String url = getDriver().getCurrentUrl();
-
-        loginView.clickLoginButton();
-
-        loginView.waitUntilCurrentUrlDiffersFrom(url);
-
-        NotificationView notificationView  = new NotificationView(getDriver());
-        notificationView.invariant();
-
-        WebElement button = getDriver().findElement(MARK_READ_BUTTON);
-        assertNotNull(button);
+        User user = users.findByNetId(NET_ID);
+        users.refresh(user);
 
 
-        // Test if there is a read message and a unread message
+        int unreadNotifications = user.unreadNotifications();
+        int readNotifcitions = user.readNotifications();
 
-        assertEquals(1,getDriver().findElements(NOTIFICATIONS_READ).size());
-        assertEquals(1,getDriver().findElements(NOTIFICATIONS_UNREAD).size());
-        assertNotNull(getDriver().findElement(NOTIFICATION_INDICATOR));
+        assertEquals(notificationView.getReadNotifications().size(),readNotifcitions);
+        assertEquals(notificationView.getUnreadNotifications().size(),unreadNotifications);
 
-        button.click();
+        notificationView = notificationView.markRead(0);
 
-        notificationView = new NotificationView(getDriver());
-        notificationView.invariant();
+        for(NotificationsToUsers notificationsToUsers: user.getNotificationsToUsersList()) {
+            notificationUserController.refresh(notificationsToUsers);
+        }
+        
+        assertEquals(notificationView.getUnreadNotifications().size(),user.unreadNotifications());
+        assertEquals(notificationView.getReadNotifications().size(),user.readNotifications());
 
-        // Test if now both messages are marked as read.
-        assertEquals(2,getDriver().findElements(NOTIFICATIONS_READ).size());
-        assertEquals(0,getDriver().findElements(NOTIFICATIONS_UNREAD).size());*/
+        assertTrue(notificationView.getReadNotifications().size() == readNotifcitions + 1|| unreadNotifications == 0);
+        assertTrue(notificationView.getUnreadNotifications().size() == unreadNotifications - 1  || unreadNotifications == 0);
     }
 }

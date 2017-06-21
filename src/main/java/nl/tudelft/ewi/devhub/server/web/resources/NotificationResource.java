@@ -86,6 +86,8 @@ public class NotificationResource extends Resource {
 
 	}
 
+
+	@com.google.inject.persist.Transactional
 	private boolean setRead(List<NotificationsToUsers> notificationList, long notificationId) {
 
 		for(NotificationsToUsers notificationsToUsers: notificationList) {

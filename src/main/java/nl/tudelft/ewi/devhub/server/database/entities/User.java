@@ -123,14 +123,14 @@ public class User {
 		return notifications;
 	}
 
-	public List<Notification> unreadNotificationsList() {
+	public List<Notification> getUnreadNotificationsList() {
 		return notificationsToUsersList.stream()
 				.filter(notificationsToUsers -> !notificationsToUsers.isRead())
 				.map(NotificationsToUsers::getNotification)
 				.collect(Collectors.toList());
 	}
 
-	public List<Notification> readNotificationsList() {
+	public List<Notification> getReadNotifications() {
 		return notificationsToUsersList.stream()
 				.filter(NotificationsToUsers::isRead)
 				.map(NotificationsToUsers::getNotification)
@@ -138,6 +138,10 @@ public class User {
 	}
 
 	public int unreadNotifications() {
-		return unreadNotificationsList().size();
+		return getUnreadNotificationsList().size();
+	}
+
+	public int readNotifications() {
+		return getReadNotifications().size();
 	}
 }

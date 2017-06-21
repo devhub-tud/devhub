@@ -20,8 +20,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class NotificationView extends AuthenticatedView {
 
-
-    private static final By MARK_READ_BUTTON = By.xpath("/html/body/div/table/tbody/tr[2]/td/form/button");
+    private static final By MARK_READ_BUTTON = By.xpath("//*[@class=\"notification unread\"]/a/form/button");
     private static final By NOTIFICATION_INDICATOR = By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li[1]/a/span");
     private static final By NOTIFICATIONS_READ = By.xpath("//*[@class=\"notification read\"]");
     private static final By NOTIFICATIONS_UNREAD = By.xpath("//*[@class=\"notification unread\"]");
@@ -38,12 +37,15 @@ public class NotificationView extends AuthenticatedView {
     }
 
     public NotificationView markRead(int i) {
-        WebElement button = getDriver().findElements(MARK_READ_BUTTON).get(i);
-        button.click();
+        List<WebElement> buttons = getDriver().findElements(MARK_READ_BUTTON);
+        if(i < buttons.size()) {
+            WebElement button = buttons.get(i);
+            button.click();
+        }
         return this;
     }
 
-    public List<WebElement> getReadNotifacations() {
+    public List<WebElement> getReadNotifications() {
         return getDriver().findElements(NOTIFICATIONS_READ);
     }
 

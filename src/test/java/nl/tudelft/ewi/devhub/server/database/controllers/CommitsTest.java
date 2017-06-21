@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.inject.persist.Transactional;
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.backend.PersistedBackendTest;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
@@ -12,9 +13,12 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import com.google.inject.AbstractModule;
 
 import nl.tudelft.ewi.git.models.DetailedCommitModel;
+import nl.tudelft.ewi.git.models.DiffBlameModel;
+import nl.tudelft.ewi.git.models.DiffModel;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
+import org.assertj.core.util.Lists;
 import org.hamcrest.Matchers;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
@@ -25,12 +29,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @RunWith(JukitoRunner.class)
 @UseModules({TestDatabaseModule.class, CommitsTest.CommitsTestModule.class})
@@ -39,6 +46,7 @@ public class CommitsTest extends PersistedBackendTest {
 	private static RepositoriesApi repositories = Mockito.mock(RepositoriesApi.class);
 	private static RepositoryApi repository = Mockito.mock(RepositoryApi.class);
 	private static  CommitApi commitApi = Mockito.mock(CommitApi.class);
+	private static DiffModel diffBlameModel = new DiffModel();
 	private static  DetailedCommitModel commit = new DetailedCommitModel();
 
 	@BeforeClass
@@ -46,6 +54,8 @@ public class CommitsTest extends PersistedBackendTest {
 		Mockito.when(repositories.getRepository(Mockito.anyString())).thenReturn(repository);
 		Mockito.when(repository.getCommit(Mockito.anyString())).thenReturn(commitApi);
 		Mockito.when(commitApi.get()).thenReturn(commit);
+		diffBlameModel.setDiffs(Lists.newArrayList());
+		Mockito.when(commitApi.diff()).thenReturn(diffBlameModel);
 	}
 
 	public static class CommitsTestModule extends AbstractModule {
@@ -60,6 +70,7 @@ public class CommitsTest extends PersistedBackendTest {
 	@Inject @Getter private Groups groups;
 	@Inject @Getter private CourseEditions courses;
 	@Inject @Getter private Users users;
+	@Inject EntityManager entityManager;
 	@Inject private Commits commits;
 
 	private User user;
@@ -94,12 +105,17 @@ public class CommitsTest extends PersistedBackendTest {
 		assertEquals(expected.getUser(), actual.getUser());
 	}
 
+	@Transactional
 	@Test
-	public void testPersistWithParent() {
-		Commit a = createCommit(group.getRepository());
-		commit.setParents(new String[] { a.getCommitId() });
-		Commit b = createCommit(group.getRepository());
-		assertThat(b.getParents(), Matchers.contains(a));
+	public void testCommitLineChanges() {
+		Commit commit = createCommit(group.getRepository());
+		assertThat(commit.getLinesAdded(), equalTo(null));
+		commit.setLinesAdded(69);
+		commit.setLinesRemoved(666);
+		entityManager.flush();
+		entityManager.refresh(commit);
+		assertThat(commit.getLinesAdded(), equalTo(69));
+		assertThat(commit.getLinesRemoved(), equalTo(666));
 	}
 	
 	protected CommitComment createCommitComment(Commit commit) {

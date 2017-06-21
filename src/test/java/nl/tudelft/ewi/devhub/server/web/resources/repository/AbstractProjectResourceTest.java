@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import lombok.val;
@@ -35,6 +36,7 @@ import org.pegdown.PegDownProcessor;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -92,7 +94,7 @@ public class AbstractProjectResourceTest {
 
         projectResource = spy(new ProjectResource(templateEngine, currentUser, group, null, null,
                 null, repositoriesApi, null, commitComments, commentMailer, commits, null, null,
-                null, null, null, new MarkDownParser(new PegDownProcessor())));
+                null, null, null, new MarkDownParser(new PegDownProcessor()), new AsyncEventBus(Executors.newCachedThreadPool())));
 
         when(commitComment.getTimestamp()).thenReturn(commentDate);
         when(currentUser.getName()).thenReturn(REPOSITORY_NAME);

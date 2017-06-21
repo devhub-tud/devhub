@@ -1,19 +1,23 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
+import com.google.common.collect.Lists;
+import com.google.common.eventbus.EventBus;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit.CommitId;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
+import nl.tudelft.ewi.devhub.server.events.CreateCommitEvent;
 import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,18 +26,27 @@ import static nl.tudelft.ewi.devhub.server.database.entities.QCommit.commit;
 @Slf4j
 public class Commits extends Controller<Commit> {
 
+	private final EventBus eventBus;
 	private final RepositoriesApi repositories;
 
 	@Inject
-	public Commits(final EntityManager entityManager, final RepositoriesApi repositories) {
+	public Commits(final EntityManager entityManager, final RepositoriesApi repositoriesApi, final EventBus eventBus) {
 		super(entityManager);
-		this.repositories = repositories;
+		this.eventBus = eventBus;
+		this.repositories = repositoriesApi;
 	}
 	
 	@Transactional
 	public Optional<Commit> retrieve(RepositoryEntity repository, String commitId) {
 		CommitId key = new CommitId(repository.getId(), commitId);
 		return Optional.ofNullable(entityManager.find(Commit.class, key));
+	}
+
+	@Transactional
+	public List<Commit> retrieveCommits(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+		return query().from(commit)
+			.where(commit.repository.eq(repositoryEntity).and(commit.commitId.in(commitIds)))
+			.list(commit);
 	}
 
 	/**
@@ -51,9 +64,12 @@ public class Commits extends Controller<Commit> {
 			commit.setRepository(repositoryEntity);
 			commit.setComments(Lists.newArrayList());
 			commit.setPushTime(new Date());
+			enhanceCommitSafely(commit);
 
-			enhanceCommitSafely(repositoryEntity, commitId, commit);
-
+			CreateCommitEvent createCommitEvent = new CreateCommitEvent();
+			createCommitEvent.setCommitId(commitId);
+			createCommitEvent.setRepositoryName(repositoryEntity.getRepositoryName());
+			eventBus.post(createCommitEvent);
 			return persist(commit);
 		});
 	}
@@ -61,12 +77,13 @@ public class Commits extends Controller<Commit> {
 	/**
 	 * Enhance a commit with details from the git server, such as commit time, author information and parents.
 	 *
-	 * @param repositoryEntity Repository to search commits for.
-	 * @param commitId Commit id of the commit.
 	 * @param commit Commit object to modify.
 	 */
-	private void enhanceCommitSafely(RepositoryEntity repositoryEntity, String commitId, Commit commit) {
+	public void enhanceCommitSafely(Commit commit) {
 		try {
+			log.info("Enhance {} {}", commit.getRepository().getRepositoryName(), commit.getCommitId());
+			RepositoryEntity repositoryEntity = commit.getRepository();
+			String commitId = commit.getCommitId();
 			final CommitModel gitCommit = retrieveCommit(repositoryEntity, commitId);
 			commit.setCommitTime(new Date(gitCommit.getTime() * 1000));
 			commit.setAuthor(gitCommit.getAuthor());

@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
@@ -21,7 +22,7 @@ import java.util.Date;
 public class Notification {
 
     @Id
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
@@ -35,10 +36,9 @@ public class Notification {
     private String message;
 
     @Column(name = "link")
-    // Change this to URI later
-    private String link;
+    @Type(type="java.net.URI")
+    private URI link;
 
-    @NotNull
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User sender;

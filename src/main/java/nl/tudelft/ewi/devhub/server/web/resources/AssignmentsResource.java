@@ -5,16 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.AssignmentStats;
 import nl.tudelft.ewi.devhub.server.backend.DeliveriesBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.ReviewMailer;
+import nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs;
 import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
 import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
 import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
-import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
-import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.State;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Characteristic;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.GradingStrategy;
 import nl.tudelft.ewi.devhub.server.database.entities.rubrics.Mastery;
@@ -54,17 +51,12 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+
+import static nl.tudelft.ewi.devhub.server.database.controllers.AssignedTAs.assignGroups;
 
 
 /**
@@ -100,6 +92,9 @@ public class AssignmentsResource extends Resource {
     @Inject
     @Named("current.user")
     private User currentUser;
+
+    @Inject
+    private AssignedTAs assignedTAs;
 
 	@Context
 	HttpServletRequest request;
@@ -298,16 +293,27 @@ public class AssignmentsResource extends Resource {
         }
 
         Assignment assignment = assignmentsDAO.find(course, assignmentId);
-        List<Delivery> lastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
-        AssignmentStats assignmentStats = deliveriesBackend.getAssignmentStats(assignment, lastDeliveries);
+
+        List<Delivery> currentUserDeliveries = assignedTAs.getLastDeliveries(assignment, currentUser);
+        List<Delivery> allLastDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+        List<Delivery> filteredDeliveries = deliveriesDAO.getLastDeliveries(assignment);
+        filteredDeliveries.removeAll(currentUserDeliveries);
+
+        AssignmentStats userStats = deliveriesBackend.getAssignmentStats(currentUserDeliveries);
+        AssignmentStats lastStats = deliveriesBackend.getAssignmentStats(assignment, allLastDeliveries);
+
+
 
         Map<String, Object> parameters = Maps.newHashMap();
         parameters.put("user", currentUser);
         parameters.put("course", course);
         parameters.put("assignment", assignment);
-        parameters.put("assignmentStats", assignmentStats);
+        parameters.put("userStats", userStats);
+        parameters.put("lastStats", lastStats);
         parameters.put("deliveryStates", Delivery.State.values());
-        parameters.put("lastDeliveries", lastDeliveries);
+        parameters.put("userDeliveries", currentUserDeliveries);
+        parameters.put("lastDeliveries", allLastDeliveries);
+        parameters.put("filteredDeliveries", filteredDeliveries);
 
         List<Locale> locales = Collections.list(request.getLocales());
         return display(templateEngine.process("courses/assignments/assignment-view.ftl", locales, parameters));
@@ -580,7 +586,7 @@ public class AssignmentsResource extends Resource {
             if (previousState == null || previousState.equals(State.SUBMITTED)) {
                 reviewMailer.sendReviewMail(delivery);
             }
-            
+
             deliveriesDAO.merge(delivery);
         });
     }
@@ -728,4 +734,29 @@ public class AssignmentsResource extends Resource {
 		return deliveries;
 	}
 
+	@POST
+    @Transactional
+    @Path("{assignmentId : \\d+}/distribute-tas")
+    public Response distributeTAs(@PathParam("courseCode") String courseCode,
+                                  @PathParam("editionCode") String editionCode,
+                                  @PathParam("assignmentId") long assignmentId) {
+        CourseEdition course = courses.find(courseCode, editionCode);
+        Assignment assignment = assignmentsDAO.find(course, assignmentId);
+
+        if(!(currentUser.isAdmin() || currentUser.isAssisting(course))) {
+            throw new UnauthorizedException();
+        }
+
+        List<Delivery> deliveries = deliveriesDAO.getLastDeliveries(assignment);
+        List<Group> groups = Lists.transform(deliveries, Delivery::getGroup);
+        Set<User> TAs = course.getAssistants();
+
+        groups.removeAll(Lists.transform(assignment.getAssignedTAS(), AssignedTA::getGroup));
+
+        List<AssignedTA> assignedTAS = assignGroups(TAs, groups, assignment, ThreadLocalRandom.current());
+
+        assignedTAS.forEach(this.assignedTAs::persist);
+
+        return Response.seeOther(assignment.getURI()).build();
+    }
 }

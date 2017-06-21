@@ -1,11 +1,13 @@
 package nl.tudelft.ewi.devhub.webtests.utils;
 
 import nl.tudelft.ewi.devhub.server.Config;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import nl.tudelft.ewi.devhub.webtests.rules.DriverResource;
 import nl.tudelft.ewi.devhub.webtests.rules.ServerResource;
 import nl.tudelft.ewi.devhub.webtests.views.AuthenticatedView;
 import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 
+import nl.tudelft.ewi.devhub.webtests.views.NotificationView;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -23,6 +25,9 @@ public abstract class WebTest {
 
 	public static final String ASSISTANT_USERNAME = "assistant1";
 	public static final String ASSISTANT_PASSWORD = "assistant1";
+
+	public static final String ADMIN_USERNAME = "admin1";
+	public static final String ADMIN_PASSWORD = "admin1";
 
 	public static ServerResource serverResource = new ServerResource();
 	public static DriverResource driverResource = new DriverResource();

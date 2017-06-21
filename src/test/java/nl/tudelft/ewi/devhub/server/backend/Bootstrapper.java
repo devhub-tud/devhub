@@ -1,18 +1,13 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.google.common.base.Strings;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
-import nl.tudelft.ewi.devhub.server.database.entities.Assignment;
-import nl.tudelft.ewi.devhub.server.database.entities.Course;
-import nl.tudelft.ewi.devhub.server.database.entities.CourseEdition;
-import nl.tudelft.ewi.devhub.server.database.entities.Delivery;
+import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
-import nl.tudelft.ewi.devhub.server.database.entities.Group;
-import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
-import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
@@ -30,10 +25,12 @@ import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.git.web.api.GroupsApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -91,9 +88,11 @@ public class Bootstrapper {
 	}
 	
 	@Data
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	static class BDelivery {
 		private long assignmentId;
 		private String createdUserName;
+		private String assignedTA;
 		private BReview review;
 	}
 	
@@ -117,13 +116,14 @@ public class Bootstrapper {
     private final Assignments assignments;
     private final NotificationController notificationController;
     private final NotificationUserController notificationUserController;
+	private final EntityManager entityManager;
 
 	@Inject
 	Bootstrapper(Users users, Courses courses, CourseEditions courseEditions, Groups groups,
 			MockedAuthenticationBackend authBackend, ObjectMapper mapper,
 			RepositoriesApi repositoriesApi, ProjectsBackend projects, Assignments assignments,
 			Deliveries deliveries, GroupsApi groupsApi, NotificationController notificationController,
-				 NotificationUserController notificationsUserController) {
+				 NotificationUserController notificationsUserController, EntityManager entityManager) {
 		
 		this.users = users;
 		this.courses = courses;
@@ -138,10 +138,11 @@ public class Bootstrapper {
 		this.groupsApi = groupsApi;
 		this.notificationController = notificationController;
 		this.notificationUserController = notificationsUserController;
+		this.entityManager = entityManager;
 	}
 	
 	@Transactional
-	public void prepare(String path) throws IOException, ApiError {
+	public void prepare(String path) throws IOException, ApiError, URISyntaxException {
 		InputStream inputStream = Bootstrapper.class.getResourceAsStream(path);
 		BState state = mapper.readValue(inputStream, BState.class);
 		
@@ -234,9 +235,8 @@ public class Bootstrapper {
 				notification.setEvent("PR");
 				notification.setMessage("Some message");
 				notification.setSender(userMapping.get("admin1"));
-				//notification.setLink(URI.create("thelink"));
-				notification.setLink("thelink");
 				notification.setTitle("ExampleTitle 1");
+				notification.setLink(new URI("http://localhost:50001/"));
 				notificationController.persist(notification);
 
 
@@ -244,8 +244,8 @@ public class Bootstrapper {
 				notification2.setEvent("PR");
 				notification2.setMessage("Some message");
 				notification2.setSender(userMapping.get("admin1"));
-				notification2.setLink("thelink");
 				notification2.setTitle("ExampleTitle 2");
+				notification2.setLink(new URI("http://localhost:50001/"));
 				notificationController.persist(notification2);
 
 				NotificationsToUsers notificationsToUsers1 = new NotificationsToUsers();
@@ -329,6 +329,14 @@ public class Bootstrapper {
 			}
 
 			deliveries.persist(deliveryEntity);
+
+			if (! Strings.isNullOrEmpty(delivery.getAssignedTA())) {
+				AssignedTA assignedTA = new AssignedTA();
+				assignedTA.setAssignment(deliveryEntity.getAssignment());
+				assignedTA.setGroup(groupEntity);
+				assignedTA.setTeachingAssistant(userMapping.get(delivery.getAssignedTA()));
+				entityManager.persist(assignedTA);
+			}
 
 			log.debug("        Persisted delivery for group: " + groupEntity.getGroupNumber());
 		}

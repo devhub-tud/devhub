@@ -14,6 +14,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.persist.UnitOfWork;
 
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,8 +57,15 @@ public class BuildsBackendTest {
 		when(buildServers.findByCredentials("buildname", "secret")).thenReturn(buildServer);
 		when(buildServers.findById(1l)).thenReturn(buildServer);
 		when(buildBackend.offerBuildRequest(Mockito.any(BuildRequest.class))).thenReturn(true);
-		buildsBackend = new BuildsBackend(buildServers,
-			new ValueProvider<BuildSubmitter>(new MockedBuildSubmitter()), buildResults, repositoriesApi, config, Executors.newSingleThreadExecutor());
+		LifeCycle lifeCycle = mock(LifeCycle.class);
+		buildsBackend = new BuildsBackend(
+			null,
+			new ValueProvider<BuildServers>(buildServers),
+			null,
+			lifeCycle,
+			new MockedBuildSubmitter(),
+			null
+		);
 	}
 
 
@@ -91,11 +99,6 @@ public class BuildsBackendTest {
 		buildsBackend.offerBuild(buildRequest);
 		Thread.sleep(100);
 		verify(buildBackend).offerBuildRequest(buildRequest);
-	}
-	
-	@After
-	public void shutdown() throws InterruptedException {
-		buildsBackend.shutdown();
 	}
 
 	class MockedBuildSubmitter extends BuildSubmitter {

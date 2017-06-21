@@ -1,6 +1,8 @@
 package nl.tudelft.ewi.devhub.server.web.resources;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CourseEventFeed;
 import nl.tudelft.ewi.devhub.server.backend.CoursesBackend;
@@ -40,6 +42,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -223,5 +226,22 @@ public class CourseEditionResource extends Resource {
 		List<Locale> locales = Collections.list(request.getLocales());
 		return display(templateEngine.process("courses/course-feed.ftl", locales, parameters));
 	}
+
+	@GET
+	@Path("teaching-assistants.json")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<Map<String, Object>> getTeachingAssistants(@PathParam("courseCode") String courseCode,
+	                                                       @PathParam("editionCode") String editionCode) {
+		CourseEdition courseEdition = courseEditions.find(courseCode, editionCode);
+
+		if(!currentUser.isAdmin() && !currentUser.isAssisting(courseEdition)) {
+			throw new UnauthorizedException();
+		}
+
+		return courseEdition.getAssistants().stream()
+			.map((User assistant) -> ImmutableMap.<String, Object> of("value", assistant.getId(), "text", assistant.getName()))
+			.collect(Collectors.toList());
+	}
+
 
 }

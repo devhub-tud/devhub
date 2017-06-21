@@ -27,12 +27,12 @@ public class NotificationsToUsers {
 
     @Id
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Id
     @ManyToOne
-    @JoinColumn(name = "notification_id")
+    @JoinColumn(name = "notification_id", nullable = false)
     private Notification notification;
 
     @Column(name = "isRead")

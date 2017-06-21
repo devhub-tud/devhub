@@ -15,7 +15,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<guice.version>4.0</guice.version>
-		<hibernate.version>4.3.8.Final</hibernate.version>
+		<hibernate.version>4.3.11.Final</hibernate.version>
 		<hibernate.validator.version>4.3.2.Final</hibernate.validator.version>
 		<jackson.version>2.4.4</jackson.version>
 		<jetty.version>9.2.10.v20150310</jetty.version>
@@ -30,7 +30,7 @@
 		<logback.version>1.1.11</logback.version>
 		<selenium.version>3.0.0</selenium.version>
 		<build.server.version>1.2.0</build.server.version>
-		<git.server.version>1.0.10</git.server.version>
+		<git.server.version>1.0.11</git.server.version>
 		<assertj.version>3.6.2</assertj.version>
 	</properties>
 
@@ -108,6 +108,14 @@
 		<contributor>
 			<name>Vera Hoveling</name>
 			<email>mail@verahoveling.org</email>
+		</contributor>
+		<contributor>
+			<name>Casper Henks</name>
+			<email>cashenkes@gmail.com</email>
+		</contributor>
+		<contributor>
+			<name>Arjan Seijs</name>
+			<email>arjan.seijs@gmail.com</email>
 		</contributor>
 	</contributors>
 

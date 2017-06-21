@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.web.resources.repository;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.SessionScoped;
@@ -19,11 +20,13 @@ import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
+import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
+import nl.tudelft.ewi.devhub.server.events.CreateCommitEvent;
 import nl.tudelft.ewi.devhub.server.util.FlattenFolderTree;
 import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
@@ -32,12 +35,7 @@ import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import nl.tudelft.ewi.git.models.BlameModel;
-import nl.tudelft.ewi.git.models.BranchModel;
-import nl.tudelft.ewi.git.models.CommitModel;
-import nl.tudelft.ewi.git.models.CommitSubList;
-import nl.tudelft.ewi.git.models.DiffBlameModel;
-import nl.tudelft.ewi.git.models.EntryType;
+import nl.tudelft.ewi.git.models.*;
 import nl.tudelft.ewi.git.web.api.BranchApi;
 import nl.tudelft.ewi.git.web.api.CommitApi;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
@@ -112,6 +110,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	protected final EditContributorsState editContributorsState;
 	protected final Users users;
 	protected MarkDownParser markDownParser;
+	protected final EventBus asyncEventBus;
 
 	/**
 	 * Used to display different types of alerts on a branch view.
@@ -155,7 +154,8 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 						  	final Controller<? super RepoType> repositoriesController,
 						  	final EditContributorsState editContributorsState,
 						  	final Users users,
-						  	final MarkDownParser markDownParser) {
+						  	final MarkDownParser markDownParser,
+	                        final EventBus asyncEventBus) {
 
 		this.templateEngine = templateEngine;
 		this.currentUser = currentUser;
@@ -172,6 +172,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		this.editContributorsState = editContributorsState;
 		this.users = users;
 		this.markDownParser = markDownParser;
+		this.asyncEventBus = asyncEventBus;
 	}
 
 	protected abstract RepoType getRepositoryEntity();
@@ -200,11 +201,17 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			BranchModel branch = branchApi.get();
 			CommitSubList commits = branchApi.retrieveCommitsInBranch((page - 1) * PAGE_SIZE, PAGE_SIZE);
 
+			Collection<String> commitIds = getCommitIds(commits);
+			List<Commit> commitEntities = commitIds.stream()
+				.map(commitId -> this.commits.ensureExists(repositoryEntity, commitId))
+				.collect(Collectors.toList());
+			Map<String, Commit> commitEntitiesByCommitId = Maps.uniqueIndex(commitEntities, Commit::getCommitId);
+
 			parameters.put("commits", commits);
 			parameters.put("branch", branch);
+			parameters.put("commitEntities", commitEntitiesByCommitId);
 			parameters.put("pagination", new Pagination(page, commits.getTotal()));
 
-			Collection<String> commitIds = getCommitIds(commits);
 			parameters.put("warnings", warnings.commitsWithWarningsFor(repositoryEntity, commitIds));
 			parameters.put("comments", comments.commentsFor(repositoryEntity, commitIds));
 			parameters.put("builds", buildResults.findBuildResults(repositoryEntity, commitIds));
@@ -266,9 +273,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	}
 
 	protected List<String> getCommitIds(CommitSubList commits) {
-		return commits.getCommits().stream()
-				.map(CommitModel::getCommit)
-				.collect(Collectors.toList());
+		return Lists.transform(commits.getCommits(), CommitModel::getCommit);
 	}
 
 	@GET
@@ -466,6 +471,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		CommitApi commitApi = repository.getCommit(commitId);
 		CommitModel commit = commitApi.get();
 		DiffBlameModel diffBlameModel = commitApi.diffBlame();
+
 
 		Map<String, Object> parameters = getBaseParameters();
 		parameters.put("commit", commit);
@@ -756,5 +762,22 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		}
 		
 	}
-	
+
+	@POST
+	@Deprecated
+	@Transactional
+	@Path("enhance-commits")
+	@Consumes(MediaType.MEDIA_TYPE_WILDCARD)
+	public void enhanceCommitsForRepository() {
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		repositoryEntity.getCommits().stream()
+			.map(commit -> {
+				CreateCommitEvent createCommitEvent = new CreateCommitEvent();
+				createCommitEvent.setRepositoryName(repositoryEntity.getRepositoryName());
+				createCommitEvent.setCommitId(commit.getCommitId());
+				return createCommitEvent;
+			})
+			.forEach(asyncEventBus::post);
+	}
+
 }

@@ -12,7 +12,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
-import org.jboss.logging.annotations.Pos;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;

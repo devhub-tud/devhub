@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -70,8 +71,8 @@ public abstract class RepositoryEntity implements Configurable, Base {
     @JoinColumn(name = "build_instruction")
     private BuildInstructionEntity buildInstruction;
 
+    @JsonIgnore
 	@Setter(AccessLevel.NONE)
-	@Getter(AccessLevel.NONE)
 	@OneToMany(mappedBy = "repository", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Commit> commits;
 

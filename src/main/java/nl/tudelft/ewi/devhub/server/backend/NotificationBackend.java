@@ -19,6 +19,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 /**
  * Created by Arjan on 13-6-2017.
  */
@@ -53,7 +56,11 @@ public class NotificationBackend {
     private Notification createNotificationObject(User sender, String link, String event, String message, String title) {
         Notification notification = new Notification();
         notification.setSender(sender);
-        notification.setLink(link);
+        try {
+            notification.setLink(new URI(link));
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         notification.setEvent(event);
         notification.setMessage(message);
         notification.setTitle(title);

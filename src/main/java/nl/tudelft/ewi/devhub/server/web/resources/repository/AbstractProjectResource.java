@@ -78,6 +78,7 @@ import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -796,14 +797,12 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			.forEach(asyncEventBus::post);
 	}
 
-	@GET
-	@Path("magical-chart-data")
-	@Produces(MediaType.APPLICATION_JSON)
 
-	public List<List<Object>> getMagicalChartData() {
-
-		// create empty arraylist to store the area chart data bc we only need date and amount
-		List<AreaChartData> data = new ArrayList<>();
+	/**
+	 * Used for showing multiple graphs
+	 * @return a list with all commits made
+	 */
+	private List<Commit> getAllCommits() {
 
 		// get all commits
 		RepositoryEntity repositoryEntity = getRepositoryEntity();
@@ -815,52 +814,61 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		CommitSubList commits = branchApi.retrieveCommitsInBranch();
 		Collection<String> commitIds = getCommitIds(commits);
 		List<Commit> commitEntities = commitIds.stream()
-				.map(commitId -> this.commits.ensureExists(repositoryEntity, commitId))
-				.collect(Collectors.toList());
+			.map(commitId -> this.commits.ensureExists(repositoryEntity, commitId))
+			.collect(Collectors.toList());
+
+		return commitEntities;
+	}
+
+	@GET
+	@Path("magical-chart-data")
+	@Produces(MediaType.APPLICATION_JSON)
+
+	public List<List<Object>> getMagicalChartData() {
+
+		List<Commit> commitEntities = getAllCommits();
+
+		return getGoogleChartDataForCommits(commitEntities);
+	}
+
+	private static List<List<Object>> getGoogleChartDataForCommits(List<Commit> commitEntities) {
 
 		Map<LocalDate, List<Commit>> commitsGroupedByDate = commitEntities.stream()
-			.collect(Collectors.groupingBy((Commit commit) -> commit.getCommitTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));
+			.collect(Collectors.groupingBy((Commit commit) ->
+				commit.getCommitTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));
 
 		Map<LocalDate, Integer> numberOfCommitsByDate = Maps.transformValues(commitsGroupedByDate, List::size);
 
 		SortedMap<LocalDate, Integer> numberOfCommitsByDateInOrder = new TreeMap<>(numberOfCommitsByDate);
 
-		List<List<Object>> magie = numberOfCommitsByDateInOrder.entrySet().stream()
-			.map((Map.Entry<LocalDate, Integer> entry) -> ImmutableList.<Object> of(entry.getKey(), entry.getValue()))
+		List<List<Object>> datesOrdered = numberOfCommitsByDateInOrder.entrySet().stream()
+			.map((Map.Entry<LocalDate, Integer> entry) ->
+				ImmutableList.<Object> of(entry.getKey(), entry.getValue()))
 			.collect(Collectors.toList());
 
-		ImmutableList.Builder listBuilder = ImmutableList.builder();
-		listBuilder.add(ImmutableList.of("Date", "NumCommits"));
-		listBuilder.addAll(magie);
-		List<List<Object>> res = listBuilder.build();
-
-		return res;
+		ImmutableList.Builder<List<Object>> listBuilder = ImmutableList.builder();
+		listBuilder.add(ImmutableList.of("Date", "Number of commits"));
+		listBuilder.addAll(datesOrdered);
+		return listBuilder.build();
 	}
 
-	@Data @NoArgsConstructor @AllArgsConstructor public static class GoogleChartData {
+	@GET
+	@Path("person-commit")
+	@Produces(MediaType.APPLICATION_JSON)
 
-		@NoArgsConstructor @AllArgsConstructor @Data public static class Cols {
-			private String name;
-			private String label;
-			private ColType type;
-		}
+	public Map<String, List<List<Object>>> getPersonCommit() {
 
-		public enum ColType {
-			string, date, number;
-		}
+		List<Commit> commitEntities = getAllCommits();
 
-		@Data @AllArgsConstructor @NoArgsConstructor public static class RowDefition {
-			public List<Magie> c;
-		}
+		Map<String, List<Commit>> commitsGroupedByAuthor = commitEntities.stream()
+			.collect(Collectors.groupingBy((Commit commit) -> commit.getAuthor()));
 
-		@Data @AllArgsConstructor @NoArgsConstructor
-		public static class Magie {
-			private Object v;
-		}
+		Map<String, List<List<Object>>> commitsGroupedByAuthorByDates =
+			Maps.transformValues(commitsGroupedByAuthor, AbstractProjectResource::getGoogleChartDataForCommits);
 
-		private List<Cols> cols;
-		private List<RowDefition> rows;
+		return commitsGroupedByAuthorByDates;
 
 	}
+
 
 }

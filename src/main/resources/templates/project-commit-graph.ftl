@@ -29,8 +29,16 @@
         [@projectFrameset.renderSidemenu "insights" i18n group![] repository/]
         </div>
 
+        <!-- Graph for all commits -->
         <div class="col-md-10">
-            <div id="chart_div" style="width: 100%; height: 500px; "></div>
+            <div id="allcommits_div" style="width: 100%; height: 500px; "></div>
+        </div>
+    </div>
+
+    <!-- Graph for a person for a commit -->
+    <div class="row">
+        <div class="col-md-10">
+            <div id="personcommit_div" style="width: 100%; height: 500px; "></div>
         </div>
     </div>
 
@@ -42,28 +50,6 @@
 
 
     google.charts.load('current', {'packages':['corechart']});
-
-//    google.charts.setOnLoadCallback(drawChart);
-//
-//    function drawChart() {
-//        var data = google.visualization.arrayToDataTable([
-//            ['Date', 'NumCommits'],
-//            [new Date(2014,3,15),  2],
-//            [new Date(2014,3,16),  1],
-//            [new Date(2014,3,17),  6],
-//            [new Date(2014,3,18),  1]
-//        ]);
-//
-//        var options = {
-//            title: 'Company Performance',
-//            hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
-//            vAxis: {minValue: 0}
-//        };
-//
-//        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
-//        chart.draw(data, options);
-//    }
-
     google.charts.setOnLoadCallback(function() {
         $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/magical-chart-data')
             .then(function(res) {
@@ -74,15 +60,38 @@
 
                 var data = google.visualization.arrayToDataTable(res);
                 var options = {
-                    title: 'Company Performance',
+                    title: 'Commits over time',
                     backgroundColor: 'transparent',
-                    hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
+                    hAxis: {title: 'Date',  titleTextStyle: {color: '#333'}},
                     vAxis: {minValue: 0}
                 };
 
-                var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+                var chart = new google.visualization.AreaChart(document.getElementById('allcommits_div'));
                 chart.draw(data, options);
             });
+    });
+
+
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(function() {
+        $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/person-commit')
+                .then(function(res) {
+                    for(var i = 1, row, dateParts; row = res[i]; i++) {
+                        dateParts = row[0].split('-').map(parseFloat)
+                        row[0] = new Date(dateParts[0], dateParts[1], dateParts[2])
+                    }
+
+                    var data = google.visualization.arrayToDataTable(res);
+                    var options = {
+                        title: 'Commits for person',
+                        backgroundColor: 'white',
+                        hAxis: {title: 'Date',  titleTextStyle: {color: '#333'}},
+                        vAxis: {minValue: 0}
+                    };
+
+                    var chart = new google.visualization.AreaChart(document.getElementById('personcommits_div'));
+                    chart.draw(data, options);
+                });
     });
 </script>
 [@macros.renderFooter /]

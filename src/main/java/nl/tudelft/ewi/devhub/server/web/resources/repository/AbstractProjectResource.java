@@ -48,7 +48,9 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.annotations.cache.Cache;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
+import javax.ejb.Local;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
@@ -73,6 +75,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -814,34 +818,21 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 				.map(commitId -> this.commits.ensureExists(repositoryEntity, commitId))
 				.collect(Collectors.toList());
 
+		Map<LocalDate, List<Commit>> commitsGroupedByDate = commitEntities.stream()
+			.collect(Collectors.groupingBy((Commit commit) -> commit.getCommitTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));
+
+		Map<LocalDate, Integer> numberOfCommitsByDate = Maps.transformValues(commitsGroupedByDate, List::size);
+
+		SortedMap<LocalDate, Integer> numberOfCommitsByDateInOrder = new TreeMap<>(numberOfCommitsByDate);
+
+		List<List<Object>> magie = numberOfCommitsByDateInOrder.entrySet().stream()
+			.map((Map.Entry<LocalDate, Integer> entry) -> ImmutableList.<Object> of(entry.getKey(), entry.getValue()))
+			.collect(Collectors.toList());
+
 		ImmutableList.Builder listBuilder = ImmutableList.builder();
 		listBuilder.add(ImmutableList.of("Date", "NumCommits"));
-		for(Commit commit : commitEntities) {
-			Date date = new Date();
-			date = commit.getCommitTime();
-			listBuilder.add(ImmutableList.of( date, 1));
-		}
+		listBuilder.addAll(magie);
 		List<List<Object>> res = listBuilder.build();
-
-//		for(Commit commit : commitEntities){
-//			// make new AreaChartData (we not sure if we have to set it though)
-//			AreaChartData tempAreaChartData = new AreaChartData();
-//			// set date in the tempAreaChartData to match the current commit
-//			tempAreaChartData.setCommitDate(commit.getCommitTime());
-//			Date tempDate = commit.getCommitTime();
-//
-//			// check if we already have added a commit on this date to the list
-//			if (data.size() > 0 && commit.getCommitTime().equals(data.get(data.size()-1).getCommitDate())){
-//				// if there's already a commit with this date, just increment the amount of commits on that date
-//				data.get(data.size()-1).setCommitAmount(data.get(data.size()-1).getCommitAmount()+1);
-//				continue;
-//			}
-//			// if there's no commit on that date yet, set the commit amount to 1
-//			tempAreaChartData.setCommitAmount(1);
-//			// and add it
-//			data.add(tempAreaChartData);
-//		}
-		//parameters.put("commits", data);
 
 		return res;
 	}

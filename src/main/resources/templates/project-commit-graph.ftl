@@ -67,7 +67,11 @@
     google.charts.setOnLoadCallback(function() {
         $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/magical-chart-data')
             .then(function(res) {
-                console.log(res);
+                for(var i = 1, row, dateParts; row = res[i]; i++) {
+                    dateParts = row[0].split('-').map(parseFloat)
+                    row[0] = new Date(dateParts[0], dateParts[1], dateParts[2])
+                }
+
                 var data = google.visualization.arrayToDataTable(res);
                 var options = {
                     title: 'Company Performance',

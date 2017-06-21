@@ -1122,6 +1122,7 @@
 			<column name="link" type="varchar(255)"></column>
 			<column name="user_id" type="bigint"></column>
 			<column name="date" type="datetime"></column>
+			<column name="title" type="varchar(255)"></column>
 		</createTable>
 		<createTable tableName="notifications_to_users">
 			<column name="user_id" type="bigint"></column>

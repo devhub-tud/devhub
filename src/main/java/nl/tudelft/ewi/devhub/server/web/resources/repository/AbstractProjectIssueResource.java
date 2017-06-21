@@ -79,7 +79,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			final IssueComments issueComments,
 			final NotificationBackend notificationBackend) {
 		
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users, notificationBackend);
 		
 		this.repositoriesController = repositoriesController;
 		
@@ -158,7 +158,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 				.collect(Collectors.toSet()));
 		
 		issueBackend.createIssue(getRepositoryApi(getRepositoryEntity()), issue);
-		notificationBackend.createNotification(issue,currentUser);
+		notificationBackend.createIssueCreatedNotification(issue,currentUser);
 		
 		return redirect(issue.getURI().toString());
 	}
@@ -239,6 +239,12 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		
 		issues.merge(issue);
 
+		if(issue.isClosed()) {
+			notificationBackend.createIssueClosedNotification(issue,currentUser);
+		} else {
+			notificationBackend.createIssueEditedNotification(issue,currentUser);
+		}
+
 		return redirect(issue.getURI());
 	}
 	
@@ -255,8 +261,10 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		comment.setContent(content);
 		comment.setIssue(issue);
 		comment.setUser(currentUser);
-		
+
 		issueComments.persist(comment);
+
+		notificationBackend.createIssueCommentNotification(comment,currentUser);
 
 		return redirect(issue.getURI());
 	}

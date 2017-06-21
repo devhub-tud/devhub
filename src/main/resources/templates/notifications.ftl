@@ -22,6 +22,8 @@
             [#else]
             <td class="notification unread">
             [/#if]
+
+            <a href="${notificationWithUser.getNotification().getLink()}">
                 [#if !notificationWithUser.isRead()]
                 <form action="${path}/markRead" method="post" class="pull-right">
                     <input type="hidden" name="notificationId" value="${notificationWithUser.getNotification().getId()}">
@@ -34,8 +36,10 @@
                     <i class="pull-right">${i18n.translate("block.my-notifications.is-read")}</i>
                 </span>
                 [/#if]
-                <div>${notificationWithUser.getNotification().getSender().getName()}, ${notificationWithUser.getNotification().getEvent()} #${notificationWithUser.getNotification().getId()}</div>
+                <div class="notificationtitle">${notificationWithUser.getNotification().getTitle()}</div>
                 <div class="truncate">${notificationWithUser.getNotification().getMessage()}</div>
+
+            </a>
             </td>
         </tr>
     [/#list]

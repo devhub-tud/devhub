@@ -42,26 +42,43 @@
 
 
     google.charts.load('current', {'packages':['corechart']});
-    google.charts.setOnLoadCallback(drawChart);
 
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Date', 'NumCommits'],
-            [new Date(2014,3,15),  2],
-            [new Date(2014,3,16),  1],
-            [new Date(2014,3,17),  6],
-            [new Date(2014,3,18),  1]
-        ]);
+//    google.charts.setOnLoadCallback(drawChart);
+//
+//    function drawChart() {
+//        var data = google.visualization.arrayToDataTable([
+//            ['Date', 'NumCommits'],
+//            [new Date(2014,3,15),  2],
+//            [new Date(2014,3,16),  1],
+//            [new Date(2014,3,17),  6],
+//            [new Date(2014,3,18),  1]
+//        ]);
+//
+//        var options = {
+//            title: 'Company Performance',
+//            hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
+//            vAxis: {minValue: 0}
+//        };
+//
+//        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+//        chart.draw(data, options);
+//    }
 
-        var options = {
-            title: 'Company Performance',
-            hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
-            vAxis: {minValue: 0}
-        };
+    google.charts.setOnLoadCallback(function() {
+        $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/magical-chart-data')
+            .then(function(res) {
+                console.log(res);
+                var data = google.visualization.arrayToDataTable(res);
+                var options = {
+                    title: 'Company Performance',
+                    backgroundColor: 'transparent',
+                    hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
+                    vAxis: {minValue: 0}
+                };
 
-        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
-    }
-
+                var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+                chart.draw(data, options);
+            });
+    });
 </script>
 [@macros.renderFooter /]

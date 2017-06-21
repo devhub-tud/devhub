@@ -11,15 +11,13 @@ $(function() {
 		if(!filterClass) {
 			return;
 		}
-
+        if(emptyWarning) {
+            emptyWarning.remove();
+            emptyWarning = undefined;
+        }
 		if(currentFilter == filterClass) {
 			deliveries.show();
 			currentFilter = undefined;
-
-			if(emptyWarning) {
-				emptyWarning.remove();
-				emptyWarning = undefined;
-			}
 		}
 		else {
 			currentFilter = filterClass;

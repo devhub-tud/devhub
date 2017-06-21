@@ -1,6 +1,11 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.client.BuildServerBackend;
@@ -15,55 +20,52 @@ import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Queues;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
-import com.google.inject.persist.UnitOfWork;
 import nl.tudelft.ewi.git.models.RepositoryModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
+import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener;
+import org.eclipse.jetty.util.component.LifeCycle;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.NotFoundException;
+import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * The {@link BuildsBackend} allows you to query and manipulate data from the build-server.
  */
 @Slf4j
+@Singleton
 public class BuildsBackend {
 
-	private final RepositoriesApi repositoriesApi;
-	private final BuildServers buildServers;
-	private final Provider<BuildSubmitter> submitters;
-	private final ConcurrentLinkedQueue<BuildRequest> buildQueue;
-	private final ExecutorService executor;
-	private final AtomicBoolean running;
-	private final BuildResults buildResults;
+	private final Provider<RepositoriesApi> repositoriesApiProvider;
+	private final Provider<BuildServers> buildServersProvider;
+	private final Provider<BuildResults> buildResultsProvider;
+	private final BuildSubmitter buildSubmitter;
 	private final Config config;
 
 	@Inject
-	BuildsBackend(BuildServers buildServers, Provider<BuildSubmitter> submitters,
-				  BuildResults buildResults, RepositoriesApi repositoriesApi, Config config, ExecutorService executor) {
-		this.buildServers = buildServers;
-		this.submitters = submitters;
-		this.buildQueue = Queues.newConcurrentLinkedQueue();
-		this.executor = executor;
-		this.running = new AtomicBoolean(false);
-		this.buildResults = buildResults;
-		this.repositoriesApi = repositoriesApi;
+	public BuildsBackend(Provider<RepositoriesApi> repositoriesApiProvider,
+	                     Provider<BuildServers> buildServersProvider,
+	                     Provider<BuildResults> buildResultsProvider,
+	                     LifeCycle lifeCycle,
+	                     BuildSubmitter buildSubmitter,
+	                     Config config) {
+		this.repositoriesApiProvider = repositoriesApiProvider;
+		this.buildServersProvider = buildServersProvider;
+		this.buildResultsProvider = buildResultsProvider;
 		this.config = config;
+		this.buildSubmitter = buildSubmitter;
+
+		Thread buildSubmitterThread = new Thread(buildSubmitter, "BuildSubmitter");
+		buildSubmitterThread.start();
+		lifeCycle.addLifeCycleListener(new ThreadLifeCycleListener(buildSubmitterThread));
 	}
-	
+
 	public List<BuildServer> listActiveBuildServers() {
-		return buildServers.listAll();
+		return buildServersProvider.get().listAll();
 	}
 	
 	public boolean authenticate(String name, String secret) {
@@ -71,7 +73,7 @@ public class BuildsBackend {
 		Preconditions.checkNotNull(secret);
 		
 		try {
-			buildServers.findByCredentials(name, secret);
+			buildServersProvider.get().findByCredentials(name, secret);
 			return true;
 		}
 		catch (NotFoundException e) {
@@ -91,7 +93,7 @@ public class BuildsBackend {
 		}
 		
 		try {
-			buildServers.persist(server);
+			buildServersProvider.get().persist(server);
 		}
 		catch (Throwable e) {
 			throw new ApiError("error.could-not-add-build-server");
@@ -101,8 +103,8 @@ public class BuildsBackend {
 	@Transactional
 	public void deleteBuildServer(long serverId) throws ApiError {
 		try {
-			BuildServer server = buildServers.findById(serverId);
-			buildServers.delete(server);
+			BuildServer server = buildServersProvider.get().findById(serverId);
+			buildServersProvider.get().delete(server);
 		}
 		catch (Throwable e) {
 			throw new ApiError("error.could-not-remove-build-server");
@@ -111,15 +113,7 @@ public class BuildsBackend {
 	
 	public void offerBuild(BuildRequest request) {
 		Preconditions.checkNotNull(request);
-		
-		synchronized (running) {
-			buildQueue.offer(request);
-			if (running.compareAndSet(false, true)) {
-				BuildSubmitter task = submitters.get();
-				task.initialize(this);
-				executor.submit(task);
-			}
-		}
+		buildSubmitter.buildQueue.offer(request);
 	}
 
 	/**
@@ -128,11 +122,11 @@ public class BuildsBackend {
 	 */
 	@Transactional
 	public void buildCommit(final Commit commit) {
-		if (buildResults.exists(commit)) {
+		if (buildResultsProvider.get().exists(commit)) {
 			return;
 		}
 		createBuildRequest(commit);
-		buildResults.persist(BuildResult.newBuildResult(commit));
+		buildResultsProvider.get().persist(BuildResult.newBuildResult(commit));
 	}
 
 	/**
@@ -144,7 +138,7 @@ public class BuildsBackend {
 		BuildResult buildResult;
 
 		try {
-			buildResult = buildResults.find(commit);
+			buildResult = buildResultsProvider.get().find(commit);
 
 			if(buildResult.getSuccess() == null) {
 				// There is a build queued
@@ -153,12 +147,12 @@ public class BuildsBackend {
 			else {
 				buildResult.setSuccess(null);
 				buildResult.setLog(null);
-				buildResults.merge(buildResult);
+				buildResultsProvider.get().merge(buildResult);
 			}
 		}
 		catch (EntityNotFoundException e) {
 			buildResult = BuildResult.newBuildResult(commit);
-			buildResults.persist(buildResult);
+			buildResultsProvider.get().persist(buildResult);
 		}
 		createBuildRequest(commit);
 	}
@@ -170,7 +164,7 @@ public class BuildsBackend {
 	@SneakyThrows
 	protected void createBuildRequest(final Commit commit) {
 		RepositoryEntity repositoryEntity = commit.getRepository();
-		RepositoryModel repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName()).getRepositoryModel();
+		RepositoryModel repository = repositoriesApiProvider.get().getRepository(repositoryEntity.getRepositoryName()).getRepositoryModel();
 
 		BuildInstructionEntity buildInstructionEntity = repositoryEntity.getBuildInstruction();
 		if (buildInstructionEntity != null) {
@@ -183,76 +177,72 @@ public class BuildsBackend {
 		}
 	}
 
-	public void shutdown() throws InterruptedException {
-		executor.shutdown();
-		executor.awaitTermination(1, TimeUnit.MINUTES);
-	}
-	
-	static class BuildSubmitter extends RunnableInUnitOfWork {
+	@Singleton
+	public static class BuildSubmitter implements Runnable {
 		
 		private static final int NO_CAPACITY_DELAY = 5000;
-		
+
 		private final Provider<BuildServers> buildServersProvider;
-		
-		private BuildsBackend backend;
+		private final Provider<UnitOfWork> workProvider;
+		private final BlockingQueue<BuildRequest> buildQueue;
 
 		@Inject
-		BuildSubmitter(Provider<BuildServers> buildServersProvider, Provider<UnitOfWork> workProvider) {
-			super(workProvider);
+		public BuildSubmitter(Provider<BuildServers> buildServersProvider, Provider<UnitOfWork> workProvider) {
 			this.buildServersProvider = buildServersProvider;
-		}
-		
-		void initialize(BuildsBackend backend) {
-			this.backend = backend;
+			this.workProvider = workProvider;
+			this.buildQueue = Queues.newLinkedBlockingQueue();
 		}
 
 		@Override
-		@Transactional
-		protected void runInUnitOfWork() {
-			ConcurrentLinkedQueue<BuildRequest> buildQueue = backend.buildQueue;
-			AtomicBoolean running = backend.running;
-			BuildServers buildServers = buildServersProvider.get();
-			
-			try {
-				while (!buildQueue.isEmpty()) {
-					boolean delivered = false;
-					BuildRequest buildRequest = buildQueue.peek();
+		@SneakyThrows
+		public void run() {
+			BUILDS : for (BuildRequest buildRequest; (buildRequest = buildQueue.take()) != null; ) {
+				UnitOfWork unitOfWork = workProvider.get();
+				unitOfWork.begin();
+				int exponentialBackOff = NO_CAPACITY_DELAY;
 
-					List<BuildServer> allBuildServers = buildServers.listAll();
-					List<BuildServer> buildServersAtCapacity = Lists.newArrayList(allBuildServers);
+				try {
+					for (;/* multiple delivery attempts */;) {
+						List<BuildServer> allBuildServers = buildServersProvider.get().listAll();
+						List<BuildServer> buildServersAtCapacity = Lists.newArrayList(allBuildServers);
+						Iterator<BuildServer> buildServerIterator = buildServersAtCapacity.iterator();
 
-					
-					while (!buildServersAtCapacity.isEmpty()) {
-						BuildServer buildServer = buildServersAtCapacity.remove(0);
-						String host = buildServer.getHost();
-						String name = buildServer.getName();
-						String secret = buildServer.getSecret();
-						
-						BuildServerBackend backend = createBuildServerBackend(host, name, secret);
-						if (backend.offerBuildRequest(buildRequest)) {
-							delivered = true;
-							buildQueue.poll();
-							log.info("One build request was succesfully handed to: {}", name);
-							break;
+						while (buildServerIterator.hasNext()) {
+							BuildServer buildServer = buildServerIterator.next();
+							String host = buildServer.getHost();
+							String name = buildServer.getName();
+							String secret = buildServer.getSecret();
+
+							BuildServerBackend backend = createBuildServerBackend(host, name, secret);
+							if (backend.offerBuildRequest(buildRequest)) {
+								log.info("One build request was successfully handed to: {}", name);
+								continue BUILDS;
+							}
+
+							buildServerIterator.remove();
 						}
-					}
-					
-					if (!delivered) {
+
+						log.info("{} of {} build servers at capacity. Queue size: {}",
+							buildServersAtCapacity.size(), allBuildServers.size(), buildQueue.size() + 1);
+
 						try {
-							log.info("{} of {} build servers at capacity. Queue size: {}",
-									buildServersAtCapacity.size(), allBuildServers.size(), buildQueue.size());
-							
-							Thread.sleep(NO_CAPACITY_DELAY);
+							// Sleep, but allow build result hook to wake this thread up
+							synchronized (this) {
+								this.wait(exponentialBackOff);
+							}
+							// Exponential back off, so the logs do not pollute if no build servers are available for a long time
+							exponentialBackOff *= 2;
 						}
 						catch (InterruptedException e) {
-							log.warn("Sleep was interrupted...");
+							log.info("Woke up from sleep");
 						}
 					}
 				}
-			}
-			finally {
-				synchronized (running) {
-					running.set(false);
+				catch (Exception e) {
+					log.error(e.getMessage(), e);
+				}
+				finally {
+					unitOfWork.end();
 				}
 			}
 		}
@@ -263,4 +253,18 @@ public class BuildsBackend {
 		
 	}
 
+	private static class ThreadLifeCycleListener extends AbstractLifeCycleListener {
+
+		private final Thread buildSubmitterThread;
+
+		public ThreadLifeCycleListener(Thread buildSubmitterThread) {
+			this.buildSubmitterThread = buildSubmitterThread;
+		}
+
+		@Override
+        public void lifeCycleStopping(LifeCycle event) {
+                buildSubmitterThread.stop();
+        }
+
+	}
 }

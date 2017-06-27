@@ -55,7 +55,7 @@
         return "rgb(" + mixedrgb.join(",") + ")";
     }
 
-    var randomcolor = getRandColor(5);
+    var randomcolor = getRandColor(4);
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(function() {
         $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/magical-chart-data')
@@ -68,6 +68,8 @@
                 var data = google.visualization.arrayToDataTable(res);
                 var options = {
                     title: 'Commits over time',
+                    pointShape: 'diamond',
+                    pointSize: 5,
                     colors: [randomcolor],
                     backgroundColor: 'transparent',
                     hAxis: {title: 'Date',  titleTextStyle: {color: "#333"}, gridlines: {color : 'transparent'}},
@@ -104,6 +106,8 @@
                         var options = {
                             title: name,
                             colors: [randomcolor],
+                            pointShape: 'diamond',
+                            pointSize: 5,
                             backgroundColor: 'transparent',
                             hAxis: {minValue: minDate, maxValue: maxDate, title: 'Date',  titleTextStyle: {color: '#333'}, gridlines: {color : 'transparent'}},
                             vAxis: {minValue: 0, gridlines: {count : -1}}

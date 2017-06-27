@@ -84,21 +84,28 @@
     google.charts.setOnLoadCallback(function() {
         $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/person-commit')
                 .then(function(res) {
+                    var minDate, maxDate;
+
                     for (var name in res) {
                         var personalChart = res[name];
 
-                        for(var i = 1, row, dateParts; row = personalChart[i]; i++) {
+                        for (var i = 1, row, dateParts; row = personalChart[i]; i++) {
                             dateParts = row[0].split('-').map(parseFloat)
                             row[0] = new Date(dateParts[0], dateParts[1], dateParts[2])
+                            if (!minDate || minDate > row[0]) minDate = row[0];
+                            if (!maxDate || maxDate < row[0]) maxDate = row[0];
                         }
+                    }
 
+                    for (var name in res) {
+                        var personalChart = res[name];
                         var data = google.visualization.arrayToDataTable(personalChart);
                         randomcolor = getRandColor(5);
                         var options = {
                             title: name,
                             colors: [randomcolor],
                             backgroundColor: 'transparent',
-                            hAxis: {title: 'Date',  titleTextStyle: {color: '#333'}, gridlines: {color : 'transparent'}},
+                            hAxis: {minValue: minDate, maxValue: maxDate, title: 'Date',  titleTextStyle: {color: '#333'}, gridlines: {color : 'transparent'}},
                             vAxis: {minValue: 0, gridlines: {count : -1}}
                         };
 

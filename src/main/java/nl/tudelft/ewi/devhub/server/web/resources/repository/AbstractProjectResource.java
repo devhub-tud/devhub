@@ -869,6 +869,4 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		return commitsGroupedByAuthorByDates;
 
 	}
-
-
 }

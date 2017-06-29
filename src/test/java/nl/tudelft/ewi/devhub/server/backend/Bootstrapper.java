@@ -10,7 +10,6 @@ import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
-import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
@@ -115,7 +114,6 @@ public class Bootstrapper {
 	private final Deliveries deliveries;
     private final Assignments assignments;
     private final NotificationController notificationController;
-    private final NotificationUserController notificationUserController;
 	private final EntityManager entityManager;
 
 	@Inject
@@ -123,7 +121,7 @@ public class Bootstrapper {
 			MockedAuthenticationBackend authBackend, ObjectMapper mapper,
 			RepositoriesApi repositoriesApi, ProjectsBackend projects, Assignments assignments,
 			Deliveries deliveries, GroupsApi groupsApi, NotificationController notificationController,
-				 NotificationUserController notificationsUserController, EntityManager entityManager) {
+			 EntityManager entityManager) {
 		
 		this.users = users;
 		this.courses = courses;
@@ -137,7 +135,6 @@ public class Bootstrapper {
 		this.deliveries = deliveries;
 		this.groupsApi = groupsApi;
 		this.notificationController = notificationController;
-		this.notificationUserController = notificationsUserController;
 		this.entityManager = entityManager;
 	}
 	
@@ -230,35 +227,6 @@ public class Bootstrapper {
 				}
 
 				groupsApi.create(courseGroupModel);
-
-				Notification notification = new Notification();
-				notification.setEvent("PR");
-				notification.setMessage("Some message");
-				notification.setSender(userMapping.get("admin1"));
-				notification.setTitle("ExampleTitle 1");
-				notification.setLink(new URI("http://localhost:50001/"));
-				notificationController.persist(notification);
-
-
-				Notification notification2 = new Notification();
-				notification2.setEvent("PR");
-				notification2.setMessage("Some message");
-				notification2.setSender(userMapping.get("admin1"));
-				notification2.setTitle("ExampleTitle 2");
-				notification2.setLink(new URI("http://localhost:50001/"));
-				notificationController.persist(notification2);
-
-				NotificationsToUsers notificationsToUsers1 = new NotificationsToUsers();
-				notificationsToUsers1.setNotification(notification);
-				notificationsToUsers1.setUser(userMapping.get("admin1"));
-				notificationsToUsers1.setRead(true);
-				notificationUserController.persist(notificationsToUsers1);
-
-				NotificationsToUsers notificationsToUsers2 = new NotificationsToUsers();
-				notificationsToUsers2.setNotification(notification2);
-				notificationsToUsers2.setUser(userMapping.get("admin1"));
-				notificationsToUsers2.setRead(false);
-				notificationUserController.persist(notificationsToUsers2);
 
 				for (BGroup group : bCourseEdition.getGroups()) {
 					prepareGroup(userMapping, entity, assignmentEntities, group);

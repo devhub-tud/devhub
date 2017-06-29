@@ -2,18 +2,15 @@ package nl.tudelft.ewi.devhub.webtests;
 
 import com.google.inject.Inject;
 import nl.tudelft.ewi.devhub.server.Config;
-import nl.tudelft.ewi.devhub.server.database.controllers.NotificationUserController;
+import nl.tudelft.ewi.devhub.server.database.controllers.NotificationController;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
-import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import nl.tudelft.ewi.devhub.webtests.utils.WebTest;
-import nl.tudelft.ewi.devhub.webtests.views.CourseView;
 import nl.tudelft.ewi.devhub.webtests.views.CoursesView;
-import nl.tudelft.ewi.devhub.webtests.views.LoginView;
 import nl.tudelft.ewi.devhub.webtests.views.NotificationView;
 import org.junit.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,7 +29,7 @@ public class NotificationTest extends WebTest {
     @Inject
     private Users users;
     @Inject
-    private NotificationUserController notificationUserController;
+    private NotificationController notificationController;
 
     private static final By MARK_READ_BUTTON = By.xpath("/html/body/div/table/tbody/tr[2]/td/form/button");
     private static final By NOTIFICATION_INDICATOR = By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li[1]/a/span");
@@ -47,7 +44,6 @@ public class NotificationTest extends WebTest {
         User user = users.findByNetId(NET_ID);
         users.refresh(user);
 
-
         int unreadNotifications = user.unreadNotifications();
         int readNotifcitions = user.readNotifications();
 
@@ -56,14 +52,11 @@ public class NotificationTest extends WebTest {
 
         notificationView = notificationView.markRead(0);
 
-        for(NotificationsToUsers notificationsToUsers: user.getNotificationsToUsersList()) {
-            notificationUserController.refresh(notificationsToUsers);
-        }
-
         assertEquals(notificationView.getUnreadNotifications().size(),user.unreadNotifications());
         assertEquals(notificationView.getReadNotifications().size(),user.readNotifications());
 
         assertTrue(notificationView.getReadNotifications().size() == readNotifcitions + 1|| unreadNotifications == 0);
         assertTrue(notificationView.getUnreadNotifications().size() == unreadNotifications - 1  || unreadNotifications == 0);
     }
+
 }

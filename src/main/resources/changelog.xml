@@ -1164,13 +1164,14 @@
 			<column name="id" type="bigint" autoIncrement="true">
 				<constraints primaryKey="true" nullable="false" />
 			</column>
-			<column name="message" type="varchar(255)"></column>
-			<column name="event" type="varchar(255)"></column>
-			<column name="link" type="binary(255)"></column>
-			<column name="user_id" type="bigint"></column>
-			<column name="date" type="datetime"></column>
-			<column name="title" type="varchar(255)"></column>
+			<column name="type" type="varchar(255)"/>
+			<column name="user_id" type="bigint"/>
+			<column name="repository_id" type="bigint"/>
+			<column name="comment_id" type="bigint"/>
+			<column name="issue_id" type="bigint"/>
+			<column name="date" type="datetime"/>
 		</createTable>
+
 		<createTable tableName="notifications_to_users">
 			<column name="user_id" type="bigint">
 				<constraints nullable="false" />
@@ -1180,11 +1181,29 @@
 			</column>
 			<column name="isRead" type="boolean"></column>
 		</createTable>
+
 		<addPrimaryKey tableName="notifications_to_users" columnNames="user_id, notification_id"/>
+
 		<addForeignKeyConstraint baseTableName="notifications_to_users"
 								 baseColumnNames="notification_id"
 								 constraintName="notification_id_exists_in_notifications"
 								 referencedTableName="notification"
 								 referencedColumnNames="id"/>
+
+		<addForeignKeyConstraint baseTableName="notification" baseColumnNames="user_id"
+								 constraintName="notification_user_id_exists_in_users"
+								 referencedTableName="users"
+								 referencedColumnNames="id"/>
+
+		<addForeignKeyConstraint baseTableName="notifications_to_users" baseColumnNames="user_id"
+								 constraintName="notification_to_user_user_id_exists_in_users"
+								 referencedTableName="users"
+								 referencedColumnNames="id"/>
+
+		<addForeignKeyConstraint referencedTableName="repository_issues"
+								 referencedColumnNames="repository_id, issue_id"
+								 constraintName="notification_issue_id_exists_in_issues"
+								 baseTableName="notification"
+								 baseColumnNames="repository_id, issue_id"/>
 	</changeSet>
 </databaseChangeLog>

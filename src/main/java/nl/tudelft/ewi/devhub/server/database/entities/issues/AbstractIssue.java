@@ -1,5 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.entities.issues;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,9 +11,11 @@ import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Watchable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.GenericGenerator;
@@ -42,6 +46,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by Jan-Willem on 8/11/2015.
@@ -55,7 +60,7 @@ import java.util.Set;
 @ToString(of = {"repository", "issueId"})
 @EqualsAndHashCode(of = {"repository", "issueId"})
 @IdClass(AbstractIssue.IssueId.class)
-public abstract class AbstractIssue implements Event, Base {
+public abstract class AbstractIssue implements Event, Base, Watchable {
 
     @Data
     @NoArgsConstructor
@@ -121,7 +126,7 @@ public abstract class AbstractIssue implements Event, Base {
 
 	@OrderBy("timestamp ASC")
 	@OneToMany(mappedBy = "issue", fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REMOVE}, orphanRemoval = true)
-	private List<IssueComment> comments;
+	private List<IssueComment> comments = Lists.newArrayListWithCapacity(0);
 
     /**
      * @return true if the pull request is closed
@@ -132,6 +137,17 @@ public abstract class AbstractIssue implements Event, Base {
 
 	public void addLabel(IssueLabel issueLabel) {
 		labels.add(issueLabel);
+	}
+
+	private Set<User> getCommentAuthors() {
+    	return getComments().stream()
+				.map(Comment::getUser)
+				.collect(Collectors.toSet());
+	}
+
+	@JsonIgnore
+	public Set<User> getWatchers() {
+    	return Sets.union(getRepository().getWatchers(), getCommentAuthors());
 	}
 
 }

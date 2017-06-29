@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.AbstractIssue;
 
 import javax.persistence.Entity;
@@ -13,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.util.Set;
 
 @Data
 @Entity
@@ -37,6 +39,11 @@ public class IssueComment extends Comment  {
 	@Override
 	public URI getURI() {
 		return getIssue().getURI();
+	}
+
+	@Override
+	public Set<User> getWatchers() {
+		return getIssue().getWatchers();
 	}
 
 }

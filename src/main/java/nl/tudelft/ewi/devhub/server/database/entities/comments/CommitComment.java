@@ -6,6 +6,7 @@ import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.User;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -16,6 +17,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.util.Set;
 
 @Data
 @Entity
@@ -54,4 +56,10 @@ public class CommitComment extends Comment {
 	public URI getURI() {
 		return getCommit().getURI();
 	}
+
+	@Override
+	public Set<User> getWatchers() {
+		return getCommit().getWatchers();
+	}
+
 }

@@ -32,7 +32,6 @@ public class NotificationView extends AuthenticatedView {
     @Override
     public void invariant() {
         assertTrue("Wrong Path", currentPathEquals("/notifications/admin1"));
-        assertEquals(getDriver().findElements(NOTIFICATIONS_UNREAD).size(),1);
 
     }
 

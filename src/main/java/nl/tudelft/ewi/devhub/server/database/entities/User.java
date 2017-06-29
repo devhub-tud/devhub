@@ -12,7 +12,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
-import nl.tudelft.ewi.devhub.server.database.entities.notifications.NotificationsToUsers;
+import org.hibernate.annotations.Immutable;
 import org.mindrot.jbcrypt.BCrypt;
 
 import javax.persistence.*;
@@ -78,9 +78,14 @@ public class User {
 		return getGroups();
 	}
 
-	@OneToMany(mappedBy = "user")
-	@JsonIgnore
-	private List<NotificationsToUsers> notificationsToUsersList;
+	@Immutable
+	@ManyToMany(cascade = CascadeType.REFRESH)
+	@JoinTable(
+			name = "notifications_to_users",
+			joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+			inverseJoinColumns = @JoinColumn(name = "notification_id", referencedColumnName = "id")
+	)
+	public List<Notification> notifications;
 
 	@JsonIgnore
 	public List<Group> listAssistedGroups() {
@@ -115,33 +120,25 @@ public class User {
 				&& BCrypt.checkpw(password, this.password);
 	}
 
-	public List<Notification> getNotifications() {
-		List<Notification> notifications = new ArrayList<Notification>();
-		for (NotificationsToUsers notificationsToUsers: notificationsToUsersList) {
-			notifications.add(notificationsToUsers.getNotification());
-		}
-		return notifications;
-	}
+    public List<Notification> getUnreadNotificationsList() {
+        return notifications.stream()
+                .filter(notification -> !notification.getRecipients().get(User.this))
+                .collect(Collectors.toList());
+    }
 
-	public List<Notification> getUnreadNotificationsList() {
-		return notificationsToUsersList.stream()
-				.filter(notificationsToUsers -> !notificationsToUsers.isRead())
-				.map(NotificationsToUsers::getNotification)
+    public List<Notification> getReadNotifications() {
+		return notifications.stream()
+				.filter(notification -> notification.getRecipients().get(User.this))
 				.collect(Collectors.toList());
-	}
+    }
 
-	public List<Notification> getReadNotifications() {
-		return notificationsToUsersList.stream()
-				.filter(NotificationsToUsers::isRead)
-				.map(NotificationsToUsers::getNotification)
-				.collect(Collectors.toList());
-	}
+    public int unreadNotifications() {
+        return getUnreadNotificationsList().size();
+    }
 
-	public int unreadNotifications() {
-		return getUnreadNotificationsList().size();
-	}
+    public int readNotifications() {
+        return getReadNotifications().size();
+    }
 
-	public int readNotifications() {
-		return getReadNotifications().size();
-	}
+
 }

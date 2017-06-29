@@ -2,14 +2,10 @@ package nl.tudelft.ewi.devhub.server.database.entities.notifications;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.issues.AbstractIssue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.PullRequest;
 
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import java.net.URI;
 
 /**
  * Created by jgmeligmeyling on 28/06/2017.
@@ -17,27 +13,24 @@ import java.net.URI;
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-public abstract class AbstractPullRequestNotification extends Notification implements RepositoryNotification, HasWatchable {
-
-    @ManyToOne
-    @JoinColumns({
-            @JoinColumn(name = "repository_id", referencedColumnName = "repository_id"),
-            @JoinColumn(name = "issue_id", referencedColumnName = "issue_id")
-    })
-    private PullRequest pullRequest;
+public abstract class AbstractPullRequestNotification extends AbstractIssueNotification implements RepositoryNotification, HasWatchable {
 
     @Override
-    public URI getURI() {
-        return getPullRequest().getURI();
+    public void setIssue(AbstractIssue issue) {
+        setPullRequest((PullRequest) issue);
     }
 
     @Override
-    public RepositoryEntity getRepositoryEntity() {
-        return getPullRequest().getRepository();
+    public PullRequest getIssue() {
+        return (PullRequest) super.getIssue();
     }
 
-    @Override
-    public Watchable getWatchable() {
-        return getPullRequest();
+    public void setPullRequest(PullRequest pullRequest) {
+        super.setIssue(pullRequest);
     }
+
+    public PullRequest getPullRequest() {
+        return getIssue();
+    }
+
 }

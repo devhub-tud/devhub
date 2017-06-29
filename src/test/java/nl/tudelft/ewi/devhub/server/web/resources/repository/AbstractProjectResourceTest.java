@@ -5,6 +5,7 @@ import com.google.common.eventbus.AsyncEventBus;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import lombok.val;
+import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
@@ -58,6 +59,7 @@ public class AbstractProjectResourceTest {
     @Mock CommitComments commitComments;
     @Mock CommitComment commitComment;
     @Mock CommentMailer commentMailer;
+    @Mock CommentBackend commentBackend;
     @Mock User currentUser;
 
     @Captor ArgumentCaptor<Map<String, Object>> argumentCaptor;
@@ -92,7 +94,7 @@ public class AbstractProjectResourceTest {
 
         when(commits.ensureExists(any(), any())).thenReturn(commit);
 
-        projectResource = spy(new ProjectResource(templateEngine, currentUser, group, null, null,
+        projectResource = spy(new ProjectResource(templateEngine, currentUser, group, commentBackend, null,
                 null, repositoriesApi, null, commitComments, commentMailer, commits, null, null,
                 null, null, null, new MarkDownParser(new PegDownProcessor()), new AsyncEventBus(Executors.newCachedThreadPool())));
 

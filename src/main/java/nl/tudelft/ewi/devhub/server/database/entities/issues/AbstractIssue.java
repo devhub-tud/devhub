@@ -2,11 +2,7 @@ package nl.tudelft.ewi.devhub.server.database.entities.issues;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Lists;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
@@ -15,6 +11,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.identity.FKSegmentedIdentifierGenerator;
 
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.AbstractIssueNotification;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Watchable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DiscriminatorFormula;
@@ -127,6 +124,11 @@ public abstract class AbstractIssue implements Event, Base, Watchable {
 	@OrderBy("timestamp ASC")
 	@OneToMany(mappedBy = "issue", fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REMOVE}, orphanRemoval = true)
 	private List<IssueComment> comments = Lists.newArrayListWithCapacity(0);
+
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
+	@OneToMany(mappedBy = "issue", orphanRemoval = true, cascade = CascadeType.REMOVE)
+	private List<AbstractIssueNotification> notifications;
 
     /**
      * @return true if the pull request is closed

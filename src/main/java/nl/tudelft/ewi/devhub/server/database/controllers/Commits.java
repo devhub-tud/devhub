@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.controllers;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
@@ -14,13 +15,11 @@ import nl.tudelft.ewi.git.models.CommitModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.common.collect.Maps.uniqueIndex;
 import static nl.tudelft.ewi.devhub.server.database.entities.QCommit.commit;
 
 @Slf4j
@@ -42,11 +41,25 @@ public class Commits extends Controller<Commit> {
 		return Optional.ofNullable(entityManager.find(Commit.class, key));
 	}
 
-	@Transactional
-	public List<Commit> retrieveCommits(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+	private List<Commit> retrieve(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
 		return query().from(commit)
 			.where(commit.repository.eq(repositoryEntity).and(commit.commitId.in(commitIds)))
 			.list(commit);
+	}
+
+	protected Commit createCommit(RepositoryEntity repositoryEntity, String commitId) {
+		final Commit commit = new Commit();
+		commit.setCommitId(commitId);
+		commit.setRepository(repositoryEntity);
+		commit.setComments(Lists.newArrayList());
+		commit.setPushTime(new Date());
+		enhanceCommitSafely(commit);
+
+		CreateCommitEvent createCommitEvent = new CreateCommitEvent();
+		createCommitEvent.setCommitId(commitId);
+		createCommitEvent.setRepositoryName(repositoryEntity.getRepositoryName());
+		eventBus.post(createCommitEvent);
+		return persist(commit);
 	}
 
 	/**
@@ -54,24 +67,28 @@ public class Commits extends Controller<Commit> {
 	 *
 	 * @param repositoryEntity Repository to search commits for.
 	 * @param commitId Commit id of the commit.
-	 * @return The created commit entity.
+	 * @return The existing or created commit entity.
 	 */
 	@Transactional
 	public Commit ensureExists(RepositoryEntity repositoryEntity, String commitId) {
-		return retrieve(repositoryEntity, commitId).orElseGet(() -> {
-			final Commit commit = new Commit();
-			commit.setCommitId(commitId);
-			commit.setRepository(repositoryEntity);
-			commit.setComments(Lists.newArrayList());
-			commit.setPushTime(new Date());
-			enhanceCommitSafely(commit);
+		return retrieve(repositoryEntity, commitId).orElseGet(() -> createCommit(repositoryEntity, commitId));
+	}
 
-			CreateCommitEvent createCommitEvent = new CreateCommitEvent();
-			createCommitEvent.setCommitId(commitId);
-			createCommitEvent.setRepositoryName(repositoryEntity.getRepositoryName());
-			eventBus.post(createCommitEvent);
-			return persist(commit);
-		});
+	/**
+	 * Ensure that a commit exists in the database. Recursively check if the parents exists as well.
+	 *
+	 * @param repositoryEntity Repository to search commits for.
+	 * @param commitIds Commit ids of the commit.
+	 * @return The existing or created commit entities.
+	 */
+	@Transactional
+	public List<Commit> ensureExists(RepositoryEntity repositoryEntity, Collection<String> commitIds) {
+		Map<String, Commit> existingCommits = uniqueIndex(retrieve(repositoryEntity, commitIds), Commit::getCommitId);
+
+		return commitIds.stream()
+			.map(commitId -> Optional.ofNullable(existingCommits.get(commitId)).orElseGet(() ->
+						createCommit(repositoryEntity, commitId)))
+			.collect(Collectors.toList());
 	}
 
 	/**

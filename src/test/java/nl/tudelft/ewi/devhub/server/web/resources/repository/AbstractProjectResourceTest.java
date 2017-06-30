@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -90,7 +91,7 @@ public class AbstractProjectResourceTest {
         groupRepository.setRepositoryName(REPOSITORY_NAME);
         group.setRepository(groupRepository);
 
-        when(commits.ensureExists(any(), any())).thenReturn(commit);
+        when(commits.ensureExists(any(RepositoryEntity.class), anyString())).thenReturn(commit);
 
         projectResource = spy(new ProjectResource(templateEngine, currentUser, group, null, null,
                 null, repositoriesApi, null, commitComments, commentMailer, commits, null, null,

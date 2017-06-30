@@ -6,6 +6,7 @@ import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.Group;
 import nl.tudelft.ewi.devhub.server.database.entities.GroupRepository;
+import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
 import nl.tudelft.ewi.git.models.BlameModel;
 
@@ -30,8 +31,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Set;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -63,7 +66,8 @@ public class PMDWarningGeneratorTest {
         when(commit.getCommitId()).thenReturn(COMMIT_ID);
         when(commit.getRepository()).thenReturn(groupRepository);
         when(groupRepository.getRepositoryName()).thenReturn("");
-        when(commits.ensureExists(any(), any())).thenReturn(commit);
+
+        when(commits.ensureExists(any(RepositoryEntity.class), anyString())).thenReturn(commit);
 
         when(repositories.getRepository(anyString())).thenReturn(repository);
         when(repository.getCommit(COMMIT_ID)).thenReturn(commitApi);

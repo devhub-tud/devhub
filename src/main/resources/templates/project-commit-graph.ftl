@@ -20,7 +20,7 @@
 
     <div class="row">
         <div class="col-md-10 col-md-offset-2">
-            <h4 style="line-height:34px; margin-top:0;">Nice graphs &nbsp; 😍</h4>
+            <h4 style="line-height:34px; margin-top:0;">${i18n.translate("header.graphs")}</h4>
         </div>
     </div>
 

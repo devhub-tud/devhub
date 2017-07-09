@@ -44,7 +44,7 @@
             </li>
             <li role="presentation" [#if currentTab == "insights"]class="active"[/#if]>
                 <a href="${repositoryEntity.getURI()}insights">
-                    Nice graphs &nbsp; 😍
+                    ${i18n.translate("header.graphs")}
                 </a>
             </li>
             <li role="presentation" [#if currentTab == "settings"]class="active"[/#if]>

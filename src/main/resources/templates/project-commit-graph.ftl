@@ -46,6 +46,8 @@
 <script type="text/javascript" src="http://code.stephenmorley.org/javascript/colour-handling-and-processing/Colour.js"></script>
 <script type="text/javascript">
 
+    // This nice function was retrieved from https://stackoverflow.com/a/7352887
+    // It matched our exact needs for random color generation with brightness control:
     function getRandColor(brightness){
 
         // Six levels of brightness from 0 to 5, 0 being the darkest

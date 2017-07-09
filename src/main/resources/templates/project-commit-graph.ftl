@@ -60,7 +60,7 @@
     var randomcolor = getRandColor(4);
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(function() {
-        $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/magical-chart-data')
+        $.get('${repositoryEntity.getURI().resolve('magical-chart-data')}')
             .then(function(res) {
                 for(var i = 1, row, dateParts; row = res[i]; i++) {
                     dateParts = row[0].split('-').map(parseFloat)
@@ -83,10 +83,9 @@
             });
     });
 
-
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(function() {
-        $.get('http://localhost:50001/courses/ti1705/TI1705/groups/1/person-commit')
+        $.get('${repositoryEntity.getURI().resolve('person-commit')}')
                 .then(function(res) {
                     var minDate, maxDate;
 

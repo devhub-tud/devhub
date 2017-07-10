@@ -31,6 +31,7 @@ public class NotificationController extends Controller<Notification>{
     }
 
     @Transactional
+    @SuppressWarnings("unused") // Used through Freemarker
     public SortedMap<Notification, Boolean> getLatestNotificationsFor(User user) {
         return new TreeMap<>(query().from(notification)
                 .orderBy(notification.timestamp.desc())
@@ -39,6 +40,7 @@ public class NotificationController extends Controller<Notification>{
     }
 
     @Transactional
+    @SuppressWarnings("unused") // Used through Freemarker
     public long getNumberOfUnreadNotificationsFor(User user) {
         return query().from(notification)
                 .where(notification.recipients.get(user).isFalse())

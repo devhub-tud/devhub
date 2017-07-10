@@ -15,34 +15,25 @@
     <table class="table table-bordered">
         <tbody>
 [#if notificationController??]
-    [#list notificationController.getLatestNotificationsFor(user) as notificationWithUser, isRead]
+    [#assign notificationMap = notificationController.getLatestNotificationsFor(user)]
+    [#list notificationMap as notificationWithUser, isRead]
         <tr>
-            [#if isRead]
-            <td class="notification read">
-            [#else]
-            <td class="notification unread">
-            [/#if]
-
-            <a href="${notificationWithUser.URI}">
-                [#if !isRead]
-                <form action="${path}/markRead" method="post" class="pull-right">
-                    <input type="hidden" name="notificationId" value="${notificationWithUser.getId()}">
-                    <button type="submit" class="btn btn-danger btn-sm" style="margin: 5px;">
-                        <i class="glyphicon glyphicon-remove-sign"></i> ${i18n.translate("block.my-notifications.mark-read")}
-                    </button>
-                </form>
-                [#else]
-                <span class="pull-right">
-                    <i class="pull-right">${i18n.translate("block.my-notifications.is-read")}</i>
-                </span>
-                [/#if]
-                <div class="notificationtitle">${notificationWithUser.getTitle(i18n)}</div>
-                <div class="truncate">${notificationWithUser.getDescription(i18n)}</div>
-
-            </a>
+            <td class="notification [#if isRead]read[#else]unread[/#if]">
+                <a href="/notifications/${notificationWithUser.id}">
+                    <div class="notificationtitle">${notificationWithUser.getTitle(i18n)}</div>
+                    <div class="truncate">${notificationWithUser.getDescription(i18n)}</div>
+                    <div class="truncate">${notificationWithUser.timestamp}</div>
+                </a>
             </td>
         </tr>
     [/#list]
+    [#if !notificationMap?has_content]
+        <tr>
+            <td>
+                <em>Nothing to show here.</em>
+            </td>
+        </tr>
+    [/#if]
 [#else]
     <tr>
         <td class="muted">

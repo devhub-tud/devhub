@@ -18,7 +18,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -44,17 +43,7 @@ public class NotificationResource extends Resource {
 	}
 
 	@GET
-	public Response showPersonalUserPage() throws URISyntaxException {
-		return Response.seeOther(new URI("/notifications/" + currentUser.getNetId()))
-				.build();
-	}
-
-	@GET
-	@Path("{netId}")
-	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId)
-			throws IOException, ApiError {
-
-
+	public String showPersonalUserPage(@Context HttpServletRequest request) throws URISyntaxException, IOException {
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("path", request.getRequestURI());
@@ -64,29 +53,29 @@ public class NotificationResource extends Resource {
 		return templateEngine.process("notifications.ftl", locales, parameters);
 	}
 
-	@POST
+	@GET
 	@Deprecated
-	@Path("{netId}/markRead")
-	public Response markAsRead(@PathParam("netId") String netId, @FormParam("notificationId") long notificationId)
+	@Path("{netId:\\D+\\w*}")
+	public String showUserPage(@Context HttpServletRequest request, @PathParam("netId") String netId)
 			throws IOException, ApiError, URISyntaxException {
-		return markAsRead(notificationId);
+		return showPersonalUserPage(request);
 	}
 
-	@POST
-	@Path("markRead")
+	@GET
 	@com.google.inject.persist.Transactional
-	public Response markAsRead(@FormParam("notificationId") long notificationId)
-			throws IOException, ApiError, URISyntaxException {
-		try {
-			Notification notification = notificationController.findById(notificationId).get();
-			notification.setRead(currentUser);
-			return Response.seeOther(new URI("/notifications/" + currentUser.getNetId()))
-					.build();
+	@Path("{notificationId:\\d+}")
+	public Response forward(@PathParam("notificationId") long notificationId) {
+		Notification notification = notificationController.findById(notificationId)
+				.orElseThrow(NotFoundException::new);
 
+		if (! notification.getRecipients().containsKey(currentUser)) {
+			throw new ForbiddenException();
 		}
-		catch (NoSuchElementException e) {
-			return Response.seeOther(new URI("/notifications/" + currentUser.getNetId() + "?error=NotificationNotFound")).build();
-		}
+
+		notification.setRead(currentUser);
+
+		return Response.seeOther(notification.getURI()).build();
+
 	}
 
 }

@@ -66,12 +66,14 @@ public class TemplateEngine {
 			Builder<String, Object> builder = ImmutableMap.<String, Object> builder();
 			builder.put("i18n", translator);
 			builder.put("MarkDownParser", markDownParser);
+			builder.put("notificationController", notificationController);
 
 			if (parameters != null) {
 				builder.putAll(parameters);
 			}
 			
 			StringWriter out = new StringWriter();
+
 			conf.getTemplate(template).process(builder.build(), out);
 			return out.toString();
 		}

@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.web.templating.Translator;
 
 import javax.persistence.Entity;
@@ -37,7 +39,7 @@ public class CommentNotification extends Notification implements RepositoryNotif
     protected Object[] getTitleParameters() {
         return new Object[] {
                 getSender().getName(),
-                ""
+                comment instanceof IssueComment ? ((IssueComment) comment).getIssue().getIssueId() : ""
         };
     }
 

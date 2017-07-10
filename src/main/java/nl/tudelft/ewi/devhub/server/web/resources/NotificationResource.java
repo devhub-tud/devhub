@@ -58,7 +58,7 @@ public class NotificationResource extends Resource {
 		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("user", currentUser);
 		parameters.put("path", request.getRequestURI());
-		parameters.put("notifications", currentUser.getNotifications());
+		parameters.put("notifications", notificationController.getLatestNotificationsFor(currentUser));
 
 		List<Locale> locales = Collections.list(request.getLocales());
 		return templateEngine.process("notifications.ftl", locales, parameters);

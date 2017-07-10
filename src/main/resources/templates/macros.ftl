@@ -35,8 +35,11 @@
 				<div class="collapse navbar-collapse nav-collapse" id="bs-example-navbar-collapse-1">
 					<ul class="nav navbar-nav navbar-right">
                         <li><a href="/notifications">${i18n.translate("section.notifications")}
-							[#if user?? && user.unreadNotifications() > 0]
-                                <span class="label label-danger">${user.unreadNotifications()}</span>
+							[#if user?? && notificationController??]
+								[#assign unreadNotifications = notificationController.getNumberOfUnreadNotificationsFor(user)]
+								[#if unreadNotifications > 0]
+                                	<span class="label label-danger">${unreadNotifications}</span>
+								[/#if]
 							[/#if]</a></li>
 [#if user?? && user.isAdmin()]
 				 		<li><a href="/build-servers">${i18n.translate("section.build-servers")}</a></li>

@@ -1,16 +1,9 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-
+import lombok.*;
 import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import org.hibernate.annotations.Immutable;
 import org.mindrot.jbcrypt.BCrypt;
@@ -18,11 +11,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -79,6 +68,8 @@ public class User {
 	}
 
 	@Immutable
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
 	@ManyToMany(cascade = CascadeType.REFRESH)
 	@JoinTable(
 			name = "notifications_to_users",
@@ -119,26 +110,4 @@ public class User {
 		return password != null && this.password != null
 				&& BCrypt.checkpw(password, this.password);
 	}
-
-    public List<Notification> getUnreadNotificationsList() {
-        return notifications.stream()
-                .filter(notification -> !notification.getRecipients().get(User.this))
-                .collect(Collectors.toList());
-    }
-
-    public List<Notification> getReadNotifications() {
-		return notifications.stream()
-				.filter(notification -> notification.getRecipients().get(User.this))
-				.collect(Collectors.toList());
-    }
-
-    public int unreadNotifications() {
-        return getUnreadNotificationsList().size();
-    }
-
-    public int readNotifications() {
-        return getReadNotifications().size();
-    }
-
-
 }

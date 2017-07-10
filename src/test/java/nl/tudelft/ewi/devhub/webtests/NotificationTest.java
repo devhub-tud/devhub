@@ -44,18 +44,20 @@ public class NotificationTest extends WebTest {
         User user = users.findByNetId(NET_ID);
         users.refresh(user);
 
-        int unreadNotifications = user.unreadNotifications();
-        int readNotifcitions = user.readNotifications();
+        long unreadNotifications = notificationController.getLatestNotificationsFor(user).values()
+                .stream().filter(Boolean.FALSE::equals)
+                .count();
 
-        assertEquals(notificationView.getReadNotifications().size(),readNotifcitions);
+        long readNotifications = notificationController.getLatestNotificationsFor(user).values()
+                .stream().filter(Boolean.TRUE::equals)
+                .count();
+
+        assertEquals(notificationView.getReadNotifications().size(), readNotifications);
         assertEquals(notificationView.getUnreadNotifications().size(),unreadNotifications);
 
         notificationView = notificationView.markRead(0);
 
-        assertEquals(notificationView.getUnreadNotifications().size(),user.unreadNotifications());
-        assertEquals(notificationView.getReadNotifications().size(),user.readNotifications());
-
-        assertTrue(notificationView.getReadNotifications().size() == readNotifcitions + 1|| unreadNotifications == 0);
+        assertTrue(notificationView.getReadNotifications().size() == readNotifications + 1|| unreadNotifications == 0);
         assertTrue(notificationView.getUnreadNotifications().size() == unreadNotifications - 1  || unreadNotifications == 0);
     }
 

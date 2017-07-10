@@ -6,8 +6,9 @@ import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.util.List;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import static nl.tudelft.ewi.devhub.server.database.entities.notifications.QNotification.notification;
 
@@ -15,6 +16,8 @@ import static nl.tudelft.ewi.devhub.server.database.entities.notifications.QNoti
  * Created by Arjan on 7-6-2017.
  */
 public class NotificationController extends Controller<Notification>{
+
+    public static final int DEFAULT_NOTIFICATIONS_RESULT_SET_SIZE = 25;
 
     @Inject
     public NotificationController(EntityManager entityManager) {
@@ -28,20 +31,19 @@ public class NotificationController extends Controller<Notification>{
     }
 
     @Transactional
-    public List<Notification> getUnreadNotificationsFor(User user) {
-        return query().from(notification)
-                .where(notification.recipients.get(user).isFalse())
+    public SortedMap<Notification, Boolean> getLatestNotificationsFor(User user) {
+        return new TreeMap<>(query().from(notification)
                 .orderBy(notification.timestamp.desc())
-                .list(notification);
+                .limit(DEFAULT_NOTIFICATIONS_RESULT_SET_SIZE)
+                .map(notification, notification.recipients.get(user).isTrue()));
     }
 
     @Transactional
-    public List<Notification> getReadNotificationsFor(User user) {
+    public long getNumberOfUnreadNotificationsFor(User user) {
         return query().from(notification)
                 .where(notification.recipients.get(user).isFalse())
                 .orderBy(notification.timestamp.desc())
-                .list(notification);
+                .count();
     }
-
 
 }

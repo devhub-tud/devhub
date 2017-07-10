@@ -14,17 +14,17 @@
 [/#if]
     <table class="table table-bordered">
         <tbody>
-[#if notifications??]
-    [#list notifications as notificationWithUser]
+[#if notificationController??]
+    [#list notificationController.getLatestNotificationsFor(user) as notificationWithUser, isRead]
         <tr>
-            [#if notificationWithUser.isRead(user)]
+            [#if isRead]
             <td class="notification read">
             [#else]
             <td class="notification unread">
             [/#if]
 
             <a href="${notificationWithUser.URI}">
-                [#if !notificationWithUser.isRead(user)]
+                [#if !isRead]
                 <form action="${path}/markRead" method="post" class="pull-right">
                     <input type="hidden" name="notificationId" value="${notificationWithUser.getId()}">
                     <button type="submit" class="btn btn-danger btn-sm" style="margin: 5px;">

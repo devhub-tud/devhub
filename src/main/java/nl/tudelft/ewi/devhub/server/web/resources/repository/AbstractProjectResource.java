@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -49,6 +50,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -265,6 +268,20 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 		return display(templateEngine.process("project-contributors.ftl", locales, parameters));
 	}
 
+	@GET
+	@Path("/insights")
+	@Transactional
+	public Response showInsights(@Context HttpServletRequest request) throws IOException {
+
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repository = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repository", repository.getRepositoryModel());
+
+		List<Locale> locales = Collections.list(request.getLocales());
+		return display(templateEngine.process("project-commit-graph.ftl", locales, parameters));
+	}
 
 	@GET
 	@Path("/contributors/edit")
@@ -754,4 +771,76 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			.forEach(asyncEventBus::post);
 	}
 
+
+	/**
+	 * Used for showing multiple graphs
+	 * @return a list with all commits made
+	 */
+	private List<Commit> getAllCommits() {
+
+		// get all commits
+		RepositoryEntity repositoryEntity = getRepositoryEntity();
+		RepositoryApi repositoryApi = repositoriesApi.getRepository(repositoryEntity.getRepositoryName());
+		Map<String, Object> parameters = getBaseParameters();
+		parameters.put("repository", repositoryApi.getRepositoryModel());
+		BranchApi branchApi = repositoryApi.getBranch("master");
+		BranchModel branch = branchApi.get();
+		CommitSubList commits = branchApi.retrieveCommitsInBranch();
+		Collection<String> commitIds = getCommitIds(commits);
+		List<Commit> commitEntities = commitIds.stream()
+			.map(commitId -> this.commits.ensureExists(repositoryEntity, commitId))
+			.collect(Collectors.toList());
+
+		return commitEntities;
+	}
+
+	@GET
+	@Path("magical-chart-data")
+	@Produces(MediaType.APPLICATION_JSON)
+
+	public List<List<Object>> getMagicalChartData() {
+
+		List<Commit> commitEntities = getAllCommits();
+
+		return getGoogleChartDataForCommits(commitEntities);
+	}
+
+	private static List<List<Object>> getGoogleChartDataForCommits(List<Commit> commitEntities) {
+
+		Map<LocalDate, List<Commit>> commitsGroupedByDate = commitEntities.stream()
+			.collect(Collectors.groupingBy((Commit commit) ->
+				commit.getCommitTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));
+
+		Map<LocalDate, Integer> numberOfCommitsByDate = Maps.transformValues(commitsGroupedByDate, List::size);
+
+		SortedMap<LocalDate, Integer> numberOfCommitsByDateInOrder = new TreeMap<>(numberOfCommitsByDate);
+
+		List<List<Object>> datesOrdered = numberOfCommitsByDateInOrder.entrySet().stream()
+			.map((Map.Entry<LocalDate, Integer> entry) ->
+				ImmutableList.<Object> of(entry.getKey(), entry.getValue()))
+			.collect(Collectors.toList());
+
+		ImmutableList.Builder<List<Object>> listBuilder = ImmutableList.builder();
+		listBuilder.add(ImmutableList.of("Date", "Number of commits"));
+		listBuilder.addAll(datesOrdered);
+		return listBuilder.build();
+	}
+
+	@GET
+	@Path("person-commit")
+	@Produces(MediaType.APPLICATION_JSON)
+
+	public Map<String, List<List<Object>>> getPersonCommit() {
+
+		List<Commit> commitEntities = getAllCommits();
+
+		Map<String, List<Commit>> commitsGroupedByAuthor = commitEntities.stream()
+			.collect(Collectors.groupingBy((Commit commit) -> commit.getAuthor()));
+
+		Map<String, List<List<Object>>> commitsGroupedByAuthorByDates =
+			Maps.transformValues(commitsGroupedByAuthor, AbstractProjectResource::getGoogleChartDataForCommits);
+
+		return commitsGroupedByAuthorByDates;
+
+	}
 }

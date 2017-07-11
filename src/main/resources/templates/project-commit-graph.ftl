@@ -64,7 +64,7 @@
             .then(function(res) {
                 for(var i = 1, row, dateParts; row = res[i]; i++) {
                     dateParts = row[0].split('-').map(parseFloat)
-                    row[0] = new Date(dateParts[0], dateParts[1], dateParts[2])
+                    row[0] = new Date(dateParts[0], dateParts[1]-1, dateParts[2])
                 }
 
                 var data = google.visualization.arrayToDataTable(res);
@@ -94,7 +94,7 @@
 
                         for (var i = 1, row, dateParts; row = personalChart[i]; i++) {
                             dateParts = row[0].split('-').map(parseFloat)
-                            row[0] = new Date(dateParts[0], dateParts[1], dateParts[2])
+                            row[0] = new Date(dateParts[0], dateParts[1]-1, dateParts[2])
                             if (!minDate || minDate > row[0]) minDate = row[0];
                             if (!maxDate || maxDate < row[0]) maxDate = row[0];
                         }

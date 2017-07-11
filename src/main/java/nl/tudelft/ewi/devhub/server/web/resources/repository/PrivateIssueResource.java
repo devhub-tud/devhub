@@ -13,6 +13,7 @@ import com.google.inject.servlet.RequestScoped;
 import lombok.Getter;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
@@ -33,19 +34,20 @@ public class PrivateIssueResource extends AbstractProjectIssueResource {
 	@Context @Getter private UriInfo uriInfo;
 	
 	@Inject
-	public PrivateIssueResource(final TemplateEngine templateEngine, 
-			@Named("current.user") final User currentUser, 
+	public PrivateIssueResource(final TemplateEngine templateEngine,
+			@Named("current.user") final User currentUser,
 			final CommentBackend commentBackend,
-			final CommentMailer commentMailer, 
+			final CommentMailer commentMailer,
 			final RepositoriesApi repositoriesApi,
 			final RepositoriesController repositoriesController,
-			final Issues issues, 
+			final Issues issues,
 			final IssueBackend issueBackend,
 			final Users users,
 			final PrivateRepositories privateRepositories,
-			final IssueComments issueComments) {
-		
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, repositoriesController, issues, issueBackend, users, issueComments);
+			final IssueComments issueComments,
+			final NotificationBackend notificationBackend) {
+
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, repositoriesController, issues, issueBackend, users, issueComments, notificationBackend);
 		
 		this.privateRepositories = privateRepositories;
 	}

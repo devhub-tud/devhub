@@ -1,6 +1,8 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
 import com.google.inject.Inject;
+import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
@@ -47,6 +49,8 @@ public class AbstractProjectPullResourceTest {
     @Mock PullRequests pullRequests;
     @Mock PullRequest pullRequest;
     @Mock IssueComments pullRequestComments;
+    @Mock NotificationBackend notificationBackend;
+    @Mock CommentBackend commentBackend;
 
     @Inject private RepositoriesApi repositoriesApi;
 
@@ -63,9 +67,9 @@ public class AbstractProjectPullResourceTest {
 
         when(pullRequests.findById(any(), eq(PULL_ID))).thenReturn(pullRequest);
 
-        projectPullResource = spy(new ProjectPullResource(templateEngine, currentUser, group, null,
+        projectPullResource = spy(new ProjectPullResource(templateEngine, currentUser, group, commentBackend,
                 null, pullRequests, null, repositoriesApi, commentMailer, null,
-                pullRequestComments, null, null, new MarkDownParser(new PegDownProcessor()), null));
+                pullRequestComments, null, null, new MarkDownParser(new PegDownProcessor()), null, notificationBackend));
 
         when(pullRequestComment.getTimestamp()).thenReturn(commentDate);
         when(currentUser.getName()).thenReturn(REPOSITORY_NAME);

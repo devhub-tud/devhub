@@ -8,26 +8,17 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.google.inject.servlet.SessionScoped;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
-import nl.tudelft.ewi.devhub.server.database.controllers.BuildResults;
-import nl.tudelft.ewi.devhub.server.database.controllers.CommitComments;
-import nl.tudelft.ewi.devhub.server.database.controllers.Commits;
-import nl.tudelft.ewi.devhub.server.database.controllers.Controller;
-import nl.tudelft.ewi.devhub.server.database.controllers.PullRequests;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
-import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
+import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.embeddables.Source;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.LineWarning;
 import nl.tudelft.ewi.devhub.server.events.CreateCommitEvent;
 import nl.tudelft.ewi.devhub.server.util.FlattenFolderTree;
@@ -35,7 +26,6 @@ import nl.tudelft.ewi.devhub.server.util.Highlight;
 import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.models.CommentResponse;
-import nl.tudelft.ewi.devhub.server.web.models.statistics.AreaChartData;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.resources.views.WarningResolver;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
@@ -48,24 +38,9 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.jboss.resteasy.annotations.cache.Cache;
 import org.jboss.resteasy.plugins.validation.hibernate.ValidateRequest;
 
-import javax.ejb.Local;
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -78,7 +53,6 @@ import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -418,7 +392,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 			comment.setSource(source);
 		}
 
-		comments.persist(comment);
+		commentBackend.post(comment);
 		commentMailer.sendCommentMail(comment, redirect);
 
 		CommentResponse response = new CommentResponse();
@@ -434,7 +408,7 @@ public abstract class AbstractProjectResource<RepoType extends RepositoryEntity>
 	@GET
 	@Path("/commits/{commitId}")
 	public Response showCommitOverview(@Context HttpServletRequest request) {
-		return redirect(request.getPathInfo() + "/diff");
+		return redirect(URI.create(request.getRequestURI() + "/").resolve("diff"));
 	}
 
 	@GET

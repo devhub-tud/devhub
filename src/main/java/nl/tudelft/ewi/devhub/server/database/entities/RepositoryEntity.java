@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.Sets;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,6 +13,7 @@ import nl.tudelft.ewi.devhub.server.database.Configurable;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.BuildInstructionEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.AbstractIssue;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Watchable;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.Warning;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -33,6 +35,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.Pattern;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The {@code Repository} information was previously stored within the
@@ -55,7 +58,7 @@ import java.util.List;
 @ToString(of = {"id", "repositoryName"})
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(discriminatorType = DiscriminatorType.INTEGER)
-public abstract class RepositoryEntity implements Configurable, Base {
+public abstract class RepositoryEntity implements Configurable, Base, Watchable {
 
     @Id
     @Column(name = "id")
@@ -104,5 +107,10 @@ public abstract class RepositoryEntity implements Configurable, Base {
      * @return the title for the repository. This may be editable or managed.
      */
     public abstract String getTitle();
+
+    @JsonIgnore
+    public Set<User> getWatchers() {
+        return Sets.newHashSet(getCollaborators());
+    }
 
 }

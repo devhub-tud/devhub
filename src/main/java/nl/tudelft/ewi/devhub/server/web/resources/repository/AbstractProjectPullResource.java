@@ -3,6 +3,7 @@ package nl.tudelft.ewi.devhub.server.web.resources.repository;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.PullRequestBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.backend.mail.PullRequestMailer;
@@ -80,21 +81,22 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 	protected final MarkDownParser markDownParser;
 
 	protected AbstractProjectPullResource(final TemplateEngine templateEngine,
-	                                      final @Named("current.user") User currentUser,
-	                                      final CommentBackend commentBackend,
-	                                      final BuildResults buildResults,
-	                                      final PullRequests pullRequests,
-	                                      final PullRequestBackend pullRequestBackend,
-	                                      final RepositoriesApi repositoriesApi,
-	                                      final CommentMailer commentMailer,
-	                                      final PullRequestMailer pullRequestMailer,
-	                                      final IssueComments issueComments,
-	                                      final HooksResource hooksResource,
-	                                      final Warnings warnings,
+										  final @Named("current.user") User currentUser,
+										  final CommentBackend commentBackend,
+										  final BuildResults buildResults,
+										  final PullRequests pullRequests,
+										  final PullRequestBackend pullRequestBackend,
+										  final RepositoriesApi repositoriesApi,
+										  final CommentMailer commentMailer,
+										  final PullRequestMailer pullRequestMailer,
+										  final IssueComments issueComments,
+										  final HooksResource hooksResource,
+										  final Warnings warnings,
 										  final MarkDownParser markDownParser,
-	                          			  final Users users) {
+										  final Users users,
+										  final NotificationBackend notificationBackend) {
 		
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users, notificationBackend);
 		this.buildResults = buildResults;
 		this.pullRequests = pullRequests;
 		this.pullRequestBackend = pullRequestBackend;
@@ -150,6 +152,8 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 
 		pullRequestBackend.createPullRequest(repositoryApi, pullRequest);
 		pullRequestMailer.sendReviewMail(pullRequest);
+
+		notificationBackend.createIssueCreatedNotification(pullRequest);
 
 		String uri = request.getRequestURI() + "/" + pullRequest.getIssueId();
 		return Response.seeOther(URI.create(uri)).build();
@@ -246,6 +250,8 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 		String redirect = pullRequest.getURI().toASCIIString();
 		commentMailer.sendCommentMail(comment, redirect);
 
+		notificationBackend.createCommentNotification(comment);
+
 		return response;
 	}
 
@@ -303,6 +309,9 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 
 		PullCloseResponse response = new PullCloseResponse();
 		response.setClosed(true);
+
+		notificationBackend.createIssueClosedNotification(pullRequest);
+
 		return response;
 	}
 
@@ -330,6 +339,7 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 			response.setClosed(true);
 		}
 
+		notificationBackend.createIssueClosedNotification(pullRequest);
 		return response;
 	}
 
@@ -362,6 +372,7 @@ public abstract class AbstractProjectPullResource extends AbstractIssueResource<
 			hooksResource.onGitPush(new GitPush(repositoryEntity.getRepositoryName()));
 		}
 
+		notificationBackend.createBranchMergedNotification(pullRequest);
 		return response;
 	}
 

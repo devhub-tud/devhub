@@ -1,34 +1,17 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-
+import lombok.*;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
+import org.hibernate.annotations.Immutable;
 import org.mindrot.jbcrypt.BCrypt;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -84,6 +67,17 @@ public class User {
 		return getGroups();
 	}
 
+	@Immutable
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
+	@ManyToMany(cascade = CascadeType.REFRESH)
+	@JoinTable(
+			name = "notifications_to_users",
+			joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+			inverseJoinColumns = @JoinColumn(name = "notification_id", referencedColumnName = "id")
+	)
+	public List<Notification> notifications;
+
 	@JsonIgnore
 	public List<Group> listAssistedGroups() {
 		return getAssists().stream()
@@ -116,5 +110,4 @@ public class User {
 		return password != null && this.password != null
 				&& BCrypt.checkpw(password, this.password);
 	}
-	
 }

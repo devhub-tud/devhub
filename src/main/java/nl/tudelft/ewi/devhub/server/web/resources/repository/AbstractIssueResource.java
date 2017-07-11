@@ -5,6 +5,7 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.Users;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
@@ -23,14 +24,16 @@ public abstract class AbstractIssueResource<IssueType extends AbstractIssue> ext
 	protected final CommentMailer commentMailer;
 	protected final RepositoriesApi repositoriesApi;
 	protected final Users users;
+	protected final NotificationBackend notificationBackend;
 	
 	
-	public AbstractIssueResource(final TemplateEngine templateEngine, 
-			final User currentUser, 
-			final CommentBackend commentBackend, 
-			final CommentMailer commentMailer,
-			final RepositoriesApi repositoriesApi,
-			final Users users) {
+	public AbstractIssueResource(final TemplateEngine templateEngine,
+								 final User currentUser,
+								 final CommentBackend commentBackend,
+								 final CommentMailer commentMailer,
+								 final RepositoriesApi repositoriesApi,
+								 final Users users,
+								 final NotificationBackend notificationBackend) {
 		
 		super();
 		this.templateEngine = templateEngine;
@@ -39,6 +42,7 @@ public abstract class AbstractIssueResource<IssueType extends AbstractIssue> ext
 		this.commentMailer = commentMailer;
 		this.repositoriesApi = repositoriesApi;
 		this.users = users;
+		this.notificationBackend = notificationBackend;
 	}
 
 	protected abstract RepositoryEntity getRepositoryEntity();

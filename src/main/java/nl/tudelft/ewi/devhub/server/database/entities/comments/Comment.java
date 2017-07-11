@@ -1,9 +1,11 @@
 package nl.tudelft.ewi.devhub.server.database.entities.comments;
 
+import nl.tudelft.ewi.devhub.server.database.Base;
 import nl.tudelft.ewi.devhub.server.database.entities.Event;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Watchable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -33,7 +35,7 @@ import lombok.EqualsAndHashCode;
 @Entity
 @Inheritance(strategy= InheritanceType.TABLE_PER_CLASS)
 @EqualsAndHashCode(of={"commentId"}, callSuper = false)
-public abstract class Comment implements Event {
+public abstract class Comment implements Event, Base, Watchable {
 
     @Id
     @Column(name = "id")

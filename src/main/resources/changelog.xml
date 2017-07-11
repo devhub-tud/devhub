@@ -1111,7 +1111,6 @@
 			baseTableName="issue_labels" 
 			baseColumnNames="label_id"/>
 	</changeSet>
-
 	<changeSet author="Vera Hoveling" id="add_columns_for_line_changes">
 		<addColumn tableName="commit">
 			<column name="lines_added" type="int" />
@@ -1120,7 +1119,6 @@
 			<column name="lines_removed" type="int" />
 		</addColumn>
 	</changeSet>
-
     <changeSet id="assign_ta_to_assignment" author="Maaike Visser">
         <createTable tableName="assigned_ta">
             <column name="id" type="bigint" autoIncrement="true">
@@ -1160,5 +1158,52 @@
     <changeSet id="add_unique_constraint_assigned_tas" author="Sayra Ranjha">
         <addUniqueConstraint columnNames="course_edition_id,group_number,assignment_id" tableName="assigned_ta"/>
     </changeSet>
-  
+
+	<changeSet id="addedNotificationClasses" author="Arjan Seijs and Casper Henkes">
+		<createTable tableName="notification">
+			<column name="id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="type" type="varchar(255)"/>
+			<column name="user_id" type="bigint"/>
+			<column name="repository_id" type="bigint"/>
+			<column name="comment_id" type="bigint"/>
+			<column name="issue_id" type="bigint"/>
+			<column name="date" type="datetime"/>
+		</createTable>
+
+		<createTable tableName="notifications_to_users">
+			<column name="user_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="notification_id" type="bigint">
+				<constraints nullable="false" />
+			</column>
+			<column name="isRead" type="boolean"></column>
+		</createTable>
+
+		<addPrimaryKey tableName="notifications_to_users" columnNames="user_id, notification_id"/>
+
+		<addForeignKeyConstraint baseTableName="notifications_to_users"
+								 baseColumnNames="notification_id"
+								 constraintName="notification_id_exists_in_notifications"
+								 referencedTableName="notification"
+								 referencedColumnNames="id"/>
+
+		<addForeignKeyConstraint baseTableName="notification" baseColumnNames="user_id"
+								 constraintName="notification_user_id_exists_in_users"
+								 referencedTableName="users"
+								 referencedColumnNames="id"/>
+
+		<addForeignKeyConstraint baseTableName="notifications_to_users" baseColumnNames="user_id"
+								 constraintName="notification_to_user_user_id_exists_in_users"
+								 referencedTableName="users"
+								 referencedColumnNames="id"/>
+
+		<addForeignKeyConstraint referencedTableName="repository_issues"
+								 referencedColumnNames="repository_id, issue_id"
+								 constraintName="notification_issue_id_exists_in_issues"
+								 baseTableName="notification"
+								 baseColumnNames="repository_id, issue_id"/>
+	</changeSet>
 </databaseChangeLog>

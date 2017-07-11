@@ -3,9 +3,12 @@ package nl.tudelft.ewi.devhub.server.web.templating;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
+import com.google.inject.Injector;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.template.*;
 import lombok.SneakyThrows;
+import nl.tudelft.ewi.devhub.server.database.controllers.NotificationController;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import nl.tudelft.ewi.devhub.server.util.MarkDownParser;
 
 import java.io.File;
@@ -24,17 +27,19 @@ public class TemplateEngine {
 	private final Configuration conf;
 	private final TranslatorFactory translatorFactory;
 	private final MarkDownParser markDownParser;
-
+	private final NotificationController notificationController;
 
 	@Inject
 	@SneakyThrows
 	public TemplateEngine(
 		@Named("directory.templates") final File templatesDirectory,
 		TranslatorFactory translatorFactory,
-		MarkDownParser markDownParser
+		MarkDownParser markDownParser,
+		NotificationController notificationController
 	) {
 		this.translatorFactory = translatorFactory;
 		this.markDownParser = markDownParser;
+		this.notificationController = notificationController;
 		this.conf = new Configuration() {
 			{
 				setDirectoryForTemplateLoading(templatesDirectory);
@@ -61,12 +66,14 @@ public class TemplateEngine {
 			Builder<String, Object> builder = ImmutableMap.<String, Object> builder();
 			builder.put("i18n", translator);
 			builder.put("MarkDownParser", markDownParser);
+			builder.put("notificationController", notificationController);
 
 			if (parameters != null) {
 				builder.putAll(parameters);
 			}
 			
 			StringWriter out = new StringWriter();
+
 			conf.getTemplate(template).process(builder.build(), out);
 			return out.toString();
 		}

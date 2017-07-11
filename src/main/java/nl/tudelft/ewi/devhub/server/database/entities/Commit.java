@@ -1,15 +1,18 @@
 package nl.tudelft.ewi.devhub.server.database.entities;
 
+import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import nl.tudelft.ewi.devhub.server.database.Base;
+import nl.tudelft.ewi.devhub.server.database.entities.comments.Comment;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.CommitComment;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Watchable;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -34,6 +37,8 @@ import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @Entity
@@ -41,7 +46,7 @@ import java.util.Objects;
 @IdClass(Commit.CommitId.class)
 @ToString(exclude = {"comments", "buildResult", "parents"})
 @EqualsAndHashCode(of = {"repository", "commitId"})
-public class Commit implements Event, Base {
+public class Commit implements Event, Base, Watchable {
 
 	@Data
 	@NoArgsConstructor
@@ -129,6 +134,17 @@ public class Commit implements Event, Base {
 	@JsonIgnore
 	public boolean hasNoBuildResult() {
 		return Objects.isNull(buildResult);
+	}
+
+	private Set<User> getCommentAuthors() {
+		return getComments().stream()
+				.map(Comment::getUser)
+				.collect(Collectors.toSet());
+	}
+
+	@JsonIgnore
+	public Set<User> getWatchers() {
+		return Sets.union(getRepository().getWatchers(), getCommentAuthors());
 	}
 
 }

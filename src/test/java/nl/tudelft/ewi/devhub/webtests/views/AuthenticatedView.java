@@ -10,6 +10,8 @@ public class AuthenticatedView extends View {
 
 	private static final By HEADER = By.xpath("//nav");
 
+	private static final By NOTIFICATIONS_BUTTON = By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li[1]/a");
+
 	private static final By BUILD_SERVERS_BUTTON = By.xpath("//a[text()='Build servers']");
 
 	private static final By COURSES_BUTTON = By.xpath("//a[text()='Courses']");
@@ -57,6 +59,17 @@ public class AuthenticatedView extends View {
 		waitUntilCurrentUrlDiffersFrom(url);
 
 		return new LoginView(getDriver());
+	}
+
+	public NotificationView toNotificationView() {
+
+		String url = getDriver().getCurrentUrl();
+
+		getDriver().findElement(NOTIFICATIONS_BUTTON).click();
+
+		//waitUntilCurrentUrlDiffersFrom(url);
+
+		return new NotificationView(getDriver());
 	}
 
 	public void distributeTAs() {

@@ -35,6 +35,9 @@ public class CommentBackend {
     @Inject
     private EntityManager entityManager;
 
+    @Inject
+    private NotificationBackend notificationBackend;
+
     /**
      * Post a new comment. Must be admin or assistant of the course
      * or a member of the group to comment on.
@@ -58,6 +61,8 @@ public class CommentBackend {
         catch (Exception e) {
             throw new ApiError("error.could-not-comment", e);
         }
+
+        notificationBackend.createCommentNotification(comment);
     }
 
     /**

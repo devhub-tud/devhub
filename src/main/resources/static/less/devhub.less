@@ -962,6 +962,29 @@ img.emoji {
 	margin-top: -3px !important;
 }
 
+p.notificationTitle {
+	font-size: x-large;
+}
+.hasNotification::after {
+	color: white;
+	background-color: red;
+	border-color: white;
+	content: attr(data-amount);
+}
+
+.notification.read {
+	background-color: rgba(130,255,130,0.5);
+}
+
+.notification.unread {
+	background-color: rgba(250,70,70,0.5);
+}
+
+.notificationtitle {
+	text-decoration: none;
+	color: black;
+}
+
 .progress-grading {
 	display: inline-block;
 	width: 5em;

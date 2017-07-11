@@ -1,37 +1,10 @@
 package nl.tudelft.ewi.devhub.server.web.resources.repository;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import com.google.common.collect.Sets;
-
 import com.google.common.base.Strings;
-
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
@@ -41,13 +14,25 @@ import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 import nl.tudelft.ewi.devhub.server.database.entities.User;
 import nl.tudelft.ewi.devhub.server.database.entities.comments.IssueComment;
 import nl.tudelft.ewi.devhub.server.database.entities.issues.Issue;
-import nl.tudelft.ewi.devhub.server.database.entities.issues.IssueLabel;
+import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.devhub.server.web.errors.UnauthorizedException;
 import nl.tudelft.ewi.devhub.server.web.resources.Resource;
 import nl.tudelft.ewi.devhub.server.web.templating.TemplateEngine;
 import nl.tudelft.ewi.git.models.RepositoryModel;
 import nl.tudelft.ewi.git.web.api.RepositoriesApi;
 import nl.tudelft.ewi.git.web.api.RepositoryApi;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -63,6 +48,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	protected Issues issues;
 	protected IssueBackend issueBackend;
 	protected IssueComments issueComments;
+	protected NotificationBackend notificationBackend;
 	@Context HttpServletRequest request;
 	
 	public AbstractProjectIssueResource( final TemplateEngine templateEngine, 
@@ -74,15 +60,17 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 			final Issues issues, 
 			final IssueBackend issueBackend,
 			final Users users,
-			final IssueComments issueComments) {
+			final IssueComments issueComments,
+			final NotificationBackend notificationBackend) {
 		
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users);
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, users, notificationBackend);
 		
 		this.repositoriesController = repositoriesController;
 		
 		this.issues = issues;
 		this.issueBackend = issueBackend;
 		this.issueComments = issueComments;
+		this.notificationBackend = notificationBackend;
 	}
 	
 	@GET
@@ -154,6 +142,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 				.collect(Collectors.toSet()));
 		
 		issueBackend.createIssue(getRepositoryApi(getRepositoryEntity()), issue);
+		notificationBackend.createIssueCreatedNotification(issue);
 		
 		return redirect(issue.getURI().toString());
 	}
@@ -234,6 +223,12 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		
 		issues.merge(issue);
 
+		if(issue.isClosed()) {
+			notificationBackend.createIssueClosedNotification(issue);
+		} else {
+			notificationBackend.createIssueEditedNotification(issue);
+		}
+
 		return redirect(issue.getURI());
 	}
 	
@@ -242,7 +237,7 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 	@Path("/issue/{issueId}/comment")
 	public Response addComment(
 			@PathParam("issueId") long issueId,
-			@FormParam("content") String content) throws IOException {
+			@FormParam("content") String content) throws IOException, ApiError {
 		
 		Issue issue = issues.findIssueById(getRepositoryEntity(), issueId)
 			.orElseThrow(NotFoundException::new);
@@ -250,9 +245,8 @@ public abstract class AbstractProjectIssueResource extends AbstractIssueResource
 		comment.setContent(content);
 		comment.setIssue(issue);
 		comment.setUser(currentUser);
-		
-		issueComments.persist(comment);
 
+		commentBackend.post(comment);
 		return redirect(issue.getURI());
 	}
 	

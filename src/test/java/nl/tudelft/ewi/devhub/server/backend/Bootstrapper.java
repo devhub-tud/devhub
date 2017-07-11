@@ -4,16 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.Strings;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import nl.tudelft.ewi.devhub.server.database.controllers.Assignments;
-import nl.tudelft.ewi.devhub.server.database.controllers.CourseEditions;
-import nl.tudelft.ewi.devhub.server.database.controllers.Courses;
-import nl.tudelft.ewi.devhub.server.database.controllers.Deliveries;
-import nl.tudelft.ewi.devhub.server.database.controllers.Groups;
-import nl.tudelft.ewi.devhub.server.database.controllers.Users;
+import nl.tudelft.ewi.devhub.server.database.controllers.*;
 import nl.tudelft.ewi.devhub.server.database.embeddables.TimeSpan;
 import nl.tudelft.ewi.devhub.server.database.entities.*;
 import nl.tudelft.ewi.devhub.server.database.entities.Delivery.Review;
 import nl.tudelft.ewi.devhub.server.database.entities.builds.MavenBuildInstructionEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.Notification;
 import nl.tudelft.ewi.devhub.server.web.errors.ApiError;
 import nl.tudelft.ewi.git.models.GroupModel;
 import nl.tudelft.ewi.git.models.IdentifiableModel;
@@ -32,6 +28,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -115,13 +113,15 @@ public class Bootstrapper {
 	private final ProjectsBackend projects;
 	private final Deliveries deliveries;
     private final Assignments assignments;
+    private final NotificationController notificationController;
 	private final EntityManager entityManager;
 
 	@Inject
 	Bootstrapper(Users users, Courses courses, CourseEditions courseEditions, Groups groups,
 			MockedAuthenticationBackend authBackend, ObjectMapper mapper,
 			RepositoriesApi repositoriesApi, ProjectsBackend projects, Assignments assignments,
-			Deliveries deliveries, GroupsApi groupsApi, EntityManager entityManager) {
+			Deliveries deliveries, GroupsApi groupsApi, NotificationController notificationController,
+			 EntityManager entityManager) {
 		
 		this.users = users;
 		this.courses = courses;
@@ -134,11 +134,12 @@ public class Bootstrapper {
 		this.assignments = assignments;
 		this.deliveries = deliveries;
 		this.groupsApi = groupsApi;
+		this.notificationController = notificationController;
 		this.entityManager = entityManager;
 	}
 	
 	@Transactional
-	public void prepare(String path) throws IOException, ApiError {
+	public void prepare(String path) throws IOException, ApiError, URISyntaxException {
 		InputStream inputStream = Bootstrapper.class.getResourceAsStream(path);
 		BState state = mapper.readValue(inputStream, BState.class);
 		

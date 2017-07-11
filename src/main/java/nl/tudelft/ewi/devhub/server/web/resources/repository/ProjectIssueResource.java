@@ -10,6 +10,7 @@ import com.google.inject.servlet.RequestScoped;
 
 import nl.tudelft.ewi.devhub.server.backend.CommentBackend;
 import nl.tudelft.ewi.devhub.server.backend.IssueBackend;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.CommentMailer;
 import nl.tudelft.ewi.devhub.server.database.controllers.IssueComments;
 import nl.tudelft.ewi.devhub.server.database.controllers.Issues;
@@ -29,18 +30,19 @@ public class ProjectIssueResource extends AbstractProjectIssueResource {
 	
 	@Inject
 	public ProjectIssueResource(
-			final TemplateEngine templateEngine, 
+			final TemplateEngine templateEngine,
 			@Named("current.user") final User currentUser,
 			@Named("current.group") final Group group,
 			final CommentBackend commentBackend,
-			final CommentMailer commentMailer, 
+			final CommentMailer commentMailer,
 			final RepositoriesController repositoriesController,
-			final RepositoriesApi repositoriesApi, 
-			final Issues issues, 
+			final RepositoriesApi repositoriesApi,
+			final Issues issues,
 			final IssueBackend issueBackend,
 			final Users users,
-			final IssueComments issueComments ) {
-		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, repositoriesController, issues, issueBackend, users, issueComments);
+			final IssueComments issueComments,
+			final NotificationBackend notificationBackend) {
+		super(templateEngine, currentUser, commentBackend, commentMailer, repositoriesApi, repositoriesController, issues, issueBackend, users, issueComments, notificationBackend);
 
 		this.group = group;
 		

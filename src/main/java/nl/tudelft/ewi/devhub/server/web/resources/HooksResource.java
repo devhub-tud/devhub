@@ -8,6 +8,7 @@ import com.google.inject.servlet.RequestScoped;
 import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.build.jaxrs.models.BuildResult.Status;
 import nl.tudelft.ewi.devhub.server.backend.BuildsBackend.BuildSubmitter;
+import nl.tudelft.ewi.devhub.server.backend.NotificationBackend;
 import nl.tudelft.ewi.devhub.server.backend.mail.BuildResultMailer;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator;
 import nl.tudelft.ewi.devhub.server.backend.warnings.CheckstyleWarningGenerator.CheckStyleReport;
@@ -23,6 +24,7 @@ import nl.tudelft.ewi.devhub.server.database.controllers.Warnings;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.Commit;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
+import nl.tudelft.ewi.devhub.server.database.entities.notifications.BuildNotification;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.CheckstyleWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.FindbugsWarning;
 import nl.tudelft.ewi.devhub.server.database.entities.warnings.PMDWarning;
@@ -66,6 +68,7 @@ public class HooksResource extends Resource {
 	private final SuccessiveBuildFailureGenerator successiveBuildFailureGenerator;
 	private final EventBus asyncEventBus;
 	private final BuildSubmitter buildSubmitter;
+	private final NotificationBackend notificationBackend;
 
 	@Inject
 	public HooksResource(BuildResults buildResults,
@@ -78,7 +81,8 @@ public class HooksResource extends Resource {
 	                     CheckstyleWarningGenerator checkstyleWarningGenerator,
 	                     SuccessiveBuildFailureGenerator successiveBuildFailureGenerator,
 	                     EventBus asyncEventBus,
-	                     BuildSubmitter buildSubmitter) {
+	                     BuildSubmitter buildSubmitter,
+						 NotificationBackend notificationBackend) {
 		this.mailer = mailer;
 		this.commits = commits;
 		this.warnings = warnings;
@@ -90,6 +94,7 @@ public class HooksResource extends Resource {
 		this.checkstyleWarningGenerator = checkstyleWarningGenerator;
 		this.successiveBuildFailureGenerator = successiveBuildFailureGenerator;
 		this.buildSubmitter = buildSubmitter;
+		this.notificationBackend = notificationBackend;
 	}
 
 	/**
@@ -135,6 +140,10 @@ public class HooksResource extends Resource {
 
 			buildResults.persist(result);
 		}
+
+		BuildNotification buildNotification = new BuildNotification();
+		buildNotification.setBuildResult(result);
+		notificationBackend.createNotification(buildNotification);
 
 		if (!result.getSuccess()) {
 			mailer.sendFailedBuildResult(Lists.newArrayList(Locale.ENGLISH), result);

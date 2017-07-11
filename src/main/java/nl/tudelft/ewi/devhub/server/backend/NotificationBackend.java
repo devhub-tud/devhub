@@ -33,7 +33,7 @@ public class NotificationBackend {
     }
 
     @Transactional
-    private <T extends Notification & HasWatchable> void createNotification(T notification) {
+    public <T extends Notification & HasWatchable> void createNotification(T notification) {
         createNotification(notification, notification.getWatchable().getWatchers());
     }
 

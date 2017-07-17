@@ -19,15 +19,11 @@ public class IssueAssignedNotification extends AbstractIssueNotification {
     }
 
     @Override
-    protected String getDescriptionResourceKey() {
-        return "notifications.issue.empty-message";
-    }
-
-    @Override
     protected Object[] getTitleParameters() {
         return new Object[] {
                 getSender().getName(),
                 getIssue().getIssueId(),
+                getIssue().getTitle(),
                 getAssignee()
         };
     }

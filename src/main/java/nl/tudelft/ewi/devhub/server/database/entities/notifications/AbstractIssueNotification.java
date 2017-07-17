@@ -47,4 +47,15 @@ public abstract class AbstractIssueNotification extends Notification implements 
     public Watchable getWatchable() {
         return getIssue();
     }
+
+    @Override
+    protected Object[] getTitleParameters() {
+        return new Object[] { getSender().getName(), getIssue().getIssueId(), getIssue().getTitle()};
+    }
+
+    @Override
+    protected String getDescriptionResourceKey() {
+        return "notifications.issue.empty-message";
+    }
+
 }

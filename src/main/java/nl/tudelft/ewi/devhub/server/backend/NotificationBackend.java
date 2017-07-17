@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.devhub.server.backend;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import nl.tudelft.ewi.devhub.server.database.controllers.NotificationController;
@@ -12,6 +13,7 @@ import nl.tudelft.ewi.devhub.server.database.entities.notifications.*;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -23,13 +25,13 @@ import static java.util.Objects.nonNull;
 public class NotificationBackend {
 
     private final NotificationController notificationController;
-    private final User currentUser;
+    private final Provider<User> currentUserProvider;
 
 
     @Inject
-    public NotificationBackend(NotificationController notificationController, @Named("current.user") User currentUser) {
+    public NotificationBackend(NotificationController notificationController, @Named("current.user") Provider<User> currentUserProvider) {
         this.notificationController = notificationController;
-        this.currentUser = currentUser;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional
@@ -39,13 +41,21 @@ public class NotificationBackend {
 
     @Transactional
     private void createNotification(Notification notification, Collection<User> receivers) {
+        AtomicReference<User> userAtomicReference = new AtomicReference<>();
+        try {
+            userAtomicReference.set(currentUserProvider.get());
+        }
+        catch (Exception e) {
+            // System
+        }
+
         notification.setRecipients(
             receivers.stream()
-                .filter(user -> ! user.equals(currentUser))
+                .filter(user -> ! user.equals(userAtomicReference.get()))
                 .collect(Collectors.toMap(Function.identity(), a -> false))
         );
 
-        notification.setSender(currentUser);
+        notification.setSender(userAtomicReference.get());
         notificationController.persist(notification);
     }
 

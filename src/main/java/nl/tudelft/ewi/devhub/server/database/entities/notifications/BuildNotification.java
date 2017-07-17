@@ -1,9 +1,11 @@
 package nl.tudelft.ewi.devhub.server.database.entities.notifications;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import nl.tudelft.ewi.devhub.server.database.entities.BuildResult;
 import nl.tudelft.ewi.devhub.server.database.entities.RepositoryEntity;
 
+import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.OneToOne;
@@ -13,6 +15,8 @@ import java.net.URI;
  * Created by jgmeligmeyling on 11/07/2017.
  */
 @Data
+@Entity
+@EqualsAndHashCode(callSuper = true)
 public class BuildNotification extends Notification implements RepositoryNotification, HasWatchable {
 
     @OneToOne

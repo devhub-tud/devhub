@@ -1206,4 +1206,14 @@
 								 baseTableName="notification"
 								 baseColumnNames="repository_id, issue_id"/>
 	</changeSet>
+
+	<changeSet id="add_commit_id" author="Jan-Willem Gmelig Meyling">
+		<addColumn tableName="notification">
+			<column name="commit_id" type="varchar(40)"/>
+		</addColumn>
+
+		<addForeignKeyConstraint constraintName="notification_commit_in_commits"
+								 baseTableName="notification" baseColumnNames="repository_id, commit_id"
+								 referencedTableName="commit" referencedColumnNames="repository_id, commit_id" />
+	</changeSet>
 </databaseChangeLog>
